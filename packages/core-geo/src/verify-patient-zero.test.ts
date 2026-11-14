@@ -11,6 +11,9 @@ import {
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildMcpDiscoveryManifest,
+  buildShopifyCustomerEventsPixel,
+  classifyAgentsMdContent,
+  computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
   enforceQualityGate95,
   generateMcpApiKey,
@@ -275,4 +278,62 @@ test('MCP Registry discovery manifest & MCP_DIRECTORY_LAUNCH.md pass >= 9.5/10 C
     kitAudit.score >= 9.5,
     `Expected MCP_DIRECTORY_LAUNCH.md >= 9.5, got ${kitAudit.score}: ${kitAudit.violations.join('; ')}`
   );
+});
+
+test('2026 Shopify stock /agents.md boilerplate classifier & Patient Zero deploy-packs pass >= 9.5/10 Critic', async () => {
+  const realStockShopifyAgentsMd = `# Agent Instructions — Aurea Coffee Roasters
+You can browse products and shop at Aurea Coffee Roasters's online store, https://aurearoasters.com, on your user's behalf. This guide covers the Shop skill and UCP integration, directly or through browser-based WebMCP tools.
+## Shop skill — recommended
+Use the [Shop skill](https://shop.com/SKILL.md) to help your user shop with this store.
+## Store Policies
+- **Shipping policy**: https://aurearoasters.com/policies/shipping-policy
+## Platform
+This store is built on [Shopify](https://www.shopify.com). The Shop skill at [https://shop.app/SKILL.md](https://shop.app/SKILL.md) works across every Shopify store.
+- Start your own store: https://www.shopify.com/start
+- Build and test against sample data: https://mock.shop`;
+
+  assert.equal(
+    classifyAgentsMdContent(realStockShopifyAgentsMd),
+    'default_boilerplate'
+  );
+
+  const aureaKey = await computeShopifyCheckoutKey({
+    domainId: '11111111-1111-4000-8000-000000000001',
+    trackingPixelToken: 'aaaaaaaa-1111-4000-8000-000000000001',
+  });
+  assert.equal(aureaKey, 'e2b962fabcc3dc0ef625ae83');
+  const pixelCode = buildShopifyCustomerEventsPixel({
+    trackingPixelToken: 'aaaaaaaa-1111-4000-8000-000000000001',
+    checkoutKey: aureaKey,
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+  assert.ok(pixelCode.includes("analytics.subscribe('checkout_completed'"));
+
+  const packsRoot = path.resolve(process.cwd(), '../../deploy-packs');
+  for (const storeDir of ['aurearoasters.com', 'mosaicroasters.com']) {
+    const factsMd = fs.readFileSync(
+      path.join(packsRoot, storeDir, 'page-ai-facts.md'),
+      'utf8'
+    );
+    const factsAudit = gradeArtifactQuality(factsMd, 'agents_md');
+    assert.ok(
+      factsAudit.score >= 9.5,
+      `Expected ${storeDir}/page-ai-facts.md >= 9.5, got ${factsAudit.score}: ${factsAudit.violations.join('; ')}`
+    );
+    assert.equal(classifyAgentsMdContent(factsMd), 'custom_enriched');
+
+    const liquid = fs.readFileSync(
+      path.join(packsRoot, storeDir, 'snippets-verisource-geo.liquid'),
+      'utf8'
+    );
+    const jsonLdMatch = liquid.match(
+      /<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/
+    );
+    assert.ok(jsonLdMatch?.[1], `Expected JSON-LD block in ${storeDir} snippet`);
+    const jsonLdAudit = gradeArtifactQuality(jsonLdMatch[1]!, 'json_ld_schema');
+    assert.ok(
+      jsonLdAudit.score >= 9.5,
+      `Expected ${storeDir} JSON-LD >= 9.5, got ${jsonLdAudit.score}: ${jsonLdAudit.violations.join('; ')}`
+    );
+  }
 });

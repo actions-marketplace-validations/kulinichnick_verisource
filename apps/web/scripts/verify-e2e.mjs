@@ -446,7 +446,41 @@ async function run() {
     assert.equal(registryAuthRes.status, 200);
     const registryAuthText = await registryAuthRes.text();
     assert.ok(registryAuthText.startsWith('v=MCPv1; k=ed25519; p='));
-    console.log('✔ [16/16] /.well-known/mcp-registry-auth Ed25519 domain proof verified');
+    console.log('✔ [16/17] /.well-known/mcp-registry-auth Ed25519 domain proof verified');
+
+    // 15. Shopify Customer Events Sandboxed Checkout Pixel (Origin: null CSRF defense + valid checkout_key 201)
+    const unauthNullOriginRes = await fetch(`${BASE}/api/pixel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'null',
+      },
+      body: JSON.stringify({
+        token: 'aaaaaaaa-1111-4000-8000-000000000001',
+        event_type: 'ai_referral_conversion',
+        source_engine: 'chatgpt.com',
+        conversion_value_usd: 109.95,
+      }),
+    });
+    assert.equal(unauthNullOriginRes.status, 403);
+
+    const validShopifySandboxPixelRes = await fetch(`${BASE}/api/pixel`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'null',
+      },
+      body: JSON.stringify({
+        token: 'aaaaaaaa-1111-4000-8000-000000000001',
+        checkout_key: 'e2b962fabcc3dc0ef625ae83',
+        event_type: 'ai_referral_conversion',
+        source_engine: 'chatgpt.com',
+        landing_path: '/checkouts/thank-you',
+        conversion_value_usd: 109.95,
+      }),
+    });
+    assert.equal(validShopifySandboxPixelRes.status, 201);
+    console.log('✔ [17/17] Shopify Customer Events sandboxed pixel blocked unauthenticated Origin:null (403) & recorded verified checkout_key (201)');
   } finally {
     server.kill();
   }

@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { normalizeAiReferralSource } from '@verisource/core-geo';
+import {
+  computeShopifyCheckoutKey,
+  normalizeAiReferralSource,
+} from '@verisource/core-geo';
 import { z } from 'zod';
 import {
   lookupDomainByPixelToken,
@@ -14,6 +17,10 @@ const PIXEL_CORS_HEADERS: Record<string, string> = {
 
 const PixelPayloadSchema = z.object({
   token: z.string().uuid(),
+  checkout_key: z
+    .string()
+    .regex(/^[0-9a-f]{24}$/)
+    .optional(),
   event_type: z.enum([
     'ai_referral_visit',
     'ai_referral_conversion',
@@ -60,34 +67,56 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    let callerHost: string;
-    let expectedHost: string;
-    try {
-      callerHost = new URL(originHeader).hostname
-        .toLowerCase()
-        .replace(/^www\./, '');
-      expectedHost = new URL(domain.domain_url).hostname
-        .toLowerCase()
-        .replace(/^www\./, '');
-    } catch {
-      return NextResponse.json(
-        { error: 'MALFORMED_ORIGIN' },
-        { status: 403, headers: PIXEL_CORS_HEADERS }
-      );
-    }
+    // Shopify Customer Events Custom Web Pixels execute inside a sandboxed iframe (`Origin: null`).
+    // Require the workspace-only 24-hex SHA-256 checkout_key to block cross-site sandboxed iframe spoofing.
+    if (originHeader.trim().toLowerCase() === 'null') {
+      const expectedCheckoutKey = await computeShopifyCheckoutKey({
+        domainId: domain.id,
+        trackingPixelToken: domain.tracking_pixel_token,
+      });
+      if (
+        !parsed.data.checkout_key ||
+        parsed.data.checkout_key !== expectedCheckoutKey
+      ) {
+        return NextResponse.json(
+          {
+            error: 'INVALID_SANDBOX_CHECKOUT_KEY',
+            message:
+              'Sandboxed Shopify Customer Events pixels require a valid checkout_key.',
+          },
+          { status: 403, headers: PIXEL_CORS_HEADERS }
+        );
+      }
+    } else {
+      let callerHost: string;
+      let expectedHost: string;
+      try {
+        callerHost = new URL(originHeader).hostname
+          .toLowerCase()
+          .replace(/^www\./, '');
+        expectedHost = new URL(domain.domain_url).hostname
+          .toLowerCase()
+          .replace(/^www\./, '');
+      } catch {
+        return NextResponse.json(
+          { error: 'MALFORMED_ORIGIN' },
+          { status: 403, headers: PIXEL_CORS_HEADERS }
+        );
+      }
 
-    const isLocalhostDev =
-      process.env.NODE_ENV !== 'production' &&
-      (callerHost === 'localhost' || callerHost === '127.0.0.1');
+      const isLocalhostDev =
+        process.env.NODE_ENV !== 'production' &&
+        (callerHost === 'localhost' || callerHost === '127.0.0.1');
 
-    if (!isLocalhostDev && callerHost !== expectedHost) {
-      return NextResponse.json(
-        {
-          error: 'ORIGIN_MISMATCH',
-          message: `Origin ${callerHost} is not authorized to record attribution for ${expectedHost}.`,
-        },
-        { status: 403, headers: PIXEL_CORS_HEADERS }
-      );
+      if (!isLocalhostDev && callerHost !== expectedHost) {
+        return NextResponse.json(
+          {
+            error: 'ORIGIN_MISMATCH',
+            message: `Origin ${callerHost} is not authorized to record attribution for ${expectedHost}.`,
+          },
+          { status: 403, headers: PIXEL_CORS_HEADERS }
+        );
+      }
     }
 
     const normalizedEngine = normalizeAiReferralSource(parsed.data.source_engine);

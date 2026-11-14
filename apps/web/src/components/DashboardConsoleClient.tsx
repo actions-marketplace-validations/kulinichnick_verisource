@@ -7,6 +7,8 @@ import {
   buildAgencyColdOutreachNote,
   buildAiAttributionSnippet,
   buildImplementationBundleMarkdown,
+  buildShopifyCustomerEventsPixel,
+  computeShopifyCheckoutKey,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
@@ -114,8 +116,9 @@ export function DashboardConsoleClient(props: {
     () => props.initialData.pitchReports[0]?.share_slug ?? ''
   );
 
-  // Tab 1 Hallucination Drift Alert state
+  // Tab 1 Hallucination Drift Alert & Shopify Checkout Pixel state
   const [sendingAlert, setSendingAlert] = useState(false);
+  const [shopifyCheckoutKey, setShopifyCheckoutKey] = useState<string>('');
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     subject: string;
     text: string;
@@ -225,6 +228,20 @@ export function DashboardConsoleClient(props: {
       )
     );
     setLastAlertPreview(null);
+    let cancelled = false;
+    if (activeDomain.is_shopify) {
+      void computeShopifyCheckoutKey({
+        domainId: activeDomain.id,
+        trackingPixelToken: activeDomain.tracking_pixel_token,
+      }).then((key) => {
+        if (!cancelled) setShopifyCheckoutKey(key);
+      });
+    } else {
+      setShopifyCheckoutKey('');
+    }
+    return () => {
+      cancelled = true;
+    };
   }, [activeDomain]);
 
   const domainSnapshots = data.snapshots.filter(
@@ -695,6 +712,15 @@ export function DashboardConsoleClient(props: {
         ingestionUrl: 'https://verisource.dev/api/pixel',
       })
     : '';
+
+  const shopifyCheckoutPixel =
+    activeDomain?.is_shopify && shopifyCheckoutKey
+      ? buildShopifyCustomerEventsPixel({
+          trackingPixelToken: activeDomain.tracking_pixel_token,
+          checkoutKey: shopifyCheckoutKey,
+          ingestionUrl: 'https://verisource.dev/api/pixel',
+        })
+      : '';
 
   const mcpClientConfigJson = JSON.stringify(
     {
@@ -1214,9 +1240,19 @@ export function DashboardConsoleClient(props: {
 
               <CodeArtifactCard
                 title={`10-Line Attribution Pixel (${activeDomain.brand_name})`}
-                fileHint="Paste before </head>; call window.verisourceConversion(orderTotal) on checkout thank-you"
+                fileHint="Paste before </head> in layout/theme.liquid for AI referral visits"
                 code={pixelSnippet}
               />
+
+              {shopifyCheckoutPixel ? (
+                <div style={{ marginTop: '14px' }}>
+                  <CodeArtifactCard
+                    title={`Shopify Customer Events Checkout Pixel (${activeDomain.brand_name})`}
+                    fileHint="Shopify Admin -> Settings -> Customer events -> Add custom pixel (tracks checkout_completed USD)"
+                    code={shopifyCheckoutPixel}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         ) : null}

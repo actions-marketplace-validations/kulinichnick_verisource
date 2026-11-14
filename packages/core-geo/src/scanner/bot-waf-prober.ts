@@ -165,12 +165,28 @@ export function classifyAgentsMdContent(raw: string | null): AgentsMdStatus {
   if (!raw || raw.trim().length < 24) return 'missing';
   const lower = raw.toLowerCase();
 
-  const hasCustomTruthSignals =
+  // Real-world 2026 Shopify stock /agents.md & /llms.txt boilerplate markers
+  const hasStockShopifyPlatformFooter =
+    lower.includes('start your own store: https://www.shopify.com/start') ||
+    lower.includes('https://mock.shop') ||
+    lower.includes('https://shop.app/skill.md') ||
+    lower.includes('https://shop.com/skill.md') ||
+    lower.includes('this guide covers the shop skill and ucp integration');
+
+  const hasExplicitMerchantTruth =
     lower.includes('verified') ||
-    lower.includes('pricing') ||
-    lower.includes('shipping') ||
     lower.includes('exclusions') ||
-    lower.includes('free delivery') ||
+    lower.includes('does not sell') ||
+    lower.includes('free local delivery') ||
+    /\$\d{1,4}(?:\.\d{2})?/.test(raw);
+
+  if (hasStockShopifyPlatformFooter && !hasExplicitMerchantTruth) {
+    return 'default_boilerplate';
+  }
+
+  const hasCustomTruthSignals =
+    hasExplicitMerchantTruth ||
+    lower.includes('pricing') ||
     lower.includes('faq') ||
     raw.split(/\r?\n/).length > 28;
 

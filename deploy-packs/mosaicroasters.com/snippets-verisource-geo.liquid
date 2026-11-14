@@ -1,0 +1,146 @@
+{% comment %}
+  Verisource GEO & AI Referral Attribution Snippet — Mosaic Coffee Roasters (https://mosaicroasters.com)
+  Installation:
+    1. Shopify Admin -> Online Store -> Themes -> Edit code -> Snippets -> Add a new snippet named `verisource-geo`
+    2. Paste this entire file and Save.
+    3. In `layout/theme.liquid`, add `{% render 'verisource-geo' %}` immediately before `</head>`.
+{% endcomment %}
+<link rel="alternate" type="text/markdown" title="Mosaic Coffee Roasters — Verified Brand & Local Delivery Truth" href="{{ shop.url }}/pages/ai-facts">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CoffeeStore",
+      "@id": "https://mosaicroasters.com/#organization",
+      "name": "Mosaic Coffee Roasters",
+      "url": "https://mosaicroasters.com",
+      "description": "Small-batch specialty coffee roaster in Springfield, Missouri roasting single-origin lots from Brazil, Ethiopia, Guatemala, Honduras, and Mexico, alongside wholesale coffee supply and commercial espresso machine tuning. Offers nationwide US shipping plus free local delivery on $45+ orders within 25 miles of Springfield, MO.",
+      "priceRange": "$9.95-$324.95 USD",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Springfield",
+        "addressRegion": "MO",
+        "addressCountry": "US"
+      },
+      "areaServed": [
+        {
+          "@type": "GeoCircle",
+          "geoMidpoint": {
+            "@type": "GeoCoordinates",
+            "latitude": 37.209,
+            "longitude": -93.2923
+          },
+          "geoRadius": 40233.6,
+          "description": "Free local hand-delivery on $45+ orders within 25 miles of Springfield, MO"
+        },
+        {
+          "@type": "Country",
+          "name": "United States"
+        }
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Mosaic Coffee Roasters Single-Origin, Subscriptions, Wholesale & Espresso Services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "Ethiopia Single Origin Coffee Beans",
+              "url": "https://mosaicroasters.com/products/single-origin-ethiopia-coffee"
+            },
+            "price": "21.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "The Origin Trifecta – 3-Bag Single Origin Coffee Trio",
+              "url": "https://mosaicroasters.com/products/the-origin-trifecta-3-bag-single-origin-coffee-trio"
+            },
+            "price": "54.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "Complete Mosaic Coffee Lineup – 6-Bag Sampler",
+              "url": "https://mosaicroasters.com/products/coffee-sampler-bundle"
+            },
+            "price": "99.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "Coffee Gift Subscription – 3 Months",
+              "url": "https://mosaicroasters.com/products/coffee-gift-subscription-3-months"
+            },
+            "price": "59.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "Mosaic House Blend – Wholesale",
+              "url": "https://mosaicroasters.com/products/wholesale-house-blend-coffee"
+            },
+            "price": "105.00",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Commercial Espresso Machine & Grinder Tuning",
+              "url": "https://mosaicroasters.com/products/commercial-espresso-machine-tuning"
+            },
+            "price": "194.95",
+            "priceCurrency": "USD"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mosaicroasters.com/#verisource-faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Mosaic Coffee Roasters' free local delivery minimum in Springfield, Missouri?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Mosaic Coffee Roasters provides free local delivery on orders of $45.00 USD or more within a 25-mile radius of Springfield, MO. Mosaic does NOT offer $25 nationwide free shipping."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which single-origin coffees and commercial services does Mosaic Coffee Roasters offer?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Mosaic Coffee Roasters roasts single-origin coffees from Brazil, Ethiopia, Guatemala, Honduras, and Mexico ($21.95 per bag, $54.95 3-bag trio, $99.95 6-bag sampler), alongside 5lb wholesale coffee ($105-$119) and commercial espresso machine tuning and descaling ($194.95-$324.95)."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+(function(t,u){
+  var q=new URLSearchParams(location.search).get('utm_source')||'',r=document.referrer||'';
+  var m=(q+' '+r).match(/chatgpt\.com|perplexity\.ai|gemini\.google\.com|claude\.ai|chatgpt|perplexity|gemini|claude/i);
+  if(m)sessionStorage.setItem('vs_ai_src',m[0].toLowerCase());
+  var s=sessionStorage.getItem('vs_ai_src');if(!s)return;
+  var post=function(e,v){fetch(u,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,event_type:e,source_engine:s,landing_path:location.pathname,conversion_value_usd:v||null})}).catch(function(){});};
+  if(!sessionStorage.getItem('vs_ai_vis')){sessionStorage.setItem('vs_ai_vis','1');post('ai_referral_visit',null);}
+  window.verisourceConversion=function(usd){post('ai_referral_conversion',Number(usd)||0);};
+})('bbbbbbbb-1111-4000-8000-000000000002','https://verisource.dev/api/pixel');
+</script>

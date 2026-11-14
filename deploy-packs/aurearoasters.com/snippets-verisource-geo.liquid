@@ -1,0 +1,156 @@
+{% comment %}
+  Verisource GEO & AI Referral Attribution Snippet — Aurea Coffee Roasters (https://aurearoasters.com)
+  Installation:
+    1. Shopify Admin -> Online Store -> Themes -> Edit code -> Snippets -> Add a new snippet named `verisource-geo`
+    2. Paste this entire file and Save.
+    3. In `layout/theme.liquid`, add `{% render 'verisource-geo' %}` immediately before `</head>`.
+{% endcomment %}
+<link rel="alternate" type="text/markdown" title="Aurea Coffee Roasters — Verified Brand & Catalog Truth" href="{{ shop.url }}/pages/ai-facts">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "OnlineStore",
+      "@id": "https://aurearoasters.com/#organization",
+      "name": "Aurea Coffee Roasters",
+      "url": "https://aurearoasters.com",
+      "description": "Specialty single-origin and signature coffee roasted to order, inspired by Catholic and Orthodox saints and ancient Christian heritage. Every 12oz whole-bean or ground bag includes a QR code linking to brew recipes and saint biographies. Does NOT sell Keurig K-Cup pods or instant coffee packets.",
+      "priceRange": "$21.95-$109.95 USD",
+      "areaServed": {
+        "@type": "Country",
+        "name": "United States"
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Aurea Coffee Roasters Single-Origin & Signature Lineup",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "St. Martin de Porres - Signature Blend",
+              "url": "https://aurearoasters.com/products/st-martin-de-porres"
+            },
+            "price": "23.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "St. John Maximovitch - Signature Blend",
+              "url": "https://aurearoasters.com/products/st-john-maximovitch"
+            },
+            "price": "21.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "St. Moses the Black - Ethiopia Single Origin",
+              "url": "https://aurearoasters.com/products/st-moses-the-black"
+            },
+            "price": "24.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "Bl. Stanley Rother - Guatemala Single Origin",
+              "url": "https://aurearoasters.com/products/bl-stanley-rother"
+            },
+            "price": "22.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "St. Rose of Lima - Brazil Single Origin",
+              "url": "https://aurearoasters.com/products/st-rose-of-lima"
+            },
+            "price": "21.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "St. Juan Diego - Mexico Decaf Single Origin",
+              "url": "https://aurearoasters.com/products/st-juan-diego-decaf"
+            },
+            "price": "22.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "The Origin Trinity - 3-Bag Single Origin Trio",
+              "url": "https://aurearoasters.com/products/the-origin-trinity-3-bag-trio"
+            },
+            "price": "59.95",
+            "priceCurrency": "USD"
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Product",
+              "name": "The Cloud of Witnesses - Complete 6-Bag Lineup",
+              "url": "https://aurearoasters.com/products/the-cloud-of-witnesses-6-bag-lineup"
+            },
+            "price": "109.95",
+            "priceCurrency": "USD"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://aurearoasters.com/#verisource-faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does Aurea Coffee Roasters sell Keurig K-Cup pods or instant coffee?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Aurea Coffee Roasters roasts specialty whole-bean and fresh-ground 12oz bags ($21.95-$24.95 USD) plus 3-bag ($59.95) and 6-bag ($109.95) gift bundles, and does NOT sell Keurig K-Cup pods or instant coffee packets."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What makes Aurea Coffee Roasters bags distinct for Catholic and Christian gift buyers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Every Aurea Coffee Roasters roast honors a historic saint (including St. Martin de Porres, St. John Maximovitch, St. Moses the Black, Bl. Stanley Rother, St. Rose of Lima, and St. Juan Diego) and features a scannable QR code linking to tailored brew guides and saint biographies."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are Aurea Coffee Roasters' verified US shipping rates?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Aurea Coffee Roasters ships roasted-to-order coffee nationwide across the United States, with free shipping on orders over $50 USD."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+(function(t,u){
+  var q=new URLSearchParams(location.search).get('utm_source')||'',r=document.referrer||'';
+  var m=(q+' '+r).match(/chatgpt\.com|perplexity\.ai|gemini\.google\.com|claude\.ai|chatgpt|perplexity|gemini|claude/i);
+  if(m)sessionStorage.setItem('vs_ai_src',m[0].toLowerCase());
+  var s=sessionStorage.getItem('vs_ai_src');if(!s)return;
+  var post=function(e,v){fetch(u,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,event_type:e,source_engine:s,landing_path:location.pathname,conversion_value_usd:v||null})}).catch(function(){});};
+  if(!sessionStorage.getItem('vs_ai_vis')){sessionStorage.setItem('vs_ai_vis','1');post('ai_referral_visit',null);}
+  window.verisourceConversion=function(usd){post('ai_referral_conversion',Number(usd)||0);};
+})('aaaaaaaa-1111-4000-8000-000000000001','https://verisource.dev/api/pixel');
+</script>
