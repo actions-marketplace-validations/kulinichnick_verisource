@@ -861,7 +861,34 @@ async function run() {
       afterWebhookState.domains.some((d) => d.domain_url === 'https://cal.com'),
       'Expected signed checkout.session.completed webhook to auto-provision https://cal.com'
     );
-    console.log('✔ [24/24] M26 /api/webhooks/stripe verified: forged HMAC rejected (400), signed checkout provisioned https://cal.com, and event replay deduplicated');
+    console.log('✔ [24/25] M26 /api/webhooks/stripe verified: forged HMAC rejected (400), signed checkout provisioned https://cal.com, and event replay deduplicated');
+
+    // 23. M27 /agencies White-Label Partner Page, Animated SVG Pipeline & Sitemap Inclusion
+    const [agenciesRes, updatedSitemapRes] = await Promise.all([
+      fetch(`${BASE}/agencies`),
+      fetch(`${BASE}/sitemap.xml`),
+    ]);
+    assert.equal(agenciesRes.status, 200);
+    const agenciesHtml = await agenciesRes.text();
+    const updatedSitemapXml = await updatedSitemapRes.text();
+    assert.ok(updatedSitemapXml.includes('https://verisource.dev/agencies'));
+    assert.ok(
+      agenciesHtml.includes('FIG 02 · 60-SECOND WHITE-LABEL RETAINER ENGINE')
+    );
+    assert.ok(agenciesHtml.includes('$16.60/mo'));
+    assert.ok(
+      agenciesHtml.includes('/api/checkout?plan=agency_249&amp;cycle=monthly')
+    );
+    const agenciesVisible = agenciesHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (agenciesVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /agencies'
+    );
+    console.log('✔ [25/25] M27 /agencies partner page, animated SVG retainer schematic, sitemap entry, and 0-slop gate verified');
   } finally {
     server.kill();
   }

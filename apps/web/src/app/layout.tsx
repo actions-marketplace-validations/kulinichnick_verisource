@@ -220,6 +220,9 @@ export default function RootLayout({
               <Link href="/pricing" className="vs-nav-link">
                 Pricing
               </Link>
+              <Link href="/agencies" className="vs-nav-link">
+                Agencies
+              </Link>
               <Link href="/sample-audit" className="vs-nav-link">
                 Sample Audits
               </Link>

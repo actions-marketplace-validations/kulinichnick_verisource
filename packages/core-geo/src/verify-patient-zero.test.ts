@@ -8,6 +8,9 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
   buildAgencyColdOutreachNote,
+  buildAgencyPartnerBatchCsv,
+  buildAgencyPartnerOutreachNote,
+  buildAgencyPartnerPlaybookMarkdown,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildHallucinationDriftAlert,
@@ -23,6 +26,7 @@ import {
   dispatchProspectOpenEmail,
   enforceQualityGate95,
   extractAlternateMarkdownHref,
+  extractBrandNameFromTitle,
   extractColdOutreachParts,
   extractCompetingHostsFromCitations,
   extractVerifiableTruthFromAlternateBody,
@@ -568,4 +572,74 @@ test('Post-purchase welcome & magic-link Fix Bundle alert passes >= 9.5/10 Criti
   assert.ok(proWelcome.actionUrl.includes('tab=tab2_fixes'));
   assert.ok(proWelcome.actionUrl.includes('domain=onyxcoffeelab.com'));
   assert.ok(proWelcome.qualityScore >= 9.5);
+});
+
+test('Agency Partner ($249/mo) outreach note, CSV & Playbook pass >= 9.5/10 Critic', () => {
+  assert.equal(
+    extractBrandNameFromTitle(
+      'Full-Service GEO Agency for Brands - Siege Media',
+      'siegemedia.com',
+      'Siegemedia'
+    ),
+    'Siege Media'
+  );
+  assert.equal(
+    extractBrandNameFromTitle(
+      'Organic Growth Agency for B2B Brands | Omniscient Digital',
+      'omniscientdigital.com',
+      'Omniscientdigital'
+    ),
+    'Omniscient Digital'
+  );
+  assert.equal(
+    extractBrandNameFromTitle(
+      'Full-Service GEO Agency for Brands',
+      'siegemedia.com',
+      'Siegemedia',
+      [
+        { '@type': 'WebPage', name: 'Full-Service GEO Agency for Brands' },
+        { '@type': 'Organization', name: 'Siege Media' },
+      ]
+    ),
+    'Siege Media'
+  );
+  assert.equal(
+    extractBrandNameFromTitle(
+      'Just a moment...',
+      'coalitiontechnologies.com',
+      'Coalition Technologies'
+    ),
+    'Coalition Technologies'
+  );
+
+  const partnerReport = {
+    ...PATIENT_ZERO_PITCH_REPORT,
+    prospect_brand_name: 'Siege Media',
+    prospect_domain: 'https://siegemedia.com',
+    share_slug: 'siegemedia-com-demo',
+    visibility_score: 62,
+  };
+
+  const partnerNote = buildAgencyPartnerOutreachNote(partnerReport);
+  assert.ok(partnerNote.content.includes('https://verisource.dev/agencies'));
+  assert.ok(partnerNote.content.includes('$249/mo'));
+  assert.ok(
+    partnerNote.score >= 9.5,
+    `Expected agency partner note >= 9.5, got ${partnerNote.score}`
+  );
+
+  const partnerCsv = buildAgencyPartnerBatchCsv([partnerReport]);
+  assert.ok(partnerCsv.startsWith('agency_prospect_name,agency_domain,'));
+  assert.ok(partnerCsv.includes('siegemedia-com-demo'));
+
+  const partnerPlaybook = buildAgencyPartnerPlaybookMarkdown([partnerReport]);
+  assert.ok(
+    partnerPlaybook.score >= 9.5,
+    `Expected agency partner playbook >= 9.5, got ${partnerPlaybook.score}`
+  );
+  const partnerMarkdownAudit = gradeArtifactQuality(
+    partnerPlaybook.content,
+    'agents_md'
+  );
+  assert.ok(partnerMarkdownAudit.score >= 9.5);
 });

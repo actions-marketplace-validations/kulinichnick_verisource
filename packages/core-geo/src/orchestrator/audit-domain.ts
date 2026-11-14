@@ -132,6 +132,129 @@ function maskUrlForTeaser(url: string): string {
   }
 }
 
+const INTERSTITIAL_OR_ERROR_TITLE =
+  /^(?:just a moment|attention required|access denied|forbidden|403\b|404\b|500\b|502\b|503\b|page not found|security check|ddos-guard|cloudflare|verify you are|one moment, please|home$)/i;
+
+const BRAND_JSONLD_TYPES = new Set([
+  'organization',
+  'corporation',
+  'localbusiness',
+  'store',
+  'brand',
+  'softwareapplication',
+  'website',
+]);
+
+function extractJsonLdBrandCandidates(
+  jsonLdBlocks: Record<string, unknown>[] | undefined
+): string[] {
+  if (!jsonLdBlocks || jsonLdBlocks.length === 0) return [];
+  const names: string[] = [];
+  for (const block of jsonLdBlocks) {
+    const rawType = block['@type'];
+    const types = Array.isArray(rawType)
+      ? rawType.map((t) => String(t).toLowerCase())
+      : typeof rawType === 'string'
+        ? [rawType.toLowerCase()]
+        : [];
+    if (!types.some((t) => BRAND_JSONLD_TYPES.has(t))) continue;
+
+    const rawName = typeof block.name === 'string' ? block.name.trim() : '';
+    if (
+      rawName.length >= 2 &&
+      rawName.length <= 38 &&
+      !INTERSTITIAL_OR_ERROR_TITLE.test(rawName)
+    ) {
+      names.push(rawName);
+    }
+  }
+  return names;
+}
+
+export function extractBrandNameFromTitle(
+  rawTitle: string | null | undefined,
+  hostname: string,
+  fallbackBrandName: string,
+  jsonLdBlocks?: Record<string, unknown>[]
+): string {
+  const rootSlug = (hostname.toLowerCase().split('.')[0] ?? '').replace(
+    /[^a-z0-9]/g,
+    ''
+  );
+  const jsonLdNames = extractJsonLdBrandCandidates(jsonLdBlocks);
+
+  if (rootSlug.length >= 3 && jsonLdNames.length > 0) {
+    const exactSchema = jsonLdNames.find(
+      (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '') === rootSlug
+    );
+    if (exactSchema) return exactSchema;
+
+    const closeSchema = jsonLdNames.find((n) => {
+      const words = n.split(/\s+/).length;
+      if (n.length > 32 || words > 4) return false;
+      const slug = n.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return (
+        slug.length >= 4 &&
+        (slug.startsWith(rootSlug) || rootSlug.startsWith(slug))
+      );
+    });
+    if (closeSchema) return closeSchema;
+  }
+
+  const trimmed = rawTitle?.trim() ?? '';
+  if (!trimmed || INTERSTITIAL_OR_ERROR_TITLE.test(trimmed)) {
+    const schemaFallback = jsonLdNames.find(
+      (n) => n.length <= 32 && n.split(/\s+/).length <= 4
+    );
+    return schemaFallback ?? fallbackBrandName;
+  }
+
+  const segments = trimmed
+    .split(/\s*[|–—·•:]\s*|\s+-\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !INTERSTITIAL_OR_ERROR_TITLE.test(s));
+
+  if (segments.length === 0) {
+    const schemaFallback = jsonLdNames.find(
+      (n) => n.length <= 32 && n.split(/\s+/).length <= 4
+    );
+    return schemaFallback ?? fallbackBrandName;
+  }
+
+  if (rootSlug.length >= 3) {
+    // 1. Exact alphanumeric match against domain root (e.g. "Siege Media" <-> siegemedia.com)
+    const exactMatch = segments.find((seg) => {
+      if (seg.length > 38) return false;
+      const segSlug = seg.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return segSlug === rootSlug;
+    });
+    if (exactMatch) return exactMatch;
+
+    // 2. Prefix/containment match with concise brand length (<= 32 chars, <= 4 words)
+    const closeMatch = segments.find((seg) => {
+      const wordCount = seg.split(/\s+/).length;
+      if (seg.length > 32 || wordCount > 4) return false;
+      const segSlug = seg.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return (
+        segSlug.length >= 4 &&
+        (segSlug.startsWith(rootSlug) || rootSlug.startsWith(segSlug))
+      );
+    });
+    if (closeMatch) return closeMatch;
+  }
+
+  const first = segments[0]!;
+  const firstWords = first.split(/\s+/).length;
+  if (first.length <= 32 && firstWords <= 4) {
+    return first;
+  }
+
+  const schemaFallback = jsonLdNames.find(
+    (n) => n.length <= 32 && n.split(/\s+/).length <= 4
+  );
+  return schemaFallback ?? fallbackBrandName;
+}
+
 export function buildAgencyPitchPayload(params: {
   brandName: string;
   robotsAiBotStatus: RobotsAiBotStatus;
@@ -331,14 +454,14 @@ async function resolveProbeAndShopify(
     }
   }
 
-  const cleanedTitleBrand = liveProbe.title
-    ?.split(/\s*[|–—·•:]\s*|\s+-\s+/)[0]
-    ?.trim();
   const brandName =
     fixture?.brand_name ??
-    (cleanedTitleBrand && cleanedTitleBrand.length <= 42
-      ? cleanedTitleBrand
-      : normalized.inferredBrandName);
+    extractBrandNameFromTitle(
+      liveProbe.title,
+      normalized.hostname,
+      normalized.inferredBrandName,
+      liveProbe.jsonLdBlocks
+    );
 
   return { env, probe: liveProbe, shopify, brandName };
 }

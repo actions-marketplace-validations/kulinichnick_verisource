@@ -5,6 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import {
   DEMO_PROFILE,
+  buildAgencyPartnerBatchCsv,
+  buildAgencyPartnerPlaybookMarkdown,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   parseBatchProspectDomains,
@@ -71,6 +73,7 @@ async function main() {
   const logoUrl = getFlagValue(args, '--logo', null);
   const baseUrl = getFlagValue(args, '--base-url', 'https://verisource.dev');
   const outDir = getFlagValue(args, '--out-dir');
+  const persona = getFlagValue(args, '--persona', 'brand');
   const useLiveProviders = args.includes('--live');
   const persistToSupabase = args.includes('--persist');
   const replaceExisting = args.includes('--replace');
@@ -153,8 +156,13 @@ async function main() {
     );
   }
 
-  const csv = buildBatchOutreachCsv(reports, baseUrl);
-  const playbook = buildBatchOutreachMarkdown(reports, baseUrl);
+  const isAgencyPartner = persona === 'agency_partner';
+  const csv = isAgencyPartner
+    ? buildAgencyPartnerBatchCsv(reports, baseUrl)
+    : buildBatchOutreachCsv(reports, baseUrl);
+  const playbook = isAgencyPartner
+    ? buildAgencyPartnerPlaybookMarkdown(reports, baseUrl)
+    : buildBatchOutreachMarkdown(reports, baseUrl);
 
   console.log(
     `  ✔ Outreach Playbook Critic Score: ${playbook.score.toFixed(1)} / 10.0`
