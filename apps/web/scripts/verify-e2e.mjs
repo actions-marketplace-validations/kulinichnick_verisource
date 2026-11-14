@@ -428,19 +428,25 @@ async function run() {
     );
     console.log('✔ [14/15] /api/dashboard/alerts rejected malformed email (400) & generated >= 9.5/10 drift alert');
 
-    // 14. MCP Registry Discovery Manifest (/.well-known/mcp.json)
+    // 14. MCP Registry Discovery Manifest (/.well-known/mcp.json) & Domain Ownership Proof (/.well-known/mcp-registry-auth)
     const mcpManifestRes = await fetch(`${BASE}/.well-known/mcp.json`);
     assert.equal(mcpManifestRes.status, 200);
     assert.equal(mcpManifestRes.headers.get('access-control-allow-origin'), '*');
     const mcpManifestJson = await mcpManifestRes.json();
-    assert.equal(mcpManifestJson.name, 'io.github.kulinichnick/verisource');
+    assert.equal(mcpManifestJson.name, 'dev.verisource/mcp');
     assert.equal(mcpManifestJson.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
     assert.equal(mcpManifestJson.tools.length, 4);
     assert.equal(
       (JSON.stringify(mcpManifestJson).match(BANNED_LEXICON) ?? []).length,
       0
     );
-    console.log('✔ [15/15] /.well-known/mcp.json registry discovery manifest verified (4 tools, CORS *, 0 banned words)');
+    console.log('✔ [15/16] /.well-known/mcp.json registry discovery manifest verified (dev.verisource/mcp, 4 tools, CORS *)');
+
+    const registryAuthRes = await fetch(`${BASE}/.well-known/mcp-registry-auth`);
+    assert.equal(registryAuthRes.status, 200);
+    const registryAuthText = await registryAuthRes.text();
+    assert.ok(registryAuthText.startsWith('v=MCPv1; k=ed25519; p='));
+    console.log('✔ [16/16] /.well-known/mcp-registry-auth Ed25519 domain proof verified');
   } finally {
     server.kill();
   }

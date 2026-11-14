@@ -13,8 +13,8 @@ All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 
 ## 1. Copy-Paste Listing Fields (Critic-Verified `10.0 / 10.0`)
 
-- **Server Name:** `Verisource — B2B GEO & AI Citation Intelligence MCP`
-- **Canonical Namespace:** `io.github.kulinichnick/verisource`
+- **Server Name:** `Verisource — B2B GEO & AI Citation Intelligence`
+- **Canonical Namespace:** `dev.verisource/mcp`
 - **Category:** `Search & SEO` / `Developer Tools` / `E-Commerce`
 - **Transport Type:** `Streamable HTTP` (`https://mcp.verisource.dev/mcp`)
 - **Authentication:** Optional for free `scan_domain_ai_readiness` tool (`0` credits); `Authorization: Bearer vs_live_<48-hex>` or OAuth 2.0 Bearer JWT for paid tools.
@@ -64,4 +64,4 @@ Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.de
 3. **Glama MCP Directory:** https://glama.ai/mcp/servers
    - Click **Submit Server** -> enter `https://verisource.dev` / `https://mcp.verisource.dev/mcp`.
 4. **Official Model Context Protocol Registry (`registry.modelcontextprotocol.io`):**
-   - `server.json` is already formatted at the repository root (`io.github.kulinichnick/verisource`, schema `2025-10-17`). Run `mcp-publisher login dns --domain verisource.dev` + `mcp-publisher publish` whenever you want to publish a versioned entry under `com.verisource` / `dev.verisource`.
+   - `server.json` (`dev.verisource/mcp`, schema `2025-12-11`) and `https://verisource.dev/.well-known/mcp-registry-auth` (`v=MCPv1; k=ed25519; p=...`) authenticate domain ownership directly via `mcp-publisher login http --domain verisource.dev` + `mcp-publisher publish`.

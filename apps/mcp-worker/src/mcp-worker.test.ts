@@ -254,7 +254,7 @@ test('GET /.well-known/mcp.json and /server.json expose 4-tool Streamable HTTP r
     remotes: Array<{ type: string; url: string }>;
     tools: Array<{ name: string }>;
   };
-  assert.equal(manifest.name, 'io.github.kulinichnick/verisource');
+  assert.equal(manifest.name, 'dev.verisource/mcp');
   assert.equal(manifest.remotes[0]?.type, 'streamable-http');
   assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
   assert.equal(manifest.tools.length, 4);

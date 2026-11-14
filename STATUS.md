@@ -7,7 +7,7 @@
 > 4. End EVERY turn with the exact `NEXT STEP & MODEL DIRECTIVE` callout required by `GEMINI.md`.
 
 ## Current Build State
-* **Active Phase:** PRODUCTION LIVE (`v0.2.2`), GOOGLE SEARCH CONSOLE VERIFIED, CHROME WEB STORE SUBMITTED, DRIFT ALERTS & MCP REGISTRY DISCOVERY SHIPPED (`M0.1` through `M17` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` + `/.well-known/mcp.json` live, `verisource.dev` DNS `TXT` + `sitemap.xml` verified in Google Search Console, Chrome Extension `v0.1.0` in Chrome Web Store review queue, `31/31` automated assertions passed (`10/10` core-geo + `6/6` mcp-worker + `15/15` Next.js E2E)).
+* **Active Phase:** PRODUCTION LIVE (`v0.2.3`), PUBLISHED TO OFFICIAL MCP REGISTRY (`dev.verisource/mcp`) & GLAMA, GOOGLE SEARCH CONSOLE VERIFIED, LIVE RESEND ALERTS ACTIVE & CHROME WEB STORE SUBMITTED (`M0.1` through `M18` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` + `registry.modelcontextprotocol.io` live, `32/32` automated assertions passed (`10/10` core-geo + `6/6` mcp-worker + `16/16` Next.js E2E)).
 * **Brand / Domain:** **Verisource** (`verisource.dev` | MCP: `mcp.verisource.dev`)
 * **Workspace Path:** `C:\dev\verisource` (local SSD; `STATUS.md` mirrored to `g:\My Drive\GEO MCP Engine\STATUS.md`)
 * **Patient Zero Seed Stores (Confirmed):** `aurearoasters.com` (Aurea Coffee Roasters) & `mosaicroasters.com` (Mosaic Coffee Roasters)
@@ -123,3 +123,10 @@
   2. **MCP Registry Discovery Manifest (`packages/core-geo/src/mcp/discovery-manifest.ts` + `server.json`):** Built `buildMcpDiscoveryManifest` (`io.github.kulinichnick/verisource`, schema `2025-10-17`) and served `/.well-known/mcp.json` (CORS `*`) on both `https://verisource.dev/.well-known/mcp.json` (`apps/web/src/app/.well-known/mcp.json/route.ts`) and `https://mcp.verisource.dev/.well-known/mcp.json` (`apps/mcp-worker/src/index.ts`), plus root `server.json` and Critic-verified `MCP_DIRECTORY_LAUNCH.md` (`>= 9.5/10`).
   3. **1-Command Resend Secret Installer (`scripts/configure-resend.mjs`):** Added cross-platform helper syncing `RESEND_API_KEY` and `ALERT_FROM_EMAIL` across Vercel Production and Cloudflare Worker secrets in one command.
   4. **Full Verification (`31/31` Automated Checks):** Passed `pnpm typecheck` (`5/5`), `@verisource/core-geo` unit tests (`10/10`), `@verisource/mcp-worker` `/mcp`, cron & discovery tests (`6/6`), `pnpm build` (`5/5`), and `@verisource/web` `verify-e2e.mjs` (`15/15`).
+
+### [x] M18 — Live Resend Activation, Glama Directory Listing & Official MCP Registry Publication (`dev.verisource/mcp` `v0.2.3`) *(DONE)*
+* **Completed:**
+  1. **Live Resend Production Delivery (`verisource.dev` + `verisource-mcp-worker`):** Verified `verisource.dev` SPF/DKIM in Resend and synced `RESEND_API_KEY` + `ALERT_FROM_EMAIL` (`Verisource Watchdog <alerts@verisource.dev>`) across Vercel Production and Cloudflare Worker secrets via `scripts/configure-resend.mjs`.
+  2. **Glama MCP Directory Submission:** Submitted `https://mcp.verisource.dev/mcp` as a Hosted Streamable HTTP endpoint on `https://glama.ai/mcp/servers`.
+  3. **Official MCP Registry Publication (`dev.verisource/mcp` on `registry.modelcontextprotocol.io`):** Added Ed25519 HTTP domain ownership proof at `apps/web/src/app/.well-known/mcp-registry-auth/route.ts` (`v=MCPv1; k=ed25519; p=...`), aligned `server.json` and `discovery-manifest.ts` to official `2025-12-11` schema under reverse-DNS namespace `dev.verisource/mcp` (with `128x128` icon `https://verisource.dev/icon.png`), and published `dev.verisource/mcp` (`v0.2.3`) via `mcp-publisher` (`v1.8.9`).
+  4. **Full Verification (`32/32` Automated Checks):** Passed `pnpm typecheck` (`5/5`), `@verisource/core-geo` unit tests (`10/10`), `@verisource/mcp-worker` `/mcp`, cron & discovery tests (`6/6`), `pnpm build` (`5/5`), and `@verisource/web` `verify-e2e.mjs` (`16/16`).

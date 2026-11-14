@@ -18,10 +18,11 @@ export interface McpDiscoveryManifest {
   pricingUrl: string;
   privacyPolicyUrl: string;
   termsOfServiceUrl: string;
-  repository: {
-    url: string;
-    source: 'github';
-  };
+  icons: Array<{
+    src: string;
+    mimeType: 'image/png';
+    sizes: string[];
+  }>;
   remotes: Array<{
     type: 'streamable-http';
     url: string;
@@ -48,26 +49,29 @@ export function buildMcpDiscoveryManifest(options?: {
   const mcpOrigin = (
     options?.mcpOrigin ?? 'https://mcp.verisource.dev'
   ).replace(/\/+$/, '');
-  const version = options?.version ?? '0.2.2';
+  const version = options?.version ?? '0.2.3';
 
   return {
     $schema:
-      'https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json',
-    name: 'io.github.kulinichnick/verisource',
+      'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    name: 'dev.verisource/mcp',
     slug: 'verisource',
-    title: 'Verisource — B2B GEO & AI Citation Intelligence MCP',
+    title: 'Verisource — B2B GEO & AI Citation Intelligence',
     description:
-      'Stateless Streamable HTTP MCP server for auditing ChatGPT, Gemini, and Perplexity brand citations, catching pricing and SKU hallucinations, probing GPTBot/PerplexityBot WAF blocks and Shopify /api/ucp/mcp readiness, and generating >= 9.5/10 JSON-LD, /llms.txt, and /agents.md fixes.',
+      'B2B GEO MCP: audit AI citations, flag SKU hallucinations, and ship >=9.5/10 JSON-LD & /agents.md.',
     version,
     websiteUrl: appOrigin,
     documentationUrl: `${appOrigin}/agents.md`,
     pricingUrl: `${appOrigin}/pricing`,
     privacyPolicyUrl: `${appOrigin}/privacy`,
     termsOfServiceUrl: `${appOrigin}/terms`,
-    repository: {
-      url: 'https://github.com/kulinichnick/verisource',
-      source: 'github',
-    },
+    icons: [
+      {
+        src: `${appOrigin}/icon.png`,
+        mimeType: 'image/png',
+        sizes: ['128x128'],
+      },
+    ],
     remotes: [
       {
         type: 'streamable-http',
@@ -76,7 +80,7 @@ export function buildMcpDiscoveryManifest(options?: {
           {
             name: 'Authorization',
             description:
-              'Optional for free scan_domain_ai_readiness preview (0 credits); pass Bearer vs_live_<48-hex> or Supabase OAuth 2.0 JWT for Pro and Agency tools.',
+              'Optional for free scan_domain_ai_readiness preview; Bearer vs_live_<48-hex> for Pro/Agency tools.',
             isRequired: false,
             isSecret: true,
           },
