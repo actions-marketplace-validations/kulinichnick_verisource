@@ -1,8 +1,24 @@
 # Chrome Web Store Submission & Launch Kit (`v0.1.0`)
 
 **Upload Package:** `C:\dev\verisource\apps\extension\.output\verisourceextension-0.1.0-chrome.zip`  
+**Graphic Assets Folder (24-bit RGB, No-Alpha Validated):** `C:\dev\verisource\store-assets\`  
 **Local Unpacked Test Directory:** `C:\dev\verisource\apps\extension\.output\chrome-mv3`  
 **Dashboard URL:** https://chrome.google.com/webstore/devconsole
+
+---
+
+## 0. Graphic Assets Upload Map (`C:\dev\verisource\store-assets\`)
+
+Every graphic below has been pre-encoded as **strict 24-bit Truecolor RGB PNG (`colorType = 2`, zero alpha channel)** at Google's exact required dimensions so Chrome Web Store accepts every dropzone on the first upload:
+
+| Chrome Web Store Upload Slot | Required Spec | Ready-to-Upload File |
+| :--- | :--- | :--- |
+| **Store Icon** | `128 x 128` PNG | `C:\dev\verisource\store-assets\store-icon-128x128.png` |
+| **Screenshot 1 (Tab 1)** | `1280 x 800` 24-bit PNG (no alpha) | `C:\dev\verisource\store-assets\screenshot-1-visibility-watchdog-1280x800.png` |
+| **Screenshot 2 (Tab 2)** | `1280 x 800` 24-bit PNG (no alpha) | `C:\dev\verisource\store-assets\screenshot-2-fixes-shopify-ucp-1280x800.png` |
+| **Screenshot 3 (Tab 3)** | `1280 x 800` 24-bit PNG (no alpha) | `C:\dev\verisource\store-assets\screenshot-3-fanout-mcp-hub-1280x800.png` |
+| **Small Promo Tile** | `440 x 280` 24-bit PNG (no alpha) | `C:\dev\verisource\store-assets\promo-tile-small-440x280.png` |
+| **Marquee Promo Tile** | `1400 x 560` 24-bit PNG (no alpha) | `C:\dev\verisource\store-assets\promo-tile-marquee-1400x560.png` |
 
 ---
 

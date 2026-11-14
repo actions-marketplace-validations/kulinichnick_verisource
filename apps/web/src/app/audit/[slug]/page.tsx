@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React from 'react';
@@ -5,6 +6,43 @@ import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
 import { fetchPublicPitchBySlug } from '../../../lib/data-store';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const report = await fetchPublicPitchBySlug(slug);
+
+  if (!report) {
+    return {
+      title: 'Audit Report Not Found',
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const agencyName = report.agency_brand_name || 'Partner GEO Advisory';
+  const title = `AI Search & Hallucination Audit: ${report.prospect_brand_name} | ${agencyName}`;
+  const description = `AI Visibility Score: ${report.visibility_score}/100 · Active Hallucinations: ${report.hallucination_count}. Confidential retrieval & schema audit prepared by ${agencyName}.`;
+
+  return {
+    title,
+    description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      title,
+      description,
+      siteName: agencyName,
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
 
 export default async function AgencyPitchReportPage({
   params,

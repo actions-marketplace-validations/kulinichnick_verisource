@@ -7,7 +7,7 @@
 > 4. End EVERY turn with the exact `NEXT STEP & MODEL DIRECTIVE` callout required by `GEMINI.md`.
 
 ## Current Build State
-* **Active Phase:** PRODUCTION LIVE, FULL SELF-SERVE LIFECYCLE COMPLETE & CHROME WEB STORE READY (`M0.1` through `M12` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` live, Supabase schema + Patient Zero seeded, live Paid `/mcp` credit metering verified, `23/23` automated unit/MCP/E2E assertions passed (`7/7` core-geo + `4/4` mcp-worker + `12/12` Next.js E2E), Chrome MV3 `.zip` + Store Launch Kit ready).
+* **Active Phase:** PRODUCTION LIVE, WHITE-LABEL OG CARDS & CHROME WEB STORE ASSET PACK COMPLETE (`M0.1` through `M13` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` live, Supabase schema + Patient Zero seeded, live Paid `/mcp` credit metering verified, `24/24` automated unit/MCP/E2E assertions passed (`7/7` core-geo + `4/4` mcp-worker + `13/13` Next.js E2E), Chrome MV3 `.zip` + 24-bit RGB `store-assets/` + Store Launch Kit ready).
 * **Brand / Domain:** **Verisource** (`verisource.dev` | MCP: `mcp.verisource.dev`)
 * **Workspace Path:** `C:\dev\verisource` (local SSD; `STATUS.md` mirrored to `g:\My Drive\GEO MCP Engine\STATUS.md`)
 * **Patient Zero Seed Stores (Confirmed):** `aurearoasters.com` (Aurea Coffee Roasters) & `mosaicroasters.com` (Mosaic Coffee Roasters)
@@ -89,3 +89,10 @@
   3. **Agency Logo URL White-Labeling (`/api/dashboard/pitch` + `/audit/[slug]`):** Added sanitized `http(s)://` `agency_logo_url` (`400 INVALID_LOGO_URL` on `javascript:`/`data:` payloads), persisting to `profiles.agency_logo_url` + `agency_pitch_reports.agency_logo_url_snapshot` and rendering above the prospect audit masthead on `/audit/[slug]`.
   4. **1-Click MCP Bearer Key Revocation (`/api/dashboard/mcp-keys` + Tab 3 MCP Hub):** Added tenant-isolated `DELETE` revocation (`is_active = false`) and active/revoked SHA-256 key ledger inside Tab 3 while strictly preserving the 3-Tab shell.
   5. **Full Verification (`23/23` Automated Checks):** Passed `pnpm -r typecheck` (`5/5`), `@verisource/core-geo` unit tests (`7/7`), `@verisource/mcp-worker` `/mcp` integration tests (`4/4`), `pnpm -r build` (`5/5`), and `@verisource/web` `verify-e2e.mjs` (`12/12`, `0` banned lexicon matches).
+
+### [x] M13 — White-Label Social Conversion Cards (`opengraph-image`) & Chrome Web Store 24-bit RGB Visual Asset Pack *(DONE)*
+* **Completed:**
+  1. **White-Label `/audit/[slug]` Metadata & OpenGraph Card (`apps/web/src/app/audit/[slug]/page.tsx` + `opengraph-image.tsx`):** Added `generateMetadata` (`noindex, nofollow`, agency-branded title/description with zero Verisource brand leak) and dynamic `1200x630` `ImageResponse` scorecard rendering the agency's hex accent bar, prospect AI Visibility Score, Active Hallucinations count, and rival citation share for cold-outreach Slack/LinkedIn/email previews.
+  2. **Root Brand OpenGraph Card (`apps/web/src/app/opengraph-image.tsx`):** Added monochrome `1200x630` `ImageResponse` card for `https://verisource.dev`.
+  3. **Chrome Web Store 24-bit RGB Asset Generator (`apps/extension/scripts/generate-store-assets.mjs` -> `store-assets/`):** Built headless Chromium + pure Node PNG `colorType = 2` (24-bit Truecolor RGB, zero alpha channel) pipeline generating `store-icon-128x128.png`, 3 `1280x800` split-screen Side Panel screenshots (`Tab 1`, `Tab 2`, `Tab 3`), `promo-tile-small-440x280.png`, and `promo-tile-marquee-1400x560.png`, and mapped every upload slot in `CHROME_WEB_STORE_LAUNCH.md`.
+  4. **E2E Verification (`13/13` Passed):** Extended `verify-e2e.mjs` to assert PNG magic bytes and `image/png` headers on `/opengraph-image` and `/audit/mosaic-springfield-audit/opengraph-image` plus white-label `<title>` isolation.

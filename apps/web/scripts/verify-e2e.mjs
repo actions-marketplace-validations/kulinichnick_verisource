@@ -369,7 +369,32 @@ async function run() {
       { method: 'DELETE' }
     );
     assert.equal(deleteAgainRes.status, 404);
-    console.log('✔ [12/12] 1-click MCP key revocation (DELETE) & self-serve domain lifecycle (POST + DELETE + 404 verify) passed');
+    console.log('✔ [12/13] 1-click MCP key revocation (DELETE) & self-serve domain lifecycle (POST + DELETE + 404 verify) passed');
+
+    // 12. Dynamic OpenGraph Social Cards (/opengraph-image & white-labeled /audit/[slug]/opengraph-image)
+    assert.ok(
+      pitchHtml.includes(
+        '<title>AI Search &amp; Hallucination Audit: Mosaic Coffee Roasters'
+      ),
+      'Expected white-labeled <title> on /audit/[slug]'
+    );
+
+    const [rootOgRes, pitchOgRes] = await Promise.all([
+      fetch(`${BASE}/opengraph-image`),
+      fetch(`${BASE}/audit/mosaic-springfield-audit/opengraph-image`),
+    ]);
+    assert.equal(rootOgRes.status, 200);
+    assert.equal(pitchOgRes.status, 200);
+    assert.ok(rootOgRes.headers.get('content-type')?.includes('image/png'));
+    assert.ok(pitchOgRes.headers.get('content-type')?.includes('image/png'));
+
+    const rootOgBytes = new Uint8Array(await rootOgRes.arrayBuffer());
+    const pitchOgBytes = new Uint8Array(await pitchOgRes.arrayBuffer());
+    assert.equal(rootOgBytes[0], 137);
+    assert.equal(rootOgBytes[1], 80);
+    assert.equal(pitchOgBytes[0], 137);
+    assert.equal(pitchOgBytes[1], 80);
+    console.log('✔ [13/13] Root & white-label /audit/[slug] OpenGraph PNG cards (1200x630) verified');
   } finally {
     server.kill();
   }
