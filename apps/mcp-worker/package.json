@@ -1,0 +1,26 @@
+{
+  "name": "@verisource/mcp-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "tsc --noEmit false --outDir dist && node --test dist/mcp-worker.test.js",
+    "build": "wrangler deploy --dry-run --outdir dist-worker",
+    "clean": "rm -rf .wrangler dist dist-worker"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@supabase/supabase-js": "^2.49.1",
+    "@verisource/core-geo": "workspace:*",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250204.0",
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.107.0"
+  }
+}

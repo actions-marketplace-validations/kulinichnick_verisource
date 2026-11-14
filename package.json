@@ -1,0 +1,18 @@
+{
+  "name": "verisource-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @verisource/web dev",
+    "dev:mcp": "pnpm --filter @verisource/mcp-worker dev",
+    "dev:ext": "pnpm --filter @verisource/extension dev",
+    "typecheck": "pnpm -r typecheck",
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "next": "^15.1.6",
+    "typescript": "^5.7.3"
+  }
+}

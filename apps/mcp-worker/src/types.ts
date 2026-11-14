@@ -1,0 +1,30 @@
+import type { RawEnvInput } from '@verisource/core-geo';
+
+export interface WorkerEnv {
+  PROVIDER_MODE?: 'mock' | 'live';
+  NEXT_PUBLIC_APP_URL?: string;
+  NEXT_PUBLIC_MCP_URL?: string;
+  NEXT_PUBLIC_SUPABASE_URL?: string;
+  NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
+  GEMINI_API_KEY?: string;
+  OPENAI_API_KEY?: string;
+  PERPLEXITY_API_KEY?: string;
+  FIRECRAWL_API_KEY?: string;
+  MCP_CACHE_KV?: KVNamespace;
+}
+
+export function workerEnvToRawInput(env: WorkerEnv): RawEnvInput {
+  return {
+    PROVIDER_MODE: env.PROVIDER_MODE,
+    NEXT_PUBLIC_APP_URL: env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_MCP_URL: env.NEXT_PUBLIC_MCP_URL,
+    NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY,
+    GEMINI_API_KEY: env.GEMINI_API_KEY,
+    OPENAI_API_KEY: env.OPENAI_API_KEY,
+    PERPLEXITY_API_KEY: env.PERPLEXITY_API_KEY,
+    FIRECRAWL_API_KEY: env.FIRECRAWL_API_KEY,
+  };
+}
