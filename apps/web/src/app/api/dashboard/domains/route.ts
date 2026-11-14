@@ -9,6 +9,7 @@ import {
 import {
   domainCapForPlan,
   getLocalMockStore,
+  provisionDomainAuditForWorkspace,
   resolveAuthenticatedProfile,
 } from '../../../../lib/data-store';
 
@@ -30,28 +31,22 @@ export async function POST(request: Request): Promise<NextResponse> {
     const activeProfile = auth ? auth.profile : store.profile;
     const maxDomains = domainCapForPlan(activeProfile.plan_tier);
 
-    let existingDomains: DomainRow[] = store.domains;
-    if (auth) {
-      const { data } = await auth.supabase
-        .from('domains')
-        .select('*')
-        .eq('user_id', activeProfile.id);
-      existingDomains = data ?? [];
-    }
-
-    const audit = await runFullGeoAudit({
+    const provisioned = await provisionDomainAuditForWorkspace({
       domainInput: body.domain_url,
       customBrandName: body.brand_name,
+      userId: activeProfile.id,
+      planTier: activeProfile.plan_tier,
+      supabase: auth?.supabase ?? null,
     });
 
-    const existing = existingDomains.find(
-      (d) => d.domain_url.toLowerCase() === audit.domainUrl.toLowerCase()
-    );
-    if (existing) {
-      return NextResponse.json({ domain: existing, alreadyExists: true });
+    if (provisioned.alreadyExists && provisioned.domain) {
+      return NextResponse.json({
+        domain: provisioned.domain,
+        alreadyExists: true,
+      });
     }
 
-    if (existingDomains.length >= maxDomains) {
+    if (provisioned.capReached || !provisioned.domain) {
       return NextResponse.json(
         {
           error: 'DOMAIN_CAP_REACHED',
@@ -61,103 +56,11 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const domainId = crypto.randomUUID();
-    const nowIso = new Date().toISOString();
-
-    const newDomain: DomainRow = {
-      id: domainId,
-      user_id: activeProfile.id,
-      domain_url: audit.domainUrl,
-      brand_name: audit.brandName,
-      industry_vertical: audit.shopify.isShopify
-        ? 'shopify_commerce'
-        : 'general_b2b',
-      is_shopify: audit.shopify.isShopify,
-      shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-      agents_md_status: audit.shopify.agentsMdStatus,
-      llms_txt_status: audit.probe.llmsTxtStatus,
-      robots_ai_bot_status: audit.probe.robotsAiBotStatus,
-      brand_truth_sheet: audit.brandTruthSheet,
-      visibility_score: audit.visibilityScore,
-      accuracy_score: audit.accuracyScore,
-      tracking_pixel_token: crypto.randomUUID(),
-      last_scanned_at: nowIso,
-      created_at: nowIso,
-    };
-
-    const newPrompts: TrackedPromptRow[] = audit.trackedPrompts.map((pText) => ({
-      id: crypto.randomUUID(),
-      domain_id: domainId,
-      prompt_text: pText,
-      intent_category: 'commercial_comparison',
-      decompiled_fanout_queries: Array.from(
-        new Set(
-          audit.scanResults
-            .filter((s) => s.promptText === pText)
-            .flatMap((s) => s.decompiledFanoutQueries)
-        )
-      ),
-      is_active: true,
-      created_at: nowIso,
-    }));
-
-    const newSnapshots: CitationSnapshotRow[] = audit.scanResults.map((s) => ({
-      id: crypto.randomUUID(),
-      domain_id: domainId,
-      prompt_id:
-        newPrompts.find((p) => p.prompt_text === s.promptText)?.id ?? null,
-      ai_engine: s.aiEngine,
-      brand_mentioned: s.brandMentioned,
-      citation_rank: s.citationRank,
-      competitors_mentioned: s.competitorsMentioned,
-      cited_source_urls: s.citedSourceUrls,
-      fanout_telemetry_type: s.fanoutTelemetryType,
-      hallucination_detected: s.hallucinationDetected,
-      hallucination_details:
-        s.hallucinationDetails.length > 0 ? s.hallucinationDetails : null,
-      raw_answer_excerpt: s.rawAnswerExcerpt,
-      scanned_at: nowIso,
-    }));
-
-    const newFixes: GeneratedFixRow[] = audit.fixes.map((f) => ({
-      id: crypto.randomUUID(),
-      domain_id: domainId,
-      fix_type: f.fixType,
-      title: f.title,
-      content_payload: f.contentPayload,
-      natural_quality_score: f.naturalQualityScore,
-      quality_rubric_breakdown: f.qualityRubricBreakdown,
-      is_applied: false,
-      created_at: nowIso,
-    }));
-
-    if (auth) {
-      const { error: domErr } = await auth.supabase
-        .from('domains')
-        .insert(newDomain);
-      if (!domErr) {
-        if (newPrompts.length > 0) {
-          await auth.supabase.from('tracked_prompts').insert(newPrompts);
-        }
-        if (newSnapshots.length > 0) {
-          await auth.supabase.from('citation_snapshots').insert(newSnapshots);
-        }
-        if (newFixes.length > 0) {
-          await auth.supabase.from('generated_fixes').insert(newFixes);
-        }
-      }
-    } else {
-      store.domains.push(newDomain);
-      store.prompts.push(...newPrompts);
-      store.snapshots.unshift(...newSnapshots);
-      store.fixes.unshift(...newFixes);
-    }
-
     return NextResponse.json({
-      domain: newDomain,
-      prompts: newPrompts,
-      snapshots: newSnapshots,
-      fixes: newFixes,
+      domain: provisioned.domain,
+      prompts: provisioned.prompts,
+      snapshots: provisioned.snapshots,
+      fixes: provisioned.fixes,
     });
   } catch (err) {
     return NextResponse.json(

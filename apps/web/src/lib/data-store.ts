@@ -7,7 +7,9 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_PROMPTS,
   PATIENT_ZERO_SNAPSHOTS,
+  normalizePublicDomain,
   resolveCoreGeoEnv,
+  runFullGeoAudit,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
@@ -401,5 +403,178 @@ export async function recordVerifiedPitchOpen(slug: string): Promise<{
       created_at: report.created_at,
     },
     ownerEmail: store.profile.email,
+  };
+}
+
+export async function provisionDomainAuditForWorkspace(input: {
+  domainInput: string;
+  customBrandName?: string;
+  userId: string;
+  planTier: ProfileRow['plan_tier'];
+  supabase?: SupabaseClient<Database> | null;
+  bypassPlanCapForPaidPass?: boolean;
+}): Promise<{
+  domain: DomainRow | null;
+  prompts: TrackedPromptRow[];
+  snapshots: CitationSnapshotRow[];
+  fixes: GeneratedFixRow[];
+  alreadyExists: boolean;
+  capReached: boolean;
+}> {
+  const normalized = normalizePublicDomain(input.domainInput);
+  const store = getLocalMockStore();
+  const maxDomains = domainCapForPlan(input.planTier);
+
+  let existingDomains: DomainRow[] = store.domains;
+  if (input.supabase) {
+    const { data } = await input.supabase
+      .from('domains')
+      .select('*')
+      .eq('user_id', input.userId);
+    existingDomains = data ?? [];
+  }
+
+  const existing = existingDomains.find(
+    (d) => d.domain_url.toLowerCase() === normalized.origin.toLowerCase()
+  );
+  if (existing) {
+    let existingFixes: GeneratedFixRow[] = [];
+    if (input.supabase) {
+      const { data } = await input.supabase
+        .from('generated_fixes')
+        .select('*')
+        .eq('domain_id', existing.id);
+      existingFixes = data ?? [];
+    } else {
+      existingFixes = store.fixes.filter((f) => f.domain_id === existing.id);
+    }
+    return {
+      domain: existing,
+      prompts: [],
+      snapshots: [],
+      fixes: existingFixes,
+      alreadyExists: true,
+      capReached: false,
+    };
+  }
+
+  const effectiveCap = input.bypassPlanCapForPaidPass
+    ? Math.max(maxDomains, 25)
+    : maxDomains;
+  if (existingDomains.length >= effectiveCap) {
+    return {
+      domain: null,
+      prompts: [],
+      snapshots: [],
+      fixes: [],
+      alreadyExists: false,
+      capReached: true,
+    };
+  }
+
+  const audit = await runFullGeoAudit({
+    domainInput: normalized.hostname,
+    customBrandName: input.customBrandName,
+  });
+
+  const domainId = crypto.randomUUID();
+  const nowIso = new Date().toISOString();
+
+  const newDomain: DomainRow = {
+    id: domainId,
+    user_id: input.userId,
+    domain_url: audit.domainUrl,
+    brand_name: audit.brandName,
+    industry_vertical: audit.shopify.isShopify
+      ? 'shopify_commerce'
+      : 'general_b2b',
+    is_shopify: audit.shopify.isShopify,
+    shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+    agents_md_status: audit.shopify.agentsMdStatus,
+    llms_txt_status: audit.probe.llmsTxtStatus,
+    robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+    brand_truth_sheet: audit.brandTruthSheet,
+    visibility_score: audit.visibilityScore,
+    accuracy_score: audit.accuracyScore,
+    tracking_pixel_token: crypto.randomUUID(),
+    last_scanned_at: nowIso,
+    created_at: nowIso,
+  };
+
+  const newPrompts: TrackedPromptRow[] = audit.trackedPrompts.map((pText) => ({
+    id: crypto.randomUUID(),
+    domain_id: domainId,
+    prompt_text: pText,
+    intent_category: 'commercial_comparison',
+    decompiled_fanout_queries: Array.from(
+      new Set(
+        audit.scanResults
+          .filter((s) => s.promptText === pText)
+          .flatMap((s) => s.decompiledFanoutQueries)
+      )
+    ),
+    is_active: true,
+    created_at: nowIso,
+  }));
+
+  const newSnapshots: CitationSnapshotRow[] = audit.scanResults.map((s) => ({
+    id: crypto.randomUUID(),
+    domain_id: domainId,
+    prompt_id:
+      newPrompts.find((p) => p.prompt_text === s.promptText)?.id ?? null,
+    ai_engine: s.aiEngine,
+    brand_mentioned: s.brandMentioned,
+    citation_rank: s.citationRank,
+    competitors_mentioned: s.competitorsMentioned,
+    cited_source_urls: s.citedSourceUrls,
+    fanout_telemetry_type: s.fanoutTelemetryType,
+    hallucination_detected: s.hallucinationDetected,
+    hallucination_details:
+      s.hallucinationDetails.length > 0 ? s.hallucinationDetails : null,
+    raw_answer_excerpt: s.rawAnswerExcerpt,
+    scanned_at: nowIso,
+  }));
+
+  const newFixes: GeneratedFixRow[] = audit.fixes.map((f) => ({
+    id: crypto.randomUUID(),
+    domain_id: domainId,
+    fix_type: f.fixType,
+    title: f.title,
+    content_payload: f.contentPayload,
+    natural_quality_score: f.naturalQualityScore,
+    quality_rubric_breakdown: f.qualityRubricBreakdown,
+    is_applied: false,
+    created_at: nowIso,
+  }));
+
+  if (input.supabase) {
+    const { error: domErr } = await input.supabase
+      .from('domains')
+      .insert(newDomain);
+    if (!domErr) {
+      if (newPrompts.length > 0) {
+        await input.supabase.from('tracked_prompts').insert(newPrompts);
+      }
+      if (newSnapshots.length > 0) {
+        await input.supabase.from('citation_snapshots').insert(newSnapshots);
+      }
+      if (newFixes.length > 0) {
+        await input.supabase.from('generated_fixes').insert(newFixes);
+      }
+    }
+  } else {
+    store.domains.push(newDomain);
+    store.prompts.push(...newPrompts);
+    store.snapshots.unshift(...newSnapshots);
+    store.fixes.unshift(...newFixes);
+  }
+
+  return {
+    domain: newDomain,
+    prompts: newPrompts,
+    snapshots: newSnapshots,
+    fixes: newFixes,
+    alreadyExists: false,
+    capReached: false,
   };
 }

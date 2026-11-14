@@ -114,7 +114,13 @@ export function DashboardConsoleClient(props: {
   const isGuided = uxMode === 'guided';
 
   // Domain lifecycle state
-  const [newDomainUrl, setNewDomainUrl] = useState('');
+  const [newDomainUrl, setNewDomainUrl] = useState(() => {
+    if (!props.initialDomainQuery) return '';
+    const alreadyPresent = props.initialData.domains.some((d) =>
+      d.domain_url.toLowerCase().includes(props.initialDomainQuery!.toLowerCase())
+    );
+    return alreadyPresent ? '' : props.initialDomainQuery;
+  });
   const [addingDomain, setAddingDomain] = useState(false);
   const [rescanningDomain, setRescanningDomain] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState(false);
@@ -122,6 +128,8 @@ export function DashboardConsoleClient(props: {
   const [bannerSuccess, setBannerSuccess] = useState<string | null>(
     props.upgradedPlan
       ? `Plan active: ${props.upgradedPlan.toUpperCase()}${
+          props.initialDomainQuery ? ` for ${props.initialDomainQuery}` : ''
+        }${
           props.creditApplied
             ? ' ($19 7-day Tripwire credit applied automatically).'
             : '.'
@@ -221,6 +229,14 @@ export function DashboardConsoleClient(props: {
         if (cancelled) return;
         setData(payload);
         setSelectedDomainId((prev) => {
+          if (props.initialDomainQuery) {
+            const matchedQuery = payload.domains.find((d) =>
+              d.domain_url
+                .toLowerCase()
+                .includes(props.initialDomainQuery!.toLowerCase())
+            );
+            if (matchedQuery) return matchedQuery.id;
+          }
           if (payload.domains.some((d) => d.id === prev)) return prev;
           return payload.domains[0]?.id ?? '';
         });
@@ -1020,9 +1036,36 @@ export function DashboardConsoleClient(props: {
             border: '1px solid var(--vs-pass-border)',
             color: 'var(--vs-pass-fg)',
             fontSize: '13px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
           }}
         >
-          {bannerSuccess}
+          <span>
+            {bannerSuccess}
+            {props.upgradedPlan &&
+            !accessToken &&
+            Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
+              ? ' Check your checkout email for your one-click sign-in link, or sign in below to load your private Fix Bundle.'
+              : ''}
+          </span>
+          {props.upgradedPlan &&
+          !accessToken &&
+          Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) ? (
+            <Link
+              href={`/login?tab=tab2_fixes${
+                props.initialDomainQuery
+                  ? `&domain=${encodeURIComponent(props.initialDomainQuery)}`
+                  : ''
+              }`}
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '5px 11px', fontSize: '12px' }}
+            >
+              Sign In with Checkout Email →
+            </Link>
+          ) : null}
         </div>
       ) : null}
 

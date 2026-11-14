@@ -13,11 +13,13 @@ import {
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildMcpDiscoveryManifest,
+  buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
   classifyAgentsMdContent,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
+  dispatchPostPurchaseWelcomeEmail,
   dispatchProspectOpenEmail,
   enforceQualityGate95,
   extractAlternateMarkdownHref,
@@ -537,4 +539,33 @@ test('Prospect open alert builder, dry-run dispatcher & unfurl bot filter pass >
   assert.equal(dryDispatch.mode, 'preview_dry_run');
   assert.ok(dryDispatch.subject.includes('[Repeat Visit · 3x]'));
   assert.ok(dryDispatch.qualityScore >= 9.5);
+});
+
+test('Post-purchase welcome & magic-link Fix Bundle alert passes >= 9.5/10 Critic', async () => {
+  const tripwireAlert = buildPostPurchaseWelcomeAlert({
+    planTier: 'tripwire_19',
+    targetDomain: 'onyxcoffeelab.com',
+    visibilityScore: 55,
+    fixCount: 5,
+    magicLinkUrl:
+      'https://verisource.dev/auth/v1/verify?token=magic_test&redirect_to=https://verisource.dev/dashboard',
+  });
+  assert.ok(tripwireAlert.subject.includes('[Fix Pack Ready] onyxcoffeelab.com'));
+  assert.ok(tripwireAlert.html.includes('One-Click Sign In & Open Tab 2 Fixes'));
+  assert.ok(
+    tripwireAlert.quality.score >= 9.5,
+    `Expected post-purchase alert >= 9.5, got ${tripwireAlert.quality.score}`
+  );
+
+  const proWelcome = await dispatchPostPurchaseWelcomeEmail({
+    recipientEmail: 'buyer@onyxcoffeelab.com',
+    planTier: 'pro_99',
+    targetDomain: 'onyxcoffeelab.com',
+    visibilityScore: 55,
+    fixCount: 5,
+  });
+  assert.equal(proWelcome.mode, 'preview_dry_run');
+  assert.ok(proWelcome.actionUrl.includes('tab=tab2_fixes'));
+  assert.ok(proWelcome.actionUrl.includes('domain=onyxcoffeelab.com'));
+  assert.ok(proWelcome.qualityScore >= 9.5);
 });

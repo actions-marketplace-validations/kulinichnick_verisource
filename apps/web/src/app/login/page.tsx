@@ -26,10 +26,20 @@ export default function LoginPage(): React.ReactElement {
     setLoading(true);
     try {
       const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
+      const urlParams = new URLSearchParams(window.location.search);
+      const nextParams = new URLSearchParams();
+      const targetDomain = urlParams.get('domain');
+      const targetTab = urlParams.get('tab');
+      if (targetDomain) nextParams.set('domain', targetDomain);
+      if (targetTab) nextParams.set('tab', targetTab);
+      const nextSuffix = nextParams.toString()
+        ? `?${nextParams.toString()}`
+        : '';
+
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/dashboard${nextSuffix}`,
         },
       });
       if (otpError) {

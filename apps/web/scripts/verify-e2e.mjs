@@ -707,7 +707,82 @@ async function run() {
     const dedupViewJson = await dedupViewRes.json();
     assert.equal(dedupViewJson.counted, false);
     assert.equal(dedupViewJson.reason, 'deduplicated_window');
-    console.log('✔ [22/22] M24 /api/audit-view blocked Origin spoofs (403), filtered Slackbot unfurls, counted human open (1x) + >=9.5/10 alert, and deduplicated refreshes');
+    console.log('✔ [22/23] M24 /api/audit-view blocked Origin spoofs (403), filtered Slackbot unfurls, counted human open (1x) + >=9.5/10 alert, and deduplicated refreshes');
+
+    // 21. M25 Contextual ?domain= Checkout Carryover, SSRF Reject & Auto-Provisioned Tab 2 Fix Bundle
+    assert.ok(
+      pitchHtml.includes(
+        'plan=tripwire_19&amp;cycle=one_time&amp;domain=https%3A%2F%2Fmosaicroasters.com&amp;slug=mosaic-springfield-audit'
+      ),
+      'Expected Verisource /audit/[slug] $19 CTA to carry encoded prospect_domain & slug'
+    );
+
+    const lockedPricingRes = await fetch(
+      `${BASE}/pricing?plan=tripwire_19&domain=onyxcoffeelab.com`
+    );
+    assert.equal(lockedPricingRes.status, 200);
+    const lockedPricingHtml = await lockedPricingRes.text();
+    assert.ok(lockedPricingHtml.includes('TARGET WEBSITE LOCKED FOR CHECKOUT'));
+    assert.ok(lockedPricingHtml.includes('onyxcoffeelab.com'));
+    const lockedPricingVisible = lockedPricingHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (lockedPricingVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /pricing?domain=onyxcoffeelab.com'
+    );
+
+    const ssrfCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
+        'http://169.254.169.254/latest/meta-data/'
+      )}`,
+      { redirect: 'manual' }
+    );
+    assert.equal(ssrfCheckoutRes.status, 400);
+
+    const carryCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
+        'https://onyxcoffeelab.com'
+      )}&slug=onyxcoffeelab-com-8m6s`,
+      { redirect: 'manual' }
+    );
+    assert.equal(carryCheckoutRes.status, 303);
+    const carryRedirect = carryCheckoutRes.headers.get('location') ?? '';
+    assert.ok(carryRedirect.includes('domain=onyxcoffeelab.com'));
+    assert.ok(carryRedirect.includes('tab=tab2_fixes'));
+
+    const postBuyStateRes = await fetch(`${BASE}/api/dashboard/state`);
+    assert.equal(postBuyStateRes.status, 200);
+    const postBuyStateJson = await postBuyStateRes.json();
+    const provisionedOnyx = postBuyStateJson.domains.find(
+      (d) => d.domain_url === 'https://onyxcoffeelab.com'
+    );
+    assert.ok(
+      provisionedOnyx,
+      'Expected https://onyxcoffeelab.com to be auto-provisioned in workspace after checkout'
+    );
+    const onyxFixes = postBuyStateJson.fixes.filter(
+      (f) => f.domain_id === provisionedOnyx.id
+    );
+    assert.ok(onyxFixes.length >= 4);
+    assert.ok(onyxFixes.every((f) => Number(f.natural_quality_score) >= 9.5));
+
+    const postBuyDashRes = await fetch(carryRedirect);
+    assert.equal(postBuyDashRes.status, 200);
+    const postBuyDashHtml = await postBuyDashRes.text();
+    assert.ok(postBuyDashHtml.includes('onyxcoffeelab.com'));
+    const postBuyVisible = postBuyDashHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (postBuyVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on post-purchase Tab 2 dashboard'
+    );
+    console.log('✔ [23/23] M25 Contextual ?domain= checkout carryover, SSRF checkout block (400), and zero-click Tab 2 Fix Bundle provisioning verified');
   } finally {
     server.kill();
   }

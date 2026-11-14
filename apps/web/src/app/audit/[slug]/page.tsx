@@ -296,7 +296,9 @@ export default async function AgencyPitchReportPage({
           {isVerisourceDirect ? (
             <>
               <a
-                href="/api/checkout?plan=tripwire_19&cycle=one_time"
+                href={`/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
+                  report.prospect_domain
+                )}&slug=${encodeURIComponent(slug)}`}
                 className="vs-btn vs-btn-secondary"
               >
                 Self-Serve Fix Pack ($19) →

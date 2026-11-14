@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { normalizePublicDomain } from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
 
 export function PricingLadderSection(props: {
   preselectedDomain?: string;
+  preselectedPlan?: string;
 }): React.ReactElement {
   const [annual, setAnnual] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -22,8 +24,25 @@ export function PricingLadderSection(props: {
     });
   }, []);
 
-  const domainParam = props.preselectedDomain
-    ? `&domain=${encodeURIComponent(props.preselectedDomain)}`
+  let safeHostname: string | null = null;
+  if (props.preselectedDomain) {
+    try {
+      safeHostname = normalizePublicDomain(props.preselectedDomain).hostname;
+    } catch {
+      safeHostname = null;
+    }
+  }
+
+  const activeHighlightPlan =
+    props.preselectedPlan === 'tripwire_19' ||
+    props.preselectedPlan === 'starter_49' ||
+    props.preselectedPlan === 'pro_99' ||
+    props.preselectedPlan === 'agency_249'
+      ? props.preselectedPlan
+      : 'pro_99';
+
+  const domainParam = safeHostname
+    ? `&domain=${encodeURIComponent(safeHostname)}`
     : '';
   const tokenParam = accessToken
     ? `&access_token=${encodeURIComponent(accessToken)}`
@@ -36,7 +55,7 @@ export function PricingLadderSection(props: {
       price: '$19',
       cadence: 'one-time pass',
       badge: '7-DAY CREDIT',
-      highlight: false,
+      highlight: activeHighlightPlan === 'tripwire_19',
       summary:
         'Test Verisource on 1 website with zero recurring commitment. Credited 100% toward Month 1 if you subscribe within 7 days.',
       specs: [
@@ -54,7 +73,7 @@ export function PricingLadderSection(props: {
       price: annual ? '$39' : '$49',
       cadence: annual ? '/mo billed annually' : '/mo billed monthly',
       badge: '1 WEBSITE',
-      highlight: false,
+      highlight: activeHighlightPlan === 'starter_49',
       summary:
         'Automated weekly AI checks and wrong-price alerts for a single local business, SaaS company, or Shopify store.',
       specs: [
@@ -74,7 +93,7 @@ export function PricingLadderSection(props: {
       price: annual ? '$79' : '$99',
       cadence: annual ? '/mo billed annually' : '/mo billed monthly',
       badge: 'MOST POPULAR',
-      highlight: true,
+      highlight: activeHighlightPlan === 'pro_99',
       summary:
         'Competitor source map, Shopify catalog adapter, 10-line AI revenue tracker, and direct MCP sync for AI tools.',
       specs: [
@@ -95,7 +114,7 @@ export function PricingLadderSection(props: {
       price: annual ? '$199' : '$249',
       cadence: annual ? '/mo billed annually' : '/mo billed monthly',
       badge: '15 CLIENT SITES',
-      highlight: false,
+      highlight: activeHighlightPlan === 'agency_249',
       summary:
         'Close $1,500–$3,000/mo client retainers using 60-second branded audit links with your agency logo and booking button.',
       specs: [
@@ -158,6 +177,35 @@ export function PricingLadderSection(props: {
           </button>
         </div>
       </div>
+
+      {safeHostname ? (
+        <div
+          className="vs-guided-banner"
+          style={{
+            marginBottom: '20px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
+          }}
+        >
+          <div>
+            <div className="vs-eyebrow" style={{ marginBottom: '2px' }}>
+              TARGET WEBSITE LOCKED FOR CHECKOUT
+            </div>
+            <div style={{ fontSize: '13.5px', color: 'var(--vs-ink)' }}>
+              Selected domain:{' '}
+              <strong className="vs-mono">{safeHostname}</strong> — checkout
+              automatically audits this site and pre-loads its{' '}
+              <code className="vs-mono">JSON-LD</code>,{' '}
+              <code className="vs-mono">/llms.txt</code>, and{' '}
+              <code className="vs-mono">/agents.md</code> Fix Bundle inside Tab 2.
+            </div>
+          </div>
+          <StatusBadge tone="pass">AUTO-PROVISIONED</StatusBadge>
+        </div>
+      ) : null}
 
       <div className="vs-grid-4">
         {tiers.map((tier) => (

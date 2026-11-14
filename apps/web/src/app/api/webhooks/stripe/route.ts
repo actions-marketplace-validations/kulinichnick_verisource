@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import {
+  dispatchPostPurchaseWelcomeEmail,
+  normalizePublicDomain,
   resolveCoreGeoEnv,
   type BillingCycle,
   type PlanTier,
@@ -10,6 +12,7 @@ import {
   getProcessedStripeEventsSet,
   getServiceSupabaseClient,
   mcpLimitForPlan,
+  provisionDomainAuditForWorkspace,
 } from '../../../../lib/data-store';
 
 const ALLOWED_PLANS = new Set<PlanTier>([
@@ -77,6 +80,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     const billingCycle: BillingCycle =
       rawCycle && ALLOWED_CYCLES.has(rawCycle) ? rawCycle : 'monthly';
 
+    let targetHostname: string | null = null;
+    if (session.metadata?.domain?.trim()) {
+      try {
+        targetHostname = normalizePublicDomain(session.metadata.domain).hostname;
+      } catch {
+        targetHostname = null;
+      }
+    }
+
     const patch = {
       plan_tier: planTier,
       billing_cycle: billingCycle,
@@ -135,6 +147,65 @@ export async function POST(request: Request): Promise<NextResponse> {
       const store = getLocalMockStore();
       if (store.profile.id === userId) {
         Object.assign(store.profile, patch);
+      }
+    }
+
+    // M25: Auto-provision target domain + >= 9.5/10 Fix Bundle into buyer workspace
+    let provisionedScore: number | null = null;
+    let provisionedFixCount: number | null = null;
+    if (userId && targetHostname) {
+      try {
+        const provisioned = await provisionDomainAuditForWorkspace({
+          domainInput: targetHostname,
+          userId,
+          planTier,
+          supabase,
+          bypassPlanCapForPaidPass: planTier === 'tripwire_19',
+        });
+        if (provisioned.domain) {
+          provisionedScore = provisioned.domain.visibility_score;
+          provisionedFixCount = provisioned.fixes.length || null;
+        }
+      } catch {
+        // Never block entitlement acknowledgement if live domain crawl times out
+      }
+    }
+
+    // M25: Send Critic-verified >= 9.5/10 Welcome + 1-Click Magic Sign-In Link
+    if (customerEmail) {
+      const appBaseUrl = env.appUrl.replace(/\/+$/, '');
+      let magicLinkUrl: string | null = null;
+      if (supabase) {
+        try {
+          const redirectTarget = targetHostname
+            ? `${appBaseUrl}/dashboard?tab=tab2_fixes&domain=${encodeURIComponent(targetHostname)}`
+            : `${appBaseUrl}/dashboard?tab=tab2_fixes`;
+          const { data: linkData } = await supabase.auth.admin.generateLink({
+            type: 'magiclink',
+            email: customerEmail,
+            options: { redirectTo: redirectTarget },
+          });
+          magicLinkUrl = linkData?.properties?.action_link ?? null;
+        } catch {
+          magicLinkUrl = null;
+        }
+      }
+
+      try {
+        await dispatchPostPurchaseWelcomeEmail({
+          recipientEmail: customerEmail,
+          bccEmail: process.env.ALERT_FALLBACK_EMAIL,
+          planTier,
+          targetDomain: targetHostname,
+          visibilityScore: provisionedScore,
+          fixCount: provisionedFixCount,
+          magicLinkUrl,
+          consoleBaseUrl: appBaseUrl,
+          resendApiKey: process.env.RESEND_API_KEY,
+          fromEmail: process.env.ALERT_FROM_EMAIL,
+        });
+      } catch {
+        // Never fail Stripe webhook acknowledgement on transient email error
       }
     }
   } else if (event.type === 'customer.subscription.deleted') {
