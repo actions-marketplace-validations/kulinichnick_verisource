@@ -1,4 +1,4 @@
-export const VERISOURCE_VERSION = '0.1.0';
+export const VERISOURCE_VERSION = '0.2.0';
 
 export * from './db/types.js';
 export * from './fixtures/patient-zero.js';
@@ -9,6 +9,7 @@ export * from './shopify/shopify-adapter.js';
 export * from './watchdog/hallucination-watchdog.js';
 export * from './scanner/fanout-scanner.js';
 export * from './generator/fix-generator.js';
+export * from './generator/pitch-outreach.js';
 export * from './orchestrator/audit-domain.js';
 export * from './auth/api-key.js';
 export * from './pixel/snippet.js';

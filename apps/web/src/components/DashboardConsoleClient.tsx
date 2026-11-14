@@ -4,7 +4,9 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
+  buildAgencyColdOutreachNote,
   buildAiAttributionSnippet,
+  buildImplementationBundleMarkdown,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
@@ -107,6 +109,9 @@ export function DashboardConsoleClient(props: {
     data.profile.agency_cta_url ?? 'https://cal.com/verisource-demo/geo-audit'
   );
   const [generatingPitch, setGeneratingPitch] = useState(false);
+  const [selectedPitchSlug, setSelectedPitchSlug] = useState<string>(
+    () => props.initialData.pitchReports[0]?.share_slug ?? ''
+  );
 
   // Tab 3 MCP Key Minting & Revocation state
   const [keyLabel, setKeyLabel] = useState('Cursor & Antigravity Agent Key');
@@ -141,6 +146,12 @@ export function DashboardConsoleClient(props: {
         setSelectedDomainId((prev) => {
           if (payload.domains.some((d) => d.id === prev)) return prev;
           return payload.domains[0]?.id ?? '';
+        });
+        setSelectedPitchSlug((prev) => {
+          if (payload.pitchReports.some((r) => r.share_slug === prev)) {
+            return prev;
+          }
+          return payload.pitchReports[0]?.share_slug ?? '';
         });
         if (payload.profile.agency_brand_name) {
           setAgencyName(payload.profile.agency_brand_name);
@@ -496,8 +507,9 @@ export function DashboardConsoleClient(props: {
           ...prev,
           pitchReports: [json.report!, ...prev.pitchReports],
         }));
+        setSelectedPitchSlug(json.report.share_slug);
         setBannerSuccess(
-          `60-Second White-Label Pitch Link ready: ${json.share_url}`
+          `60-Second White-Label Pitch Link & cold outreach note ready: ${json.share_url}`
         );
       }
     } catch {
@@ -576,6 +588,37 @@ export function DashboardConsoleClient(props: {
       setRevokingKeyId(null);
     }
   }
+
+  function handleDownloadFixBundle() {
+    if (!activeDomain || domainFixes.length === 0) return;
+    const bundleMarkdown = buildImplementationBundleMarkdown({
+      domain: activeDomain,
+      fixes: domainFixes,
+    });
+    const hostSlug = new URL(activeDomain.domain_url).hostname.replace(
+      /[^a-z0-9.-]+/gi,
+      '-'
+    );
+    const blob = new Blob([bundleMarkdown], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${hostSlug}-verisource-geo-bundle.md`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  const selectedPitchReport: AgencyPitchReportRow | undefined =
+    data.pitchReports.find((r) => r.share_slug === selectedPitchSlug) ??
+    data.pitchReports[0];
+
+  const pitchOutreachArtifact = selectedPitchReport
+    ? buildAgencyColdOutreachNote(selectedPitchReport, 'https://verisource.dev')
+    : null;
 
   const pixelSnippet = activeDomain
     ? buildAiAttributionSnippet({
@@ -1115,6 +1158,43 @@ export function DashboardConsoleClient(props: {
               </div>
             ) : null}
 
+            <div
+              className="vs-card"
+              style={{
+                padding: '12px 16px',
+                marginBottom: '18px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+              }}
+            >
+              <div>
+                <strong style={{ fontSize: '13.5px' }}>
+                  Critic-Verified Implementation Bundle ({domainFixes.length}{' '}
+                  artifacts)
+                </strong>
+                <div
+                  style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}
+                >
+                  Single-file handoff for engineering or agency client delivery (
+                  <code className="vs-mono">JSON-LD</code>,{' '}
+                  <code className="vs-mono">/llms.txt</code>,{' '}
+                  <code className="vs-mono">/agents.md</code>, and FAQ blocks).
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleDownloadFixBundle}
+                disabled={domainFixes.length === 0}
+                className="vs-btn"
+                style={{ padding: '8px 14px', fontSize: '12.5px' }}
+              >
+                ↓ Download Full Fix Bundle (.md)
+              </button>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               {domainFixes.map((fix) => (
                 <CodeArtifactCard
@@ -1359,37 +1439,71 @@ export function DashboardConsoleClient(props: {
                       <th>Score</th>
                       <th>Views</th>
                       <th>Share Link</th>
+                      <th style={{ textAlign: 'right' }}>Outreach</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.pitchReports.map((r) => (
-                      <tr key={r.id}>
-                        <td>
-                          <strong>{r.prospect_brand_name}</strong>
-                          <div
-                            className="vs-mono"
-                            style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
-                          >
-                            {r.prospect_domain}
-                          </div>
-                        </td>
-                        <td className="vs-mono">{r.visibility_score}/100</td>
-                        <td className="vs-mono">{r.views_count}</td>
-                        <td>
-                          <Link
-                            href={`/audit/${r.share_slug}`}
-                            className="vs-mono"
-                            style={{ fontSize: '12px', color: 'var(--vs-ink)' }}
-                          >
-                            /audit/{r.share_slug} →
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                    {data.pitchReports.map((r) => {
+                      const isSelected =
+                        selectedPitchReport?.share_slug === r.share_slug;
+                      return (
+                        <tr key={r.id}>
+                          <td>
+                            <strong>{r.prospect_brand_name}</strong>
+                            <div
+                              className="vs-mono"
+                              style={{
+                                fontSize: '11.5px',
+                                color: 'var(--vs-ink-muted)',
+                              }}
+                            >
+                              {r.prospect_domain}
+                            </div>
+                          </td>
+                          <td className="vs-mono">{r.visibility_score}/100</td>
+                          <td className="vs-mono">{r.views_count}</td>
+                          <td>
+                            <Link
+                              href={`/audit/${r.share_slug}`}
+                              className="vs-mono"
+                              style={{ fontSize: '12px', color: 'var(--vs-ink)' }}
+                            >
+                              /audit/{r.share_slug} →
+                            </Link>
+                          </td>
+                          <td style={{ textAlign: 'right' }}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedPitchSlug(r.share_slug)}
+                              className="vs-btn vs-btn-secondary"
+                              style={{
+                                padding: '4px 9px',
+                                fontSize: '11.5px',
+                                borderColor: isSelected
+                                  ? 'var(--vs-ink)'
+                                  : undefined,
+                              }}
+                            >
+                              {isSelected ? 'Selected' : 'Cold Note'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
+
+            {selectedPitchReport && pitchOutreachArtifact ? (
+              <CodeArtifactCard
+                title={`4-Sentence Founder Cold Outreach Note (${selectedPitchReport.prospect_brand_name})`}
+                fileHint={`Target: https://verisource.dev/audit/${selectedPitchReport.share_slug} · Copy into Gmail, Superhuman, or LinkedIn DM`}
+                code={pitchOutreachArtifact.content}
+                qualityScore={pitchOutreachArtifact.score}
+                qualityBreakdown={pitchOutreachArtifact.breakdown}
+              />
+            ) : null}
 
             {/* Paid MCP Server Connection Hub */}
             <div className="vs-card" style={{ padding: '18px' }}>

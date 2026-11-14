@@ -3,6 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import {
+  PATIENT_ZERO_DOMAINS,
+  PATIENT_ZERO_FIXES,
+  PATIENT_ZERO_PITCH_REPORT,
+  buildAgencyColdOutreachNote,
+  buildImplementationBundleMarkdown,
   enforceQualityGate95,
   generateMcpApiKey,
   gradeArtifactQuality,
@@ -167,4 +172,37 @@ test('schema.sql enforces RLS on all 8 tables, billing column protection trigger
   assert.ok(sql.includes('consume_mcp_credits_for_user('));
   assert.ok(sql.includes('get_public_pitch_report('));
   assert.ok(sql.includes("^#[0-9A-Fa-f]{6}$"));
+});
+
+test('Agency cold-outreach note & downloadable implementation bundle pass >= 9.5/10 Critic', () => {
+  const outreach = buildAgencyColdOutreachNote(PATIENT_ZERO_PITCH_REPORT);
+  assert.ok(outreach.score >= 9.5, `Expected >=9.5, got ${outreach.score}`);
+  assert.ok(
+    outreach.content.includes(
+      'https://verisource.dev/audit/mosaic-springfield-audit'
+    )
+  );
+  assert.ok(outreach.content.includes('Mosaic Coffee Roasters'));
+
+  const cleanReport = {
+    ...PATIENT_ZERO_PITCH_REPORT,
+    hallucination_count: 0,
+    summary_payload: {
+      ...PATIENT_ZERO_PITCH_REPORT.summary_payload,
+      hallucination_examples: [],
+    },
+  };
+  const outreachNoHallucination = buildAgencyColdOutreachNote(cleanReport);
+  assert.ok(outreachNoHallucination.score >= 9.5);
+
+  const bundleMd = buildImplementationBundleMarkdown({
+    domain: PATIENT_ZERO_DOMAINS[0]!,
+    fixes: PATIENT_ZERO_FIXES,
+  });
+  assert.ok(
+    bundleMd.includes(
+      '# Verisource GEO Implementation Bundle — Aurea Coffee Roasters'
+    )
+  );
+  assert.ok(bundleMd.includes('templates/agents.md.liquid'));
 });

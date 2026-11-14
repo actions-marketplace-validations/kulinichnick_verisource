@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   buildAiAttributionSnippet,
+  buildImplementationBundleMarkdown,
   generateGeoFixBundle,
   PATIENT_ZERO_DOMAINS,
   PATIENT_ZERO_FIXES,
@@ -547,6 +548,57 @@ export default function App(): React.ReactElement {
 
         {activeTab === 'tab2_fixes' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div
+              className="vs-card"
+              style={{
+                padding: '9px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '12px', fontWeight: 600 }}>
+                {audit.fixes.length} Critic-Verified Artifacts
+              </span>
+              <button
+                type="button"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                onClick={() => {
+                  const md = buildImplementationBundleMarkdown({
+                    domain: {
+                      brand_name: audit.brandName,
+                      domain_url: audit.domainUrl,
+                      is_shopify: audit.shopify.isShopify,
+                      shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                      visibility_score: audit.visibilityScore,
+                      accuracy_score: audit.accuracyScore,
+                    },
+                    fixes: audit.fixes.map((f) => ({
+                      title: f.title,
+                      fix_type: f.fixType,
+                      content_payload: f.contentPayload,
+                      natural_quality_score: f.naturalQualityScore,
+                    })),
+                  });
+                  const blob = new Blob([md], {
+                    type: 'text/markdown;charset=utf-8',
+                  });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${audit.hostname}-verisource-geo-bundle.md`;
+                  document.body.appendChild(a);
+                  a.click();
+                  a.remove();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                ↓ Export Bundle (.md)
+              </button>
+            </div>
+
             {audit.shopify.isShopify ? (
               <div
                 className="vs-card"

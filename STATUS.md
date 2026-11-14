@@ -7,7 +7,7 @@
 > 4. End EVERY turn with the exact `NEXT STEP & MODEL DIRECTIVE` callout required by `GEMINI.md`.
 
 ## Current Build State
-* **Active Phase:** PRODUCTION LIVE, WHITE-LABEL OG CARDS & CHROME WEB STORE ASSET PACK COMPLETE (`M0.1` through `M13` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` live, Supabase schema + Patient Zero seeded, live Paid `/mcp` credit metering verified, `24/24` automated unit/MCP/E2E assertions passed (`7/7` core-geo + `4/4` mcp-worker + `13/13` Next.js E2E), Chrome MV3 `.zip` + 24-bit RGB `store-assets/` + Store Launch Kit ready).
+* **Active Phase:** PRODUCTION LIVE (`v0.2.0`), CHROME WEB STORE SUBMITTED FOR REVIEW & AGENCY GTM ENGINE SHIPPED (`M0.1` through `M15` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` live, Chrome Extension `v0.1.0` submitted to Chrome Web Store review queue, `25/25` automated unit/MCP/E2E assertions passed (`8/8` core-geo + `4/4` mcp-worker + `13/13` Next.js E2E)).
 * **Brand / Domain:** **Verisource** (`verisource.dev` | MCP: `mcp.verisource.dev`)
 * **Workspace Path:** `C:\dev\verisource` (local SSD; `STATUS.md` mirrored to `g:\My Drive\GEO MCP Engine\STATUS.md`)
 * **Patient Zero Seed Stores (Confirmed):** `aurearoasters.com` (Aurea Coffee Roasters) & `mosaicroasters.com` (Mosaic Coffee Roasters)
@@ -101,3 +101,10 @@
 * **Completed:**
   1. **Cold-Clone Safe Typecheck & Test Graph (`package.json` + `apps/extension/package.json`):** Updated root `typecheck` and `test` scripts to build `@verisource/core-geo` and `@verisource/ui` `.d.ts` outputs first and wired `wxt prepare` ahead of `tsc --noEmit` in `apps/extension` so fresh `git clone` builds succeed without pre-existing local caches.
   2. **GitHub Actions CI (`.github/workflows/ci.yml`):** Added automated `ubuntu-latest` Node 22 + `pnpm@9.15.0` pipeline running `pnpm install --frozen-lockfile`, `pnpm typecheck` (`5/5`), `pnpm test` (`7/7` core-geo + `4/4` mcp-worker), `pnpm build` (`5/5`), `pnpm --filter @verisource/web test:e2e` (`13/13` including `quality-gate-95` zero-slop scan), and `pnpm --filter @verisource/extension zip` artifact upload on every push and PR.
+
+### [x] M15 — Chrome Web Store Submission, Critic-Verified Agency Cold Outreach Generator & 1-Click Fix Bundle Export (`v0.2.0`) *(DONE)*
+* **Completed:**
+  1. **Chrome Web Store Submission (`v0.1.0`):** Submitted `Verisource — GEO & AI Citation Inspector` (`verisourceextension-0.1.0-chrome.zip` + 24-bit RGB `store-assets/` + `/privacy` policy + least-privilege `sidePanel`/`activeTab` justifications) to Google's Chrome Web Store review queue.
+  2. **`>= 9.5/10` Agency Cold-Outreach Note Generator (`packages/core-geo/src/generator/pitch-outreach.ts` + Tab 3 Module 4):** Built `buildAgencyColdOutreachNote`, generating a 4-sentence founder-to-founder email/DM citing exact prospect visibility scores, verbatim hallucination claims vs. verified truth (or rival domain citation gaps), and the live `/audit/[slug]` URL, enforced through `enforceQualityGate95` (`>= 9.5/10`, `0` banned words).
+  3. **1-Click Implementation Bundle Export (`buildImplementationBundleMarkdown` in `apps/web` Tab 2 & `apps/extension` Tab 2):** Added single-click `<hostname>-verisource-geo-bundle.md` export packaging all Critic-verified artifacts (`JSON-LD`, `/llms.txt`, `/agents.md`, `templates/agents.md.liquid`, and FAQs) with platform-specific deployment steps.
+  4. **Full Verification (`25/25` Automated Checks):** Passed `pnpm typecheck` (`5/5`), `@verisource/core-geo` unit tests (`8/8`), `@verisource/mcp-worker` `/mcp` tests (`4/4`), `pnpm build` (`5/5`), and `@verisource/web` `verify-e2e.mjs` (`13/13`).
