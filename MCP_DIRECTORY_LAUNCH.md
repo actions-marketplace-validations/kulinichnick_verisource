@@ -6,6 +6,7 @@ All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 - **MCP Discovery Manifest (Web Origin):** `https://verisource.dev/.well-known/mcp.json`
 - **MCP Discovery Manifest (Worker Origin):** `https://mcp.verisource.dev/.well-known/mcp.json`
 - **OAuth 2.0 Protected Resource Metadata (RFC 9728):** `https://mcp.verisource.dev/.well-known/oauth-protected-resource`
+- **Visual Quickstart & Playground:** `https://verisource.dev/mcp-guide`
 - **Agent Protocol Documentation:** `https://verisource.dev/agents.md`
 - **Root Registry Schema File:** `server.json`
 
@@ -18,7 +19,7 @@ All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 - **Category:** `Search & SEO` / `Developer Tools` / `E-Commerce`
 - **Transport Type:** `Streamable HTTP` (`https://mcp.verisource.dev/mcp`)
 - **Authentication:** Optional for free `scan_domain_ai_readiness` tool (`0` credits); `Authorization: Bearer vs_live_<48-hex>` or OAuth 2.0 Bearer JWT for paid tools.
-- **Website / Docs URL:** `https://verisource.dev/agents.md`
+- **Website / Docs URL:** `https://verisource.dev/mcp-guide`
 - **Pricing URL:** `https://verisource.dev/pricing`
 - **Privacy Policy URL:** `https://verisource.dev/privacy`
 

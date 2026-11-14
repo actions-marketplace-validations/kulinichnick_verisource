@@ -930,7 +930,64 @@ async function run() {
       (mosaicGraderJson.summary ?? mosaicGraderJson).industryVertical,
       'local_commerce'
     );
-    console.log('✔ [27/27] M29 Vertical-specific LocalBusiness / Shopify industryVertical classifier verified on /api/grader');
+    console.log('✔ [27/28] M29 Vertical-specific LocalBusiness / Shopify industryVertical classifier verified on /api/grader');
+
+    // 26. M30 /mcp-guide Visual Quickstart Hub, Animated SVG Schematic, Sitemap & /api/mcp-preview JSON-RPC Inspector
+    const [mcpGuideRes, m30SitemapRes, m30ManifestRes] = await Promise.all([
+      fetch(`${BASE}/mcp-guide`),
+      fetch(`${BASE}/sitemap.xml`),
+      fetch(`${BASE}/.well-known/mcp.json`),
+    ]);
+    assert.equal(mcpGuideRes.status, 200);
+    const mcpGuideHtml = await mcpGuideRes.text();
+    const m30SitemapXml = await m30SitemapRes.text();
+    const m30ManifestJson = await m30ManifestRes.json();
+
+    assert.ok(m30SitemapXml.includes('https://verisource.dev/mcp-guide'));
+    assert.ok(
+      m30ManifestJson.documentationUrl.endsWith('/mcp-guide'),
+      `Expected documentationUrl to end with /mcp-guide, got ${m30ManifestJson.documentationUrl}`
+    );
+    assert.ok(
+      mcpGuideHtml.includes('FIG 03 · STATELESS STREAMABLE HTTP /MCP ENGINE')
+    );
+    assert.ok(mcpGuideHtml.includes('Claude Desktop'));
+    assert.ok(mcpGuideHtml.includes('Antigravity'));
+    const mcpGuideVisible = mcpGuideHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (mcpGuideVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /mcp-guide'
+    );
+
+    const ssrfMcpPreviewRes = await fetch(`${BASE}/api/mcp-preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: 'http://169.254.169.254/latest/meta-data/' }),
+    });
+    assert.equal(ssrfMcpPreviewRes.status, 400);
+
+    const validMcpPreviewRes = await fetch(`${BASE}/api/mcp-preview`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: 'aurearoasters.com' }),
+    });
+    assert.equal(validMcpPreviewRes.status, 200);
+    const validMcpPreviewJson = await validMcpPreviewRes.json();
+    assert.equal(validMcpPreviewJson.rpcRequest.method, 'tools/call');
+    assert.equal(
+      validMcpPreviewJson.rpcRequest.params.name,
+      'scan_domain_ai_readiness'
+    );
+    assert.equal(validMcpPreviewJson.summary.credits_charged, 0);
+    assert.equal(
+      validMcpPreviewJson.summary.brandName,
+      'Aurea Coffee Roasters'
+    );
+    console.log('✔ [28/28] M30 /mcp-guide visual quickstart, FIG 03 SVG schematic, SSRF-safe /api/mcp-preview JSON-RPC inspector & 0-slop gate verified');
   } finally {
     server.kill();
   }

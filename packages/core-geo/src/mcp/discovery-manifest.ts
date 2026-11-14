@@ -49,7 +49,7 @@ export function buildMcpDiscoveryManifest(options?: {
   const mcpOrigin = (
     options?.mcpOrigin ?? 'https://mcp.verisource.dev'
   ).replace(/\/+$/, '');
-  const version = options?.version ?? '0.3.8';
+  const version = options?.version ?? '0.3.9';
 
   return {
     $schema:
@@ -61,7 +61,7 @@ export function buildMcpDiscoveryManifest(options?: {
       'B2B GEO MCP: audit AI citations, flag SKU hallucinations, and ship >=9.5/10 JSON-LD & /agents.md.',
     version,
     websiteUrl: appOrigin,
-    documentationUrl: `${appOrigin}/agents.md`,
+    documentationUrl: `${appOrigin}/mcp-guide`,
     pricingUrl: `${appOrigin}/pricing`,
     privacyPolicyUrl: `${appOrigin}/privacy`,
     termsOfServiceUrl: `${appOrigin}/terms`,

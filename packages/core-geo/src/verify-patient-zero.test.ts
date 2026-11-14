@@ -280,6 +280,7 @@ test('Hallucination drift email alert builder & dry-run dispatcher pass >= 9.5/1
 test('MCP Registry discovery manifest & MCP_DIRECTORY_LAUNCH.md pass >= 9.5/10 Critic', () => {
   const manifest = buildMcpDiscoveryManifest();
   assert.equal(manifest.name, 'dev.verisource/mcp');
+  assert.equal(manifest.documentationUrl, 'https://verisource.dev/mcp-guide');
   assert.ok(manifest.description.length <= 100);
   assert.equal(manifest.remotes[0]?.type, 'streamable-http');
   assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');

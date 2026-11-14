@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Specification
 
 Canonical Origin: https://verisource.dev
+Visual Quickstart & Playground: https://verisource.dev/mcp-guide
 Streamable HTTP MCP Endpoint: https://mcp.verisource.dev/mcp
 Transport: Stateless Streamable HTTP (POST / GET / DELETE JSON-RPC 2.0)
 MCP Discovery Manifest: https://mcp.verisource.dev/.well-known/mcp.json

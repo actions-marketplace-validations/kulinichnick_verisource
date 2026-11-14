@@ -207,7 +207,14 @@ export default function RootLayout({
                 </span>
                 VERISOURCE
               </Link>
-              <span className="vs-badge">mcp.verisource.dev/mcp</span>
+              <Link
+                href="/mcp-guide"
+                className="vs-badge"
+                style={{ textDecoration: 'none' }}
+                title="View 30-second Claude, Cursor, Windsurf & Antigravity setup guide"
+              >
+                mcp.verisource.dev/mcp
+              </Link>
             </div>
 
             <nav className="vs-nav-links" aria-label="Primary navigation">
@@ -222,6 +229,9 @@ export default function RootLayout({
               </Link>
               <Link href="/agencies" className="vs-nav-link">
                 Agencies
+              </Link>
+              <Link href="/mcp-guide" className="vs-nav-link">
+                MCP Guide
               </Link>
               <Link href="/sample-audit" className="vs-nav-link">
                 Sample Audits
@@ -271,6 +281,12 @@ export default function RootLayout({
                 flexWrap: 'wrap',
               }}
             >
+              <Link
+                href="/mcp-guide"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /mcp-guide
+              </Link>
               <a
                 href="/llms.txt"
                 style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
