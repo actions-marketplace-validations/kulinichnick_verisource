@@ -1350,9 +1350,29 @@ export function DashboardConsoleClient(props: {
                     {domainSnapshots.map((snap) => (
                       <tr key={snap.id}>
                         <td>
-                          <span className="vs-mono" style={{ fontWeight: 600 }}>
+                          <div className="vs-mono" style={{ fontWeight: 600 }}>
                             {snap.ai_engine.toUpperCase()}
-                          </span>
+                          </div>
+                          <div style={{ marginTop: '4px' }}>
+                            <StatusBadge
+                              tone={
+                                snap.fanout_telemetry_type !== 'mock_fixture'
+                                  ? 'pass'
+                                  : 'neutral'
+                              }
+                            >
+                              {snap.fanout_telemetry_type === 'observed_query'
+                                ? isGuided
+                                  ? 'LIVE SEARCH'
+                                  : 'LIVE FANOUT'
+                                : snap.fanout_telemetry_type ===
+                                    'cited_source_only'
+                                  ? 'LIVE CITED'
+                                  : isGuided
+                                    ? 'DEMO SAMPLE'
+                                    : 'FIXTURE'}
+                            </StatusBadge>
+                          </div>
                         </td>
                         <td className="vs-mono">
                           {snap.brand_mentioned

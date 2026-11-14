@@ -1022,7 +1022,32 @@ async function run() {
         dashHtml.includes('Weekly Client Digest'),
       'Expected Weekly Summary Email / Weekly Client Digest button in Tab 1'
     );
-    console.log('✔ [29/29] M31 Weekly Executive Client Digest (/api/dashboard/digest) & Tab 1 controls verified (>= 9.5/10 Critic, 0 banned words)');
+    console.log('✔ [29/30] M31 Weekly Executive Client Digest (/api/dashboard/digest) & Tab 1 controls verified (>= 9.5/10 Critic, 0 banned words)');
+
+    // 28. M32 Live Search Fanout Telemetry Badges & Sample Sub-Query Readout on /api/grader, / & /dashboard
+    assert.ok(
+      typeof (mosaicGraderJson.summary ?? mosaicGraderJson).samplePromptResult
+        .fanoutTelemetryType === 'string',
+      'Expected samplePromptResult.fanoutTelemetryType on /api/grader'
+    );
+    assert.ok(
+      Array.isArray(
+        (mosaicGraderJson.summary ?? mosaicGraderJson).samplePromptResult
+          .decompiledFanoutQueries
+      ),
+      'Expected samplePromptResult.decompiledFanoutQueries array on /api/grader'
+    );
+    const m32HomeHtml = await (await fetch(`${BASE}/`)).text();
+    assert.ok(
+      m32HomeHtml.includes('Observed AI Search Sub-Queries:') &&
+        m32HomeHtml.includes('LIVE WEB SEARCH'),
+      'Expected live fanout telemetry readout on Landing Page grader'
+    );
+    assert.ok(
+      dashHtml.includes('LIVE SEARCH') || dashHtml.includes('LIVE FANOUT'),
+      'Expected live search provenance badge in Dashboard Tab 1'
+    );
+    console.log('✔ [30/30] M32 Perplexity Agent API fanout telemetry & live provenance badges verified across /, /api/grader & /dashboard');
   } finally {
     server.kill();
   }

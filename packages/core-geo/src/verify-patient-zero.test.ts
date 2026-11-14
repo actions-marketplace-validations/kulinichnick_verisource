@@ -43,9 +43,11 @@ import {
   isAutomatedPreviewBot,
   normalizePublicDomain,
   parseBatchProspectDomains,
+  parsePerplexityAgentResponse,
   parseRobotsAiBotRules,
   runDomainReadinessScan,
   runFullGeoAudit,
+  runPerplexityAgentQuery,
   sanitizeCsvCell,
   sha256Hex,
 } from './index.js';
@@ -818,4 +820,153 @@ test('Weekly Executive Client Digest (Pro & White-Label Agency modes + XSS CTA g
   );
   assert.ok(!agencyDispatch.html.includes('javascript:alert'));
   assert.ok(agencyDispatch.qualityScore >= 9.5);
+});
+
+test('Perplexity Agent API SDK adapter parses output_text, search_results queries, annotations & retries 429 Retry-After', async () => {
+  const prevEnvKey = process.env.PERPLEXITY_API_KEY;
+  delete process.env.PERPLEXITY_API_KEY;
+  try {
+    await assert.rejects(
+      () => runPerplexityAgentQuery({ input: 'Test missing key' }),
+      /console\.perplexity\.ai/
+    );
+  } finally {
+    if (prevEnvKey !== undefined) {
+      process.env.PERPLEXITY_API_KEY = prevEnvKey;
+    }
+  }
+
+  let fetchCalls = 0;
+  let capturedBody: Record<string, unknown> | null = null;
+  const mockFetch: typeof fetch = async (_input, init) => {
+    fetchCalls += 1;
+    if (init?.body && typeof init.body === 'string') {
+      capturedBody = JSON.parse(init.body) as Record<string, unknown>;
+    }
+    if (fetchCalls === 1) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            type: 'request_rate_limit_exceeded',
+            message: 'Rate limit exceeded (1 QPS)',
+          },
+        }),
+        {
+          status: 429,
+          headers: {
+            'content-type': 'application/json',
+            'retry-after': '0',
+          },
+        }
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        id: 'resp_pplx_agent_test_01',
+        object: 'response',
+        created_at: 1794643000,
+        status: 'completed',
+        model: 'openai/gpt-6-luna',
+        effort: 'fast@2026-11-11.0',
+        output: [
+          {
+            type: 'search_results',
+            queries: [
+              'mosaicroasters.com single origin coffee pricing',
+              'best specialty coffee roasters Springfield MO delivery',
+            ],
+            results: [
+              {
+                id: 1,
+                url: 'https://mosaicroasters.com/pages/ai-facts',
+                title: 'Mosaic Coffee Roasters — Verified Facts',
+                snippet: 'Single-origin specialty coffee roasted in Springfield, MO.',
+              },
+              {
+                id: 2,
+                url: 'https://onyxcoffeelab.com/collections/coffee',
+                title: 'Onyx Coffee Lab',
+                snippet: 'Specialty whole bean coffee.',
+              },
+            ],
+          },
+          {
+            type: 'message',
+            id: 'msg_01',
+            role: 'assistant',
+            status: 'completed',
+            content: [
+              {
+                type: 'output_text',
+                text: 'Mosaic Coffee Roasters offers single-origin beans with free local delivery within 25 miles of Springfield, MO on $45+ orders[1].',
+                annotations: [
+                  {
+                    type: 'url_citation',
+                    url: 'https://mosaicroasters.com/pages/ai-facts',
+                    title: 'Mosaic Coffee Roasters — Verified Facts',
+                    start_index: 120,
+                    end_index: 123,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+      {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }
+    );
+  };
+
+  const result = await runPerplexityAgentQuery({
+    input: 'Mosaic Coffee Roasters pricing and local delivery',
+    apiKey: 'test_unit_only_not_a_real_secret',
+    effort: 'fast',
+    fetchImpl: mockFetch,
+  });
+
+  assert.equal(fetchCalls, 2, 'Expected 1 retry after 429 with Retry-After');
+  assert.ok(capturedBody);
+  assert.equal((capturedBody as Record<string, unknown>).effort, 'fast');
+  assert.deepEqual((capturedBody as Record<string, unknown>).tools, [
+    { type: 'web_search' },
+  ]);
+  assert.equal(result.fanoutTelemetryType, 'observed_query');
+  assert.deepEqual(result.decompiledFanoutQueries, [
+    'mosaicroasters.com single origin coffee pricing',
+    'best specialty coffee roasters Springfield MO delivery',
+  ]);
+  assert.equal(
+    result.citedUrls[0],
+    'https://mosaicroasters.com/pages/ai-facts'
+  );
+  assert.ok(result.citedUrls.includes('https://onyxcoffeelab.com/collections/coffee'));
+  assert.ok(result.outputText.includes('Mosaic Coffee Roasters'));
+
+  const citedOnly = parsePerplexityAgentResponse({
+    id: 'resp_02',
+    object: 'response',
+    created_at: 1794643001,
+    status: 'completed',
+    model: 'openai/gpt-6-luna',
+    output_text: 'Answer with citations only.',
+    output: [
+      {
+        type: 'search_results',
+        results: [
+          {
+            id: 1,
+            url: 'https://verisource.dev',
+            title: 'Verisource',
+            snippet: 'GEO & MCP intelligence.',
+          },
+        ],
+      },
+    ],
+  });
+  assert.equal(citedOnly.fanoutTelemetryType, 'cited_source_only');
+  assert.equal(citedOnly.decompiledFanoutQueries.length, 0);
 });

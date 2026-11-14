@@ -1,3 +1,4 @@
+import Perplexity, { type Responses } from '@perplexity-ai/perplexity_ai';
 import type { CoreGeoEnv } from '../config/env.js';
 import type {
   AiEngine,
@@ -13,6 +14,29 @@ import {
 import { classifyIndustryVertical } from '../generator/fix-generator.js';
 import { detectHallucinations } from '../watchdog/hallucination-watchdog.js';
 import type { NormalizedDomain } from './bot-waf-prober.js';
+
+export interface PerplexityAgentQueryOptions {
+  input: string;
+  apiKey?: string;
+  effort?: 'fast' | 'low' | 'medium' | 'high' | 'xhigh' | 'ultra';
+  model?: string;
+  instructions?: string;
+  previousResponseId?: string;
+  timeoutMs?: number;
+  maxRetries?: number;
+  fetchImpl?: typeof fetch;
+}
+
+export interface PerplexityAgentGroundedAnswer {
+  id: string;
+  model: string;
+  effort?: string;
+  outputText: string;
+  decompiledFanoutQueries: string[];
+  citedUrls: string[];
+  sourceTitles: string[];
+  fanoutTelemetryType: FanoutTelemetryType;
+}
 
 export interface EngineScanResult {
   promptText: string;
@@ -172,6 +196,129 @@ function extractMentionAndRank(
   return { mentioned: false, rank: null };
 }
 
+async function fetchJsonWith429Retry(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const attempt = async () =>
+    fetch(url, {
+      ...init,
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+  const first = await attempt();
+  if (first.status !== 429) return first;
+
+  const retryAfterRaw = first.headers.get('retry-after');
+  const retryAfterSec = retryAfterRaw ? Number.parseFloat(retryAfterRaw) : 1;
+  const delayMs = Number.isFinite(retryAfterSec)
+    ? Math.min(3000, Math.max(250, Math.round(retryAfterSec * 1000)))
+    : 1000;
+
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  return attempt();
+}
+
+export function parsePerplexityAgentResponse(
+  response: Responses.ResponseCreateResponse
+): PerplexityAgentGroundedAnswer {
+  const fanoutQueries: string[] = [];
+  const inlineCitedUrls: string[] = [];
+  const searchResultUrls: string[] = [];
+  const sourceTitles: string[] = [];
+  let fallbackMessageText = '';
+
+  for (const item of response.output ?? []) {
+    if (item.type === 'search_results') {
+      for (const q of item.queries ?? []) {
+        const trimmed = q.trim();
+        if (trimmed && !fanoutQueries.includes(trimmed)) {
+          fanoutQueries.push(trimmed);
+        }
+      }
+      for (const res of item.results ?? []) {
+        if (res.url) searchResultUrls.push(res.url);
+        if (res.title) sourceTitles.push(res.title);
+      }
+    } else if (item.type === 'message') {
+      for (const part of item.content ?? []) {
+        if (part.type === 'output_text' && part.text) {
+          fallbackMessageText += `${part.text} `;
+        }
+        for (const ann of part.annotations ?? []) {
+          if (ann.url) inlineCitedUrls.push(ann.url);
+          if (ann.title) sourceTitles.push(ann.title);
+        }
+      }
+    }
+  }
+
+  const outputText = (response.output_text || fallbackMessageText).trim();
+  const citedUrls = Array.from(
+    new Set([...inlineCitedUrls, ...searchResultUrls])
+  ).slice(0, 8);
+
+  return {
+    id: response.id,
+    model: response.model,
+    effort: response.effort,
+    outputText,
+    decompiledFanoutQueries: fanoutQueries,
+    citedUrls,
+    sourceTitles: Array.from(new Set(sourceTitles)),
+    fanoutTelemetryType:
+      fanoutQueries.length > 0 ? 'observed_query' : 'cited_source_only',
+  };
+}
+
+export async function runPerplexityAgentQuery(
+  options: PerplexityAgentQueryOptions
+): Promise<PerplexityAgentGroundedAnswer> {
+  const envKey =
+    typeof process !== 'undefined' && process.env
+      ? process.env.PERPLEXITY_API_KEY
+      : undefined;
+  const resolvedKey = (options.apiKey ?? envKey ?? '').trim();
+
+  if (!resolvedKey) {
+    throw new Error(
+      'Missing PERPLEXITY_API_KEY. Create an API key in https://console.perplexity.ai and export PERPLEXITY_API_KEY in your terminal.'
+    );
+  }
+
+  const client = new Perplexity({
+    apiKey: resolvedKey,
+    timeout: options.timeoutMs ?? 15000,
+    maxRetries: options.maxRetries ?? 2,
+    ...(options.fetchImpl ? { fetch: options.fetchImpl } : {}),
+  });
+
+  const requestBody: Responses.ResponseCreateParamsNonStreaming = {
+    input: options.input,
+    tools: [{ type: 'web_search' }],
+  };
+
+  if (options.model) {
+    requestBody.model = options.model;
+    if (options.effort) {
+      requestBody.effort = options.effort;
+    }
+  } else {
+    requestBody.effort = options.effort ?? 'fast';
+  }
+
+  if (options.instructions) {
+    requestBody.instructions = options.instructions;
+  }
+  if (options.previousResponseId) {
+    requestBody.previous_response_id = options.previousResponseId;
+  }
+
+  const response = await client.responses.create(requestBody);
+  return parsePerplexityAgentResponse(response);
+}
+
 async function scanWithGeminiLive(
   promptText: string,
   domain: NormalizedDomain,
@@ -180,7 +327,7 @@ async function scanWithGeminiLive(
   apiKey: string
 ): Promise<EngineScanResult | null> {
   try {
-    const response = await fetch(
+    const response = await fetchJsonWith429Retry(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
         apiKey
       )}`,
@@ -191,8 +338,8 @@ async function scanWithGeminiLive(
           contents: [{ parts: [{ text: promptText }] }],
           tools: [{ google_search: {} }],
         }),
-        signal: AbortSignal.timeout(12000),
-      }
+      },
+      16000
     );
     if (!response.ok) return null;
 
@@ -247,7 +394,8 @@ async function scanWithGeminiLive(
       competitorsMentioned: competitors,
       citedSourceUrls: citedUrls,
       decompiledFanoutQueries: fanoutQueries,
-      fanoutTelemetryType: 'observed_query',
+      fanoutTelemetryType:
+        fanoutQueries.length > 0 ? 'observed_query' : 'cited_source_only',
       hallucinationDetected: hallucinations.length > 0,
       hallucinationDetails: hallucinations,
       rawAnswerExcerpt: answerText.slice(0, 420),
@@ -265,57 +413,69 @@ async function scanWithOpenAiLive(
   apiKey: string
 ): Promise<EngineScanResult | null> {
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+    const response = await fetchJsonWith429Retry(
+      'https://api.openai.com/v1/responses',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          tools: [{ type: 'web_search_preview' }],
+          input: promptText,
+        }),
       },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        tools: [{ type: 'web_search_preview' }],
-        input: promptText,
-      }),
-      signal: AbortSignal.timeout(12000),
-    });
+      18000
+    );
     if (!response.ok) return null;
 
     const data = (await response.json()) as {
+      output_text?: string;
       output?: Array<{
         type?: string;
-        action?: { query?: string };
+        action?: { query?: string; queries?: string[] };
         content?: Array<{
           text?: string;
-          annotations?: Array<{ url?: string }>;
+          annotations?: Array<{ url?: string; title?: string }>;
         }>;
       }>;
     };
 
     const fanoutQueries: string[] = [];
     const citedUrls: string[] = [];
+    const citationTitles: string[] = [];
     let answerText = '';
 
     for (const item of data.output ?? []) {
-      if (item.type === 'web_search_call' && item.action?.query) {
-        fanoutQueries.push(item.action.query);
+      if (item.type === 'web_search_call') {
+        if (item.action?.query) {
+          fanoutQueries.push(item.action.query);
+        }
+        for (const q of item.action?.queries ?? []) {
+          if (q && !fanoutQueries.includes(q)) fanoutQueries.push(q);
+        }
       }
       for (const part of item.content ?? []) {
         if (part.text) answerText += `${part.text} `;
         for (const ann of part.annotations ?? []) {
           if (ann.url) citedUrls.push(ann.url);
+          if (ann.title) citationTitles.push(ann.title);
         }
       }
     }
 
+    const finalAnswer = (answerText.trim() || data.output_text || '').trim();
     const dedupedUrls = Array.from(new Set(citedUrls)).slice(0, 8);
     const { mentioned, rank } = extractMentionAndRank(
-      answerText,
+      finalAnswer,
       brandName,
       domain.hostname,
       dedupedUrls
     );
     const hallucinations = detectHallucinations(
-      answerText,
+      finalAnswer,
       brandName,
       truthSheet
     );
@@ -327,14 +487,16 @@ async function scanWithOpenAiLive(
       citationRank: rank,
       competitorsMentioned: extractCompetingHostsFromCitations(
         domain.hostname,
-        dedupedUrls
+        dedupedUrls,
+        citationTitles
       ),
       citedSourceUrls: dedupedUrls,
       decompiledFanoutQueries: fanoutQueries,
-      fanoutTelemetryType: 'observed_query',
+      fanoutTelemetryType:
+        fanoutQueries.length > 0 ? 'observed_query' : 'cited_source_only',
       hallucinationDetected: hallucinations.length > 0,
       hallucinationDetails: hallucinations,
-      rawAnswerExcerpt: answerText.trim().slice(0, 420),
+      rawAnswerExcerpt: finalAnswer.slice(0, 420),
     };
   } catch {
     return null;
@@ -349,32 +511,24 @@ async function scanWithPerplexityLive(
   apiKey: string
 ): Promise<EngineScanResult | null> {
   try {
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'sonar',
-        messages: [{ role: 'user', content: promptText }],
-      }),
-      signal: AbortSignal.timeout(12000),
+    const agentResult = await runPerplexityAgentQuery({
+      input: promptText,
+      apiKey,
+      effort: 'fast',
+      timeoutMs: 15000,
+      maxRetries: 2,
     });
-    if (!response.ok) return null;
 
-    const data = (await response.json()) as {
-      citations?: string[];
-      choices?: Array<{ message?: { content?: string } }>;
-    };
+    const answerText = agentResult.outputText;
+    if (!answerText && agentResult.citedUrls.length === 0) {
+      return null;
+    }
 
-    const answerText = data.choices?.[0]?.message?.content ?? '';
-    const citedUrls = (data.citations ?? []).slice(0, 8);
     const { mentioned, rank } = extractMentionAndRank(
       answerText,
       brandName,
       domain.hostname,
-      citedUrls
+      agentResult.citedUrls
     );
     const hallucinations = detectHallucinations(
       answerText,
@@ -389,14 +543,15 @@ async function scanWithPerplexityLive(
       citationRank: rank,
       competitorsMentioned: extractCompetingHostsFromCitations(
         domain.hostname,
-        citedUrls
+        agentResult.citedUrls,
+        agentResult.sourceTitles
       ),
-      citedSourceUrls: citedUrls,
-      decompiledFanoutQueries: [],
-      fanoutTelemetryType: 'cited_source_only',
+      citedSourceUrls: agentResult.citedUrls,
+      decompiledFanoutQueries: agentResult.decompiledFanoutQueries,
+      fanoutTelemetryType: agentResult.fanoutTelemetryType,
       hallucinationDetected: hallucinations.length > 0,
       hallucinationDetails: hallucinations,
-      rawAnswerExcerpt: answerText.trim().slice(0, 420),
+      rawAnswerExcerpt: answerText.slice(0, 420),
     };
   } catch {
     return null;

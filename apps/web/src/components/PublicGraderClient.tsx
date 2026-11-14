@@ -40,6 +40,11 @@ const INITIAL_AUREA_PREVIEW: ReadinessScanSummary = {
       'https://aurearoasters.com/••••••-locked-citation',
     ],
     hallucinationDetected: false,
+    fanoutTelemetryType: 'observed_query',
+    decompiledFanoutQueries: [
+      'luxury Catholic specialty coffee gifts single origin',
+      'saint inspired coffee roasters whole bean gift box',
+    ],
   },
   upgradeUrl: '/pricing?domain=aurearoasters.com',
 };
@@ -293,8 +298,33 @@ export function PublicGraderClient(): React.ReactElement {
       </div>
 
       <div style={{ padding: '18px 20px' }}>
-        <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-          SAMPLE BUYER QUESTION ({result.samplePromptResult.aiEngine.toUpperCase()})
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '6px',
+          }}
+        >
+          <div className="vs-eyebrow">
+            SAMPLE BUYER QUESTION ({result.samplePromptResult.aiEngine.toUpperCase()})
+          </div>
+          <StatusBadge
+            tone={
+              result.samplePromptResult.fanoutTelemetryType &&
+              result.samplePromptResult.fanoutTelemetryType !== 'mock_fixture'
+                ? 'pass'
+                : 'neutral'
+            }
+          >
+            {result.samplePromptResult.fanoutTelemetryType === 'observed_query'
+              ? 'LIVE WEB SEARCH · FANOUT OBSERVED'
+              : result.samplePromptResult.fanoutTelemetryType ===
+                  'cited_source_only'
+                ? 'LIVE WEB SEARCH · CITED'
+                : 'SAMPLE SNAPSHOT'}
+          </StatusBadge>
         </div>
         <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px' }}>
           &ldquo;{result.samplePromptResult.promptText}&rdquo;
@@ -318,6 +348,29 @@ export function PublicGraderClient(): React.ReactElement {
               {result.samplePromptResult.competitorsMentioned.join(' · ') ||
                 'Category directories'}
             </div>
+            {result.samplePromptResult.decompiledFanoutQueries &&
+            result.samplePromptResult.decompiledFanoutQueries.length > 0 ? (
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontWeight: 600, marginBottom: '3px', fontSize: '12px' }}>
+                  Observed AI Search Sub-Queries:
+                </div>
+                {result.samplePromptResult.decompiledFanoutQueries
+                  .slice(0, 2)
+                  .map((q) => (
+                    <div
+                      key={q}
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-secondary)',
+                        marginBottom: '2px',
+                      }}
+                    >
+                      → {q}
+                    </div>
+                  ))}
+              </div>
+            ) : null}
           </div>
           <div>
             <div style={{ fontWeight: 600, marginBottom: '4px' }}>

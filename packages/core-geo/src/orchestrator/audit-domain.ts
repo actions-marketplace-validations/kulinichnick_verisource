@@ -1,7 +1,9 @@
 import { resolveCoreGeoEnv, type RawEnvInput } from '../config/env.js';
 import type {
   AgentsMdStatus,
+  AiEngine,
   BrandTruthSheet,
+  FanoutTelemetryType,
   HallucinationDetail,
   LlmsTxtStatus,
   PitchSummaryPayload,
@@ -54,6 +56,8 @@ export interface ReadinessScanSummary {
     competitorsMentioned: string[];
     citedSourceUrlsBlurred: string[];
     hallucinationDetected: boolean;
+    fanoutTelemetryType?: FanoutTelemetryType;
+    decompiledFanoutQueries?: string[];
   };
   upgradeUrl: string;
 }
@@ -487,14 +491,53 @@ export async function runDomainReadinessScan(
   );
 
   const firstPrompt = prompts[0] ?? `${brandName} reviews and pricing`;
-  const teaserScans = await runMultiEnginePromptScan({
+  let teaserEngines: AiEngine[] = ['chatgpt'];
+  if (env.providerMode === 'live') {
+    const configuredLive: AiEngine[] = [];
+    if (env.perplexityApiKey) configuredLive.push('perplexity');
+    if (env.openaiApiKey) configuredLive.push('chatgpt');
+    if (env.geminiApiKey) configuredLive.push('gemini');
+    if (configuredLive.length > 0) {
+      teaserEngines = [configuredLive[0]!];
+    }
+  }
+
+  let teaserScans = await runMultiEnginePromptScan({
     prompts: [firstPrompt],
-    engines: ['chatgpt'],
+    engines: teaserEngines,
     domain: probe.domain,
     brandName,
     truthSheet,
     env,
   });
+
+  if (
+    env.providerMode === 'live' &&
+    teaserScans[0]?.fanoutTelemetryType === 'mock_fixture'
+  ) {
+    const fallbackOrder: AiEngine[] = ['chatgpt', 'gemini', 'perplexity'];
+    for (const candidate of fallbackOrder) {
+      if (candidate === teaserEngines[0]) continue;
+      const hasKey =
+        (candidate === 'chatgpt' && Boolean(env.openaiApiKey)) ||
+        (candidate === 'gemini' && Boolean(env.geminiApiKey)) ||
+        (candidate === 'perplexity' && Boolean(env.perplexityApiKey));
+      if (!hasKey) continue;
+
+      const retry = await runMultiEnginePromptScan({
+        prompts: [firstPrompt],
+        engines: [candidate],
+        domain: probe.domain,
+        brandName,
+        truthSheet,
+        env,
+      });
+      if (retry[0] && retry[0].fanoutTelemetryType !== 'mock_fixture') {
+        teaserScans = retry;
+        break;
+      }
+    }
+  }
 
   const sample = teaserScans[0]!;
   const allHallucinations = teaserScans.flatMap((s) => s.hallucinationDetails);
@@ -549,6 +592,8 @@ export async function runDomainReadinessScan(
       competitorsMentioned: sample.competitorsMentioned,
       citedSourceUrlsBlurred: sample.citedSourceUrls.map(maskUrlForTeaser),
       hallucinationDetected: sample.hallucinationDetected,
+      fanoutTelemetryType: sample.fanoutTelemetryType,
+      decompiledFanoutQueries: sample.decompiledFanoutQueries.slice(0, 3),
     },
     upgradeUrl: `${env.appUrl}/pricing?domain=${encodeURIComponent(
       probe.domain.hostname
