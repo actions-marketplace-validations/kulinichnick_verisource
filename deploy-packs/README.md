@@ -1,10 +1,13 @@
 # Patient Zero Shopify Deployment Packs (`aurearoasters.com` & `mosaicroasters.com`)
 
-Live HTTP audit findings against both storefronts (`23.227.38.32` & `23.227.38.65`):
+Live HTTP & Shopify Admin API status across both storefronts (`wuwvdd-0t.myshopify.com` / `23.227.38.32` & `premer-roastery.myshopify.com` / `23.227.38.65`):
 
 1. **Shopify Native UCP Endpoint (`/api/ucp/mcp`):** Active (`200 OK`) on both stores.
-2. **Stock Shopify `/agents.md` & `/llms.txt` Boilerplate Gap:** Both stores currently serve Shopify's generic 76-line `https://shop.app/SKILL.md` template with zero SKU prices, zero shipping thresholds (`$50+` US on Aurea; `$45+` 25-mile Springfield, MO radius on Mosaic), and zero SKU exclusions (`no K-Cup pods` on Aurea; `no $25 free nationwide shipping` on Mosaic).
-3. **Missing AI Referral & Checkout Attribution:** Neither storefront currently posts `ai_referral_visit` or `checkout_completed` conversion events to `https://verisource.dev/api/pixel`.
+2. **Step 1 — Theme Entity `JSON-LD` + Alternate Truth Link + Storefront Visit Pixel (`LIVE`):** Deployed directly via Shopify Admin API (`snippets/verisource-geo.liquid` + `{% render 'verisource-geo' %}` in `layout/theme.liquid`) on Aurea Main Theme `169180102891` (`8` offers + `FAQPage`) and Mosaic Main Theme `160270385374` (`6` offers + `40233.6`m Springfield `GeoCircle` + `FAQPage`).
+3. **Step 2 — Canonical First-Party Brand Truth Sheet (`LIVE`):**
+   - **Aurea:** `https://aurearoasters.com/cdn/shop/files/aurea-verified-ai-facts.md` (`200 OK`, uploaded via Shopify Admin GraphQL `fileCreate`).
+   - **Mosaic:** `https://mosaicroasters.com/pages/ai-facts` (`200 OK`, page ID `133596709086`, created via Shopify Admin Pages API).
+4. **Step 3 — Sandboxed Checkout Revenue Pixel (`Settings -> Customer events`):** Ready for 30-second paste in Shopify Admin (Shopify's PCI DSS v4.0 Checkout Extensibility sandbox blocks all Admin API tokens from creating raw-JS merchant Custom Pixels programmatically).
 
 ---
 
