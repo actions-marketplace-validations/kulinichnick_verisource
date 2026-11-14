@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import Stripe from 'stripe';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const webDir = path.resolve(__dirname, '..');
 const PORT = 3488;
 const BASE = `http://127.0.0.1:${PORT}`;
+const E2E_WEBHOOK_SECRET = 'whsec_verisource_e2e_hmac_secret_95';
 
 const BANNED_LEXICON =
   /\b(delve\w*|testament\w*|tapestr\w*|elevat\w*|game[- ]chang\w*|unleash\w*|unlock\w*|seamless\w*|comprehensive\w*|moreover|furthermore|beacon\w*|symphon\w*|turbocharg\w*|lorem ipsum)\b/gi;
@@ -41,6 +43,7 @@ async function run() {
       NODE_ENV: 'production',
       PROVIDER_MODE: 'mock',
       STRIPE_SECRET_KEY: '',
+      STRIPE_WEBHOOK_SECRET: E2E_WEBHOOK_SECRET,
       SUPABASE_SERVICE_ROLE_KEY: '',
     },
     stdio: 'pipe',
@@ -782,7 +785,83 @@ async function run() {
       0,
       'Found banned lexicon on post-purchase Tab 2 dashboard'
     );
-    console.log('✔ [23/23] M25 Contextual ?domain= checkout carryover, SSRF checkout block (400), and zero-click Tab 2 Fix Bundle provisioning verified');
+    console.log('✔ [23/24] M25 Contextual ?domain= checkout carryover, SSRF checkout block (400), and zero-click Tab 2 Fix Bundle provisioning verified');
+
+    // 22. M26 Cryptographic HMAC-SHA256 /api/webhooks/stripe E2E (Forged 400 + Signed Provisioning + Replay Idempotency)
+    const webhookPayload = JSON.stringify({
+      id: 'evt_e2e_verisource_checkout_01',
+      object: 'event',
+      api_version: '2025-01-27.acacia',
+      created: Math.floor(Date.now() / 1000),
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_live_e2e_test_01',
+          object: 'checkout.session',
+          customer: 'cus_live_e2e_01',
+          subscription: 'sub_live_e2e_01',
+          customer_details: {
+            email: 'founder@cal.com',
+          },
+          metadata: {
+            user_id: '00000000-0000-4000-8000-000000000001',
+            plan_tier: 'agency_249',
+            billing_cycle: 'monthly',
+            domain: 'cal.com',
+          },
+        },
+      },
+    });
+
+    const forgedHookRes = await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': 't=1700000000,v1=deadbeef000000000000000000000000',
+      },
+      body: webhookPayload,
+    });
+    assert.equal(forgedHookRes.status, 400);
+
+    const validSignature = Stripe.webhooks.generateTestHeaderString({
+      payload: webhookPayload,
+      secret: E2E_WEBHOOK_SECRET,
+    });
+
+    const signedHookRes = await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': validSignature,
+      },
+      body: webhookPayload,
+    });
+    assert.equal(signedHookRes.status, 200);
+    const signedHookJson = await signedHookRes.json();
+    assert.equal(signedHookJson.received, true);
+    assert.equal(signedHookJson.duplicate, undefined);
+
+    const replayHookRes = await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': validSignature,
+      },
+      body: webhookPayload,
+    });
+    assert.equal(replayHookRes.status, 200);
+    const replayHookJson = await replayHookRes.json();
+    assert.equal(replayHookJson.duplicate, true);
+
+    const afterWebhookState = await (
+      await fetch(`${BASE}/api/dashboard/state`)
+    ).json();
+    assert.equal(afterWebhookState.profile.plan_tier, 'agency_249');
+    assert.ok(
+      afterWebhookState.domains.some((d) => d.domain_url === 'https://cal.com'),
+      'Expected signed checkout.session.completed webhook to auto-provision https://cal.com'
+    );
+    console.log('✔ [24/24] M26 /api/webhooks/stripe verified: forged HMAC rejected (400), signed checkout provisioned https://cal.com, and event replay deduplicated');
   } finally {
     server.kill();
   }

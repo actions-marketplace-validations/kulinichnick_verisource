@@ -1,4 +1,4 @@
-export const UI_VERSION = '0.3.4';
+export const UI_VERSION = '0.3.5';
 
 export * from './styles.js';
 export * from './style-tag.js';

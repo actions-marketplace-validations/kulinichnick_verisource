@@ -142,13 +142,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       cancelDest.searchParams.set('plan', rawPlan);
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const baseSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: isOneTime ? 'payment' : 'subscription',
-      ...(existingCustomerId
-        ? { customer: existingCustomerId }
-        : auth?.profile.email
-          ? { customer_email: auth.profile.email }
-          : {}),
       line_items: [
         {
           quantity: 1,
@@ -176,7 +171,31 @@ export async function GET(request: Request): Promise<NextResponse> {
       },
       success_url: successDest.toString(),
       cancel_url: cancelDest.toString(),
-    });
+    };
+
+    let session: Stripe.Checkout.Session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        ...baseSessionParams,
+        ...(existingCustomerId
+          ? { customer: existingCustomerId }
+          : auth?.profile.email
+            ? { customer_email: auth.profile.email }
+            : {}),
+      });
+    } catch (err) {
+      // Auto-heal if profile holds a stale sk_test_ customer ID after sk_live_ cutover
+      if (existingCustomerId) {
+        session = await stripe.checkout.sessions.create({
+          ...baseSessionParams,
+          ...(auth?.profile.email
+            ? { customer_email: auth.profile.email }
+            : {}),
+        });
+      } else {
+        throw err;
+      }
+    }
 
     if (session.url) {
       return NextResponse.redirect(session.url, { status: 303 });

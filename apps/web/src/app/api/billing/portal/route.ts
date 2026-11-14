@@ -35,12 +35,17 @@ export async function POST(request: Request): Promise<NextResponse> {
     stripeCustomerId &&
     !stripeCustomerId.startsWith('cus_demo_')
   ) {
-    const stripe = new Stripe(env.stripeSecretKey);
-    const portal = await stripe.billingPortal.sessions.create({
-      customer: stripeCustomerId,
-      return_url: `${url.origin}/dashboard`,
-    });
-    return NextResponse.redirect(portal.url, { status: 303 });
+    try {
+      const stripe = new Stripe(env.stripeSecretKey);
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: stripeCustomerId,
+        return_url: `${url.origin}/dashboard`,
+      });
+      return NextResponse.redirect(portal.url, { status: 303 });
+    } catch {
+      // Gracefully redirect to /pricing if customer ID belongs to prior test mode or portal is unconfigured
+      return NextResponse.redirect(`${url.origin}/pricing`, { status: 303 });
+    }
   }
 
   return NextResponse.redirect(`${url.origin}/pricing`, { status: 303 });

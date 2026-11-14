@@ -26,7 +26,7 @@ const ALLOWED_CYCLES = new Set<BillingCycle>(['monthly', 'annual', 'one_time']);
 
 export async function POST(request: Request): Promise<NextResponse> {
   const env = resolveCoreGeoEnv();
-  if (!env.stripeSecretKey || !env.stripeWebhookSecret) {
+  if (!env.stripeWebhookSecret) {
     return NextResponse.json(
       { error: 'STRIPE_WEBHOOK_NOT_CONFIGURED' },
       { status: 503 }
@@ -42,11 +42,10 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const rawBody = await request.text();
-  const stripe = new Stripe(env.stripeSecretKey);
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = Stripe.webhooks.constructEvent(
       rawBody,
       signature,
       env.stripeWebhookSecret

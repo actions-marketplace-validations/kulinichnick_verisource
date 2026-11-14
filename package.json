@@ -10,6 +10,7 @@
     "typecheck": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r typecheck",
     "test": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r test",
     "build": "pnpm -r build",
+    "stripe:live": "pnpm --filter @verisource/web stripe:live",
     "clean": "pnpm -r clean"
   },
   "devDependencies": {

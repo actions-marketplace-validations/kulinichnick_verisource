@@ -8,6 +8,7 @@
     "start": "next start",
     "test:e2e": "node scripts/verify-e2e.mjs",
     "prospect:batch": "node scripts/mint-prospect-batch.mjs",
+    "stripe:live": "node scripts/configure-stripe-live.mjs",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next"
   },
