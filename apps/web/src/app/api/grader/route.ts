@@ -19,7 +19,10 @@ export async function OPTIONS(): Promise<NextResponse> {
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as { domain?: string };
+    const body = (await request.json()) as {
+      domain?: string;
+      forceRefresh?: boolean;
+    };
     if (!body.domain || typeof body.domain !== 'string') {
       return NextResponse.json(
         {
@@ -34,7 +37,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const cacheMap = getGraderCacheMap();
     const cached = cacheMap.get(normalized.hostname);
 
-    if (cached && cached.expiresAt > Date.now()) {
+    if (!body.forceRefresh && cached && cached.expiresAt > Date.now()) {
       return NextResponse.json(
         {
           ...(cached.data as ReadinessScanSummary),

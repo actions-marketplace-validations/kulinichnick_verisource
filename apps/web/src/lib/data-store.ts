@@ -7,6 +7,7 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_PROMPTS,
   PATIENT_ZERO_SNAPSHOTS,
+  isFixTypeLiveOnDomain,
   normalizePublicDomain,
   resolveCoreGeoEnv,
   runFullGeoAudit,
@@ -39,6 +40,10 @@ const globalForVerisource = globalThis as unknown as {
   __verisourceGraderIpMap?: Map<string, { day: string; count: number }>;
   __verisourcePitchIpMap?: Map<string, { hourBucket: string; count: number }>;
   __verisourceAlertIpMap?: Map<string, { hourBucket: string; count: number }>;
+  __verisourceVerifyFixesIpMap?: Map<
+    string,
+    { hourBucket: string; count: number }
+  >;
   __verisourceAuditViewDedupMap?: Map<string, number>;
   __verisourceProcessedStripeEvents?: Set<string>;
 };
@@ -166,6 +171,16 @@ export function getAlertIpMap(): Map<
     globalForVerisource.__verisourceAlertIpMap = new Map();
   }
   return globalForVerisource.__verisourceAlertIpMap;
+}
+
+export function getVerifyFixesIpMap(): Map<
+  string,
+  { hourBucket: string; count: number }
+> {
+  if (!globalForVerisource.__verisourceVerifyFixesIpMap) {
+    globalForVerisource.__verisourceVerifyFixesIpMap = new Map();
+  }
+  return globalForVerisource.__verisourceVerifyFixesIpMap;
 }
 
 export function getServiceSupabaseClient(): SupabaseClient<Database> | null {
@@ -541,7 +556,7 @@ export async function provisionDomainAuditForWorkspace(input: {
     content_payload: f.contentPayload,
     natural_quality_score: f.naturalQualityScore,
     quality_rubric_breakdown: f.qualityRubricBreakdown,
-    is_applied: false,
+    is_applied: isFixTypeLiveOnDomain(f.fixType, audit.probe, audit.shopify),
     created_at: nowIso,
   }));
 

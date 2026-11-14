@@ -17,6 +17,7 @@ import {
   type CitationSnapshotRow,
   type DomainRow,
   type GeneratedFixRow,
+  type LiveFixVerificationReport,
   type McpApiKeyRow,
   type ProfileRow,
   type QualityRubricBreakdown,
@@ -190,6 +191,9 @@ export function DashboardConsoleClient(props: {
   // Tab 1 Hallucination Drift Alert, Weekly Executive Digest & Shopify Checkout Pixel state
   const [sendingAlert, setSendingAlert] = useState(false);
   const [sendingDigest, setSendingDigest] = useState(false);
+  const [verifyingFixes, setVerifyingFixes] = useState(false);
+  const [lastFixVerification, setLastFixVerification] =
+    useState<LiveFixVerificationReport | null>(null);
   const [shopifyCheckoutKey, setShopifyCheckoutKey] = useState<string>('');
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
@@ -311,6 +315,7 @@ export function DashboardConsoleClient(props: {
       )
     );
     setLastAlertPreview(null);
+    setLastFixVerification(null);
     let cancelled = false;
     if (activeDomain.is_shopify) {
       void computeShopifyCheckoutKey({
@@ -857,6 +862,55 @@ export function DashboardConsoleClient(props: {
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function handleVerifyLiveFixes() {
+    if (!activeDomain) return;
+    setVerifyingFixes(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/verify-fixes', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ domain_id: activeDomain.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        verification?: LiveFixVerificationReport;
+        domain?: DomainRow;
+        appliedFixIds?: string[];
+      };
+      if (!res.ok || json.error || !json.verification || !json.domain) {
+        setBannerError(
+          json.message ?? 'Unable to verify live fix deployment.'
+        );
+      } else {
+        const appliedIdSet = new Set(json.appliedFixIds ?? []);
+        setLastFixVerification(json.verification);
+        setData((prev) => ({
+          ...prev,
+          domains: prev.domains.map((d) =>
+            d.id === json.domain!.id ? json.domain! : d
+          ),
+          fixes: prev.fixes.map((f) =>
+            f.domain_id === json.domain!.id
+              ? { ...f, is_applied: appliedIdSet.has(f.id) }
+              : f
+          ),
+        }));
+        const liveCheckCount = json.verification.checks.filter(
+          (c) => c.live
+        ).length;
+        setBannerSuccess(
+          `Verified ${liveCheckCount}/4 on-site checks live on ${json.verification.hostname} (${appliedIdSet.size} artifact(s) marked live · Visibility ${json.domain.visibility_score}/100).`
+        );
+      }
+    } catch {
+      setBannerError('Network error while verifying live fixes.');
+    } finally {
+      setVerifyingFixes(false);
+    }
   }
 
   function handleDownloadFixBundle() {
@@ -1743,16 +1797,95 @@ export function DashboardConsoleClient(props: {
                   <code className="vs-mono">/agents.md</code>, and FAQ blocks).
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleDownloadFixBundle}
-                disabled={domainFixes.length === 0}
-                className="vs-btn"
-                style={{ padding: '8px 14px', fontSize: '12.5px' }}
-              >
-                ↓ Download Full Fix Bundle (.md)
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => void handleVerifyLiveFixes()}
+                  disabled={verifyingFixes}
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '8px 14px', fontSize: '12.5px' }}
+                >
+                  {verifyingFixes ? 'Probing Live Site...' : '✓ Verify Live Fixes'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadFixBundle}
+                  disabled={domainFixes.length === 0}
+                  className="vs-btn"
+                  style={{ padding: '8px 14px', fontSize: '12.5px' }}
+                >
+                  ↓ Download Full Fix Bundle (.md)
+                </button>
+              </div>
             </div>
+
+            {lastFixVerification ? (
+              <div
+                className="vs-card"
+                style={{ overflow: 'hidden', marginBottom: '18px' }}
+              >
+                <div
+                  style={{
+                    padding: '10px 16px',
+                    borderBottom: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                  }}
+                >
+                  <strong style={{ fontSize: '13px' }}>
+                    Live Fix Deployment Check — {lastFixVerification.hostname}
+                  </strong>
+                  <span
+                    className="vs-mono"
+                    style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+                  >
+                    Checked{' '}
+                    {new Date(lastFixVerification.checkedAt).toLocaleTimeString()}
+                  </span>
+                </div>
+                <div className="vs-ledger-strip-4">
+                  {lastFixVerification.checks.map((item) => (
+                    <div key={item.id} style={{ padding: '13px 15px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '6px',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink)',
+                          }}
+                        >
+                          {item.label}
+                        </span>
+                        <StatusBadge tone={item.live ? 'pass' : 'warn'}>
+                          {item.live ? 'LIVE' : 'PENDING'}
+                        </StatusBadge>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {item.detail}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               {domainFixes.map((fix) => (
@@ -1764,6 +1897,13 @@ export function DashboardConsoleClient(props: {
                   }
                   fileHint={`Fix Type: ${fix.fix_type}`}
                   code={fix.content_payload}
+                  statusBadge={
+                    fix.fix_type === 'citation_outreach_brief'
+                      ? { label: 'OFF-SITE OUTREACH DRAFT', tone: 'neutral' }
+                      : fix.is_applied
+                        ? { label: 'LIVE ON SITE', tone: 'pass' }
+                        : { label: 'READY TO PUBLISH', tone: 'neutral' }
+                  }
                   qualityScore={Number(fix.natural_quality_score)}
                   qualityBreakdown={fix.quality_rubric_breakdown}
                 />

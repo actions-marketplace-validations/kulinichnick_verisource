@@ -56,17 +56,19 @@ export function PublicGraderClient(): React.ReactElement {
   const [result, setResult] = useState<ReadinessScanSummary>(
     INITIAL_AUREA_PREVIEW
   );
+  const [cached24h, setCached24h] = useState<boolean | null>(null);
 
-  async function runScan(targetDomain: string) {
+  async function runScan(targetDomain: string, forceRefresh = false) {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/grader', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: targetDomain }),
+        body: JSON.stringify({ domain: targetDomain, forceRefresh }),
       });
       const data = (await res.json()) as ReadinessScanSummary & {
+        cached24h?: boolean;
         error?: string;
         message?: string;
       };
@@ -74,6 +76,7 @@ export function PublicGraderClient(): React.ReactElement {
         setError(data.message ?? 'Unable to scan that domain.');
       } else {
         setResult(data);
+        setCached24h(Boolean(data.cached24h));
       }
     } catch {
       setError('Network error while probing domain.');
@@ -325,6 +328,21 @@ export function PublicGraderClient(): React.ReactElement {
                 ? 'LIVE WEB SEARCH · CITED'
                 : 'SAMPLE SNAPSHOT'}
           </StatusBadge>
+          {cached24h !== null ? (
+            <StatusBadge tone={cached24h ? 'neutral' : 'pass'}>
+              {cached24h ? '24H CACHE' : 'FRESH LIVE SCAN'}
+            </StatusBadge>
+          ) : null}
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void runScan(result.hostname, true)}
+            className="vs-btn vs-btn-secondary"
+            style={{ padding: '3px 9px', fontSize: '11.5px' }}
+            title="Bypass 24-hour cache and re-probe live HTTP & AI search state"
+          >
+            {loading ? 'Probing...' : '↻ Re-Scan Live'}
+          </button>
         </div>
         <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px' }}>
           &ldquo;{result.samplePromptResult.promptText}&rdquo;

@@ -1047,7 +1047,81 @@ async function run() {
       dashHtml.includes('LIVE SEARCH') || dashHtml.includes('LIVE FANOUT'),
       'Expected live search provenance badge in Dashboard Tab 1'
     );
-    console.log('✔ [30/30] M32 Perplexity Agent API fanout telemetry & live provenance badges verified across /, /api/grader & /dashboard');
+    console.log('✔ [30/31] M32 Perplexity Agent API fanout telemetry & live provenance badges verified across /, /api/grader & /dashboard');
+
+    // 29. M33 Closed-Loop Live Fix Verification (/api/dashboard/verify-fixes), Tab 2 Live Badges & Grader forceRefresh
+    const missingVerifyRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    assert.equal(missingVerifyRes.status, 400);
+
+    const verifyFixesRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+      }),
+    });
+    assert.equal(verifyFixesRes.status, 200);
+    const verifyFixesJson = await verifyFixesRes.json();
+    assert.ok(verifyFixesJson.verification);
+    assert.equal(verifyFixesJson.verification.checks.length, 4);
+    assert.ok(Array.isArray(verifyFixesJson.appliedFixIds));
+    for (const chk of verifyFixesJson.verification.checks) {
+      assert.equal(
+        (chk.detail.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon in live fix verification check: ${chk.detail}`
+      );
+    }
+
+    // Verify /api/grader cached24h vs forceRefresh: true
+    const firstGraderCheck = await (
+      await fetch(`${BASE}/api/grader`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: 'aurearoasters.com' }),
+      })
+    ).json();
+    assert.equal(firstGraderCheck.cached24h, false);
+
+    const secondGraderCheck = await (
+      await fetch(`${BASE}/api/grader`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: 'aurearoasters.com' }),
+      })
+    ).json();
+    assert.equal(secondGraderCheck.cached24h, true);
+
+    const forcedGraderCheck = await (
+      await fetch(`${BASE}/api/grader`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: 'aurearoasters.com',
+          forceRefresh: true,
+        }),
+      })
+    ).json();
+    assert.equal(forcedGraderCheck.cached24h, false);
+
+    const m33Tab2Html = await (
+      await fetch(`${BASE}/dashboard?tab=tab2_fixes`)
+    ).text();
+    assert.ok(
+      m33Tab2Html.includes('Verify Live Fixes') &&
+        (m33Tab2Html.includes('LIVE ON SITE') ||
+          m33Tab2Html.includes('READY TO PUBLISH')),
+      'Expected Verify Live Fixes button and artifact deployment badges in Tab 2'
+    );
+    assert.ok(
+      m32HomeHtml.includes('Re-Scan Live'),
+      'Expected Re-Scan Live button on Public Grader'
+    );
+    console.log('✔ [31/31] M33 Closed-Loop Live Fix Verification (/api/dashboard/verify-fixes), Tab 2 live badges & Grader forceRefresh verified');
   } finally {
     server.kill();
   }

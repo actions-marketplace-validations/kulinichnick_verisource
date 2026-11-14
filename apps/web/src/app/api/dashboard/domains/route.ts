@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  isFixTypeLiveOnDomain,
   runFullGeoAudit,
   type CitationSnapshotRow,
   type DomainRow,
@@ -177,7 +178,7 @@ export async function PUT(request: Request): Promise<NextResponse> {
       content_payload: f.contentPayload,
       natural_quality_score: f.naturalQualityScore,
       quality_rubric_breakdown: f.qualityRubricBreakdown,
-      is_applied: false,
+      is_applied: isFixTypeLiveOnDomain(f.fixType, audit.probe, audit.shopify),
       created_at: nowIso,
     }));
 

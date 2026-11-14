@@ -52,10 +52,129 @@ export interface EngineScanResult {
   rawAnswerExcerpt: string;
 }
 
+const LEADING_SLOGAN_PREFIX =
+  /^(?:welcome\s+to\s+|discover\s+|meet\s+|introducing\s+|experience\s+|explore\s+|a\s+collection\s+of\s+(?:powerful\s+)?|the\s+all-in-one\s+|your\s+all-in-one\s+|all-in-one\s+|purpose-built\s+for\s+|built\s+for\s+|designed\s+for\s+|the\s+leading\s+|leading\s+|the\s+modern\s+|the\s+|a\s+|an\s+)+/i;
+
+const TRAILING_DANGLING_WORDS =
+  /\s+(?:with|for|and|or|in|on|at|to|of|from|by|within|into|across|through|a|an|the|your|our|their)$/i;
+
+const PRESERVED_ACRONYMS = new Set([
+  'AI',
+  'API',
+  'AWS',
+  'B2B',
+  'B2C',
+  'CMS',
+  'CPA',
+  'CRM',
+  'CSS',
+  'D2C',
+  'DNS',
+  'ERP',
+  'GEO',
+  'GPU',
+  'HR',
+  'HTML',
+  'HTTP',
+  'HVAC',
+  'IDE',
+  'IT',
+  'JSON',
+  'LLM',
+  'MCP',
+  'MD',
+  'MO',
+  'PR',
+  'QA',
+  'ROI',
+  'RPA',
+  'SDK',
+  'SEO',
+  'SKU',
+  'SMB',
+  'SQL',
+  'SSO',
+  'UCP',
+  'UI',
+  'UK',
+  'URL',
+  'US',
+  'USA',
+  'UX',
+  'VPN',
+  'WAF',
+]);
+
+export function extractCleanCategoryTopic(
+  coreOffering: string,
+  brandName: string,
+  maxChars = 54
+): string {
+  let cleaned = coreOffering
+    .replace(/https?:\/\/\S+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) return '';
+
+  // Strip "<BrandName> is a/an/the ..." or "<BrandName> offers/provides/helps ..."
+  const escapedBrand = brandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (escapedBrand.length >= 2) {
+    cleaned = cleaned.replace(
+      new RegExp(
+        `^${escapedBrand}\\s+(?:is\\s+(?:a|an|the)\\s+|offers\\s+|provides\\s+|delivers\\s+|builds\\s+)?`,
+        'i'
+      ),
+      ''
+    );
+  }
+
+  // Take first clause before sentence-ending punctuation or em-dash/pipe
+  cleaned = cleaned.split(/[.;!?|—–]/)[0]?.trim() ?? '';
+  cleaned = cleaned.replace(LEADING_SLOGAN_PREFIX, '').trim();
+
+  // Truncate strictly at whole-word boundaries (never mid-word)
+  if (cleaned.length > maxChars) {
+    const words = cleaned.split(/\s+/);
+    let acc = '';
+    for (const word of words) {
+      const next = acc ? `${acc} ${word}` : word;
+      if (next.length > maxChars) break;
+      acc = next;
+    }
+    cleaned = acc || words[0]?.slice(0, maxChars) || '';
+  }
+
+  // Strip trailing dangling prepositions/articles/conjunctions repeatedly
+  let prev = '';
+  while (cleaned && cleaned !== prev) {
+    prev = cleaned;
+    cleaned = cleaned.replace(/[,:;/-]+$/, '').replace(TRAILING_DANGLING_WORDS, '').trim();
+  }
+
+  // Lowercase leading common English capitalized word unless it is an acronym or matches brandName
+  const tokens = cleaned.split(/\s+/);
+  const firstToken = tokens[0] ?? '';
+  const bareFirst = firstToken.replace(/[^A-Za-z0-9]/g, '');
+  const brandFirst = (brandName.split(/\s+/)[0] ?? '').replace(/[^A-Za-z0-9]/g, '');
+  if (
+    bareFirst.length >= 2 &&
+    /^[A-Z][a-z]+$/.test(bareFirst) &&
+    !PRESERVED_ACRONYMS.has(bareFirst.toUpperCase()) &&
+    bareFirst.toLowerCase() !== brandFirst.toLowerCase()
+  ) {
+    tokens[0] = firstToken[0]!.toLowerCase() + firstToken.slice(1);
+    cleaned = tokens.join(' ');
+  }
+
+  return cleaned.length >= 6 ? cleaned : '';
+}
+
 export function generateDefaultPromptsForDomain(
   domain: NormalizedDomain,
   brandName: string,
-  coreOffering: string
+  coreOffering: string,
+  isShopify?: boolean
 ): string[] {
   const fixtureDomain = PATIENT_ZERO_DOMAINS.find((d) =>
     d.domain_url.toLowerCase().includes(domain.hostname)
@@ -71,6 +190,7 @@ export function generateDefaultPromptsForDomain(
     hostname: domain.hostname,
     brandName,
     coreOffering,
+    isShopify,
   });
 
   if (vertical.industryVertical === 'legal_service') {
@@ -109,16 +229,40 @@ export function generateDefaultPromptsForDomain(
     ];
   }
 
-  const conciseTopic = coreOffering
-    .replace(/https?:\/\/\S+/g, '')
-    .split(/[.;]/)[0]
-    ?.trim()
-    .slice(0, 72);
+  const cleanTopic = extractCleanCategoryTopic(coreOffering, brandName);
+
+  if (vertical.industryVertical === 'shopify_commerce') {
+    return [
+      cleanTopic
+        ? `Best ${cleanTopic} brands online — ${brandName} reviews and pricing`
+        : `${brandName} online store reviews, pricing, and shipping policies`,
+      `${brandName} product quality, shipping rules, and top alternatives`,
+      cleanTopic
+        ? `Which online brands do shoppers recommend for ${cleanTopic}?`
+        : `Best direct-to-consumer alternatives to ${brandName}`,
+    ];
+  }
+
+  if (vertical.industryVertical === 'b2b_agency') {
+    return [
+      cleanTopic
+        ? `Top agencies for ${cleanTopic} — ${brandName} reviews and retainers`
+        : `${brandName} agency case studies, pricing, and client results`,
+      `${brandName} client reviews, retainer structure, and top agency alternatives`,
+      cleanTopic
+        ? `Which B2B agencies do growth teams recommend for ${cleanTopic}?`
+        : `Top B2B agencies compared alongside ${brandName}`,
+    ];
+  }
 
   return [
-    `Best providers for ${conciseTopic || brandName} with transparent pricing`,
+    cleanTopic
+      ? `Best software and providers for ${cleanTopic} — ${brandName} pricing and reviews`
+      : `${brandName} pricing tiers, features, and verified buyer reviews`,
     `${brandName} reviews, pricing, and top alternatives`,
-    `Who do buyers recommend for ${conciseTopic || domain.hostname}?`,
+    cleanTopic
+      ? `What do teams recommend for ${cleanTopic} alongside ${brandName}?`
+      : `Top alternatives and competitors to ${brandName}`,
   ];
 }
 
@@ -131,6 +275,254 @@ const IGNORED_CITATION_HOSTS = new Set([
   'wikipedia.org',
   'en.wikipedia.org',
 ]);
+
+const EDITORIAL_AND_DIRECTORY_HOSTS = new Set([
+  'g2.com',
+  'capterra.com',
+  'getapp.com',
+  'softwareadvice.com',
+  'trustradius.com',
+  'trustpilot.com',
+  'gartner.com',
+  'peerspot.com',
+  'sourceforge.net',
+  'slashdot.org',
+  'producthunt.com',
+  'alternativeto.net',
+  'slant.co',
+  'stackshare.io',
+  'clutch.co',
+  'upcity.com',
+  'designrush.com',
+  'goodfirms.co',
+  'yelp.com',
+  'bbb.org',
+  'angi.com',
+  'homeadvisor.com',
+  'thumbtack.com',
+  'reddit.com',
+  'old.reddit.com',
+  'quora.com',
+  'medium.com',
+  'substack.com',
+  'dev.to',
+  'news.ycombinator.com',
+  'forbes.com',
+  'techcrunch.com',
+  'wired.com',
+  'theverge.com',
+  'pcmag.com',
+  'techradar.com',
+  'cnet.com',
+  'zdnet.com',
+  'tomsguide.com',
+  'nytimes.com',
+  'wsj.com',
+  'bloomberg.com',
+  'businessinsider.com',
+  'fastcompany.com',
+  'inc.com',
+  'entrepreneur.com',
+  'thedigitalprojectmanager.com',
+  'directree.io',
+  'softwarecompare.net',
+  'buildstacktools.com',
+  'toolradar.dev',
+  'aiintelreport.com',
+  'saasworthy.com',
+  'crozdesk.com',
+  'softwareworld.co',
+  'financesonline.com',
+  'selecthub.com',
+  'linkedin.com',
+  'facebook.com',
+  'instagram.com',
+  'x.com',
+  'twitter.com',
+  'tiktok.com',
+  'github.com',
+  'npmjs.com',
+  'pypi.org',
+]);
+
+const DIRECTORY_HOST_PATTERN =
+  /(?:compare|comparison|directory|directree|review|reviews|report|reports|radar|guide|guides|top10|bestof|softwareworld|saasworthy|crozdesk|listicle|rankings?)\./i;
+
+const EDITORIAL_PATH_PATTERN =
+  /\/(?:blog|blogs|articles?|news|guides?|comparisons?|best-[a-z0-9-]+|top-\d+-[a-z0-9-]+)(?:\/|$)/i;
+
+const GENERIC_BOLD_HEADINGS = new Set([
+  'pros',
+  'cons',
+  'pricing',
+  'price',
+  'cost',
+  'free',
+  'free plan',
+  'free tier',
+  'pro plan',
+  'starter',
+  'enterprise',
+  'overview',
+  'summary',
+  'verdict',
+  'conclusion',
+  'bottom line',
+  'key features',
+  'features',
+  'best for',
+  'ideal for',
+  'who it is for',
+  'why choose',
+  'alternatives',
+  'top alternatives',
+  'top picks',
+  'comparison',
+  'rating',
+  'reviews',
+  'shipping',
+  'delivery',
+  'support',
+  'integrations',
+  'security',
+  'note',
+  'important',
+]);
+
+function isDirectoryOrEditorialHost(host: string, rawUrl?: string): boolean {
+  if (
+    IGNORED_CITATION_HOSTS.has(host) ||
+    EDITORIAL_AND_DIRECTORY_HOSTS.has(host) ||
+    DIRECTORY_HOST_PATTERN.test(`${host}.`)
+  ) {
+    return true;
+  }
+  for (const dir of EDITORIAL_AND_DIRECTORY_HOSTS) {
+    if (host.endsWith(`.${dir}`)) return true;
+  }
+  if (rawUrl) {
+    try {
+      const parsed = new URL(rawUrl);
+      if (EDITORIAL_PATH_PATTERN.test(parsed.pathname)) return true;
+    } catch {
+      // Ignore malformed URL
+    }
+  }
+  return false;
+}
+
+export function extractNamedRivalsFromAnswerText(
+  answerText: string,
+  brandName: string,
+  targetHostname: string
+): string[] {
+  if (!answerText) return [];
+  const brandSlug = brandName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const hostRoot = (targetHostname.toLowerCase().split('.')[0] ?? '').replace(
+    /[^a-z0-9]/g,
+    ''
+  );
+  const rivals: string[] = [];
+  const seenLower = new Set<string>();
+
+  // Match Markdown list-item leads: "- **Alfred**: ...", "1. **GrowthBook** — ...", "### 1. **Amplitude**"
+  const listLeadRegex =
+    /(?:^|\n)\s*(?:(?:#{2,4}\s*)?(?:\d+[.)]\s*|[-*•]\s+))\*\*([A-Z0-9][A-Za-z0-9.+&/-]*(?:\s+[A-Za-z0-9.+&/-]+){0,2})\*\*/g;
+
+  let match: RegExpExecArray | null;
+  while ((match = listLeadRegex.exec(answerText)) !== null) {
+    const candidate = (match[1] ?? '')
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .replace(/[:—–-]+$/, '')
+      .trim();
+    if (candidate.length < 2 || candidate.length > 28) continue;
+
+    const lower = candidate.toLowerCase();
+    const slug = lower.replace(/[^a-z0-9]/g, '');
+    if (!slug || GENERIC_BOLD_HEADINGS.has(lower)) continue;
+    if (
+      (brandSlug.length >= 3 &&
+        (slug === brandSlug ||
+          slug.includes(brandSlug) ||
+          brandSlug.includes(slug))) ||
+      (hostRoot.length >= 3 && slug === hostRoot)
+    ) {
+      continue;
+    }
+    if (!seenLower.has(lower)) {
+      seenLower.add(lower);
+      rivals.push(candidate);
+    }
+  }
+
+  return rivals.slice(0, 5);
+}
+
+export function extractCompetitorsFromAnswerAndCitations(params: {
+  targetHostname: string;
+  brandName: string;
+  answerText: string;
+  urls: string[];
+  titles?: string[];
+}): string[] {
+  const cleanTarget = params.targetHostname
+    .toLowerCase()
+    .replace(/^www\./, '');
+  const results: string[] = [];
+  const seenKeys = new Set<string>();
+
+  const pushUnique = (label: string) => {
+    const key = label
+      .toLowerCase()
+      .replace(/^www\./, '')
+      .replace(/\.[a-z]{2,}$/, '')
+      .replace(/[^a-z0-9]/g, '');
+    if (!key || seenKeys.has(key)) return;
+    seenKeys.add(key);
+    results.push(label);
+  };
+
+  // 1. Named rival brands explicitly structured as alternatives in LLM answer text
+  for (const named of extractNamedRivalsFromAnswerText(
+    params.answerText,
+    params.brandName,
+    cleanTarget
+  )) {
+    pushUnique(named);
+  }
+
+  // 2. Direct peer product/company domains (excluding review directories, social sites, and editorial blogs)
+  for (const rawUrl of params.urls) {
+    try {
+      const parsed = new URL(rawUrl);
+      const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+      if (
+        !host ||
+        host === cleanTarget ||
+        host.endsWith(`.${cleanTarget}`) ||
+        isDirectoryOrEditorialHost(host, rawUrl)
+      ) {
+        continue;
+      }
+      pushUnique(host);
+    } catch {
+      // Ignore malformed URLs
+    }
+  }
+
+  // 3. Fallback: if fewer than 2 direct rivals were identified, include top non-target cited hosts so context is never empty
+  if (results.length < 2) {
+    for (const fallbackHost of extractCompetingHostsFromCitations(
+      cleanTarget,
+      params.urls,
+      params.titles ?? []
+    )) {
+      pushUnique(fallbackHost);
+    }
+  }
+
+  return results.slice(0, 5);
+}
 
 export function extractCompetingHostsFromCitations(
   targetHostname: string,
@@ -368,11 +760,13 @@ async function scanWithGeminiLive(
           .filter((u): u is string => Boolean(u))
       )
     ).slice(0, 8);
-    const competitors = extractCompetingHostsFromCitations(
-      domain.hostname,
-      citedUrls,
-      chunkTitles
-    );
+    const competitors = extractCompetitorsFromAnswerAndCitations({
+      targetHostname: domain.hostname,
+      brandName,
+      answerText,
+      urls: citedUrls,
+      titles: chunkTitles,
+    });
 
     const { mentioned, rank } = extractMentionAndRank(
       answerText,
@@ -485,11 +879,13 @@ async function scanWithOpenAiLive(
       aiEngine: 'chatgpt',
       brandMentioned: mentioned,
       citationRank: rank,
-      competitorsMentioned: extractCompetingHostsFromCitations(
-        domain.hostname,
-        dedupedUrls,
-        citationTitles
-      ),
+      competitorsMentioned: extractCompetitorsFromAnswerAndCitations({
+        targetHostname: domain.hostname,
+        brandName,
+        answerText: finalAnswer,
+        urls: dedupedUrls,
+        titles: citationTitles,
+      }),
       citedSourceUrls: dedupedUrls,
       decompiledFanoutQueries: fanoutQueries,
       fanoutTelemetryType:
@@ -541,11 +937,13 @@ async function scanWithPerplexityLive(
       aiEngine: 'perplexity',
       brandMentioned: mentioned,
       citationRank: rank,
-      competitorsMentioned: extractCompetingHostsFromCitations(
-        domain.hostname,
-        agentResult.citedUrls,
-        agentResult.sourceTitles
-      ),
+      competitorsMentioned: extractCompetitorsFromAnswerAndCitations({
+        targetHostname: domain.hostname,
+        brandName,
+        answerText,
+        urls: agentResult.citedUrls,
+        titles: agentResult.sourceTitles,
+      }),
       citedSourceUrls: agentResult.citedUrls,
       decompiledFanoutQueries: agentResult.decompiledFanoutQueries,
       fanoutTelemetryType: agentResult.fanoutTelemetryType,

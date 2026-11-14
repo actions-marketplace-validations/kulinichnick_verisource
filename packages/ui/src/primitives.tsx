@@ -188,6 +188,10 @@ export function CodeArtifactCard(props: {
   fileHint?: string;
   plainSummary?: string;
   code: string;
+  statusBadge?: {
+    label: string;
+    tone: BadgeTone;
+  };
   qualityScore?: number;
   qualityBreakdown?: {
     lexicon_filter: number;
@@ -239,7 +243,12 @@ export function CodeArtifactCard(props: {
             </div>
           ) : null}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {props.statusBadge ? (
+            <StatusBadge tone={props.statusBadge.tone}>
+              {props.statusBadge.label}
+            </StatusBadge>
+          ) : null}
           {typeof props.qualityScore === 'number' ? (
             <QualityRubricBadge
               score={props.qualityScore}

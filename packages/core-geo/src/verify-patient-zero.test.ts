@@ -35,12 +35,16 @@ import {
   enforceQualityGate95,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
+  extractCleanCategoryTopic,
   extractColdOutreachParts,
   extractCompetingHostsFromCitations,
+  extractCompetitorsFromAnswerAndCitations,
   extractVerifiableTruthFromAlternateBody,
+  generateDefaultPromptsForDomain,
   generateMcpApiKey,
   gradeArtifactQuality,
   isAutomatedPreviewBot,
+  isFixTypeLiveOnDomain,
   normalizePublicDomain,
   parseBatchProspectDomains,
   parsePerplexityAgentResponse,
@@ -969,4 +973,110 @@ test('Perplexity Agent API SDK adapter parses output_text, search_results querie
   });
   assert.equal(citedOnly.fanoutTelemetryType, 'cited_source_only');
   assert.equal(citedOnly.decompiledFanoutQueries.length, 0);
+});
+
+test('Natural buyer prompt extractor, rival brand vs. directory separator & live fix deployment classifier work cleanly', () => {
+  // 1. Raycast meta description previously cut mid-word at 72 chars ("...extendable lau")
+  const raycastTopic = extractCleanCategoryTopic(
+    'A collection of powerful productivity tools all within an extendable launcher. Fast, ergonomic and reliable.',
+    'Raycast'
+  );
+  assert.ok(raycastTopic.length > 0 && raycastTopic.length <= 54);
+  assert.ok(
+    !raycastTopic.endsWith(' lau'),
+    `Expected whole-word boundary without mid-word "lau", got: "${raycastTopic}"`
+  );
+  assert.ok(raycastTopic.includes('productivity tools'));
+
+  const raycastPrompts = generateDefaultPromptsForDomain(
+    normalizePublicDomain('raycast.com'),
+    'Raycast',
+    'A collection of powerful productivity tools all within an extendable launcher.',
+    false
+  );
+  assert.equal(raycastPrompts.length, 3);
+  assert.ok(!raycastPrompts[0]!.includes('extendable lau '));
+  assert.ok(raycastPrompts[0]!.includes('Raycast'));
+
+  // 2. Rival brand extraction separates real product peers from G2/directories/listicles
+  const rivals = extractCompetitorsFromAnswerAndCitations({
+    targetHostname: 'posthog.com',
+    brandName: 'PostHog',
+    answerText: [
+      'Top alternatives to PostHog for product analytics and feature flags:',
+      '1. **Amplitude** — Enterprise product analytics and behavioral cohorts.',
+      '2. **Mixpanel** — Self-serve event analytics with transparent funnel reports.',
+      '3. **GrowthBook** — Open-source feature flagging and experimentation.',
+      '4. **PostHog** — All-in-one developer suite.',
+    ].join('\n'),
+    urls: [
+      'https://g2.com/products/posthog/competitors/alternatives',
+      'https://thedigitalprojectmanager.com/tools/posthog-alternatives/',
+      'https://directree.io/software/analytics',
+      'https://statsig.com/comparisons/posthog',
+    ],
+  });
+  assert.ok(rivals.includes('Amplitude'));
+  assert.ok(rivals.includes('Mixpanel'));
+  assert.ok(rivals.includes('GrowthBook'));
+  assert.ok(!rivals.includes('PostHog'));
+  assert.ok(!rivals.includes('g2.com'));
+  assert.ok(!rivals.includes('thedigitalprojectmanager.com'));
+  assert.ok(!rivals.includes('directree.io'));
+
+  // 3. Live on-site fix classifier accurately identifies deployed JSON-LD, /llms.txt, /agents.md & FAQPage
+  const mockDomain = normalizePublicDomain('aurearoasters.com');
+  const liveProbe = {
+    domain: mockDomain,
+    reachable: true,
+    httpStatus: 200,
+    title: 'Aurea Coffee Roasters',
+    metaDescription: 'Luxury specialty coffee.',
+    jsonLdBlocks: [
+      { '@type': 'Organization', name: 'Aurea Coffee Roasters' },
+      { '@type': 'FAQPage', mainEntity: [] },
+    ],
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: true,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    llmsTxtStatus: 'present' as const,
+    llmsTxtExcerpt: '# Aurea Coffee Roasters',
+    agentsMdRaw: '# Aurea Coffee Roasters\nPricing: $22-$28',
+    agentsMdInitialStatus: 'custom_enriched' as const,
+    htmlSignalsShopify: true,
+    extractedPriceMentions: ['$24.00'],
+    extractedShippingMentions: ['Free shipping over $50'],
+  };
+  const liveShopify = {
+    isShopify: true,
+    shopifyMcpStatus: 'ucp_active' as const,
+    activeMcpEndpoint: 'https://aurearoasters.com/api/ucp/mcp',
+    exposedMcpTools: ['search_shop_catalog'],
+    agentsMdStatus: 'custom_enriched' as const,
+    catalogSkus: [],
+    priceRangeSummary: '$22.00 - $28.00',
+  };
+
+  assert.equal(
+    isFixTypeLiveOnDomain('json_ld_schema', liveProbe, liveShopify),
+    true
+  );
+  assert.equal(isFixTypeLiveOnDomain('llms_txt', liveProbe, liveShopify), true);
+  assert.equal(
+    isFixTypeLiveOnDomain('shopify_agents_liquid', liveProbe, liveShopify),
+    true
+  );
+  assert.equal(
+    isFixTypeLiveOnDomain('fanout_faq_block', liveProbe, liveShopify),
+    true
+  );
+  assert.equal(
+    isFixTypeLiveOnDomain('citation_outreach_brief', liveProbe, liveShopify),
+    false
+  );
 });

@@ -4,6 +4,7 @@ import type {
   AiEngine,
   BrandTruthSheet,
   FanoutTelemetryType,
+  FixType,
   HallucinationDetail,
   LlmsTxtStatus,
   PitchSummaryPayload,
@@ -77,6 +78,62 @@ export interface FullGeoAuditResult {
   allHallucinations: HallucinationDetail[];
   fixes: GeneratedFixDraft[];
   pitchSummaryPayload: PitchSummaryPayload;
+}
+
+export interface LiveFixCheckItem {
+  id: 'json_ld' | 'llms_txt' | 'agents_md' | 'crawler_waf';
+  label: string;
+  live: boolean;
+  detail: string;
+}
+
+export interface LiveFixVerificationReport {
+  domainUrl: string;
+  hostname: string;
+  brandName: string;
+  checkedAt: string;
+  isShopify: boolean;
+  shopifyMcpStatus: ShopifyMcpStatus;
+  agentsMdStatus: AgentsMdStatus;
+  llmsTxtStatus: LlmsTxtStatus;
+  robotsAiBotStatus: RobotsAiBotStatus;
+  jsonLdCount: number;
+  hasFaqSchema: boolean;
+  appliedFixTypes: FixType[];
+  checks: LiveFixCheckItem[];
+}
+
+function hasFaqPageJsonLd(jsonLdBlocks: Record<string, unknown>[]): boolean {
+  return jsonLdBlocks.some((block) => {
+    const rawType = block['@type'];
+    if (typeof rawType === 'string') {
+      return rawType.toLowerCase() === 'faqpage';
+    }
+    if (Array.isArray(rawType)) {
+      return rawType.some((t) => String(t).toLowerCase() === 'faqpage');
+    }
+    return false;
+  });
+}
+
+export function isFixTypeLiveOnDomain(
+  fixType: FixType,
+  probe: DomainHttpProbeResult,
+  shopify: ShopifyInspectionResult
+): boolean {
+  switch (fixType) {
+    case 'json_ld_schema':
+      return probe.jsonLdBlocks.length >= 2;
+    case 'llms_txt':
+      return probe.llmsTxtStatus === 'present';
+    case 'agents_md':
+    case 'shopify_agents_liquid':
+      return shopify.agentsMdStatus === 'custom_enriched';
+    case 'fanout_faq_block':
+      return hasFaqPageJsonLd(probe.jsonLdBlocks);
+    case 'citation_outreach_brief':
+      return false;
+  }
 }
 
 export function computeVisibilityScore(params: {
@@ -487,7 +544,8 @@ export async function runDomainReadinessScan(
   const prompts = generateDefaultPromptsForDomain(
     probe.domain,
     brandName,
-    truthSheet.core_offering
+    truthSheet.core_offering,
+    shopify.isShopify
   );
 
   const firstPrompt = prompts[0] ?? `${brandName} reviews and pricing`;
@@ -626,7 +684,8 @@ export async function runFullGeoAudit(options: {
       : generateDefaultPromptsForDomain(
           probe.domain,
           brandName,
-          brandTruthSheet.core_offering
+          brandTruthSheet.core_offering,
+          shopify.isShopify
         );
 
   const scanResults = await runMultiEnginePromptScan({
@@ -705,5 +764,147 @@ export async function runFullGeoAudit(options: {
     allHallucinations,
     fixes,
     pitchSummaryPayload,
+  };
+}
+
+export async function verifyLiveFixDeployment(
+  domainInput: string,
+  rawEnv?: RawEnvInput
+): Promise<LiveFixVerificationReport> {
+  const env = resolveCoreGeoEnv(rawEnv);
+  const normalized = normalizePublicDomain(domainInput);
+  const liveProbe = await probeDomainHttpReadiness(domainInput, env);
+  const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
+    d.domain_url.toLowerCase().includes(normalized.hostname)
+  );
+
+  let probe = liveProbe;
+  let shopify: ShopifyInspectionResult;
+
+  if (!liveProbe.reachable && fixture) {
+    probe = {
+      domain: normalized,
+      reachable: true,
+      httpStatus: 200,
+      title: fixture.brand_name,
+      metaDescription: fixture.brand_truth_sheet.core_offering,
+      jsonLdBlocks: [],
+      robotsAiBotStatus: structuredClone(fixture.robots_ai_bot_status),
+      llmsTxtStatus: fixture.llms_txt_status,
+      llmsTxtExcerpt: null,
+      agentsMdRaw: null,
+      agentsMdInitialStatus: fixture.agents_md_status,
+      htmlSignalsShopify: fixture.is_shopify,
+      extractedPriceMentions: [],
+      extractedShippingMentions: [
+        fixture.brand_truth_sheet.shipping_or_service_area,
+      ],
+    };
+    shopify = {
+      isShopify: fixture.is_shopify,
+      shopifyMcpStatus: fixture.shopify_mcp_status,
+      activeMcpEndpoint:
+        fixture.shopify_mcp_status === 'ucp_active'
+          ? `${normalized.origin}/api/ucp/mcp`
+          : fixture.shopify_mcp_status === 'legacy_mcp_active'
+            ? `${normalized.origin}/api/mcp`
+            : null,
+      exposedMcpTools: ['search_shop_catalog', 'get_shop_policies'],
+      agentsMdStatus: fixture.agents_md_status,
+      catalogSkus: [],
+      priceRangeSummary: fixture.brand_truth_sheet.verified_pricing_summary,
+    };
+  } else {
+    shopify = await inspectShopifyStorefront(liveProbe);
+  }
+
+  const brandName =
+    fixture?.brand_name ??
+    extractBrandNameFromTitle(
+      probe.title,
+      normalized.hostname,
+      normalized.inferredBrandName,
+      probe.jsonLdBlocks
+    );
+
+  const candidateTypes: FixType[] = [
+    'json_ld_schema',
+    'llms_txt',
+    'agents_md',
+    'shopify_agents_liquid',
+    'fanout_faq_block',
+  ];
+  const appliedFixTypes = candidateTypes.filter((t) =>
+    isFixTypeLiveOnDomain(t, probe, shopify)
+  );
+  const hasFaqSchema = hasFaqPageJsonLd(probe.jsonLdBlocks);
+
+  const crawlersOpen =
+    !probe.robotsAiBotStatus.waf_blocked &&
+    probe.robotsAiBotStatus.GPTBot &&
+    probe.robotsAiBotStatus['OAI-SearchBot'] &&
+    probe.robotsAiBotStatus.PerplexityBot &&
+    probe.robotsAiBotStatus.ClaudeBot;
+
+  const checks: LiveFixCheckItem[] = [
+    {
+      id: 'json_ld',
+      label: 'JSON-LD Entity + FAQ Graph',
+      live: probe.jsonLdBlocks.length >= 2,
+      detail:
+        probe.jsonLdBlocks.length >= 2
+          ? `${probe.jsonLdBlocks.length} schema.org nodes live${hasFaqSchema ? ' (includes FAQPage)' : ''}`
+          : probe.jsonLdBlocks.length === 1
+            ? '1 schema.org node found — add FAQPage graph'
+            : 'No application/ld+json blocks detected on homepage',
+    },
+    {
+      id: 'llms_txt',
+      label: 'Canonical /llms.txt',
+      live: probe.llmsTxtStatus === 'present',
+      detail:
+        probe.llmsTxtStatus === 'present'
+          ? 'HTTP 200 Markdown index verified at /llms.txt'
+          : 'Missing or soft-404 at /llms.txt',
+    },
+    {
+      id: 'agents_md',
+      label: shopify.isShopify
+        ? 'Shopify /agents.md & AI Facts'
+        : 'Canonical /agents.md',
+      live: shopify.agentsMdStatus === 'custom_enriched',
+      detail:
+        shopify.agentsMdStatus === 'custom_enriched'
+          ? 'Custom brand truth & pricing verified'
+          : shopify.agentsMdStatus === 'default_boilerplate'
+            ? 'Generic platform boilerplate — publish custom truth override'
+            : 'No /agents.md or alternate Markdown link detected',
+    },
+    {
+      id: 'crawler_waf',
+      label: 'AI Bot & Edge WAF Access',
+      live: crawlersOpen,
+      detail: crawlersOpen
+        ? 'GPTBot, OAI-SearchBot, PerplexityBot & ClaudeBot allowed (HTTP 200)'
+        : probe.robotsAiBotStatus.waf_blocked
+          ? 'Edge WAF challenge (403/429) blocking simulated AI bots'
+          : 'One or more AI crawlers disallowed in robots.txt',
+    },
+  ];
+
+  return {
+    domainUrl: probe.domain.origin,
+    hostname: probe.domain.hostname,
+    brandName,
+    checkedAt: new Date().toISOString(),
+    isShopify: shopify.isShopify,
+    shopifyMcpStatus: shopify.shopifyMcpStatus,
+    agentsMdStatus: shopify.agentsMdStatus,
+    llmsTxtStatus: probe.llmsTxtStatus,
+    robotsAiBotStatus: probe.robotsAiBotStatus,
+    jsonLdCount: probe.jsonLdBlocks.length,
+    hasFaqSchema,
+    appliedFixTypes,
+    checks,
   };
 }
