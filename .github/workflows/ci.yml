@@ -1,0 +1,59 @@
+name: Verisource CI & 9.5 Quality Gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-and-build:
+    name: Typecheck, Unit, MCP, Build & 13/13 E2E Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PROVIDER_MODE: mock
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm 9.15.0
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck all 5 workspaces (cold-clone safe)
+        run: pnpm typecheck
+
+      - name: Run @verisource/core-geo (7/7) & @verisource/mcp-worker (4/4) tests
+        run: pnpm test
+
+      - name: Build all 5 workspaces (Next.js, Worker dry-run, Chrome MV3)
+        run: pnpm build
+
+      - name: Run live Next.js 13/13 E2E & >=9.5/10 Quality Gate verification
+        run: pnpm --filter @verisource/web test:e2e
+
+      - name: Package Chrome Web Store MV3 archive
+        run: pnpm --filter @verisource/extension zip
+
+      - name: Upload Chrome MV3 .zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: verisource-chrome-mv3-extension
+          path: apps/extension/.output/*.zip
+          if-no-files-found: error

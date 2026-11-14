@@ -7,7 +7,8 @@
     "dev:web": "pnpm --filter @verisource/web dev",
     "dev:mcp": "pnpm --filter @verisource/mcp-worker dev",
     "dev:ext": "pnpm --filter @verisource/extension dev",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r typecheck",
+    "test": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r test",
     "build": "pnpm -r build",
     "clean": "pnpm -r clean"
   },
