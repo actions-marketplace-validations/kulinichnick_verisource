@@ -987,7 +987,42 @@ async function run() {
       validMcpPreviewJson.summary.brandName,
       'Aurea Coffee Roasters'
     );
-    console.log('✔ [28/28] M30 /mcp-guide visual quickstart, FIG 03 SVG schematic, SSRF-safe /api/mcp-preview JSON-RPC inspector & 0-slop gate verified');
+    console.log('✔ [28/29] M30 /mcp-guide visual quickstart, FIG 03 SVG schematic, SSRF-safe /api/mcp-preview JSON-RPC inspector & 0-slop gate verified');
+
+    // 27. M31 Weekly Executive Client Digest (/api/dashboard/digest) & Tab 1 Summary Controls
+    const badDigestEmailRes = await fetch(`${BASE}/api/dashboard/digest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        recipient_email: 'invalid-email-address',
+      }),
+    });
+    assert.equal(badDigestEmailRes.status, 400);
+
+    const validDigestRes = await fetch(`${BASE}/api/dashboard/digest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        previous_visibility_score: 35,
+      }),
+    });
+    assert.equal(validDigestRes.status, 200);
+    const validDigestJson = await validDigestRes.json();
+    assert.equal(validDigestJson.mode, 'preview_dry_run');
+    assert.ok(Number(validDigestJson.qualityScore) >= 9.5);
+    assert.equal(
+      (validDigestJson.text.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in weekly executive digest text'
+    );
+    assert.ok(
+      dashHtml.includes('Weekly Summary Email') ||
+        dashHtml.includes('Weekly Client Digest'),
+      'Expected Weekly Summary Email / Weekly Client Digest button in Tab 1'
+    );
+    console.log('✔ [29/29] M31 Weekly Executive Client Digest (/api/dashboard/digest) & Tab 1 controls verified (>= 9.5/10 Critic, 0 banned words)');
   } finally {
     server.kill();
   }

@@ -24,12 +24,14 @@ import {
   buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
+  buildWeeklyExecutiveDigest,
   classifyAgentsMdContent,
   classifyIndustryVertical,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
   dispatchProspectOpenEmail,
+  dispatchWeeklyExecutiveDigestEmail,
   enforceQualityGate95,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
@@ -759,4 +761,61 @@ test('High-Ticket Local Service vertical schema classifier & Cohort 03 3-touch o
 
   const localPlaybook = buildLocalServicePlaybookMarkdown([localReport]);
   assert.ok(localPlaybook.score >= 9.5);
+});
+
+test('Weekly Executive Client Digest (Pro & White-Label Agency modes + XSS CTA guard) passes >= 9.5/10 Critic', async () => {
+  const proDigest = buildWeeklyExecutiveDigest({
+    brandName: 'Aurea Coffee Roasters',
+    domainUrl: 'https://aurearoasters.com',
+    visibilityScore: 92,
+    previousVisibilityScore: 41,
+    accuracyScore: 100,
+    enginesCitingCount: 3,
+    totalSnapshotsScanned: 3,
+    aiReferralVisits7d: 14,
+    aiReferralRevenueUsd7d: 219.9,
+    appliedFixesCount: 5,
+    totalFixesCount: 5,
+    activeHallucinationCount: 0,
+    blockedBots: [],
+    topRivalDomains: ['onyxcoffeelab.com', 'bluebottlecoffee.com'],
+  });
+  assert.equal(proDigest.scoreDelta, 51);
+  assert.equal(proDigest.isWhiteLabel, false);
+  assert.ok(proDigest.subject.includes('+51 pts'));
+  assert.ok(proDigest.html.includes('VERISOURCE · WEEKLY EXECUTIVE GEO DIGEST'));
+  assert.ok(
+    proDigest.quality.score >= 9.5,
+    `Expected Pro weekly digest >= 9.5, got ${proDigest.quality.score}`
+  );
+
+  const agencyDispatch = await dispatchWeeklyExecutiveDigestEmail({
+    recipientEmail: 'client@hellotend.com',
+    brandName: 'Tend Dental',
+    domainUrl: 'https://hellotend.com',
+    visibilityScore: 68,
+    previousVisibilityScore: 46,
+    accuracyScore: 95,
+    enginesCitingCount: 2,
+    totalSnapshotsScanned: 3,
+    aiReferralVisits7d: 9,
+    aiReferralRevenueUsd7d: 0,
+    appliedFixesCount: 4,
+    totalFixesCount: 5,
+    activeHallucinationCount: 1,
+    blockedBots: ['ClaudeBot'],
+    agencyBrandName: 'Northstar Search Studio',
+    agencyPrimaryColor: '#1E293B',
+    agencyCtaUrl: 'javascript:alert(1)',
+  });
+  assert.equal(agencyDispatch.mode, 'preview_dry_run');
+  assert.equal(agencyDispatch.isWhiteLabel, true);
+  assert.equal(agencyDispatch.scoreDelta, 22);
+  assert.ok(
+    agencyDispatch.html.includes(
+      'NORTHSTAR SEARCH STUDIO · WEEKLY AI SEARCH CLIENT DIGEST'
+    )
+  );
+  assert.ok(!agencyDispatch.html.includes('javascript:alert'));
+  assert.ok(agencyDispatch.qualityScore >= 9.5);
 });

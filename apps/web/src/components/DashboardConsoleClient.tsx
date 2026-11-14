@@ -187,12 +187,16 @@ export function DashboardConsoleClient(props: {
     () => props.initialData.pitchReports[0]?.share_slug ?? ''
   );
 
-  // Tab 1 Hallucination Drift Alert & Shopify Checkout Pixel state
+  // Tab 1 Hallucination Drift Alert, Weekly Executive Digest & Shopify Checkout Pixel state
   const [sendingAlert, setSendingAlert] = useState(false);
+  const [sendingDigest, setSendingDigest] = useState(false);
   const [shopifyCheckoutKey, setShopifyCheckoutKey] = useState<string>('');
   const [lastAlertPreview, setLastAlertPreview] = useState<{
+    kind?: 'drift' | 'weekly_digest';
     subject: string;
     text: string;
+    html?: string;
+    isWhiteLabel?: boolean;
     qualityScore: number;
     qualityBreakdown: QualityRubricBreakdown;
     mode: 'live_resend' | 'preview_dry_run';
@@ -754,6 +758,7 @@ export function DashboardConsoleClient(props: {
         const mode = json.mode ?? 'preview_dry_run';
         const recipient = json.recipientEmail ?? data.profile.email;
         setLastAlertPreview({
+          kind: 'drift',
           subject: json.subject,
           text: json.text,
           qualityScore: json.qualityScore,
@@ -772,6 +777,86 @@ export function DashboardConsoleClient(props: {
     } finally {
       setSendingAlert(false);
     }
+  }
+
+  async function handleSendWeeklyDigest() {
+    if (!activeDomain) return;
+    setSendingDigest(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/digest', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ domain_id: activeDomain.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        delivered?: boolean;
+        mode?: 'live_resend' | 'preview_dry_run';
+        recipientEmail?: string;
+        subject?: string;
+        text?: string;
+        html?: string;
+        isWhiteLabel?: boolean;
+        qualityScore?: number;
+        qualityBreakdown?: QualityRubricBreakdown;
+      };
+      if (
+        !res.ok ||
+        json.error ||
+        !json.subject ||
+        !json.text ||
+        json.qualityScore === undefined ||
+        !json.qualityBreakdown
+      ) {
+        setBannerError(
+          json.message ?? 'Unable to generate weekly executive digest.'
+        );
+      } else {
+        const mode = json.mode ?? 'preview_dry_run';
+        const recipient = json.recipientEmail ?? data.profile.email;
+        setLastAlertPreview({
+          kind: 'weekly_digest',
+          subject: json.subject,
+          text: json.text,
+          html: json.html,
+          isWhiteLabel: json.isWhiteLabel,
+          qualityScore: json.qualityScore,
+          qualityBreakdown: json.qualityBreakdown,
+          mode,
+          recipientEmail: recipient,
+        });
+        setBannerSuccess(
+          mode === 'live_resend'
+            ? `Dispatched weekly executive digest to ${recipient} via Resend (${json.qualityScore}/10 Critic score).`
+            : `Generated forward-ready weekly executive digest for ${recipient} (${json.qualityScore}/10 Critic score).`
+        );
+      }
+    } catch {
+      setBannerError('Network error while generating weekly executive digest.');
+    } finally {
+      setSendingDigest(false);
+    }
+  }
+
+  function handleDownloadDigestHtml() {
+    if (!lastAlertPreview?.html || !activeDomain) return;
+    const hostSlug = new URL(activeDomain.domain_url).hostname.replace(
+      /[^a-z0-9.-]+/gi,
+      '-'
+    );
+    const blob = new Blob([lastAlertPreview.html], {
+      type: 'text/html;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${hostSlug}-weekly-geo-digest.html`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
   }
 
   function handleDownloadFixBundle() {
@@ -1220,17 +1305,31 @@ export function DashboardConsoleClient(props: {
                     </StatusBadge>
                     <button
                       type="button"
-                      disabled={sendingAlert}
+                      disabled={sendingAlert || sendingDigest}
                       onClick={() => void handleSendDriftAlert()}
                       className="vs-btn vs-btn-secondary"
                       style={{ padding: '5px 10px', fontSize: '11.5px' }}
-                      title="Dispatch or preview weekly hallucination drift email"
+                      title="Dispatch or preview urgent hallucination drift email"
                     >
                       {sendingAlert
                         ? 'Dispatching...'
                         : isGuided
-                          ? 'Preview Email Alert'
+                          ? 'Preview Mistake Alert'
                           : 'Send Drift Alert'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={sendingDigest || sendingAlert}
+                      onClick={() => void handleSendWeeklyDigest()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                      title="Generate or dispatch Monday weekly executive client summary"
+                    >
+                      {sendingDigest
+                        ? 'Building...'
+                        : isGuided
+                          ? 'Weekly Summary Email'
+                          : 'Weekly Client Digest'}
                     </button>
                   </div>
                 </div>
@@ -1401,20 +1500,37 @@ export function DashboardConsoleClient(props: {
                     className="vs-mono"
                     style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}
                   >
-                    WATCHDOG ALERT ARTIFACT (
+                    {lastAlertPreview.kind === 'weekly_digest'
+                      ? lastAlertPreview.isWhiteLabel
+                        ? 'WHITE-LABEL WEEKLY CLIENT DIGEST'
+                        : 'WEEKLY EXECUTIVE DIGEST ARTIFACT'
+                      : 'WATCHDOG ALERT ARTIFACT'}{' '}
+                    (
                     {lastAlertPreview.mode === 'live_resend'
                       ? 'SENT VIA RESEND'
                       : 'DRY-RUN PREVIEW'}{' '}
                     → {lastAlertPreview.recipientEmail})
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setLastAlertPreview(null)}
-                    className="vs-btn vs-btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '11.5px' }}
-                  >
-                    Dismiss
-                  </button>
+                  <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    {lastAlertPreview.html ? (
+                      <button
+                        type="button"
+                        onClick={handleDownloadDigestHtml}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                      >
+                        ↓ HTML Email
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setLastAlertPreview(null)}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 </div>
                 <CodeArtifactCard
                   title={lastAlertPreview.subject}
