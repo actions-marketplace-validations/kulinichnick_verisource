@@ -3,7 +3,7 @@
   "name": "dev.verisource/mcp",
   "title": "Verisource — B2B GEO & AI Citation Intelligence",
   "description": "B2B GEO MCP: audit AI citations, flag SKU hallucinations, and ship >=9.5/10 JSON-LD & /agents.md.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "websiteUrl": "https://verisource.dev",
   "icons": [
     {

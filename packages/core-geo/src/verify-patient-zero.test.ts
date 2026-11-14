@@ -20,6 +20,7 @@ import {
   enforceQualityGate95,
   extractAlternateMarkdownHref,
   extractColdOutreachParts,
+  extractCompetingHostsFromCitations,
   extractVerifiableTruthFromAlternateBody,
   generateMcpApiKey,
   gradeArtifactQuality,
@@ -433,4 +434,50 @@ test('Batch prospect parser, SSRF guard, CSV formula-injection defense & Outreac
     playbookAudit.score >= 9.5,
     `Expected playbook Markdown H1 & craft >= 9.5, got ${playbookAudit.score}: ${playbookAudit.violations.join('; ')}`
   );
+});
+
+test('Live grounding citation rival extractor & non-fixture cold outreach avoid synthetic peer placeholders', async () => {
+  const rivals = extractCompetingHostsFromCitations(
+    'aurearoasters.com',
+    [
+      'https://vertexaisearch.cloud.google.com/grounding-api-redirect/abc123',
+      'https://www.onyxcoffeelab.com/collections/coffee',
+      'https://aurearoasters.com/products/st-michael',
+      'https://www.reddit.com/r/Coffee/comments/specialty',
+      'https://www.google.com/search?q=coffee',
+    ],
+    ['sprudge.com', 'aurearoasters.com', 'Specialty Coffee Guide']
+  );
+  assert.deepEqual(rivals, ['sprudge.com', 'onyxcoffeelab.com', 'reddit.com']);
+
+  const nonFixtureAudit = await runFullGeoAudit({
+    domainInput: 'linear.app',
+    skipDirectHttpProbe: true,
+    rawEnv: { PROVIDER_MODE: 'mock' },
+  });
+  assert.ok(
+    nonFixtureAudit.pitchSummaryPayload.competitors_winning.every(
+      (c) => !c.includes('Category Peer #')
+    ),
+    'Expected zero synthetic Category Peer # strings in pitch payload'
+  );
+  const note = buildAgencyColdOutreachNote({
+    id: '33333333-3333-4000-8000-000000000003',
+    agency_user_id: '00000000-0000-4000-8000-000000000001',
+    share_slug: 'linear-app-test',
+    prospect_domain: nonFixtureAudit.domainUrl,
+    prospect_brand_name: nonFixtureAudit.brandName,
+    visibility_score: nonFixtureAudit.visibilityScore,
+    hallucination_count: nonFixtureAudit.allHallucinations.length,
+    agency_brand_name_snapshot: 'Verisource GEO Advisory',
+    agency_logo_url_snapshot: null,
+    agency_primary_color_snapshot: '#0A0E17',
+    agency_cta_url_snapshot: 'https://verisource.dev/pricing',
+    summary_payload: nonFixtureAudit.pitchSummaryPayload,
+    views_count: 0,
+    expires_at: new Date(Date.now() + 86400000).toISOString(),
+    created_at: new Date().toISOString(),
+  });
+  assert.ok(!note.content.includes('Category Peer #'));
+  assert.ok(note.score >= 9.5);
 });

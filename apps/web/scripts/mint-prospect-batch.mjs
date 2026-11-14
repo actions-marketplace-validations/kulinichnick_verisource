@@ -73,6 +73,7 @@ async function main() {
   const outDir = getFlagValue(args, '--out-dir');
   const useLiveProviders = args.includes('--live');
   const persistToSupabase = args.includes('--persist');
+  const replaceExisting = args.includes('--replace');
 
   const domains = parseBatchProspectDomains(rawDomainsArg, 25);
   const rawEnv = {
@@ -135,6 +136,14 @@ async function main() {
     const supabase = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+    if (replaceExisting) {
+      const targetOrigins = reports.map((r) => r.prospect_domain);
+      await supabase
+        .from('agency_pitch_reports')
+        .delete()
+        .eq('agency_brand_name_snapshot', agencyName)
+        .in('prospect_domain', targetOrigins);
+    }
     const { error } = await supabase
       .from('agency_pitch_reports')
       .insert(reports);

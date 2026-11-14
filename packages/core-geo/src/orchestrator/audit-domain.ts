@@ -169,8 +169,14 @@ export function buildAgencyPitchPayload(params: {
     );
   }
 
+  const liveRivals = params.scanResults
+    .filter((s) => s.fanoutTelemetryType !== 'mock_fixture')
+    .flatMap((s) => s.competitorsMentioned);
+  const fallbackRivals = params.scanResults
+    .filter((s) => s.fanoutTelemetryType === 'mock_fixture')
+    .flatMap((s) => s.competitorsMentioned);
   const competitorsWinning = Array.from(
-    new Set(params.scanResults.flatMap((s) => s.competitorsMentioned))
+    new Set([...liveRivals, ...fallbackRivals])
   ).slice(0, 5);
 
   const recommendedFixes: string[] = [
@@ -325,10 +331,14 @@ async function resolveProbeAndShopify(
     }
   }
 
+  const cleanedTitleBrand = liveProbe.title
+    ?.split(/\s*[|–—·•:]\s*|\s+-\s+/)[0]
+    ?.trim();
   const brandName =
     fixture?.brand_name ??
-    (liveProbe.title?.split(/[|–—-]/)[0]?.trim() ||
-      normalized.inferredBrandName);
+    (cleanedTitleBrand && cleanedTitleBrand.length <= 42
+      ? cleanedTitleBrand
+      : normalized.inferredBrandName);
 
   return { env, probe: liveProbe, shopify, brandName };
 }

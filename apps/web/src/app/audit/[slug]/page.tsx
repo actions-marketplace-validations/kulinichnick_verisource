@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React from 'react';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
+import { PrintAuditBriefButton } from '../../../components/PrintAuditBriefButton';
 import { fetchPublicPitchBySlug } from '../../../lib/data-store';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +58,7 @@ export default async function AgencyPitchReportPage({
   }
 
   const agencyName = report.agency_brand_name || 'Partner GEO Advisory';
+  const isVerisourceDirect = /verisource/i.test(agencyName);
   const brandColor = /^#[0-9A-Fa-f]{6}$/.test(report.agency_primary_color ?? '')
     ? report.agency_primary_color!
     : '#0A0E17';
@@ -66,7 +68,14 @@ export default async function AgencyPitchReportPage({
   const logoUrl = /^https?:\/\//i.test(rawLogo) ? rawLogo : null;
 
   return (
-    <div className="vs-container" style={{ paddingTop: '36px', maxWidth: '940px' }}>
+    <div
+      className={`${isVerisourceDirect ? '' : 'vs-whitelabel-audit-root '}vs-container`}
+      style={{
+        paddingTop: '36px',
+        paddingBottom: isVerisourceDirect ? undefined : '56px',
+        maxWidth: '940px',
+      }}
+    >
       {/* White-Label Agency Header Banner */}
       <div
         className="vs-card"
@@ -114,15 +123,21 @@ export default async function AgencyPitchReportPage({
           </div>
         </div>
 
-        <a
-          href={ctaUrl}
-          target={ctaUrl.startsWith('http') ? '_blank' : undefined}
-          rel={ctaUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-          className="vs-btn"
-          style={{ background: brandColor, borderColor: brandColor }}
+        <div
+          className="vs-no-print"
+          style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}
         >
-          Book 15-Min Fix Review with {agencyName} →
-        </a>
+          <PrintAuditBriefButton />
+          <a
+            href={ctaUrl}
+            target={ctaUrl.startsWith('http') ? '_blank' : undefined}
+            rel={ctaUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+            className="vs-btn"
+            style={{ background: brandColor, borderColor: brandColor }}
+          >
+            Book 15-Min Fix Review with {agencyName} →
+          </a>
+        </div>
       </div>
 
       {/* Plain-English Executive Context Strip */}
@@ -269,7 +284,10 @@ export default async function AgencyPitchReportPage({
             package for your site.
           </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+        <div
+          className="vs-no-print"
+          style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}
+        >
           <a
             href={ctaUrl}
             target={ctaUrl.startsWith('http') ? '_blank' : undefined}
@@ -279,9 +297,21 @@ export default async function AgencyPitchReportPage({
           >
             Schedule Implementation Call
           </a>
-          <Link href="/" className="vs-btn vs-btn-secondary">
-            Scan Another Website
-          </Link>
+          {isVerisourceDirect ? (
+            <>
+              <a
+                href="/api/checkout?plan=tripwire_19&cycle=one_time"
+                className="vs-btn vs-btn-secondary"
+              >
+                Self-Serve Fix Pack ($19) →
+              </a>
+              <Link href="/" className="vs-btn vs-btn-secondary">
+                Scan Another Website
+              </Link>
+            </>
+          ) : (
+            <PrintAuditBriefButton />
+          )}
         </div>
       </div>
     </div>

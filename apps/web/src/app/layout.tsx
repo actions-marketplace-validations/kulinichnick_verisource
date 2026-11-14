@@ -160,6 +160,7 @@ export default function RootLayout({
       </head>
       <body>
         <header
+          className="vs-site-chrome"
           style={{
             background: 'rgba(250, 249, 246, 0.94)',
             borderBottom: '1px solid var(--vs-border)',
@@ -219,11 +220,8 @@ export default function RootLayout({
               <Link href="/pricing" className="vs-nav-link">
                 Pricing
               </Link>
-              <Link
-                href="/audit/mosaic-springfield-audit"
-                className="vs-nav-link"
-              >
-                Sample Client Report
+              <Link href="/sample-audit" className="vs-nav-link">
+                Sample Audits
               </Link>
               <Link href="/dashboard" className="vs-btn">
                 Open Console →
@@ -235,6 +233,7 @@ export default function RootLayout({
         <main>{children}</main>
 
         <footer
+          className="vs-site-chrome"
           style={{
             borderTop: '1px solid var(--vs-border)',
             background: 'var(--vs-surface)',

@@ -94,6 +94,9 @@ export default function HomePage(): React.ReactElement {
               <Link href="/dashboard" className="vs-btn vs-btn-secondary">
                 Explore Guided Console →
               </Link>
+              <Link href="/sample-audit" className="vs-btn vs-btn-secondary">
+                View Sample Audits
+              </Link>
             </div>
 
             {/* Plain-English 3-Step Strip */}

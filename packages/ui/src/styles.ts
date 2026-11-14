@@ -589,4 +589,29 @@ html, body {
     border-bottom: none !important;
   }
 }
+
+/* Pure White-Label Chrome Isolation for Third-Party Agency /audit/[slug] Pages */
+body:has(.vs-whitelabel-audit-root) .vs-site-chrome {
+  display: none !important;
+}
+
+/* Executive PDF / Print Stylesheet */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #0A0E17 !important;
+  }
+  .vs-site-chrome,
+  .vs-no-print {
+    display: none !important;
+  }
+  .vs-container {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  .vs-card {
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+}
 `;

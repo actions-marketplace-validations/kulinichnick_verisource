@@ -55,6 +55,57 @@ export function generateDefaultPromptsForDomain(
   ];
 }
 
+const IGNORED_CITATION_HOSTS = new Set([
+  'vertexaisearch.cloud.google.com',
+  'google.com',
+  'bing.com',
+  'youtube.com',
+  'youtu.be',
+  'wikipedia.org',
+  'en.wikipedia.org',
+]);
+
+export function extractCompetingHostsFromCitations(
+  targetHostname: string,
+  urls: string[],
+  titles: string[] = []
+): string[] {
+  const cleanTarget = targetHostname.toLowerCase().replace(/^www\./, '');
+  const seen = new Set<string>();
+  const rivals: string[] = [];
+
+  const maybePushHost = (candidateRaw: string) => {
+    const host = candidateRaw.trim().toLowerCase().replace(/^www\./, '');
+    if (!host || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(host)) return;
+    if (
+      host === cleanTarget ||
+      host.endsWith(`.${cleanTarget}`) ||
+      IGNORED_CITATION_HOSTS.has(host)
+    ) {
+      return;
+    }
+    if (!seen.has(host)) {
+      seen.add(host);
+      rivals.push(host);
+    }
+  };
+
+  for (const title of titles) {
+    maybePushHost(title);
+  }
+
+  for (const rawUrl of urls) {
+    try {
+      const parsed = new URL(rawUrl);
+      maybePushHost(parsed.hostname);
+    } catch {
+      // Ignore malformed URLs
+    }
+  }
+
+  return rivals.slice(0, 5);
+}
+
 function extractMentionAndRank(
   answerText: string,
   brandName: string,
@@ -117,6 +168,9 @@ async function scanWithGeminiLive(
       candidate?.content?.parts?.map((p) => p.text ?? '').join(' ').trim() ?? '';
     const fanoutQueries =
       candidate?.groundingMetadata?.webSearchQueries ?? [];
+    const chunkTitles = (candidate?.groundingMetadata?.groundingChunks ?? [])
+      .map((c) => c.web?.title)
+      .filter((t): t is string => Boolean(t));
     const citedUrls = Array.from(
       new Set(
         (candidate?.groundingMetadata?.groundingChunks ?? [])
@@ -124,6 +178,11 @@ async function scanWithGeminiLive(
           .filter((u): u is string => Boolean(u))
       )
     ).slice(0, 8);
+    const competitors = extractCompetingHostsFromCitations(
+      domain.hostname,
+      citedUrls,
+      chunkTitles
+    );
 
     const { mentioned, rank } = extractMentionAndRank(
       answerText,
@@ -142,7 +201,7 @@ async function scanWithGeminiLive(
       aiEngine: 'gemini',
       brandMentioned: mentioned,
       citationRank: rank,
-      competitorsMentioned: [],
+      competitorsMentioned: competitors,
       citedSourceUrls: citedUrls,
       decompiledFanoutQueries: fanoutQueries,
       fanoutTelemetryType: 'observed_query',
@@ -223,7 +282,10 @@ async function scanWithOpenAiLive(
       aiEngine: 'chatgpt',
       brandMentioned: mentioned,
       citationRank: rank,
-      competitorsMentioned: [],
+      competitorsMentioned: extractCompetingHostsFromCitations(
+        domain.hostname,
+        dedupedUrls
+      ),
       citedSourceUrls: dedupedUrls,
       decompiledFanoutQueries: fanoutQueries,
       fanoutTelemetryType: 'observed_query',
@@ -282,7 +344,10 @@ async function scanWithPerplexityLive(
       aiEngine: 'perplexity',
       brandMentioned: mentioned,
       citationRank: rank,
-      competitorsMentioned: [],
+      competitorsMentioned: extractCompetingHostsFromCitations(
+        domain.hostname,
+        citedUrls
+      ),
       citedSourceUrls: citedUrls,
       decompiledFanoutQueries: [],
       fanoutTelemetryType: 'cited_source_only',
@@ -357,8 +422,8 @@ function buildMockEngineScan(
     brandMentioned: mentioned,
     citationRank: mentioned ? 3 : null,
     competitorsMentioned: [
-      `Top ${brandName} Category Peer #1`,
-      `Top ${brandName} Category Peer #2`,
+      'reddit.com buyer threads',
+      'editorial comparison guides',
     ],
     citedSourceUrls: [
       `https://reddit.com/r/Comparisons/comments/best_${slug}_alternatives`,

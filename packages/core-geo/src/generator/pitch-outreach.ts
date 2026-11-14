@@ -178,6 +178,26 @@ export function buildBatchOutreachMarkdown(
   return enforceQualityGate95(draft, 'citation_outreach_brief');
 }
 
+function formatGapClause(rawGap?: string): string {
+  if (!rawGap) {
+    return 'due to missing /llms.txt and custom /agents.md machine-readable specifications';
+  }
+  const trimmed = rawGap.trim().replace(/\.+$/, '');
+  if (/^missing\b/i.test(trimmed)) {
+    return `due to a ${trimmed.charAt(0).toLowerCase()}${trimmed.slice(1)}`;
+  }
+  if (/^storefront\b/i.test(trimmed)) {
+    return `because the ${trimmed.charAt(0).toLowerCase()}${trimmed.slice(1)}`;
+  }
+  if (/^(?:ai|homepage|third-party)\b/i.test(trimmed)) {
+    const lowered = /^AI\b/.test(trimmed)
+      ? trimmed
+      : `${trimmed.charAt(0).toLowerCase()}${trimmed.slice(1)}`;
+    return `because ${lowered}`;
+  }
+  return `due to ${trimmed.charAt(0).toLowerCase()}${trimmed.slice(1)}`;
+}
+
 export function buildAgencyColdOutreachNote(
   report: AgencyPitchReportRow,
   baseUrl = 'https://verisource.dev'
@@ -193,15 +213,14 @@ export function buildAgencyColdOutreachNote(
   let evidenceSentence: string;
   if (hallucinations.length > 0) {
     const first = hallucinations[0]!;
-    evidenceSentence = `ChatGPT and Perplexity currently state "${first.claim_text}" (${report.visibility_score}/100 visibility), because ${report.prospect_domain} lacks verified schema.org JSON-LD and /agents.md guardrails stating: ${first.verified_truth}`;
+    const cleanTruth = first.verified_truth.trim().replace(/\.+$/, '');
+    evidenceSentence = `ChatGPT and Perplexity currently state "${first.claim_text}" (${report.visibility_score}/100 visibility), because ${report.prospect_domain} lacks verified schema.org JSON-LD and /agents.md guardrails stating: ${cleanTruth}.`;
   } else {
     const rivalList =
       competitors.slice(0, 2).join(' and ') || 'competing category directories';
-    const primaryGap =
-      topGaps[0] ??
-      'missing /llms.txt and custom /agents.md machine-readable specifications';
+    const gapClause = formatGapClause(topGaps[0]);
     const lostSharePct = Math.max(12, 100 - report.visibility_score);
-    evidenceSentence = `${report.prospect_brand_name} currently scores ${report.visibility_score}/100 on commercial buyer prompts while ${rivalList} capture roughly ${lostSharePct}% of AI citations due to ${primaryGap}.`;
+    evidenceSentence = `${report.prospect_brand_name} currently scores ${report.visibility_score}/100 on commercial buyer prompts while ${rivalList} capture roughly ${lostSharePct}% of AI citations ${gapClause}.`;
   }
 
   const draft = [

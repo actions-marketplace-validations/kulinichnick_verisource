@@ -604,8 +604,11 @@ async function run() {
       assert.equal(mintedAuditRes.status, 200);
       const mintedAuditHtml = await mintedAuditRes.text();
       assert.ok(
-        mintedAuditHtml.includes('Northstar Search Studio'),
-        `Expected white-label agency brand on ${sharePath}`
+        mintedAuditHtml.includes('Northstar Search Studio') &&
+          mintedAuditHtml.includes('vs-whitelabel-audit-root') &&
+          mintedAuditHtml.includes('Print / Save PDF') &&
+          !mintedAuditHtml.includes('Scan Another Website'),
+        `Expected strict white-label isolation & PDF export on ${sharePath}`
       );
       const mintedVisible = mintedAuditHtml
         .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -617,7 +620,33 @@ async function run() {
         `Found banned lexicon on minted batch route ${sharePath}`
       );
     }
-    console.log('✔ [20/20] M22 Batch agency pitch pipeline verified (2 slugs minted, SSRF batch rejected, 0 banned words)');
+    console.log('✔ [20/21] M22 Batch agency pitch pipeline verified (2 slugs minted, SSRF batch rejected, 0 banned words)');
+
+    // 19. M23 /sample-audit Showcase, Sitemap Inclusion & Direct Outbound $19 Tripwire CTA
+    const [sampleAuditRes, sitemapCheckRes] = await Promise.all([
+      fetch(`${BASE}/sample-audit`),
+      fetch(`${BASE}/sitemap.xml`),
+    ]);
+    assert.equal(sampleAuditRes.status, 200);
+    const sampleAuditHtml = await sampleAuditRes.text();
+    const sitemapXml = await sitemapCheckRes.text();
+    assert.ok(sitemapXml.includes('https://verisource.dev/sample-audit'));
+    assert.ok(sampleAuditHtml.includes('Aurea Coffee Roasters'));
+    assert.ok(sampleAuditHtml.includes('Mosaic Coffee Roasters'));
+    assert.ok(
+      pitchHtml.includes('Self-Serve Fix Pack ($19)'),
+      'Expected $19 Tripwire CTA on Verisource-authored /audit/[slug]'
+    );
+    const sampleAuditVisible = sampleAuditHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (sampleAuditVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /sample-audit'
+    );
+    console.log('✔ [21/21] M23 /sample-audit gallery, pure white-label chrome isolation, PDF brief button & $19 outbound CTA verified');
   } finally {
     server.kill();
   }
