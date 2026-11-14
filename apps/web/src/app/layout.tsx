@@ -1,31 +1,38 @@
 import type { Metadata } from 'next';
-import {
-  Instrument_Serif,
-  JetBrains_Mono,
-  Plus_Jakarta_Sans,
-} from 'next/font/google';
+import localFont from 'next/font/local';
 import Link from 'next/link';
 import React from 'react';
 import { VerisourceStyleTag } from '@verisource/ui';
 
-const fontSans = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const fontSans = localFont({
+  src: './fonts/PlusJakartaSans-Latin.woff2',
+  weight: '400 700',
+  style: 'normal',
   variable: '--font-vs-sans',
   display: 'swap',
 });
 
-const fontSerif = Instrument_Serif({
-  subsets: ['latin'],
-  weight: '400',
-  style: ['normal', 'italic'],
+const fontSerif = localFont({
+  src: [
+    {
+      path: './fonts/InstrumentSerif-Regular-Latin.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/InstrumentSerif-Italic-Latin.woff2',
+      weight: '400',
+      style: 'italic',
+    },
+  ],
   variable: '--font-vs-serif',
   display: 'swap',
 });
 
-const fontMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+const fontMono = localFont({
+  src: './fonts/JetBrainsMono-Latin.woff2',
+  weight: '400 700',
+  style: 'normal',
   variable: '--font-vs-mono',
   display: 'swap',
 });
