@@ -537,7 +537,87 @@ async function run() {
         `Found banned lexicon on ${routeLabel}: ${violations.join(', ')}`
       );
     }
-    console.log('✔ [19/19] M21 Animated SVG schematic, Warm Architectural Paper tokens, Guided/Pro switch & 7-route 0-slop gate passed');
+    console.log('✔ [19/20] M21 Animated SVG schematic, Warm Architectural Paper tokens, Guided/Pro switch & 7-route 0-slop gate passed');
+
+    // 18. M22 Automated Agency Batch Prospecting Pipeline (/api/dashboard/pitch batch + SSRF guard + live /audit/[slug] verify)
+    const [tab2Html, tab3Html] = await Promise.all([
+      fetch(`${BASE}/dashboard?tab=tab2_fixes`).then((r) => r.text()),
+      fetch(`${BASE}/dashboard?tab=tab3_offsite`).then((r) => r.text()),
+    ]);
+    assert.ok(
+      tab3Html.includes('Batch List') &&
+        tab3Html.includes('Single Site') &&
+        tab3Html.includes('Export CSV') &&
+        tab3Html.includes('Playbook (.md)'),
+      'Expected Single Site / Batch List toggle and CSV/Playbook export controls in Tab 3 Module 4 on /dashboard?tab=tab3_offsite'
+    );
+    for (const [tabLabel, tabRaw] of [
+      ['/dashboard?tab=tab2_fixes', tab2Html],
+      ['/dashboard?tab=tab3_offsite', tab3Html],
+    ]) {
+      const tabVisible = tabRaw
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (tabVisible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${tabLabel}`
+      );
+    }
+
+    const ssrfBatchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prospect_domains: [
+          'aurearoasters.com',
+          'http://169.254.169.254/latest/meta-data/',
+        ],
+        agency_brand_name: 'Northstar Search Studio',
+      }),
+    });
+    assert.equal(
+      ssrfBatchRes.status,
+      400,
+      'Expected SSRF host inside batch pitch request to return HTTP 400'
+    );
+
+    const batchPitchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prospect_domains: 'aurearoasters.com\nmosaicroasters.com',
+        agency_brand_name: 'Northstar Search Studio',
+        agency_primary_color: '#0A0E17',
+        agency_cta_url: 'https://cal.com/northstar/geo-brief',
+      }),
+    });
+    assert.equal(batchPitchRes.status, 200);
+    const batchPitchJson = await batchPitchRes.json();
+    assert.equal(batchPitchJson.batch_count, 2);
+    assert.equal(batchPitchJson.reports.length, 2);
+    assert.equal(batchPitchJson.share_urls.length, 2);
+
+    for (const sharePath of batchPitchJson.share_urls) {
+      const mintedAuditRes = await fetch(`${BASE}${sharePath}`);
+      assert.equal(mintedAuditRes.status, 200);
+      const mintedAuditHtml = await mintedAuditRes.text();
+      assert.ok(
+        mintedAuditHtml.includes('Northstar Search Studio'),
+        `Expected white-label agency brand on ${sharePath}`
+      );
+      const mintedVisible = mintedAuditHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (mintedVisible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on minted batch route ${sharePath}`
+      );
+    }
+    console.log('✔ [20/20] M22 Batch agency pitch pipeline verified (2 slugs minted, SSRF batch rejected, 0 banned words)');
   } finally {
     server.kill();
   }

@@ -12,6 +12,7 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{
     domain?: string;
+    tab?: string;
     upgraded?: string;
     credit_applied?: string;
   }>;
@@ -35,6 +36,7 @@ export default async function DashboardPage({
     <DashboardConsoleClient
       initialData={initialData}
       initialDomainQuery={params.domain}
+      initialTab={params.tab}
       upgradedPlan={params.upgraded}
       creditApplied={params.credit_applied === 'true'}
     />

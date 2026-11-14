@@ -208,7 +208,7 @@ export async function resolveAuthenticatedProfile(
         billing_cycle: 'monthly',
         mcp_calls_used_this_month: 0,
         mcp_calls_limit: 5,
-        agency_primary_color: '#0F172A',
+        agency_primary_color: '#0A0E17',
         created_at: nowIso,
         updated_at: nowIso,
       },

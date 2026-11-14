@@ -8,6 +8,8 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
   buildAgencyColdOutreachNote,
+  buildBatchOutreachCsv,
+  buildBatchOutreachMarkdown,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildMcpDiscoveryManifest,
@@ -17,13 +19,16 @@ import {
   dispatchHallucinationDriftEmail,
   enforceQualityGate95,
   extractAlternateMarkdownHref,
+  extractColdOutreachParts,
   extractVerifiableTruthFromAlternateBody,
   generateMcpApiKey,
   gradeArtifactQuality,
   normalizePublicDomain,
+  parseBatchProspectDomains,
   parseRobotsAiBotRules,
   runDomainReadinessScan,
   runFullGeoAudit,
+  sanitizeCsvCell,
   sha256Hex,
 } from './index.js';
 
@@ -367,4 +372,65 @@ test('Same-origin <link rel="alternate" type="text/markdown"> extractor upgrades
   );
   assert.ok(extracted && !extracted.includes('shopify.com/start'));
   assert.equal(classifyAgentsMdContent(extracted), 'custom_enriched');
+});
+
+test('Batch prospect parser, SSRF guard, CSV formula-injection defense & Outreach Playbook pass >= 9.5/10 Critic', () => {
+  const parsed = parseBatchProspectDomains(
+    'https://www.AureaRoasters.com/collections\nmosaicroasters.com, aurearoasters.com; https://linear.app'
+  );
+  assert.deepEqual(parsed, [
+    'aurearoasters.com',
+    'mosaicroasters.com',
+    'linear.app',
+  ]);
+
+  assert.throws(
+    () => parseBatchProspectDomains('aurearoasters.com\n169.254.169.254'),
+    /non-public/i
+  );
+  assert.throws(
+    () => parseBatchProspectDomains(['a.com', 'b.com', 'c.com'], 2),
+    /Batch limit exceeded/i
+  );
+
+  assert.equal(sanitizeCsvCell("=CMD|' /C calc'!A0"), `"'=CMD|' /C calc'!A0"`);
+  assert.equal(sanitizeCsvCell('Mosaic "Roasters"'), '"Mosaic ""Roasters"""');
+
+  const secondReport = {
+    ...PATIENT_ZERO_PITCH_REPORT,
+    id: '22222222-2222-4000-8000-000000000002',
+    share_slug: 'aurearoasters-com-vf9w',
+    prospect_domain: 'https://aurearoasters.com',
+    prospect_brand_name: 'Aurea Coffee Roasters',
+    visibility_score: 41,
+    hallucination_count: 1,
+  };
+
+  const parts = extractColdOutreachParts(PATIENT_ZERO_PITCH_REPORT);
+  assert.ok(parts.subject.includes('Mosaic Coffee Roasters'));
+  assert.ok(parts.body.includes('https://verisource.dev/audit/mosaic-springfield-audit'));
+  assert.ok(parts.qualityScore >= 9.5);
+
+  const csv = buildBatchOutreachCsv([PATIENT_ZERO_PITCH_REPORT, secondReport]);
+  assert.ok(
+    csv.startsWith(
+      'prospect_brand_name,prospect_domain,visibility_score,hallucination_count,competitors_winning,audit_share_url,email_subject,email_body,quality_gate_score\n'
+    )
+  );
+  assert.ok(csv.includes('mosaic-springfield-audit'));
+  assert.ok(csv.includes('aurearoasters-com-vf9w'));
+
+  const playbook = buildBatchOutreachMarkdown([
+    PATIENT_ZERO_PITCH_REPORT,
+    secondReport,
+  ]);
+  assert.ok(
+    playbook.score >= 9.5,
+    `Expected batch outreach playbook >= 9.5, got ${playbook.score}: ${playbook.violations.join('; ')}`
+  );
+  const playbookAudit = gradeArtifactQuality(playbook.content, 'agents_md');
+  assert.ok(
+    playbookAudit.score >= 9.5,
+    `Expected playbook Markdown H1 & craft >= 9.5, got ${playbookAudit.score}: ${playbookAudit.violations.join('; ')}`
+  );
 });

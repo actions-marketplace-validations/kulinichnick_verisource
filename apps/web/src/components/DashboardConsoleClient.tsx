@@ -6,6 +6,8 @@ import { createClient } from '@supabase/supabase-js';
 import {
   buildAgencyColdOutreachNote,
   buildAiAttributionSnippet,
+  buildBatchOutreachCsv,
+  buildBatchOutreachMarkdown,
   buildImplementationBundleMarkdown,
   buildShopifyCustomerEventsPixel,
   computeShopifyCheckoutKey,
@@ -64,6 +66,7 @@ export interface WorkspacePayload {
 export function DashboardConsoleClient(props: {
   initialData: WorkspacePayload;
   initialDomainQuery?: string;
+  initialTab?: string;
   upgradedPlan?: string;
   creditApplied?: boolean;
 }): React.ReactElement {
@@ -77,7 +80,16 @@ export function DashboardConsoleClient(props: {
     }
     return props.initialData.domains[0]?.id ?? '';
   });
-  const [activeTab, setActiveTab] = useState<ThreeTabId>('tab1_visibility');
+  const [activeTab, setActiveTab] = useState<ThreeTabId>(() => {
+    if (
+      props.initialTab === 'tab1_visibility' ||
+      props.initialTab === 'tab2_fixes' ||
+      props.initialTab === 'tab3_offsite'
+    ) {
+      return props.initialTab;
+    }
+    return 'tab1_visibility';
+  });
   const [uxMode, setUxMode] = useState<UxMode>('guided');
 
   useEffect(() => {
@@ -142,7 +154,13 @@ export function DashboardConsoleClient(props: {
   const [addingPrompt, setAddingPrompt] = useState(false);
 
   // Tab 3 Agency White-Label Pitch generator state
+  const [pitchInputMode, setPitchInputMode] = useState<'single' | 'batch'>(
+    'single'
+  );
   const [pitchDomain, setPitchDomain] = useState('mosaicroasters.com');
+  const [batchPitchDomains, setBatchPitchDomains] = useState(
+    'aurearoasters.com\nmosaicroasters.com'
+  );
   const [agencyName, setAgencyName] = useState(
     data.profile.agency_brand_name ?? 'Verisource Partner Agency'
   );
@@ -557,33 +575,53 @@ export function DashboardConsoleClient(props: {
     setGeneratingPitch(true);
     setBannerError(null);
     try {
+      const payload =
+        pitchInputMode === 'batch'
+          ? {
+              prospect_domains: batchPitchDomains,
+              agency_brand_name: agencyName,
+              agency_logo_url: agencyLogoUrl,
+              agency_primary_color: agencyColor,
+              agency_cta_url: agencyCtaUrl,
+            }
+          : {
+              prospect_domain: pitchDomain,
+              agency_brand_name: agencyName,
+              agency_logo_url: agencyLogoUrl,
+              agency_primary_color: agencyColor,
+              agency_cta_url: agencyCtaUrl,
+            };
+
       const res = await fetch('/api/dashboard/pitch', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({
-          prospect_domain: pitchDomain,
-          agency_brand_name: agencyName,
-          agency_logo_url: agencyLogoUrl,
-          agency_primary_color: agencyColor,
-          agency_cta_url: agencyCtaUrl,
-        }),
+        body: JSON.stringify(payload),
       });
       const json = (await res.json()) as {
         error?: string;
         message?: string;
         report?: AgencyPitchReportRow;
+        reports?: AgencyPitchReportRow[];
         share_url?: string;
       };
-      if (!res.ok || json.error || !json.report) {
+      const minted =
+        json.reports && json.reports.length > 0
+          ? json.reports
+          : json.report
+            ? [json.report]
+            : [];
+      if (!res.ok || json.error || minted.length === 0) {
         setBannerError(json.message ?? 'Unable to generate pitch link.');
       } else {
         setData((prev) => ({
           ...prev,
-          pitchReports: [json.report!, ...prev.pitchReports],
+          pitchReports: [...minted, ...prev.pitchReports],
         }));
-        setSelectedPitchSlug(json.report.share_slug);
+        setSelectedPitchSlug(minted[0]!.share_slug);
         setBannerSuccess(
-          `60-Second White-Label Pitch Link & cold outreach note ready: ${json.share_url}`
+          minted.length > 1
+            ? `Minted ${minted.length} white-label /audit/[slug] reports with Critic-verified outreach notes. Use Export CSV or Playbook (.md) to download.`
+            : `60-Second White-Label Pitch Link & cold outreach note ready: ${json.share_url}`
         );
       }
     } catch {
@@ -736,6 +774,46 @@ export function DashboardConsoleClient(props: {
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = `${hostSlug}-verisource-geo-bundle.md`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleExportOutreachCsv() {
+    if (data.pitchReports.length === 0) return;
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : 'https://verisource.dev';
+    const csvContent = buildBatchOutreachCsv(data.pitchReports, origin);
+    const blob = new Blob([csvContent], {
+      type: 'text/csv;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'verisource-outreach-batch.csv';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleExportOutreachPlaybook() {
+    if (data.pitchReports.length === 0) return;
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : 'https://verisource.dev';
+    const playbook = buildBatchOutreachMarkdown(data.pitchReports, origin);
+    const blob = new Blob([playbook.content], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'verisource-outreach-playbook.md';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -1628,43 +1706,137 @@ export function DashboardConsoleClient(props: {
               </table>
             </div>
 
-            {/* Module 4: Agency 60-Second White-Label Pitch Mode */}
+            {/* Module 4: Agency 60-Second White-Label Pitch Mode (Single + Batch Prospecting) */}
             <div className="vs-grid-2">
               <form
                 onSubmit={handleGeneratePitchLink}
                 className="vs-card"
                 style={{ padding: '18px' }}
               >
-                <div style={{ marginBottom: '12px' }}>
-                  <strong style={{ fontSize: '14px' }}>
-                    {isGuided
-                      ? 'Create a Shareable Client Audit Page (60 Seconds)'
-                      : 'Module 4 — 60-Second White-Label Prospect Pitch Generator'}
-                  </strong>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <div style={{ flex: '1 1 220px' }}>
+                    <strong style={{ fontSize: '14px' }}>
+                      {isGuided
+                        ? 'Create Shareable Client Audit Pages (60 Seconds)'
+                        : 'Module 4 — White-Label Prospect Pitch & Batch Pipeline'}
+                    </strong>
+                    <div
+                      style={{
+                        fontSize: '12.5px',
+                        color: 'var(--vs-ink-muted)',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {isGuided
+                        ? 'Scan one client site or paste a list to build branded report pages with ready-to-send intro emails.'
+                        : 'Scans 1–10 prospect domains in parallel and mints agency-branded /audit/[slug] reports.'}
+                    </div>
+                  </div>
+
                   <div
+                    role="group"
+                    aria-label="Prospect input mode"
                     style={{
-                      fontSize: '12.5px',
-                      color: 'var(--vs-ink-muted)',
-                      marginTop: '2px',
+                      display: 'inline-flex',
+                      background: 'var(--vs-surface-warm)',
+                      border: '1px solid var(--vs-border)',
+                      borderRadius: '6px',
+                      padding: '2px',
                     }}
                   >
-                    {isGuided
-                      ? 'Scans any client website and builds a clean report page with your logo and calendar button.'
-                      : 'Scans any prospect URL and mints an agency-branded teaser report at /audit/[slug].'}
+                    <button
+                      type="button"
+                      onClick={() => setPitchInputMode('single')}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        background:
+                          pitchInputMode === 'single'
+                            ? 'var(--vs-ink)'
+                            : 'transparent',
+                        color:
+                          pitchInputMode === 'single'
+                            ? '#FFFFFF'
+                            : 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Single Site
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPitchInputMode('batch')}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 10px',
+                        borderRadius: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        background:
+                          pitchInputMode === 'batch'
+                            ? 'var(--vs-ink)'
+                            : 'transparent',
+                        color:
+                          pitchInputMode === 'batch'
+                            ? '#FFFFFF'
+                            : 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Batch List
+                    </button>
                   </div>
                 </div>
 
-                <label style={{ fontSize: '12px', fontWeight: 600 }}>
-                  Prospect Domain
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={pitchDomain}
-                  onChange={(e) => setPitchDomain(e.target.value)}
-                  className="vs-input"
-                  style={{ marginBottom: '10px' }}
-                />
+                {pitchInputMode === 'single' ? (
+                  <>
+                    <label style={{ fontSize: '12px', fontWeight: 600 }}>
+                      {isGuided ? 'Client Website' : 'Prospect Domain'}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={pitchDomain}
+                      onChange={(e) => setPitchDomain(e.target.value)}
+                      className="vs-input"
+                      style={{ marginBottom: '10px' }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label style={{ fontSize: '12px', fontWeight: 600 }}>
+                      {isGuided
+                        ? 'Client Websites (1 per line — up to 10)'
+                        : 'Prospect Domains Batch (1 per line or comma-separated, max 10)'}
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      placeholder={'aurearoasters.com\nmosaicroasters.com\nlinear.app'}
+                      value={batchPitchDomains}
+                      onChange={(e) => setBatchPitchDomains(e.target.value)}
+                      className="vs-input vs-mono"
+                      style={{
+                        marginBottom: '10px',
+                        fontSize: '12.5px',
+                        lineHeight: 1.5,
+                        resize: 'vertical',
+                      }}
+                    />
+                  </>
+                )}
 
                 <div
                   style={{
@@ -1729,8 +1901,14 @@ export function DashboardConsoleClient(props: {
                   style={{ width: '100%' }}
                 >
                   {generatingPitch
-                    ? 'Scanning Prospect & Minting Slug...'
-                    : 'Generate White-Label Pitch URL'}
+                    ? pitchInputMode === 'batch'
+                      ? 'Scanning Batch & Minting Slugs...'
+                      : 'Scanning Prospect & Minting Slug...'
+                    : pitchInputMode === 'batch'
+                      ? isGuided
+                        ? 'Build All Client Audit Pages'
+                        : 'Run Batch Audit & Mint Pitch Slugs'
+                      : 'Generate White-Label Pitch URL'}
                 </button>
               </form>
 
@@ -1740,11 +1918,53 @@ export function DashboardConsoleClient(props: {
                     padding: '12px 16px',
                     borderBottom: '1px solid var(--vs-border)',
                     background: 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
                   }}
                 >
-                  <strong style={{ fontSize: '13.5px' }}>
-                    {isGuided ? 'Your Shareable Client Links' : 'Active Prospect Pitch Links'}
-                  </strong>
+                  <div>
+                    <strong style={{ fontSize: '13.5px' }}>
+                      {isGuided
+                        ? 'Your Shareable Client Links'
+                        : 'Active Prospect Pitch Links'}
+                    </strong>
+                    <span
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-muted)',
+                        marginLeft: '8px',
+                      }}
+                    >
+                      ({data.pitchReports.length})
+                    </span>
+                  </div>
+
+                  {data.pitchReports.length > 0 ? (
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={handleExportOutreachCsv}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        title="Download RFC 4180 CSV with subjects, outreach notes, and /audit/[slug] URLs"
+                      >
+                        ↓ Export CSV
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleExportOutreachPlaybook}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        title="Download Critic-verified (>= 9.5/10) Markdown Cold-Outreach Playbook"
+                      >
+                        ↓ Playbook (.md)
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
                 <table className="vs-table">
                   <thead>

@@ -6,7 +6,177 @@ import type {
   AgencyPitchReportRow,
   DomainRow,
   GeneratedFixRow,
+  QualityRubricBreakdown,
 } from '../db/types.js';
+import { normalizePublicDomain } from '../scanner/bot-waf-prober.js';
+
+export interface ExtractedColdOutreachItem {
+  prospectBrandName: string;
+  prospectDomain: string;
+  visibilityScore: number;
+  hallucinationCount: number;
+  competitorsWinning: string[];
+  shareSlug: string;
+  shareUrl: string;
+  subject: string;
+  body: string;
+  fullNote: string;
+  qualityScore: number;
+  qualityBreakdown: QualityRubricBreakdown;
+}
+
+export function parseBatchProspectDomains(
+  raw: string | string[],
+  maxDomains = 10
+): string[] {
+  const tokens = Array.isArray(raw)
+    ? raw.flatMap((entry) => String(entry).split(/[\r\n,;]+/))
+    : String(raw).split(/[\r\n,;]+/);
+
+  const trimmed = tokens.map((t) => t.trim()).filter(Boolean);
+  if (trimmed.length === 0) {
+    throw new Error('Enter at least one prospect domain.');
+  }
+
+  const seen = new Set<string>();
+  const normalizedHostnames: string[] = [];
+
+  for (const token of trimmed) {
+    const normalized = normalizePublicDomain(token);
+    if (!seen.has(normalized.hostname)) {
+      seen.add(normalized.hostname);
+      normalizedHostnames.push(normalized.hostname);
+    }
+  }
+
+  if (normalizedHostnames.length > maxDomains) {
+    throw new Error(
+      `Batch limit exceeded: submit at most ${maxDomains} unique domains at once (received ${normalizedHostnames.length}).`
+    );
+  }
+
+  return normalizedHostnames;
+}
+
+export function extractColdOutreachParts(
+  report: AgencyPitchReportRow,
+  baseUrl = 'https://verisource.dev'
+): ExtractedColdOutreachItem {
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const shareUrl = `${cleanBase}/audit/${report.share_slug}`;
+  const enforced = buildAgencyColdOutreachNote(report, cleanBase);
+  const lines = enforced.content.split(/\r?\n/);
+  let subject = `${report.prospect_brand_name} — AI search claim audit (${report.visibility_score}/100 visibility)`;
+  let bodyStartIdx = 0;
+
+  if (lines[0]?.toLowerCase().startsWith('subject:')) {
+    subject = lines[0].slice('subject:'.length).trim();
+    bodyStartIdx = 1;
+  }
+  const body = lines.slice(bodyStartIdx).join('\n').trim();
+
+  return {
+    prospectBrandName: report.prospect_brand_name,
+    prospectDomain: report.prospect_domain,
+    visibilityScore: report.visibility_score,
+    hallucinationCount: report.hallucination_count,
+    competitorsWinning: report.summary_payload.competitors_winning ?? [],
+    shareSlug: report.share_slug,
+    shareUrl,
+    subject,
+    body,
+    fullNote: enforced.content,
+    qualityScore: enforced.score,
+    qualityBreakdown: enforced.breakdown,
+  };
+}
+
+export function sanitizeCsvCell(value: string | number): string {
+  const raw = String(value ?? '');
+  const formulaSafe = /^[\t\r\n ]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+  return `"${formulaSafe.replace(/"/g, '""')}"`;
+}
+
+export function buildBatchOutreachCsv(
+  reports: AgencyPitchReportRow[],
+  baseUrl = 'https://verisource.dev'
+): string {
+  const header = [
+    'prospect_brand_name',
+    'prospect_domain',
+    'visibility_score',
+    'hallucination_count',
+    'competitors_winning',
+    'audit_share_url',
+    'email_subject',
+    'email_body',
+    'quality_gate_score',
+  ].join(',');
+
+  const rows = reports.map((report) => {
+    const item = extractColdOutreachParts(report, baseUrl);
+    return [
+      sanitizeCsvCell(item.prospectBrandName),
+      sanitizeCsvCell(item.prospectDomain),
+      sanitizeCsvCell(item.visibilityScore),
+      sanitizeCsvCell(item.hallucinationCount),
+      sanitizeCsvCell(item.competitorsWinning.join('; ')),
+      sanitizeCsvCell(item.shareUrl),
+      sanitizeCsvCell(item.subject),
+      sanitizeCsvCell(item.body),
+      sanitizeCsvCell(item.qualityScore.toFixed(1)),
+    ].join(',');
+  });
+
+  return [header, ...rows].join('\n');
+}
+
+export function buildBatchOutreachMarkdown(
+  reports: AgencyPitchReportRow[],
+  baseUrl = 'https://verisource.dev'
+): EnforcedQualityArtifact {
+  const items = reports.map((report) =>
+    extractColdOutreachParts(report, baseUrl)
+  );
+
+  const prospectSections = items.map((item, idx) => {
+    const rivals =
+      item.competitorsWinning.length > 0
+        ? item.competitorsWinning.join(', ')
+        : 'Category directories';
+    return [
+      `## ${idx + 1}. ${item.prospectBrandName} (${item.prospectDomain})`,
+      `- **AI Visibility Score:** \`${item.visibilityScore} / 100\``,
+      `- **Flagged Claim Conflicts:** \`${item.hallucinationCount}\``,
+      `- **Rivals Capturing Citations:** ${rivals}`,
+      `- **White-Label Audit Link:** ${item.shareUrl}`,
+      `- **Critic Quality Score:** \`${item.qualityScore.toFixed(1)} / 10.0\``,
+      '',
+      '```text',
+      item.fullNote,
+      '```',
+    ].join('\n');
+  });
+
+  const draft = [
+    `# Agency White-Label Outreach Playbook (${items.length} ${items.length === 1 ? 'Prospect' : 'Prospects'})`,
+    '',
+    'Ready-to-send founder briefs verified across ChatGPT, Google Gemini, and Perplexity.',
+    'Every prospect audit checks live `GPTBot`, `OAI-SearchBot`, `PerplexityBot`, and `ClaudeBot` access plus `schema.org` `JSON-LD`, `/llms.txt`, and `/agents.md` coverage.',
+    '',
+    '---',
+    '',
+    ...(prospectSections.length > 0
+      ? prospectSections.flatMap((sec) => [sec, '', '---', ''])
+      : [
+          'No prospect pitch links generated yet. Run a single or batch audit in Tab 3 (`https://verisource.dev/dashboard`) to populate this playbook.',
+        ]),
+  ]
+    .join('\n')
+    .trim();
+
+  return enforceQualityGate95(draft, 'citation_outreach_brief');
+}
 
 export function buildAgencyColdOutreachNote(
   report: AgencyPitchReportRow,
