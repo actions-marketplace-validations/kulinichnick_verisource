@@ -17,11 +17,15 @@ import {
   buildBatchOutreachMarkdown,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
+  buildLocalServiceBatchCsv,
+  buildLocalServiceOutreachSequence,
+  buildLocalServicePlaybookMarkdown,
   buildMcpDiscoveryManifest,
   buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
   classifyAgentsMdContent,
+  classifyIndustryVertical,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
@@ -690,4 +694,68 @@ test('3-Touch Cold Outreach Sequence Engine (Day 0 / Day 3 / Day 7) passes >= 9.
   assert.ok(partnerSeq.day3.score >= 9.5);
   assert.ok(partnerSeq.day7.score >= 9.5);
   assert.ok(partnerSeq.day7.content.includes('/dashboard?tab=tab3_offsite'));
+});
+
+test('High-Ticket Local Service vertical schema classifier & Cohort 03 3-touch outreach pass >= 9.5/10 Critic', () => {
+  assert.equal(
+    classifyIndustryVertical({
+      hostname: 'lanierlawfirm.com',
+      brandName: 'The Lanier Law Firm',
+      coreOffering: 'Personal injury and trial law firm representing plaintiffs nationwide.',
+    }).schemaOrgType,
+    'LegalService'
+  );
+  assert.equal(
+    classifyIndustryVertical({
+      hostname: 'hellotend.com',
+      brandName: 'Tend Dental',
+      coreOffering: 'Modern dental studios for cleanings, Invisalign, and implants.',
+    }).schemaOrgType,
+    'Dentist'
+  );
+  assert.equal(
+    classifyIndustryVertical({
+      hostname: 'everbody.com',
+      brandName: 'Ever / Body',
+      coreOffering: 'Cosmetic dermatology and medical aesthetic clinics for laser and Botox.',
+    }).schemaOrgType,
+    'MedicalBusiness'
+  );
+  assert.equal(
+    classifyIndustryVertical({
+      hostname: 'bakerroofing.com',
+      brandName: 'Baker Roofing Company',
+      coreOffering: 'Commercial roofing contractor and storm restoration.',
+    }).schemaOrgType,
+    'RoofingContractor'
+  );
+  assert.equal(
+    classifyIndustryVertical({
+      hostname: 'horizonservices.com',
+      brandName: 'Horizon',
+      coreOffering: 'AC, heating, HVAC, and plumbing home services.',
+    }).schemaOrgType,
+    'HVACBusiness'
+  );
+
+  const localReport = {
+    ...PATIENT_ZERO_PITCH_REPORT,
+    prospect_brand_name: 'Tend Dental',
+    prospect_domain: 'https://hellotend.com',
+    share_slug: 'hellotend-com-demo',
+    visibility_score: 48,
+  };
+  const localSeq = buildLocalServiceOutreachSequence(localReport);
+  assert.ok(localSeq.day0.score >= 9.5);
+  assert.ok(localSeq.day3.score >= 9.5);
+  assert.ok(localSeq.day7.score >= 9.5);
+  assert.ok(localSeq.day3.content.includes('LocalBusiness schema.org JSON-LD'));
+  assert.ok(localSeq.day7.content.includes('plan=tripwire_19'));
+
+  const localCsv = buildLocalServiceBatchCsv([localReport]);
+  assert.ok(localCsv.startsWith('local_group_name,group_domain,'));
+  assert.ok(localCsv.includes('followup_day3_body,followup_day7_body'));
+
+  const localPlaybook = buildLocalServicePlaybookMarkdown([localReport]);
+  assert.ok(localPlaybook.score >= 9.5);
 });

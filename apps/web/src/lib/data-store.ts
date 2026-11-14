@@ -485,9 +485,7 @@ export async function provisionDomainAuditForWorkspace(input: {
     user_id: input.userId,
     domain_url: audit.domainUrl,
     brand_name: audit.brandName,
-    industry_vertical: audit.shopify.isShopify
-      ? 'shopify_commerce'
-      : 'general_b2b',
+    industry_vertical: audit.industryVertical,
     is_shopify: audit.shopify.isShopify,
     shopify_mcp_status: audit.shopify.shopifyMcpStatus,
     agents_md_status: audit.shopify.agentsMdStatus,

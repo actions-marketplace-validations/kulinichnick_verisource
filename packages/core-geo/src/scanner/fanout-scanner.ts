@@ -10,6 +10,7 @@ import {
   PATIENT_ZERO_PROMPTS,
   PATIENT_ZERO_SNAPSHOTS,
 } from '../fixtures/patient-zero.js';
+import { classifyIndustryVertical } from '../generator/fix-generator.js';
 import { detectHallucinations } from '../watchdog/hallucination-watchdog.js';
 import type { NormalizedDomain } from './bot-waf-prober.js';
 
@@ -40,6 +41,48 @@ export function generateDefaultPromptsForDomain(
       (p) => p.domain_id === fixtureDomain.id
     ).map((p) => p.prompt_text);
     if (seeded.length > 0) return seeded;
+  }
+
+  const vertical = classifyIndustryVertical({
+    hostname: domain.hostname,
+    brandName,
+    coreOffering,
+  });
+
+  if (vertical.industryVertical === 'legal_service') {
+    return [
+      `Top trial and injury law firm — ${brandName} case results and consultation rules`,
+      `${brandName} attorney reviews, fee structure, and practice areas`,
+      `Which law firms do clients recommend for complex injury or commercial litigation?`,
+    ];
+  }
+  if (vertical.industryVertical === 'dental_group') {
+    return [
+      `Best modern dental studio for implants, Invisalign, and cleanings — ${brandName}`,
+      `${brandName} dental reviews, insurance coverage, and transparent pricing`,
+      `Top-rated multi-location dental groups with online appointment booking`,
+    ];
+  }
+  if (vertical.industryVertical === 'medspa_clinic') {
+    return [
+      `Most trusted medical aesthetic clinic and MedSpa for laser and injectables — ${brandName}`,
+      `${brandName} reviews, clinician credentials, and membership pricing`,
+      `Who do patients recommend for medical-grade laser facials and cosmetic dermatology?`,
+    ];
+  }
+  if (vertical.industryVertical === 'hvac_home_service') {
+    return [
+      `Most reliable AC repair, heating, and plumbing company — ${brandName} reviews`,
+      `${brandName} HVAC service area, emergency dispatch, and upfront pricing`,
+      `Top-rated residential HVAC and plumbing providers with licensed technicians`,
+    ];
+  }
+  if (vertical.industryVertical === 'roofing_contractor') {
+    return [
+      `Best commercial and residential roofing contractor — ${brandName} warranty reviews`,
+      `${brandName} roof replacement inspections, materials, and service regions`,
+      `Which roofing contractors have the strongest long-term workmanship track record?`,
+    ];
   }
 
   const conciseTopic = coreOffering

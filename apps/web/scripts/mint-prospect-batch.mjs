@@ -9,6 +9,8 @@ import {
   buildAgencyPartnerPlaybookMarkdown,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
+  buildLocalServiceBatchCsv,
+  buildLocalServicePlaybookMarkdown,
   parseBatchProspectDomains,
   runFullGeoAudit,
 } from '@verisource/core-geo';
@@ -123,7 +125,7 @@ async function main() {
   const createdIso = new Date().toISOString();
   const expiresIso = new Date(Date.now() + 30 * 86400 * 1000).toISOString();
 
-  const reports = await mapWithConcurrency(domains, 3, async (hostname) => {
+  reports = await mapWithConcurrency(domains, 3, async (hostname) => {
     const audit = await runFullGeoAudit({
       domainInput: hostname,
       rawEnv,
@@ -187,12 +189,17 @@ async function main() {
   }
 
   const isAgencyPartner = persona === 'agency_partner';
+  const isLocalPro = persona === 'local_pro';
   const csv = isAgencyPartner
     ? buildAgencyPartnerBatchCsv(reports, baseUrl)
-    : buildBatchOutreachCsv(reports, baseUrl);
+    : isLocalPro
+      ? buildLocalServiceBatchCsv(reports, baseUrl)
+      : buildBatchOutreachCsv(reports, baseUrl);
   const playbook = isAgencyPartner
     ? buildAgencyPartnerPlaybookMarkdown(reports, baseUrl)
-    : buildBatchOutreachMarkdown(reports, baseUrl);
+    : isLocalPro
+      ? buildLocalServicePlaybookMarkdown(reports, baseUrl)
+      : buildBatchOutreachMarkdown(reports, baseUrl);
 
   console.log(
     `  ✔ Outreach Playbook Critic Score: ${playbook.score.toFixed(1)} / 10.0`

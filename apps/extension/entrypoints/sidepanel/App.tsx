@@ -52,6 +52,7 @@ function buildInitialAureaAudit(): FullGeoAuditResult {
     domainUrl: domain.domain_url,
     hostname: 'aurearoasters.com',
     brandName: domain.brand_name,
+    industryVertical: 'shopify_commerce',
     visibilityScore: domain.visibility_score,
     accuracyScore: domain.accuracy_score,
     probe: {

@@ -10,8 +10,10 @@ import type {
 } from '../db/types.js';
 import { PATIENT_ZERO_DOMAINS } from '../fixtures/patient-zero.js';
 import {
+  classifyIndustryVertical,
   generateGeoFixBundle,
   type GeneratedFixDraft,
+  type IndustryVerticalId,
 } from '../generator/fix-generator.js';
 import {
   normalizePublicDomain,
@@ -36,6 +38,7 @@ export interface ReadinessScanSummary {
   domainUrl: string;
   hostname: string;
   brandName: string;
+  industryVertical: IndustryVerticalId;
   visibilityScore: number;
   accuracyScore: number;
   isShopify: boolean;
@@ -59,6 +62,7 @@ export interface FullGeoAuditResult {
   domainUrl: string;
   hostname: string;
   brandName: string;
+  industryVertical: IndustryVerticalId;
   visibilityScore: number;
   accuracyScore: number;
   probe: DomainHttpProbeResult;
@@ -517,10 +521,19 @@ export async function runDomainReadinessScan(
       ? fixture.accuracy_score
       : computeAccuracyScore(allHallucinations);
 
+  const vertical = classifyIndustryVertical({
+    hostname: probe.domain.hostname,
+    brandName,
+    coreOffering: truthSheet.core_offering,
+    serviceArea: truthSheet.shipping_or_service_area,
+    isShopify: shopify.isShopify,
+  });
+
   return {
     domainUrl: probe.domain.origin,
     hostname: probe.domain.hostname,
     brandName,
+    industryVertical: vertical.industryVertical,
     visibilityScore,
     accuracyScore,
     isShopify: shopify.isShopify,
@@ -624,10 +637,19 @@ export async function runFullGeoAudit(options: {
     allHallucinations,
   });
 
+  const vertical = classifyIndustryVertical({
+    hostname: probe.domain.hostname,
+    brandName,
+    coreOffering: brandTruthSheet.core_offering,
+    serviceArea: brandTruthSheet.shipping_or_service_area,
+    isShopify: shopify.isShopify,
+  });
+
   return {
     domainUrl: probe.domain.origin,
     hostname: probe.domain.hostname,
     brandName,
+    industryVertical: vertical.industryVertical,
     visibilityScore,
     accuracyScore,
     probe,

@@ -913,7 +913,24 @@ async function run() {
       0,
       'Found banned lexicon on /dashboard?tab=tab3_offsite'
     );
-    console.log('✔ [26/26] M28 Interactive Agency ROI Calculator & Tab 3 3-Touch Sequence Switcher verified (0 banned words)');
+    console.log('✔ [26/27] M28 Interactive Agency ROI Calculator & Tab 3 3-Touch Sequence Switcher verified (0 banned words)');
+
+    // 25. M29 Vertical-Specific Industry Classifier in /api/grader & Multi-Vertical /sample-audit
+    const mosaicGraderRes = await fetch(`${BASE}/api/grader`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-forwarded-for': '203.0.113.99',
+      },
+      body: JSON.stringify({ domain: 'mosaicroasters.com' }),
+    });
+    assert.equal(mosaicGraderRes.status, 200);
+    const mosaicGraderJson = await mosaicGraderRes.json();
+    assert.equal(
+      (mosaicGraderJson.summary ?? mosaicGraderJson).industryVertical,
+      'local_commerce'
+    );
+    console.log('✔ [27/27] M29 Vertical-specific LocalBusiness / Shopify industryVertical classifier verified on /api/grader');
   } finally {
     server.kill();
   }

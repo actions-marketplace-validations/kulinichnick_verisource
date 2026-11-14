@@ -34,7 +34,7 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
       .select('*')
       .eq('agency_brand_name_snapshot', 'Verisource GEO Advisory')
       .order('created_at', { ascending: false })
-      .limit(6);
+      .limit(12);
     if (data && data.length > 0) {
       liveCohortReports = data as AgencyPitchReportRow[];
     }

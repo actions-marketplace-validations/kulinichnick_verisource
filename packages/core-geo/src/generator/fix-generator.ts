@@ -16,6 +16,153 @@ export interface GeneratedFixDraft {
   qualityRubricBreakdown: QualityRubricBreakdown;
 }
 
+export type IndustryVerticalId =
+  | 'legal_service'
+  | 'dental_group'
+  | 'medspa_clinic'
+  | 'hvac_home_service'
+  | 'roofing_contractor'
+  | 'local_commerce'
+  | 'shopify_commerce'
+  | 'b2b_agency'
+  | 'general_b2b';
+
+export interface IndustryVerticalClassification {
+  industryVertical: IndustryVerticalId;
+  schemaOrgType:
+    | 'LegalService'
+    | 'Dentist'
+    | 'MedicalBusiness'
+    | 'HVACBusiness'
+    | 'RoofingContractor'
+    | 'LocalBusiness'
+    | 'ProfessionalService'
+    | 'Organization';
+  isHighTicketLocal: boolean;
+  verticalLabel: string;
+}
+
+export function classifyIndustryVertical(params: {
+  hostname: string;
+  brandName: string;
+  coreOffering: string;
+  serviceArea?: string;
+  isShopify?: boolean;
+}): IndustryVerticalClassification {
+  const isSpringfieldLocal = /springfield,\s*(?:mo|missouri)/i.test(
+    params.serviceArea ?? ''
+  );
+  if (isSpringfieldLocal) {
+    return {
+      industryVertical: 'local_commerce',
+      schemaOrgType: 'LocalBusiness',
+      isHighTicketLocal: false,
+      verticalLabel: 'Regional Roastery & E-Commerce',
+    };
+  }
+
+  if (params.isShopify) {
+    return {
+      industryVertical: 'shopify_commerce',
+      schemaOrgType: 'Organization',
+      isHighTicketLocal: false,
+      verticalLabel: 'Shopify Storefront',
+    };
+  }
+
+  const corpus = [
+    params.hostname,
+    params.brandName,
+    params.coreOffering,
+    params.serviceArea ?? '',
+  ].join(' ');
+
+  if (
+    /\b(?:law\s+firm|attorneys?|lawyers?|personal\s+injury|mesothelioma|litigation|trial\s+law|legal\s+counsel|injury\s+law)\b/i.test(
+      corpus
+    )
+  ) {
+    return {
+      industryVertical: 'legal_service',
+      schemaOrgType: 'LegalService',
+      isHighTicketLocal: true,
+      verticalLabel: 'Legal & Trial Practice',
+    };
+  }
+
+  if (
+    /\b(?:dental|dentist\w*|orthodont\w*|invisalign|oral\s+surgery|endodont\w*|periodont\w*)\b/i.test(
+      corpus
+    )
+  ) {
+    return {
+      industryVertical: 'dental_group',
+      schemaOrgType: 'Dentist',
+      isHighTicketLocal: true,
+      verticalLabel: 'Dental & Orthodontics Group',
+    };
+  }
+
+  if (
+    /\b(?:med\s*spa|medspa|cosmetic\s+dermatolog\w*|medical\s+aesthetic\w*|laser\s+skin|botox|injectables?|plastic\s+surgery|facial\s+rejuvenation)\b/i.test(
+      corpus
+    )
+  ) {
+    return {
+      industryVertical: 'medspa_clinic',
+      schemaOrgType: 'MedicalBusiness',
+      isHighTicketLocal: true,
+      verticalLabel: 'Medical Aesthetics & MedSpa',
+    };
+  }
+
+  if (
+    /\b(?:hvac|air\s+conditioning|heating\s+and\s+(?:air|cooling|plumbing)|ac,\s*heating|furnace\s+repair|rescue\s+rooter)\b/i.test(
+      corpus
+    )
+  ) {
+    return {
+      industryVertical: 'hvac_home_service',
+      schemaOrgType: 'HVACBusiness',
+      isHighTicketLocal: true,
+      verticalLabel: 'HVAC, Plumbing & Home Services',
+    };
+  }
+
+  if (
+    /\b(?:roofing|roofer|roof\s+replacement|commercial\s+roof\w*|storm\s+restoration)\b/i.test(
+      corpus
+    )
+  ) {
+    return {
+      industryVertical: 'roofing_contractor',
+      schemaOrgType: 'RoofingContractor',
+      isHighTicketLocal: true,
+      verticalLabel: 'Commercial & Residential Roofing',
+    };
+  }
+
+  if (
+    /\b(?:seo\s+agency|geo\s+agency|organic\s+growth\s+agency|content\s+marketing\s+agency|digital\s+agency|shopify\s+plus\s+agency)\b/i.test(
+      corpus
+    )
+  ) {
+    return {
+      industryVertical: 'b2b_agency',
+      schemaOrgType: 'ProfessionalService',
+      isHighTicketLocal: false,
+      verticalLabel: 'Agency & Advisory',
+    };
+  }
+
+  return {
+    industryVertical: 'general_b2b',
+    schemaOrgType: 'Organization',
+    isHighTicketLocal: false,
+    verticalLabel: 'B2B & Commercial',
+  };
+}
+
 export interface GenerateFixBundleInput {
   domain: NormalizedDomain;
   brandName: string;
@@ -28,9 +175,16 @@ function buildJsonLdDraft(input: GenerateFixBundleInput): string {
   const { domain, brandName, truthSheet, shopify } = input;
   const isSpringfieldLocal =
     /springfield,\s*(?:mo|missouri)/i.test(truthSheet.shipping_or_service_area);
+  const vertical = classifyIndustryVertical({
+    hostname: domain.hostname,
+    brandName,
+    coreOffering: truthSheet.core_offering,
+    serviceArea: truthSheet.shipping_or_service_area,
+    isShopify: shopify.isShopify,
+  });
 
   const entityNode: Record<string, unknown> = {
-    '@type': isSpringfieldLocal ? 'LocalBusiness' : 'Organization',
+    '@type': vertical.schemaOrgType,
     '@id': `${domain.origin}/#organization`,
     name: brandName,
     url: domain.origin,
@@ -51,6 +205,9 @@ function buildJsonLdDraft(input: GenerateFixBundleInput): string {
       },
       { '@type': 'Country', name: 'United States' },
     ];
+  } else if (vertical.isHighTicketLocal) {
+    entityNode.areaServed = truthSheet.shipping_or_service_area;
+    entityNode.serviceType = vertical.verticalLabel;
   }
 
   const productOffers = shopify.catalogSkus.slice(0, 4).map((sku) => ({

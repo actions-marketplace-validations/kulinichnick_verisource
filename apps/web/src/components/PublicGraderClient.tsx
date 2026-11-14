@@ -9,6 +9,7 @@ const INITIAL_AUREA_PREVIEW: ReadinessScanSummary = {
   domainUrl: 'https://aurearoasters.com',
   hostname: 'aurearoasters.com',
   brandName: 'Aurea Coffee Roasters',
+  industryVertical: 'shopify_commerce',
   visibilityScore: 92,
   accuracyScore: 96,
   isShopify: true,

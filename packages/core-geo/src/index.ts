@@ -1,4 +1,4 @@
-export const VERISOURCE_VERSION = '0.3.7';
+export const VERISOURCE_VERSION = '0.3.8';
 
 export * from './db/types.js';
 export * from './fixtures/patient-zero.js';
@@ -11,6 +11,7 @@ export * from './scanner/fanout-scanner.js';
 export * from './generator/fix-generator.js';
 export * from './generator/pitch-outreach.js';
 export * from './generator/agency-partner-outreach.js';
+export * from './generator/local-service-outreach.js';
 export * from './alerts/drift-alert.js';
 export * from './alerts/prospect-open-alert.js';
 export * from './alerts/post-purchase-alert.js';
