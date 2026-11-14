@@ -13,8 +13,10 @@ import {
   buildBatchOutreachMarkdown,
   buildImplementationBundleMarkdown,
   buildShopifyCustomerEventsPixel,
+  buildTargetedCitationOutreachDraft,
   computeShopifyCheckoutKey,
   normalizePublicDomain,
+  rankCitationGapSources,
   summarizeEngineCitationShare,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
@@ -337,6 +339,8 @@ export function DashboardConsoleClient(props: {
     setLastAlertPreview(null);
     setLastFixVerification(null);
     setSelectedEngineFilter('all');
+    setCitationSourceFilter('all');
+    setSelectedCitationSourceHost(null);
     let cancelled = false;
     if (activeDomain.is_shopify) {
       void computeShopifyCheckoutKey({
@@ -387,6 +391,79 @@ export function DashboardConsoleClient(props: {
     selectedEngineFilter === 'all'
       ? domainSnapshots
       : domainSnapshots.filter((s) => s.ai_engine === selectedEngineFilter);
+
+  const [citationSourceFilter, setCitationSourceFilter] = useState<
+    'all' | 'citation_gap' | 'co_cited_or_owned'
+  >('all');
+  const [selectedCitationSourceHost, setSelectedCitationSourceHost] = useState<
+    string | null
+  >(null);
+  const [copiedCitationUrl, setCopiedCitationUrl] = useState<string | null>(
+    null
+  );
+
+  const activeDomainHostname = (() => {
+    if (!activeDomain) return '';
+    try {
+      return new URL(activeDomain.domain_url).hostname
+        .replace(/^www\./, '')
+        .toLowerCase();
+    } catch {
+      return '';
+    }
+  })();
+
+  const rankedCitationSources = activeDomain
+    ? rankCitationGapSources({
+        targetHostname: activeDomainHostname,
+        snapshots: domainSnapshots,
+      })
+    : [];
+
+  const citationGapCount = rankedCitationSources.filter(
+    (s) => s.ownership === 'citation_gap'
+  ).length;
+
+  const filteredCitationSources =
+    citationSourceFilter === 'all'
+      ? rankedCitationSources
+      : citationSourceFilter === 'citation_gap'
+        ? rankedCitationSources.filter((s) => s.ownership === 'citation_gap')
+        : rankedCitationSources.filter((s) => s.ownership !== 'citation_gap');
+
+  const activeOutreachTarget =
+    rankedCitationSources.find(
+      (s) =>
+        s.sourceHost === selectedCitationSourceHost && s.ownership !== 'owned'
+    ) ?? null;
+
+  const targetedCitationOutreach =
+    activeDomain && activeOutreachTarget && activeOutreachTarget.urls[0]
+      ? buildTargetedCitationOutreachDraft({
+          brandName: activeDomain.brand_name,
+          hostname: activeDomainHostname,
+          coreOffering: activeDomain.brand_truth_sheet.core_offering,
+          pricingSummary: activeDomain.brand_truth_sheet.verified_pricing_summary,
+          sourceHost: activeOutreachTarget.sourceHost,
+          targetUrl: activeOutreachTarget.urls[0],
+          enginesCiting: activeOutreachTarget.enginesCiting,
+          rivalsFed: activeOutreachTarget.rivalsFed,
+        })
+      : null;
+
+  async function handleCopyCitationSourceUrl(url: string) {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+      setCopiedCitationUrl(url);
+      setTimeout(() => {
+        setCopiedCitationUrl((prev) => (prev === url ? null : prev));
+      }, 2200);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
 
   const authHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -2304,6 +2381,275 @@ export function DashboardConsoleClient(props: {
                   },
                 ]}
               />
+            ) : null}
+
+            {/* Citation Gap Source Leaderboard */}
+            <div className="vs-card vs-table-wrap">
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: '1px solid var(--vs-border)',
+                  background: 'var(--vs-surface-subtle)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                }}
+              >
+                <div>
+                  <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)', marginBottom: '2px' }}>
+                    CITATION GAP SOURCE LEADERBOARD
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-muted)' }}>
+                    {isGuided
+                      ? 'External articles and threads AI trusts — ranked so you know where to get listed first'
+                      : 'Third-party domains ranked by engine citation frequency and brand omission priority'}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    border: '1px solid var(--vs-border)',
+                    borderRadius: '5px',
+                    padding: '2px',
+                    background: '#FFFFFF',
+                    gap: '2px',
+                  }}
+                >
+                  {(
+                    [
+                      {
+                        id: 'all',
+                        label: `All Sources (${rankedCitationSources.length})`,
+                      },
+                      {
+                        id: 'citation_gap',
+                        label: `Citation Gaps (${citationGapCount})`,
+                      },
+                      {
+                        id: 'co_cited_or_owned',
+                        label: `Co-Cited / Owned (${
+                          rankedCitationSources.length - citationGapCount
+                        })`,
+                      },
+                    ] as const
+                  ).map((pill) => {
+                    const active = citationSourceFilter === pill.id;
+                    return (
+                      <button
+                        key={pill.id}
+                        type="button"
+                        onClick={() => setCitationSourceFilter(pill.id)}
+                        style={{
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          background: active ? 'var(--vs-ink)' : 'transparent',
+                          color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        {pill.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <table className="vs-table">
+                <thead>
+                  <tr>
+                    <th>Source Domain &amp; Cited URL</th>
+                    <th>Engines Citing</th>
+                    <th>Rivals Fed</th>
+                    <th>Status</th>
+                    <th style={{ textAlign: 'right' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCitationSources.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        style={{
+                          padding: '16px',
+                          fontSize: '13px',
+                          color: 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        No citation sources match this filter yet. Add a buyer
+                        question below or switch back to{' '}
+                        <strong>All Sources ({rankedCitationSources.length})</strong>.
+                      </td>
+                    </tr>
+                  ) : null}
+                  {filteredCitationSources.map((src) => {
+                    const primaryUrl = src.urls[0] ?? `https://${src.sourceHost}`;
+                    const isPitchSelected =
+                      selectedCitationSourceHost === src.sourceHost;
+                    return (
+                      <tr key={src.sourceHost}>
+                        <td>
+                          <strong>{src.sourceHost}</strong>
+                          {src.urls.length > 1 ? (
+                            <span
+                              className="vs-mono"
+                              style={{
+                                marginLeft: '6px',
+                                fontSize: '11px',
+                                color: 'var(--vs-ink-muted)',
+                              }}
+                            >
+                              (+{src.urls.length - 1} URL
+                              {src.urls.length - 1 === 1 ? '' : 's'})
+                            </span>
+                          ) : null}
+                          <div
+                            className="vs-mono"
+                            style={{
+                              fontSize: '11.5px',
+                              marginTop: '2px',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            <a
+                              href={primaryUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'var(--vs-ink-secondary)' }}
+                            >
+                              {primaryUrl}
+                            </a>
+                          </div>
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              flexWrap: 'wrap',
+                              gap: '4px',
+                            }}
+                          >
+                            {src.enginesCiting.map((eng) => (
+                              <StatusBadge key={eng}>
+                                {eng.toUpperCase()}
+                              </StatusBadge>
+                            ))}
+                          </div>
+                        </td>
+                        <td
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink-secondary)',
+                            maxWidth: '220px',
+                          }}
+                        >
+                          {src.ownership === 'owned'
+                            ? 'Direct brand asset'
+                            : src.rivalsFed.length > 0
+                              ? src.rivalsFed.join(' · ')
+                              : 'Category peers'}
+                        </td>
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          {src.ownership === 'citation_gap' ? (
+                            <StatusBadge tone="critical">CITATION GAP</StatusBadge>
+                          ) : src.ownership === 'co_cited' ? (
+                            <StatusBadge tone="pass">BRAND CO-CITED</StatusBadge>
+                          ) : (
+                            <StatusBadge tone="pass">OWNED ASSET</StatusBadge>
+                          )}
+                        </td>
+                        <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleCopyCitationSourceUrl(primaryUrl)
+                              }
+                              className="vs-btn vs-btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '11.5px' }}
+                            >
+                              {copiedCitationUrl === primaryUrl
+                                ? '✓ Copied'
+                                : 'Copy URL'}
+                            </button>
+                            {src.ownership !== 'owned' ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedCitationSourceHost((prev) =>
+                                    prev === src.sourceHost
+                                      ? null
+                                      : src.sourceHost
+                                  )
+                                }
+                                className="vs-btn vs-btn-secondary"
+                                style={{
+                                  padding: '4px 9px',
+                                  fontSize: '11.5px',
+                                  borderColor: isPitchSelected
+                                    ? 'var(--vs-ink)'
+                                    : undefined,
+                                }}
+                              >
+                                {isPitchSelected ? 'Selected' : 'Draft Pitch'}
+                              </button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {activeOutreachTarget && targetedCitationOutreach ? (
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '12.5px', fontWeight: 600 }}>
+                    Targeted Editorial Inclusion Note —{' '}
+                    <span className="vs-mono">{activeOutreachTarget.sourceHost}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCitationSourceHost(null)}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '3px 9px', fontSize: '11.5px' }}
+                  >
+                    Close Draft
+                  </button>
+                </div>
+                <CodeArtifactCard
+                  title={`Editorial Spec Update (${activeOutreachTarget.sourceHost})`}
+                  plainSummary={
+                    isGuided
+                      ? 'Short, polite 4-sentence note sharing your verified /agents.md fact sheet with the author of this cited article.'
+                      : undefined
+                  }
+                  fileHint={`Cited URL: ${activeOutreachTarget.urls[0] ?? activeOutreachTarget.sourceHost}`}
+                  code={targetedCitationOutreach.content}
+                  qualityScore={targetedCitationOutreach.score}
+                  qualityBreakdown={targetedCitationOutreach.breakdown}
+                />
+              </div>
             ) : null}
 
             {/* Module 3: Query Fanout Decompiler & Citation Gap Map */}

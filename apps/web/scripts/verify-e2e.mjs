@@ -1310,7 +1310,30 @@ async function run() {
       m37DeepLinkHomeHtml.includes('Copy Scan Link'),
       'Expected Copy Scan Link button on Landing Page Instant Grader'
     );
-    console.log('✔ [35/35] M37 Tab 1 Engine Citation Share Strip, /sample-audit vertical filter tabs & /?domain= grader deep-link verified');
+    console.log('✔ [35/36] M37 Tab 1 Engine Citation Share Strip, /sample-audit vertical filter tabs & /?domain= grader deep-link verified');
+
+    // 34. M38 Ranked Citation Gap Source Leaderboard & 1-Click Targeted Editorial Outreach Draft inside Tab 3
+    const m38Tab3Html = await (
+      await fetch(`${BASE}/dashboard?tab=tab3_offsite`)
+    ).text();
+    assert.ok(
+      m38Tab3Html.includes('CITATION GAP SOURCE LEADERBOARD') &&
+        m38Tab3Html.includes('CITATION GAP') &&
+        m38Tab3Html.includes('BRAND CO-CITED') &&
+        m38Tab3Html.includes('OWNED ASSET') &&
+        m38Tab3Html.includes('Draft Pitch'),
+      'Expected Ranked Citation Gap Source Leaderboard with CITATION GAP, BRAND CO-CITED, OWNED ASSET & Draft Pitch on Tab 3'
+    );
+    const strippedM38Tab3 = m38Tab3Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM38Tab3.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Tab 3 Citation Gap Source Leaderboard'
+    );
+    console.log('✔ [36/36] M38 Tab 3 Ranked Citation Gap Source Leaderboard & targeted outreach draft verified');
   } finally {
     server.kill();
   }

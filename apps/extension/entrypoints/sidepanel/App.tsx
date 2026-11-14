@@ -7,7 +7,9 @@ import {
   PATIENT_ZERO_FIXES,
   PATIENT_ZERO_PROMPTS,
   PATIENT_ZERO_SNAPSHOTS,
+  rankCitationGapSources,
   runFullGeoAudit,
+  summarizeEngineCitationShare,
   type FullGeoAuditResult,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
@@ -214,6 +216,30 @@ export default function App(): React.ReactElement {
             fullAudit.shopify.isShopify = liveSummary.isShopify;
             fullAudit.shopify.shopifyMcpStatus = liveSummary.shopifyMcpStatus;
             fullAudit.shopify.agentsMdStatus = liveSummary.agentsMdStatus;
+            if (liveSummary.samplePromptResult && fullAudit.scanResults[0]) {
+              const sample = liveSummary.samplePromptResult;
+              const safeEngine =
+                sample.aiEngine === 'chatgpt' ||
+                sample.aiEngine === 'gemini' ||
+                sample.aiEngine === 'perplexity' ||
+                sample.aiEngine === 'claude'
+                  ? sample.aiEngine
+                  : fullAudit.scanResults[0].aiEngine;
+              fullAudit.scanResults[0] = {
+                ...fullAudit.scanResults[0],
+                promptText: sample.promptText,
+                aiEngine: safeEngine,
+                brandMentioned: sample.brandMentioned,
+                competitorsMentioned: sample.competitorsMentioned,
+                decompiledFanoutQueries:
+                  sample.decompiledFanoutQueries ??
+                  fullAudit.scanResults[0].decompiledFanoutQueries,
+                fanoutTelemetryType:
+                  sample.fanoutTelemetryType ??
+                  fullAudit.scanResults[0].fanoutTelemetryType,
+                hallucinationDetected: sample.hallucinationDetected,
+              };
+            }
             fullAudit.fixes = generateGeoFixBundle({
               domain: fullAudit.probe.domain,
               brandName: fullAudit.brandName,
@@ -281,9 +307,11 @@ export default function App(): React.ReactElement {
   const uniqueFanoutQueries = Array.from(
     new Set(audit.scanResults.flatMap((s) => s.decompiledFanoutQueries))
   );
-  const uniqueCitationUrls = Array.from(
-    new Set(audit.scanResults.flatMap((s) => s.citedSourceUrls))
-  );
+  const engineShare = summarizeEngineCitationShare(audit.scanResults);
+  const rankedSources = rankCitationGapSources({
+    targetHostname: audit.hostname,
+    snapshots: audit.scanResults,
+  });
 
   const mcpSnippet = JSON.stringify(
     {
@@ -478,6 +506,68 @@ export default function App(): React.ReactElement {
                   tone={audit.accuracyScore < 80 ? 'critical' : 'pass'}
                   sublabel={`${audit.allHallucinations.length} issue(s)`}
                 />
+              </div>
+            </div>
+
+            {/* Compact 3-Engine Citation Share Strip */}
+            <div className="vs-card" style={{ padding: '10px 12px' }}>
+              <div className="vs-eyebrow" style={{ marginBottom: '6px', fontSize: '10px' }}>
+                ENGINE CITATION SHARE
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '6px',
+                }}
+              >
+                {engineShare.map((item) => {
+                  const statusText =
+                    item.totalSnapshots === 0
+                      ? 'Pending'
+                      : item.mentionedCount > 0
+                        ? `Rank #${item.bestRank ?? 1}`
+                        : 'Omitted';
+                  return (
+                    <div
+                      key={item.aiEngine}
+                      style={{
+                        padding: '7px 8px',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '5px',
+                        background: 'var(--vs-surface-subtle)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: 700,
+                          color: 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        {item.shortLabel}
+                      </div>
+                      <div
+                        className="vs-mono"
+                        style={{ fontSize: '13px', fontWeight: 700, marginTop: '2px' }}
+                      >
+                        {item.mentionedCount}/{item.totalSnapshots}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '10.5px',
+                          color:
+                            item.totalSnapshots > 0 && item.mentionedCount === 0
+                              ? 'var(--vs-crit-fg)'
+                              : 'var(--vs-ink-muted)',
+                          marginTop: '1px',
+                        }}
+                      >
+                        {statusText}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -747,25 +837,69 @@ export default function App(): React.ReactElement {
 
             <div className="vs-card" style={{ padding: '10px 12px' }}>
               <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '6px' }}>
-                {isGuided ? 'Articles Feeding AI Answers' : 'Cited Third-Party URLs'}
+                {isGuided
+                  ? 'Ranked Citation Gap & Source Domains'
+                  : 'Citation Gap Source Leaderboard'}
               </strong>
-              {uniqueCitationUrls.length > 0 ? (
-                uniqueCitationUrls.map((url) => (
-                  <div
-                    key={url}
-                    className="vs-mono"
-                    style={{ fontSize: '11.5px', marginBottom: '4px', wordBreak: 'break-all' }}
-                  >
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: 'var(--vs-ink)' }}
-                    >
-                      {url}
-                    </a>
-                  </div>
-                ))
+              {rankedSources.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                  {rankedSources.map((src) => {
+                    const primaryUrl = src.urls[0] ?? `https://${src.sourceHost}`;
+                    return (
+                      <div
+                        key={src.sourceHost}
+                        style={{
+                          padding: '7px 9px',
+                          border: '1px solid var(--vs-border)',
+                          borderRadius: '5px',
+                          background: 'var(--vs-surface-subtle)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '6px',
+                            marginBottom: '3px',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <strong style={{ fontSize: '12px' }}>{src.sourceHost}</strong>
+                          <div style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap' }}>
+                            <StatusBadge
+                              tone={
+                                src.ownership === 'citation_gap' ? 'critical' : 'pass'
+                              }
+                            >
+                              {src.ownership === 'citation_gap'
+                                ? 'GAP'
+                                : src.ownership === 'co_cited'
+                                  ? 'CO-CITED'
+                                  : 'OWNED'}
+                            </StatusBadge>
+                            {src.enginesCiting.map((e) => (
+                              <StatusBadge key={e}>{e.toUpperCase()}</StatusBadge>
+                            ))}
+                          </div>
+                        </div>
+                        <div
+                          className="vs-mono"
+                          style={{ fontSize: '11px', wordBreak: 'break-all' }}
+                        >
+                          <a
+                            href={primaryUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: 'var(--vs-ink-secondary)' }}
+                          >
+                            {primaryUrl}
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
                 <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
                   No external articles cited for this sample prompt.

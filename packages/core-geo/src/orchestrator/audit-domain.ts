@@ -1,4 +1,8 @@
 import { resolveCoreGeoEnv, type RawEnvInput } from '../config/env.js';
+import {
+  enforceQualityGate95,
+  type EnforcedQualityArtifact,
+} from '../critic/quality-gate.js';
 import type {
   AgencyPitchReportRow,
   AgentsMdStatus,
@@ -980,13 +984,52 @@ const TRACKED_ENGINES: Array<{
   },
 ];
 
+type SnapshotOrScanItem =
+  | CitationSnapshotRow
+  | EngineScanResult;
+
+function normalizeSnapshotLike(item: SnapshotOrScanItem): {
+  aiEngine: AiEngine;
+  brandMentioned: boolean;
+  citationRank: number | null;
+  competitorsMentioned: string[];
+  citedSourceUrls: string[];
+  fanoutTelemetryType: FanoutTelemetryType;
+  hallucinationDetected: boolean;
+  hallucinationDetails: HallucinationDetail[];
+} {
+  if ('ai_engine' in item) {
+    return {
+      aiEngine: item.ai_engine,
+      brandMentioned: item.brand_mentioned,
+      citationRank: item.citation_rank,
+      competitorsMentioned: item.competitors_mentioned ?? [],
+      citedSourceUrls: item.cited_source_urls ?? [],
+      fanoutTelemetryType: item.fanout_telemetry_type,
+      hallucinationDetected: item.hallucination_detected,
+      hallucinationDetails: item.hallucination_details ?? [],
+    };
+  }
+  return {
+    aiEngine: item.aiEngine,
+    brandMentioned: item.brandMentioned,
+    citationRank: item.citationRank,
+    competitorsMentioned: item.competitorsMentioned ?? [],
+    citedSourceUrls: item.citedSourceUrls ?? [],
+    fanoutTelemetryType: item.fanoutTelemetryType,
+    hallucinationDetected: item.hallucinationDetected,
+    hallucinationDetails: item.hallucinationDetails ?? [],
+  };
+}
+
 export function summarizeEngineCitationShare(
-  snapshots: CitationSnapshotRow[]
+  snapshots: SnapshotOrScanItem[]
 ): EngineCitationShareItem[] {
+  const normalized = snapshots.map(normalizeSnapshotLike);
   return TRACKED_ENGINES.map(({ aiEngine, engineLabel, shortLabel }) => {
-    const engineSnaps = snapshots.filter((s) => s.ai_engine === aiEngine);
+    const engineSnaps = normalized.filter((s) => s.aiEngine === aiEngine);
     const totalSnapshots = engineSnaps.length;
-    const mentionedSnaps = engineSnaps.filter((s) => s.brand_mentioned);
+    const mentionedSnaps = engineSnaps.filter((s) => s.brandMentioned);
     const mentionedCount = mentionedSnaps.length;
     const mentionRatePct =
       totalSnapshots > 0
@@ -995,22 +1038,22 @@ export function summarizeEngineCitationShare(
 
     let bestRank: number | null = null;
     for (const snap of mentionedSnaps) {
-      if (typeof snap.citation_rank === 'number' && snap.citation_rank > 0) {
+      if (typeof snap.citationRank === 'number' && snap.citationRank > 0) {
         bestRank =
           bestRank === null
-            ? snap.citation_rank
-            : Math.min(bestRank, snap.citation_rank);
+            ? snap.citationRank
+            : Math.min(bestRank, snap.citationRank);
       }
     }
 
     const hallucinationCount = engineSnaps.filter(
-      (s) => s.hallucination_detected && (s.hallucination_details?.length ?? 0) > 0
+      (s) => s.hallucinationDetected && s.hallucinationDetails.length > 0
     ).length;
 
     const topRivals: string[] = [];
     const seenLower = new Set<string>();
     for (const snap of engineSnaps) {
-      for (const rawRival of snap.competitors_mentioned ?? []) {
+      for (const rawRival of snap.competitorsMentioned) {
         const clean = rawRival.trim();
         if (
           !clean ||
@@ -1032,7 +1075,7 @@ export function summarizeEngineCitationShare(
     }
 
     const hasLiveTelemetry = engineSnaps.some(
-      (s) => s.fanout_telemetry_type !== 'mock_fixture'
+      (s) => s.fanoutTelemetryType !== 'mock_fixture'
     );
 
     return {
@@ -1114,4 +1157,217 @@ export function classifyPitchShowcaseBucket(
   }
 
   return 'saas_d2c';
+}
+
+export type CitationSourceOwnership = 'citation_gap' | 'co_cited' | 'owned';
+
+export interface RankedCitationSourceItem {
+  sourceHost: string;
+  ownership: CitationSourceOwnership;
+  enginesCiting: AiEngine[];
+  citationCount: number;
+  rivalsFed: string[];
+  urls: string[];
+}
+
+const OWNERSHIP_PRIORITY: Record<CitationSourceOwnership, number> = {
+  citation_gap: 0,
+  co_cited: 1,
+  owned: 2,
+};
+
+export function rankCitationGapSources(params: {
+  targetHostname: string;
+  snapshots: SnapshotOrScanItem[];
+}): RankedCitationSourceItem[] {
+  const cleanTarget = params.targetHostname
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0] ?? '';
+
+  const byHost = new Map<
+    string,
+    {
+      engines: Set<AiEngine>;
+      citationCount: number;
+      sawBrandMention: boolean;
+      sawBrandOmission: boolean;
+      rivals: string[];
+      seenRivals: Set<string>;
+      urls: string[];
+      seenUrls: Set<string>;
+    }
+  >();
+
+  for (const rawSnap of params.snapshots) {
+    const snap = normalizeSnapshotLike(rawSnap);
+    const hostsInThisSnap = new Set<string>();
+
+    for (const rawUrl of snap.citedSourceUrls) {
+      const trimmed = rawUrl.trim();
+      if (!trimmed) continue;
+      let parsedHost = '';
+      try {
+        const u = new URL(trimmed);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') continue;
+        parsedHost = u.hostname.replace(/^www\./, '').toLowerCase();
+      } catch {
+        continue;
+      }
+      if (!parsedHost) continue;
+
+      let bucket = byHost.get(parsedHost);
+      if (!bucket) {
+        bucket = {
+          engines: new Set<AiEngine>(),
+          citationCount: 0,
+          sawBrandMention: false,
+          sawBrandOmission: false,
+          rivals: [],
+          seenRivals: new Set<string>(),
+          urls: [],
+          seenUrls: new Set<string>(),
+        };
+        byHost.set(parsedHost, bucket);
+      }
+
+      bucket.engines.add(snap.aiEngine);
+      if (!hostsInThisSnap.has(parsedHost)) {
+        hostsInThisSnap.add(parsedHost);
+        bucket.citationCount += 1;
+      }
+      if (snap.brandMentioned) {
+        bucket.sawBrandMention = true;
+      } else {
+        bucket.sawBrandOmission = true;
+      }
+
+      if (!bucket.seenUrls.has(trimmed) && bucket.urls.length < 4) {
+        bucket.seenUrls.add(trimmed);
+        bucket.urls.push(trimmed);
+      }
+
+      for (const rawRival of snap.competitorsMentioned) {
+        const clean = rawRival.trim();
+        if (
+          !clean ||
+          /^(?:reddit\.com\s+buyer\s+threads|editorial\s+comparison\s+guides|category\s+directories)/i.test(
+            clean
+          ) ||
+          /^Top\s+.+\s+Category\s+Peer\s+#\d+$/i.test(clean)
+        ) {
+          continue;
+        }
+        const key = clean.toLowerCase();
+        if (!bucket.seenRivals.has(key) && bucket.rivals.length < 3) {
+          bucket.seenRivals.add(key);
+          bucket.rivals.push(clean);
+        }
+      }
+    }
+  }
+
+  const ENGINE_ORDER: AiEngine[] = ['chatgpt', 'gemini', 'perplexity', 'claude'];
+  const items: RankedCitationSourceItem[] = [];
+
+  for (const [sourceHost, bucket] of byHost.entries()) {
+    const isOwned =
+      Boolean(cleanTarget) &&
+      (sourceHost === cleanTarget || sourceHost.endsWith(`.${cleanTarget}`));
+    const ownership: CitationSourceOwnership = isOwned
+      ? 'owned'
+      : bucket.sawBrandMention
+        ? 'co_cited'
+        : 'citation_gap';
+
+    const enginesCiting = ENGINE_ORDER.filter((e) => bucket.engines.has(e));
+    items.push({
+      sourceHost,
+      ownership,
+      enginesCiting,
+      citationCount: bucket.citationCount,
+      rivalsFed: isOwned ? [] : bucket.rivals,
+      urls: bucket.urls,
+    });
+  }
+
+  items.sort((a, b) => {
+    const prioDiff =
+      OWNERSHIP_PRIORITY[a.ownership] - OWNERSHIP_PRIORITY[b.ownership];
+    if (prioDiff !== 0) return prioDiff;
+    if (b.enginesCiting.length !== a.enginesCiting.length) {
+      return b.enginesCiting.length - a.enginesCiting.length;
+    }
+    if (b.citationCount !== a.citationCount) {
+      return b.citationCount - a.citationCount;
+    }
+    return a.sourceHost.localeCompare(b.sourceHost);
+  });
+
+  return items;
+}
+
+function formatEngineDisplayName(engine: AiEngine): string {
+  switch (engine) {
+    case 'chatgpt':
+      return 'ChatGPT';
+    case 'gemini':
+      return 'Google Gemini';
+    case 'perplexity':
+      return 'Perplexity';
+    case 'claude':
+      return 'Claude';
+  }
+}
+
+export function buildTargetedCitationOutreachDraft(params: {
+  brandName: string;
+  hostname: string;
+  coreOffering: string;
+  pricingSummary: string;
+  sourceHost: string;
+  targetUrl: string;
+  enginesCiting: AiEngine[];
+  rivalsFed: string[];
+}): EnforcedQualityArtifact {
+  const cleanHost = params.hostname
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0] ?? params.hostname;
+
+  const engineLabels =
+    params.enginesCiting.length > 0
+      ? params.enginesCiting.map(formatEngineDisplayName).join(' and ')
+      : 'ChatGPT and Perplexity';
+
+  const rivalsClause =
+    params.rivalsFed.length > 0
+      ? params.rivalsFed.slice(0, 2).join(' and ')
+      : 'alternatives in this category';
+
+  const offeringClean = params.coreOffering
+    .trim()
+    .replace(/\.+$/, '')
+    .slice(0, 120);
+  const pricingClean = params.pricingSummary
+    .trim()
+    .replace(/\.+$/, '')
+    .slice(0, 110);
+
+  const draft = [
+    `Subject: Factual spec update for ${params.sourceHost} (${params.brandName})`,
+    '',
+    `Read your piece at ${params.targetUrl} — ${engineLabels} currently cite that URL when buyers compare ${rivalsClause}.`,
+    `We operate ${params.brandName} (${cleanHost})${
+      offeringClean ? ` — ${offeringClean}` : ''
+    }${pricingClean ? ` (${pricingClean})` : ''}.`,
+    `Our current pricing, policies, and JSON-LD product specs live in plain Markdown at https://${cleanHost}/agents.md so your editorial team can verify facts in 15 seconds.`,
+    `Happy to share a test login or sample order if you update the comparison.`,
+  ].join('\n');
+
+  return enforceQualityGate95(draft, 'citation_outreach_brief');
 }

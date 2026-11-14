@@ -25,6 +25,7 @@ import {
   buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
+  buildTargetedCitationOutreachDraft,
   buildWeeklyExecutiveDigest,
   classifyAgentsMdContent,
   classifyIndustryVertical,
@@ -51,6 +52,7 @@ import {
   parseBatchProspectDomains,
   parsePerplexityAgentResponse,
   parseRobotsAiBotRules,
+  rankCitationGapSources,
   runDomainReadinessScan,
   runFullGeoAudit,
   runPerplexityAgentQuery,
@@ -1353,4 +1355,45 @@ test('M37 Engine-by-Engine Citation Share aggregator and /sample-audit vertical 
     }),
     'local_services'
   );
+});
+
+test('M38 Ranked Citation Gap Source Leaderboard & targeted editorial outreach draft pass >= 9.5/10 Critic', () => {
+  const aureaSnaps = PATIENT_ZERO_SNAPSHOTS.filter(
+    (s) => s.domain_id === PATIENT_ZERO_DOMAINS[0]!.id
+  );
+  const ranked = rankCitationGapSources({
+    targetHostname: 'aurearoasters.com',
+    snapshots: aureaSnaps,
+  });
+
+  assert.equal(ranked.length, 4);
+  assert.equal(ranked[0]!.ownership, 'citation_gap');
+  assert.equal(ranked[1]!.ownership, 'citation_gap');
+  assert.deepEqual(
+    ranked.slice(0, 2).map((r) => r.sourceHost),
+    ['catholiccoffee.com', 'mysticmonkcoffee.com']
+  );
+
+  const redditRow = ranked.find((r) => r.sourceHost === 'reddit.com')!;
+  assert.equal(redditRow.ownership, 'co_cited');
+  assert.deepEqual(redditRow.enginesCiting, ['chatgpt']);
+
+  const ownedRow = ranked.find((r) => r.sourceHost === 'aurearoasters.com')!;
+  assert.equal(ownedRow.ownership, 'owned');
+  assert.deepEqual(ownedRow.rivalsFed, []);
+
+  const outreach = buildTargetedCitationOutreachDraft({
+    brandName: 'Aurea Coffee Roasters',
+    hostname: 'aurearoasters.com',
+    coreOffering: 'Single-origin specialty whole-bean coffee inspired by church heritage',
+    pricingSummary: '$21.95 to $109.95 USD across 8 whole-bean bags and bundles',
+    sourceHost: redditRow.sourceHost,
+    targetUrl: redditRow.urls[0]!,
+    enginesCiting: redditRow.enginesCiting,
+    rivalsFed: redditRow.rivalsFed,
+  });
+
+  assert.ok(outreach.score >= 9.5, `Expected >= 9.5/10, got ${outreach.score}`);
+  assert.ok(outreach.content.includes('https://aurearoasters.com/agents.md'));
+  assert.ok(outreach.content.includes(redditRow.urls[0]!));
 });
