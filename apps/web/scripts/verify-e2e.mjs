@@ -1121,7 +1121,57 @@ async function run() {
       m32HomeHtml.includes('Re-Scan Live'),
       'Expected Re-Scan Live button on Public Grader'
     );
-    console.log('✔ [31/31] M33 Closed-Loop Live Fix Verification (/api/dashboard/verify-fixes), Tab 2 live badges & Grader forceRefresh verified');
+    console.log('✔ [31/32] M33 Closed-Loop Live Fix Verification (/api/dashboard/verify-fixes), Tab 2 live badges & Grader forceRefresh verified');
+
+    // 30. M34 Direct ?domain= Grader-to-Console Handoff, Protected Seed Store Delete Guard & Guest Scan Rate Limit
+    const handoffHtml = await (
+      await fetch(`${BASE}/dashboard?domain=raycast.com`)
+    ).text();
+    assert.ok(
+      handoffHtml.includes('READY TO AUDIT YOUR DOMAIN') &&
+        handoffHtml.includes('Audit raycast.com Across 3 Engines'),
+      'Expected Direct ?domain= Grader-to-Console Handoff Banner on /dashboard?domain=raycast.com'
+    );
+    const strippedHandoff = handoffHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedHandoff.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /dashboard?domain=raycast.com handoff view'
+    );
+
+    const protectedDeleteRes = await fetch(
+      `${BASE}/api/dashboard/domains?id=11111111-1111-4000-8000-000000000001`,
+      { method: 'DELETE' }
+    );
+    assert.equal(
+      protectedDeleteRes.status,
+      403,
+      'Expected unauthenticated DELETE on Patient Zero store to return 403 PROTECTED_DEMO_DOMAIN'
+    );
+
+    let lastRateStatus = 200;
+    for (let i = 0; i < 7; i += 1) {
+      const rateRes = await fetch(`${BASE}/api/dashboard/domains`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-forwarded-for': '203.0.113.77',
+        },
+        body: JSON.stringify({
+          domain_id: '11111111-1111-4000-8000-000000000001',
+        }),
+      });
+      lastRateStatus = rateRes.status;
+    }
+    assert.equal(
+      lastRateStatus,
+      429,
+      'Expected 7th unauthenticated workspace scan in 1 hour from same IP to return 429 DEMO_SCAN_LIMIT_REACHED'
+    );
+    console.log('✔ [32/32] M34 Direct ?domain= Grader-to-Console handoff banner, 403 Patient Zero delete guard & 429 guest scan cap verified');
   } finally {
     server.kill();
   }

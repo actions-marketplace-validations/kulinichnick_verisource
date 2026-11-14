@@ -4,6 +4,8 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
+  AUREA_DOMAIN_ID,
+  MOSAIC_DOMAIN_ID,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAiAttributionSnippet,
@@ -12,6 +14,7 @@ import {
   buildImplementationBundleMarkdown,
   buildShopifyCustomerEventsPixel,
   computeShopifyCheckoutKey,
+  normalizePublicDomain,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
@@ -50,6 +53,15 @@ function describeFixPlainly(fixType: string): string {
       return 'Short founder note to get your business included in third-party review and comparison articles.';
     default:
       return 'Verified copy-paste website fix.';
+  }
+}
+
+function extractSafeHandoffHostname(raw?: string): string | null {
+  if (!raw) return null;
+  try {
+    return normalizePublicDomain(raw).hostname;
+  } catch {
+    return null;
   }
 }
 
@@ -126,6 +138,9 @@ export function DashboardConsoleClient(props: {
   const [addingDomain, setAddingDomain] = useState(false);
   const [rescanningDomain, setRescanningDomain] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState(false);
+  const [dismissedHandoffHost, setDismissedHandoffHost] = useState<
+    string | null
+  >(null);
   const [bannerError, setBannerError] = useState<string | null>(null);
   const [bannerSuccess, setBannerSuccess] = useState<string | null>(
     props.upgradedPlan
@@ -362,16 +377,34 @@ export function DashboardConsoleClient(props: {
     ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   };
 
-  async function handleAddDomain(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newDomainUrl.trim()) return;
+  const handoffHostname = (() => {
+    if (props.upgradedPlan) return null;
+    const candidate = extractSafeHandoffHostname(props.initialDomainQuery);
+    if (!candidate || dismissedHandoffHost === candidate) return null;
+    const alreadyInWorkspace = data.domains.some((d) =>
+      d.domain_url.toLowerCase().includes(candidate)
+    );
+    return alreadyInWorkspace ? null : candidate;
+  })();
+
+  const isProtectedDemoSeedDomain =
+    !accessToken &&
+    Boolean(
+      activeDomain &&
+        (activeDomain.id === AUREA_DOMAIN_ID ||
+          activeDomain.id === MOSAIC_DOMAIN_ID)
+    );
+
+  async function scanDomainIntoWorkspace(rawDomain: string) {
+    const trimmed = rawDomain.trim();
+    if (!trimmed) return;
     setAddingDomain(true);
     setBannerError(null);
     try {
       const res = await fetch('/api/dashboard/domains', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ domain_url: newDomainUrl }),
+        body: JSON.stringify({ domain_url: trimmed }),
       });
       const json = (await res.json()) as {
         error?: string;
@@ -406,6 +439,11 @@ export function DashboardConsoleClient(props: {
     } finally {
       setAddingDomain(false);
     }
+  }
+
+  async function handleAddDomain(e: React.FormEvent) {
+    e.preventDefault();
+    await scanDomainIntoWorkspace(newDomainUrl);
   }
 
   async function handleRescanDomain() {
@@ -1081,20 +1119,22 @@ export function DashboardConsoleClient(props: {
               >
                 {rescanningDomain ? 'Re-Scanning...' : '↻ Re-Scan'}
               </button>
-              <button
-                type="button"
-                disabled={deletingDomain || rescanningDomain}
-                onClick={() => void handleDeleteDomain()}
-                className="vs-btn vs-btn-secondary"
-                style={{
-                  padding: '7px 10px',
-                  fontSize: '12px',
-                  color: 'var(--vs-crit-fg)',
-                }}
-                title="Remove domain and purge its crawl snapshots"
-              >
-                {deletingDomain ? 'Removing...' : 'Remove'}
-              </button>
+              {!isProtectedDemoSeedDomain ? (
+                <button
+                  type="button"
+                  disabled={deletingDomain || rescanningDomain}
+                  onClick={() => void handleDeleteDomain()}
+                  className="vs-btn vs-btn-secondary"
+                  style={{
+                    padding: '7px 10px',
+                    fontSize: '12px',
+                    color: 'var(--vs-crit-fg)',
+                  }}
+                  title="Remove domain and purge its crawl snapshots"
+                >
+                  {deletingDomain ? 'Removing...' : 'Remove'}
+                </button>
+              ) : null}
             </div>
           ) : null}
 
@@ -1166,6 +1206,72 @@ export function DashboardConsoleClient(props: {
         </div>
       </div>
 
+      {handoffHostname ? (
+        <div
+          className="vs-card"
+          style={{
+            padding: '15px 18px',
+            marginBottom: '16px',
+            background: 'var(--vs-surface-warm)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '14px',
+          }}
+        >
+          <div style={{ maxWidth: '720px' }}>
+            <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
+              READY TO AUDIT YOUR DOMAIN
+            </div>
+            <div style={{ fontWeight: 700, fontSize: '14.5px', marginBottom: '3px' }}>
+              Scan <span className="vs-mono">{handoffHostname}</span> across
+              ChatGPT, Gemini &amp; Perplexity
+            </div>
+            <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
+              Console is currently previewing benchmark data for{' '}
+              <strong>{activeDomain?.brand_name ?? 'Aurea Coffee Roasters'}</strong>.
+              Run a live 3-engine audit on{' '}
+              <span className="vs-mono">{handoffHostname}</span> to inspect its AI
+              Share of Voice, claim accuracy, and &gt;=9.5/10 code fixes across all
+              3 tabs.
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+            <button
+              type="button"
+              disabled={addingDomain}
+              onClick={() => void scanDomainIntoWorkspace(handoffHostname)}
+              className="vs-btn"
+              style={{ padding: '8px 15px', fontSize: '12.5px' }}
+            >
+              {addingDomain
+                ? `Scanning ${handoffHostname}...`
+                : `+ Audit ${handoffHostname} Across 3 Engines`}
+            </button>
+            {!accessToken || data.profile.plan_tier === 'free' ? (
+              <Link
+                href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
+                  handoffHostname
+                )}`}
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '8px 13px', fontSize: '12.5px' }}
+              >
+                Get Permanent Audit + Fixes — $19
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setDismissedHandoffHost(handoffHostname)}
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '8px 11px', fontSize: '12px' }}
+            >
+              Keep Demo Store
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {bannerError ? (
         <div
           style={{
@@ -1176,9 +1282,31 @@ export function DashboardConsoleClient(props: {
             border: '1px solid var(--vs-crit-border)',
             color: 'var(--vs-crit-fg)',
             fontSize: '13px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px',
           }}
         >
-          {bannerError}
+          <span>{bannerError}</span>
+          {/upgrade|\$19|limit reached/i.test(bannerError) ? (
+            <Link
+              href={`/pricing${
+                handoffHostname
+                  ? `?domain=${encodeURIComponent(handoffHostname)}`
+                  : activeDomain
+                    ? `?domain=${encodeURIComponent(
+                        new URL(activeDomain.domain_url).hostname
+                      )}`
+                    : ''
+              }`}
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '5px 11px', fontSize: '12px' }}
+            >
+              View Plans &amp; $19 Audit Pass →
+            </Link>
+          ) : null}
         </div>
       ) : null}
 

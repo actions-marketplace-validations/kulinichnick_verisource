@@ -8,6 +8,8 @@ import {
   type TrackedPromptRow,
 } from '@verisource/core-geo';
 import {
+  PROTECTED_PATIENT_ZERO_IDS,
+  checkAndConsumeDemoScanQuota,
   domainCapForPlan,
   getLocalMockStore,
   provisionDomainAuditForWorkspace,
@@ -28,6 +30,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const auth = await resolveAuthenticatedProfile(request);
+    if (!auth) {
+      const demoQuota = checkAndConsumeDemoScanQuota(request, 6);
+      if (!demoQuota.allowed) {
+        return NextResponse.json(
+          {
+            error: 'DEMO_SCAN_LIMIT_REACHED',
+            message:
+              'Hourly guest workspace scan limit reached (6/hr). Activate a permanent domain audit + all 1-click fixes for $19 (credited toward any monthly plan within 7 days) or sign in.',
+          },
+          { status: 429 }
+        );
+      }
+    }
     const store = getLocalMockStore();
     const activeProfile = auth ? auth.profile : store.profile;
     const maxDomains = domainCapForPlan(activeProfile.plan_tier);
@@ -87,6 +102,19 @@ export async function PUT(request: Request): Promise<NextResponse> {
     }
 
     const auth = await resolveAuthenticatedProfile(request);
+    if (!auth) {
+      const demoQuota = checkAndConsumeDemoScanQuota(request, 6);
+      if (!demoQuota.allowed) {
+        return NextResponse.json(
+          {
+            error: 'DEMO_SCAN_LIMIT_REACHED',
+            message:
+              'Hourly guest workspace scan limit reached (6/hr). Activate a permanent domain audit + all 1-click fixes for $19 (credited toward any monthly plan within 7 days) or sign in.',
+          },
+          { status: 429 }
+        );
+      }
+    }
     const store = getLocalMockStore();
 
     let domain: DomainRow | undefined;
@@ -280,6 +308,17 @@ export async function DELETE(request: Request): Promise<NextResponse> {
       );
     }
     return NextResponse.json({ deleted: true, domain_id: domainId });
+  }
+
+  if (PROTECTED_PATIENT_ZERO_IDS.has(domainId)) {
+    return NextResponse.json(
+      {
+        error: 'PROTECTED_DEMO_DOMAIN',
+        message:
+          'Patient Zero benchmark stores cannot be removed from the public demo workspace.',
+      },
+      { status: 403 }
+    );
   }
 
   const store = getLocalMockStore();

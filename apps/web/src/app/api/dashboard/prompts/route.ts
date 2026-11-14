@@ -8,6 +8,8 @@ import {
   type TrackedPromptRow,
 } from '@verisource/core-geo';
 import {
+  PROTECTED_PATIENT_ZERO_IDS,
+  checkAndConsumeDemoScanQuota,
   getLocalMockStore,
   promptCapForPlan,
   resolveAuthenticatedProfile,
@@ -36,6 +38,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const auth = await resolveAuthenticatedProfile(request);
+    if (!auth) {
+      const demoQuota = checkAndConsumeDemoScanQuota(request, 6);
+      if (!demoQuota.allowed) {
+        return NextResponse.json(
+          {
+            error: 'DEMO_SCAN_LIMIT_REACHED',
+            message:
+              'Hourly guest workspace scan limit reached (6/hr). Activate a permanent domain audit + all 1-click fixes for $19 (credited toward any monthly plan within 7 days) or sign in.',
+          },
+          { status: 429 }
+        );
+      }
+    }
     const store = getLocalMockStore();
     const activeProfile = auth ? auth.profile : store.profile;
     const maxPrompts = promptCapForPlan(activeProfile.plan_tier);
@@ -68,6 +83,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       }
     } else {
       domain = store.domains.find((d) => d.id === domainId);
+      if (store.prompts.length >= maxPrompts) {
+        const removableIdx = store.prompts.findIndex(
+          (p) => !PROTECTED_PATIENT_ZERO_IDS.has(p.domain_id)
+        );
+        if (removableIdx !== -1) {
+          store.prompts.splice(removableIdx, 1);
+        }
+      }
       totalUserPrompts = store.prompts.length;
     }
 

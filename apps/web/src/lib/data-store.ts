@@ -1,6 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
+  AUREA_DOMAIN_ID,
   DEMO_PROFILE,
+  MOSAIC_DOMAIN_ID,
   PATIENT_ZERO_ATTRIBUTION,
   PATIENT_ZERO_DOMAINS,
   PATIENT_ZERO_FIXES,
@@ -44,9 +46,18 @@ const globalForVerisource = globalThis as unknown as {
     string,
     { hourBucket: string; count: number }
   >;
+  __verisourceDemoScanIpMap?: Map<
+    string,
+    { hourBucket: string; count: number }
+  >;
   __verisourceAuditViewDedupMap?: Map<string, number>;
   __verisourceProcessedStripeEvents?: Set<string>;
 };
+
+export const PROTECTED_PATIENT_ZERO_IDS = new Set<string>([
+  AUREA_DOMAIN_ID,
+  MOSAIC_DOMAIN_ID,
+]);
 
 export function getAuditViewDedupMap(): Map<string, number> {
   if (!globalForVerisource.__verisourceAuditViewDedupMap) {
@@ -181,6 +192,39 @@ export function getVerifyFixesIpMap(): Map<
     globalForVerisource.__verisourceVerifyFixesIpMap = new Map();
   }
   return globalForVerisource.__verisourceVerifyFixesIpMap;
+}
+
+export function getDemoScanIpMap(): Map<
+  string,
+  { hourBucket: string; count: number }
+> {
+  if (!globalForVerisource.__verisourceDemoScanIpMap) {
+    globalForVerisource.__verisourceDemoScanIpMap = new Map();
+  }
+  const map = globalForVerisource.__verisourceDemoScanIpMap;
+  if (map.size > 2000) {
+    map.clear();
+  }
+  return map;
+}
+
+export function checkAndConsumeDemoScanQuota(
+  request: Request,
+  limitPerHour = 6
+): { allowed: boolean; used: number; limit: number } {
+  const ip =
+    request.headers.get('cf-connecting-ip') ??
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    '127.0.0.1';
+  const hourBucket = new Date().toISOString().slice(0, 13);
+  const ipMap = getDemoScanIpMap();
+  const entry = ipMap.get(ip);
+  const used = entry && entry.hourBucket === hourBucket ? entry.count : 0;
+  if (used >= limitPerHour) {
+    return { allowed: false, used, limit: limitPerHour };
+  }
+  ipMap.set(ip, { hourBucket, count: used + 1 });
+  return { allowed: true, used: used + 1, limit: limitPerHour };
 }
 
 export function getServiceSupabaseClient(): SupabaseClient<Database> | null {
@@ -476,6 +520,23 @@ export async function provisionDomainAuditForWorkspace(input: {
   const effectiveCap = input.bypassPlanCapForPaidPass
     ? Math.max(maxDomains, 25)
     : maxDomains;
+
+  // In unauthenticated in-memory demo mode, rotate out the oldest visitor-added domain before hitting the cap
+  if (!input.supabase && existingDomains.length >= effectiveCap) {
+    const removable = store.domains.find(
+      (d) => !PROTECTED_PATIENT_ZERO_IDS.has(d.id)
+    );
+    if (removable) {
+      store.domains = store.domains.filter((d) => d.id !== removable.id);
+      store.prompts = store.prompts.filter((p) => p.domain_id !== removable.id);
+      store.snapshots = store.snapshots.filter(
+        (s) => s.domain_id !== removable.id
+      );
+      store.fixes = store.fixes.filter((f) => f.domain_id !== removable.id);
+      existingDomains = store.domains;
+    }
+  }
+
   if (existingDomains.length >= effectiveCap) {
     return {
       domain: null,
