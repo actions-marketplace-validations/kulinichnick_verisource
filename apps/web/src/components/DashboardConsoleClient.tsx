@@ -1995,7 +1995,21 @@ export function DashboardConsoleClient(props: {
                             </div>
                           </td>
                           <td className="vs-mono">{r.visibility_score}/100</td>
-                          <td className="vs-mono">{r.views_count}</td>
+                          <td>
+                            {r.views_count >= 3 ? (
+                              <StatusBadge tone="pass">
+                                HOT · {r.views_count} VIEWS
+                              </StatusBadge>
+                            ) : r.views_count >= 1 ? (
+                              <StatusBadge tone="pass">
+                                OPENED · {r.views_count}x
+                              </StatusBadge>
+                            ) : (
+                              <StatusBadge>
+                                {isGuided ? 'UNOPENED' : 'SENT · 0'}
+                              </StatusBadge>
+                            )}
+                          </td>
                           <td>
                             <Link
                               href={`/audit/${r.share_slug}`}

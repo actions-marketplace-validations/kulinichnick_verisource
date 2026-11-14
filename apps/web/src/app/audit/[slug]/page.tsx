@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React from 'react';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
+import { AuditViewTracker } from '../../../components/AuditViewTracker';
 import { PrintAuditBriefButton } from '../../../components/PrintAuditBriefButton';
 import { fetchPublicPitchBySlug } from '../../../lib/data-store';
 
@@ -111,16 +112,11 @@ export default async function AgencyPitchReportPage({
           <h1 style={{ margin: 0, fontSize: '25px', letterSpacing: '-0.025em' }}>
             AI Search &amp; Hallucination Audit: {report.prospect_brand_name}
           </h1>
-          <div
-            className="vs-mono"
-            style={{
-              fontSize: '12.5px',
-              color: 'var(--vs-ink-muted)',
-              marginTop: '5px',
-            }}
-          >
-            Website: {report.prospect_domain} · Views: {report.views_count}
-          </div>
+          <AuditViewTracker
+            slug={slug}
+            domain={report.prospect_domain}
+            initialViews={report.views_count}
+          />
         </div>
 
         <div

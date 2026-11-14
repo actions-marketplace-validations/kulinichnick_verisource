@@ -37,8 +37,24 @@ const globalForVerisource = globalThis as unknown as {
   __verisourceGraderIpMap?: Map<string, { day: string; count: number }>;
   __verisourcePitchIpMap?: Map<string, { hourBucket: string; count: number }>;
   __verisourceAlertIpMap?: Map<string, { hourBucket: string; count: number }>;
+  __verisourceAuditViewDedupMap?: Map<string, number>;
   __verisourceProcessedStripeEvents?: Set<string>;
 };
+
+export function getAuditViewDedupMap(): Map<string, number> {
+  if (!globalForVerisource.__verisourceAuditViewDedupMap) {
+    globalForVerisource.__verisourceAuditViewDedupMap = new Map();
+  }
+  const map = globalForVerisource.__verisourceAuditViewDedupMap;
+  if (map.size > 2000) {
+    const now = Date.now();
+    for (const [k, exp] of map.entries()) {
+      if (exp <= now) map.delete(k);
+    }
+    if (map.size > 2000) map.clear();
+  }
+  return map;
+}
 
 export function getProcessedStripeEventsSet(): Set<string> {
   if (!globalForVerisource.__verisourceProcessedStripeEvents) {
@@ -274,11 +290,86 @@ export async function fetchPublicPitchBySlug(
 ): Promise<PublicPitchReportResult | null> {
   const supabase = getServiceSupabaseClient();
   if (supabase) {
+    const { data, error } = await supabase
+      .from('agency_pitch_reports')
+      .select('*')
+      .eq('share_slug', slug)
+      .maybeSingle();
+    if (!error && data) {
+      if (data.expires_at && new Date(data.expires_at).getTime() <= Date.now()) {
+        return null;
+      }
+      return {
+        share_slug: data.share_slug,
+        prospect_domain: data.prospect_domain,
+        prospect_brand_name: data.prospect_brand_name,
+        visibility_score: data.visibility_score,
+        hallucination_count: data.hallucination_count,
+        agency_brand_name: data.agency_brand_name_snapshot,
+        agency_logo_url: data.agency_logo_url_snapshot,
+        agency_primary_color: data.agency_primary_color_snapshot,
+        agency_cta_url: data.agency_cta_url_snapshot,
+        summary_payload: data.summary_payload,
+        views_count: data.views_count,
+        expires_at: data.expires_at,
+        created_at: data.created_at,
+      };
+    }
+  }
+
+  const store = getLocalMockStore();
+  const report = store.pitchReports.find((r) => r.share_slug === slug);
+  if (!report) return null;
+  if (
+    report.expires_at &&
+    new Date(report.expires_at).getTime() <= Date.now()
+  ) {
+    return null;
+  }
+
+  return {
+    share_slug: report.share_slug,
+    prospect_domain: report.prospect_domain,
+    prospect_brand_name: report.prospect_brand_name,
+    visibility_score: report.visibility_score,
+    hallucination_count: report.hallucination_count,
+    agency_brand_name: report.agency_brand_name_snapshot,
+    agency_logo_url: report.agency_logo_url_snapshot,
+    agency_primary_color: report.agency_primary_color_snapshot,
+    agency_cta_url: report.agency_cta_url_snapshot,
+    summary_payload: report.summary_payload,
+    views_count: report.views_count,
+    expires_at: report.expires_at,
+    created_at: report.created_at,
+  };
+}
+
+export async function recordVerifiedPitchOpen(slug: string): Promise<{
+  report: PublicPitchReportResult;
+  ownerEmail: string | null;
+} | null> {
+  const supabase = getServiceSupabaseClient();
+  if (supabase) {
     const { data, error } = await supabase.rpc('get_public_pitch_report', {
       p_share_slug: slug,
     });
     if (!error && Array.isArray(data) && data[0]) {
-      return data[0];
+      const updated = data[0];
+      let ownerEmail: string | null = null;
+      const { data: rowMeta } = await supabase
+        .from('agency_pitch_reports')
+        .select('agency_user_id')
+        .eq('share_slug', slug)
+        .maybeSingle();
+      if (rowMeta?.agency_user_id) {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', rowMeta.agency_user_id)
+          .maybeSingle();
+        if (prof?.email) ownerEmail = prof.email;
+      }
+      return { report: updated, ownerEmail };
     }
   }
 
@@ -294,18 +385,21 @@ export async function fetchPublicPitchBySlug(
 
   report.views_count += 1;
   return {
-    share_slug: report.share_slug,
-    prospect_domain: report.prospect_domain,
-    prospect_brand_name: report.prospect_brand_name,
-    visibility_score: report.visibility_score,
-    hallucination_count: report.hallucination_count,
-    agency_brand_name: report.agency_brand_name_snapshot,
-    agency_logo_url: report.agency_logo_url_snapshot,
-    agency_primary_color: report.agency_primary_color_snapshot,
-    agency_cta_url: report.agency_cta_url_snapshot,
-    summary_payload: report.summary_payload,
-    views_count: report.views_count,
-    expires_at: report.expires_at,
-    created_at: report.created_at,
+    report: {
+      share_slug: report.share_slug,
+      prospect_domain: report.prospect_domain,
+      prospect_brand_name: report.prospect_brand_name,
+      visibility_score: report.visibility_score,
+      hallucination_count: report.hallucination_count,
+      agency_brand_name: report.agency_brand_name_snapshot,
+      agency_logo_url: report.agency_logo_url_snapshot,
+      agency_primary_color: report.agency_primary_color_snapshot,
+      agency_cta_url: report.agency_cta_url_snapshot,
+      summary_payload: report.summary_payload,
+      views_count: report.views_count,
+      expires_at: report.expires_at,
+      created_at: report.created_at,
+    },
+    ownerEmail: store.profile.email,
   };
 }

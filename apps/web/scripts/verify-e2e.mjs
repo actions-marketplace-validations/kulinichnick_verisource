@@ -646,7 +646,68 @@ async function run() {
       0,
       'Found banned lexicon on /sample-audit'
     );
-    console.log('✔ [21/21] M23 /sample-audit gallery, pure white-label chrome isolation, PDF brief button & $19 outbound CTA verified');
+    console.log('✔ [21/22] M23 /sample-audit gallery, pure white-label chrome isolation, PDF brief button & $19 outbound CTA verified');
+
+    // 20. M24 Bot-Filtered Prospect Open Telemetry (/api/audit-view) & 30m Dedup + Resend Alert Preview
+    const testSlug = batchPitchJson.reports[0].share_slug;
+
+    const spoofedViewRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://evil-spoofer.com',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({ slug: testSlug }),
+    });
+    assert.equal(spoofedViewRes.status, 403);
+
+    const slackBotViewRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'User-Agent': 'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+      },
+      body: JSON.stringify({ slug: testSlug }),
+    });
+    assert.equal(slackBotViewRes.status, 200);
+    const slackBotJson = await slackBotViewRes.json();
+    assert.equal(slackBotJson.counted, false);
+    assert.equal(slackBotJson.reason, 'bot_filtered');
+
+    const humanViewRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({ slug: testSlug }),
+    });
+    assert.equal(humanViewRes.status, 200);
+    const humanViewJson = await humanViewRes.json();
+    assert.equal(humanViewJson.counted, true);
+    assert.equal(humanViewJson.views_count, 1);
+    assert.equal(humanViewJson.alert_mode, 'preview_dry_run');
+
+    const dedupViewRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({ slug: testSlug }),
+    });
+    assert.equal(dedupViewRes.status, 200);
+    const dedupViewJson = await dedupViewRes.json();
+    assert.equal(dedupViewJson.counted, false);
+    assert.equal(dedupViewJson.reason, 'deduplicated_window');
+    console.log('✔ [22/22] M24 /api/audit-view blocked Origin spoofs (403), filtered Slackbot unfurls, counted human open (1x) + >=9.5/10 alert, and deduplicated refreshes');
   } finally {
     server.kill();
   }

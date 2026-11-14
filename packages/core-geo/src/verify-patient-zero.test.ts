@@ -13,10 +13,12 @@ import {
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildMcpDiscoveryManifest,
+  buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
   classifyAgentsMdContent,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
+  dispatchProspectOpenEmail,
   enforceQualityGate95,
   extractAlternateMarkdownHref,
   extractColdOutreachParts,
@@ -24,6 +26,7 @@ import {
   extractVerifiableTruthFromAlternateBody,
   generateMcpApiKey,
   gradeArtifactQuality,
+  isAutomatedPreviewBot,
   normalizePublicDomain,
   parseBatchProspectDomains,
   parseRobotsAiBotRules,
@@ -480,4 +483,58 @@ test('Live grounding citation rival extractor & non-fixture cold outreach avoid 
   });
   assert.ok(!note.content.includes('Category Peer #'));
   assert.ok(note.score >= 9.5);
+});
+
+test('Prospect open alert builder, dry-run dispatcher & unfurl bot filter pass >= 9.5/10 Critic', async () => {
+  for (const botUa of [
+    'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+    'LinkedInBot/1.0 (compatible; Mozilla/5.0)',
+    'Twitterbot/1.0',
+    'Discordbot/2.0',
+    'GPTBot/1.0',
+    'curl/8.5.0',
+    '',
+  ]) {
+    assert.equal(
+      isAutomatedPreviewBot(botUa),
+      true,
+      `Expected ${botUa || '<empty>'} to be filtered as bot`
+    );
+  }
+
+  assert.equal(
+    isAutomatedPreviewBot(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+    ),
+    false
+  );
+
+  const openAlert = buildProspectOpenAlert({
+    prospectBrandName: 'Onyx Coffee Lab',
+    prospectDomain: 'https://onyxcoffeelab.com',
+    shareSlug: 'onyxcoffeelab-com-8m6s',
+    visibilityScore: 55,
+    hallucinationCount: 0,
+    viewsCount: 1,
+    topGap:
+      'Storefront serves generic Shopify boilerplate /agents.md without verified brand pricing or shipping exclusions.',
+  });
+  assert.ok(openAlert.subject.includes('[Hot Lead] Onyx Coffee Lab'));
+  assert.ok(
+    openAlert.quality.score >= 9.5,
+    `Expected open alert score >= 9.5, got ${openAlert.quality.score}`
+  );
+
+  const dryDispatch = await dispatchProspectOpenEmail({
+    recipientEmail: 'agency@verisource.dev',
+    prospectBrandName: 'Onyx Coffee Lab',
+    prospectDomain: 'https://onyxcoffeelab.com',
+    shareSlug: 'onyxcoffeelab-com-8m6s',
+    visibilityScore: 55,
+    hallucinationCount: 0,
+    viewsCount: 3,
+  });
+  assert.equal(dryDispatch.mode, 'preview_dry_run');
+  assert.ok(dryDispatch.subject.includes('[Repeat Visit · 3x]'));
+  assert.ok(dryDispatch.qualityScore >= 9.5);
 });
