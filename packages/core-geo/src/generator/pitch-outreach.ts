@@ -10,6 +10,12 @@ import type {
 } from '../db/types.js';
 import { normalizePublicDomain } from '../scanner/bot-waf-prober.js';
 
+export interface ColdOutreachSequence {
+  day0: EnforcedQualityArtifact;
+  day3: EnforcedQualityArtifact;
+  day7: EnforcedQualityArtifact;
+}
+
 export interface ExtractedColdOutreachItem {
   prospectBrandName: string;
   prospectDomain: string;
@@ -20,6 +26,10 @@ export interface ExtractedColdOutreachItem {
   shareUrl: string;
   subject: string;
   body: string;
+  followUpDay3Body: string;
+  followUpDay3Score: number;
+  followUpDay7Body: string;
+  followUpDay7Score: number;
   fullNote: string;
   qualityScore: number;
   qualityBreakdown: QualityRubricBreakdown;
@@ -58,22 +68,31 @@ export function parseBatchProspectDomains(
   return normalizedHostnames;
 }
 
+function stripSubjectHeader(content: string): { subject: string | null; body: string } {
+  const lines = content.split(/\r?\n/);
+  if (lines[0]?.toLowerCase().startsWith('subject:')) {
+    return {
+      subject: lines[0].slice('subject:'.length).trim(),
+      body: lines.slice(1).join('\n').trim(),
+    };
+  }
+  return { subject: null, body: content.trim() };
+}
+
 export function extractColdOutreachParts(
   report: AgencyPitchReportRow,
   baseUrl = 'https://verisource.dev'
 ): ExtractedColdOutreachItem {
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const shareUrl = `${cleanBase}/audit/${report.share_slug}`;
-  const enforced = buildAgencyColdOutreachNote(report, cleanBase);
-  const lines = enforced.content.split(/\r?\n/);
-  let subject = `${report.prospect_brand_name} — AI search claim audit (${report.visibility_score}/100 visibility)`;
-  let bodyStartIdx = 0;
+  const seq = buildAgencyColdOutreachSequence(report, cleanBase);
+  const parsedDay0 = stripSubjectHeader(seq.day0.content);
+  const parsedDay3 = stripSubjectHeader(seq.day3.content);
+  const parsedDay7 = stripSubjectHeader(seq.day7.content);
 
-  if (lines[0]?.toLowerCase().startsWith('subject:')) {
-    subject = lines[0].slice('subject:'.length).trim();
-    bodyStartIdx = 1;
-  }
-  const body = lines.slice(bodyStartIdx).join('\n').trim();
+  const subject =
+    parsedDay0.subject ??
+    `${report.prospect_brand_name} — AI search claim audit (${report.visibility_score}/100 visibility)`;
 
   return {
     prospectBrandName: report.prospect_brand_name,
@@ -84,10 +103,14 @@ export function extractColdOutreachParts(
     shareSlug: report.share_slug,
     shareUrl,
     subject,
-    body,
-    fullNote: enforced.content,
-    qualityScore: enforced.score,
-    qualityBreakdown: enforced.breakdown,
+    body: parsedDay0.body,
+    followUpDay3Body: parsedDay3.body,
+    followUpDay3Score: seq.day3.score,
+    followUpDay7Body: parsedDay7.body,
+    followUpDay7Score: seq.day7.score,
+    fullNote: seq.day0.content,
+    qualityScore: seq.day0.score,
+    qualityBreakdown: seq.day0.breakdown,
   };
 }
 
@@ -111,6 +134,8 @@ export function buildBatchOutreachCsv(
     'email_subject',
     'email_body',
     'quality_gate_score',
+    'followup_day3_body',
+    'followup_day7_body',
   ].join(',');
 
   const rows = reports.map((report) => {
@@ -125,6 +150,8 @@ export function buildBatchOutreachCsv(
       sanitizeCsvCell(item.subject),
       sanitizeCsvCell(item.body),
       sanitizeCsvCell(item.qualityScore.toFixed(1)),
+      sanitizeCsvCell(item.followUpDay3Body),
+      sanitizeCsvCell(item.followUpDay7Body),
     ].join(',');
   });
 
@@ -150,18 +177,29 @@ export function buildBatchOutreachMarkdown(
       `- **Flagged Claim Conflicts:** \`${item.hallucinationCount}\``,
       `- **Rivals Capturing Citations:** ${rivals}`,
       `- **White-Label Audit Link:** ${item.shareUrl}`,
-      `- **Critic Quality Score:** \`${item.qualityScore.toFixed(1)} / 10.0\``,
+      `- **Critic Quality Scores:** \`${item.qualityScore.toFixed(1)} / ${item.followUpDay3Score.toFixed(1)} / ${item.followUpDay7Score.toFixed(1)}\``,
       '',
+      '### Touch 1 — Day 0 (Diagnostic Scorecard)',
       '```text',
       item.fullNote,
+      '```',
+      '',
+      '### Touch 2 — Day 3 (Same-Thread Technical Gap Bump)',
+      '```text',
+      item.followUpDay3Body,
+      '```',
+      '',
+      '### Touch 3 — Day 7 (Same-Thread Direct Fix Close)',
+      '```text',
+      item.followUpDay7Body,
       '```',
     ].join('\n');
   });
 
   const draft = [
-    `# Agency White-Label Outreach Playbook (${items.length} ${items.length === 1 ? 'Prospect' : 'Prospects'})`,
+    `# Agency White-Label 3-Touch Outreach Playbook (${items.length} ${items.length === 1 ? 'Prospect' : 'Prospects'})`,
     '',
-    'Ready-to-send founder briefs verified across ChatGPT, Google Gemini, and Perplexity.',
+    'Ready-to-send 3-step sequences (`Day 0` -> `Day 3` -> `Day 7`) verified across ChatGPT, Google Gemini, and Perplexity.',
     'Every prospect audit checks live `GPTBot`, `OAI-SearchBot`, `PerplexityBot`, and `ClaudeBot` access plus `schema.org` `JSON-LD`, `/llms.txt`, and `/agents.md` coverage.',
     '',
     '---',
@@ -235,6 +273,65 @@ export function buildAgencyColdOutreachNote(
   ].join('\n');
 
   return enforceQualityGate95(draft, 'citation_outreach_brief');
+}
+
+export function buildAgencyColdOutreachSequence(
+  report: AgencyPitchReportRow,
+  baseUrl = 'https://verisource.dev'
+): ColdOutreachSequence {
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const shareUrl = `${cleanBase}/audit/${report.share_slug}`;
+  const agencyName =
+    report.agency_brand_name_snapshot?.trim() || 'Partner GEO Advisory';
+  const hostname = report.prospect_domain
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/+$/, '');
+  const competitors = report.summary_payload.competitors_winning ?? [];
+  const topGaps = report.summary_payload.top_gaps ?? [];
+  const baseSubject = `${report.prospect_brand_name} — AI search claim audit (${report.visibility_score}/100 visibility)`;
+
+  const day0 = buildAgencyColdOutreachNote(report, cleanBase);
+
+  const rivalList =
+    competitors.slice(0, 2).join(' and ') || 'competing category directories';
+  const gapClause = formatGapClause(topGaps[0]);
+
+  const day3Raw = [
+    `Subject: Re: ${baseSubject}`,
+    '',
+    `Quick technical note on ${hostname}.`,
+    `When GPTBot, OAI-SearchBot, and PerplexityBot evaluate commercial buyer queries, ${rivalList} currently outrank your pages ${gapClause}.`,
+    `Publishing a root /llms.txt, custom /agents.md, and schema.org JSON-LD entity graph closes that retrieval gap without altering your visible design: ${shareUrl}`,
+    '',
+    `— ${agencyName}`,
+  ].join('\n');
+
+  const isVerisourceDirect = agencyName.toLowerCase().includes('verisource');
+  const closeTargetUrl = isVerisourceDirect
+    ? `${cleanBase}/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
+        hostname
+      )}&slug=${encodeURIComponent(report.share_slug)}`
+    : report.agency_cta_url_snapshot?.trim() || shareUrl;
+
+  const day7ClosingLine = isVerisourceDirect
+    ? `If your developer wants the self-serve Fix Bundle (schema.org JSON-LD, /llms.txt, and /agents.md for ${hostname}), you can grab the one-time $19 pass directly here: ${closeTargetUrl}`
+    : `If your team wants the validated schema.org JSON-LD, /llms.txt, and /agents.md files for ${hostname} without a call, grab a 10-minute handoff slot or reply here: ${closeTargetUrl}`;
+
+  const day7Raw = [
+    `Subject: Re: ${baseSubject}`,
+    '',
+    `Last note on this thread.`,
+    `Your live ${report.visibility_score}/100 scorecard for ${hostname} stays active for 30 days (${shareUrl}).`,
+    day7ClosingLine,
+    '',
+    `— ${agencyName}`,
+  ].join('\n');
+
+  return {
+    day0,
+    day3: enforceQualityGate95(day3Raw, 'citation_outreach_brief'),
+    day7: enforceQualityGate95(day7Raw, 'citation_outreach_brief'),
+  };
 }
 
 export function buildImplementationBundleMarkdown(params: {

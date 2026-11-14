@@ -11,6 +11,7 @@ import {
   StatusBadge,
 } from '@verisource/ui';
 import { AgencyPipelineSchematic } from '../../components/AgencyPipelineSchematic';
+import { AgencyRoiCalculator } from '../../components/AgencyRoiCalculator';
 
 export const metadata: Metadata = {
   title: 'White-Label GEO & AI Search Audits for Agencies | Verisource',
@@ -192,6 +193,8 @@ export default function AgenciesPartnerPage(): React.ReactElement {
               sublabel="1 credit cached · 10 credits live scan"
             />
           </div>
+
+          <AgencyRoiCalculator />
         </section>
 
         {/* 4-Step Operational Workflow */}

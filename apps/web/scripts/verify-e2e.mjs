@@ -888,7 +888,32 @@ async function run() {
       0,
       'Found banned lexicon on /agencies'
     );
-    console.log('✔ [25/25] M27 /agencies partner page, animated SVG retainer schematic, sitemap entry, and 0-slop gate verified');
+    console.log('✔ [25/26] M27 /agencies partner page, animated SVG retainer schematic, sitemap entry, and 0-slop gate verified');
+
+    // 24. M28 Interactive Agency ROI Calculator & Tab 3 3-Touch Sequence Switcher
+    assert.ok(
+      agenciesHtml.includes('INTERACTIVE RETAINER MARGIN MODEL'),
+      'Expected AgencyRoiCalculator on /agencies'
+    );
+    assert.ok(agenciesHtml.includes('$7,251'));
+    assert.ok(agenciesHtml.includes('96.7%'));
+
+    const m28Tab3Res = await fetch(`${BASE}/dashboard?tab=tab3_offsite`);
+    assert.equal(m28Tab3Res.status, 200);
+    const m28Tab3Html = await m28Tab3Res.text();
+    assert.ok(m28Tab3Html.includes('Touch 1 · Day 0'));
+    assert.ok(m28Tab3Html.includes('Touch 2 · Day 3'));
+    assert.ok(m28Tab3Html.includes('Touch 3 · Day 7'));
+    const m28Tab3Visible = m28Tab3Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (m28Tab3Visible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /dashboard?tab=tab3_offsite'
+    );
+    console.log('✔ [26/26] M28 Interactive Agency ROI Calculator & Tab 3 3-Touch Sequence Switcher verified (0 banned words)');
   } finally {
     server.kill();
   }

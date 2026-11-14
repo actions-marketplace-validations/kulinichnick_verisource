@@ -8,8 +8,10 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
   buildAgencyColdOutreachNote,
+  buildAgencyColdOutreachSequence,
   buildAgencyPartnerBatchCsv,
   buildAgencyPartnerOutreachNote,
+  buildAgencyPartnerOutreachSequence,
   buildAgencyPartnerPlaybookMarkdown,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
@@ -424,7 +426,7 @@ test('Batch prospect parser, SSRF guard, CSV formula-injection defense & Outreac
   const csv = buildBatchOutreachCsv([PATIENT_ZERO_PITCH_REPORT, secondReport]);
   assert.ok(
     csv.startsWith(
-      'prospect_brand_name,prospect_domain,visibility_score,hallucination_count,competitors_winning,audit_share_url,email_subject,email_body,quality_gate_score\n'
+      'prospect_brand_name,prospect_domain,visibility_score,hallucination_count,competitors_winning,audit_share_url,email_subject,email_body,quality_gate_score,followup_day3_body,followup_day7_body\n'
     )
   );
   assert.ok(csv.includes('mosaic-springfield-audit'));
@@ -642,4 +644,50 @@ test('Agency Partner ($249/mo) outreach note, CSV & Playbook pass >= 9.5/10 Crit
     'agents_md'
   );
   assert.ok(partnerMarkdownAudit.score >= 9.5);
+});
+
+test('3-Touch Cold Outreach Sequence Engine (Day 0 / Day 3 / Day 7) passes >= 9.5/10 Critic for Brand & Agency cohorts', () => {
+  const brandSeq = buildAgencyColdOutreachSequence({
+    ...PATIENT_ZERO_PITCH_REPORT,
+    agency_brand_name_snapshot: 'Verisource GEO Advisory',
+    prospect_brand_name: 'Onyx Coffee Lab',
+    prospect_domain: 'https://onyxcoffeelab.com',
+    share_slug: 'onyxcoffeelab-com-8m6s',
+    visibility_score: 55,
+  });
+
+  assert.ok(brandSeq.day0.score >= 9.5);
+  assert.ok(brandSeq.day3.score >= 9.5);
+  assert.ok(brandSeq.day7.score >= 9.5);
+  assert.ok(brandSeq.day3.content.includes('Subject: Re:'));
+  assert.ok(
+    brandSeq.day7.content.includes(
+      '/api/checkout?plan=tripwire_19&cycle=one_time&domain=onyxcoffeelab.com'
+    )
+  );
+
+  const whiteLabelSeq = buildAgencyColdOutreachSequence({
+    ...PATIENT_ZERO_PITCH_REPORT,
+    agency_brand_name_snapshot: 'Northstar Search Studio',
+    agency_cta_url_snapshot: 'https://cal.com/northstar/ai-audit',
+  });
+  assert.ok(whiteLabelSeq.day7.score >= 9.5);
+  assert.ok(
+    whiteLabelSeq.day7.content.includes('https://cal.com/northstar/ai-audit')
+  );
+
+  const brandCsv = buildBatchOutreachCsv([PATIENT_ZERO_PITCH_REPORT]);
+  assert.ok(brandCsv.includes('followup_day3_body,followup_day7_body'));
+
+  const partnerSeq = buildAgencyPartnerOutreachSequence({
+    ...PATIENT_ZERO_PITCH_REPORT,
+    prospect_brand_name: 'Siege Media',
+    prospect_domain: 'https://siegemedia.com',
+    share_slug: 'siegemedia-com-80yf',
+    visibility_score: 46,
+  });
+  assert.ok(partnerSeq.day0.score >= 9.5);
+  assert.ok(partnerSeq.day3.score >= 9.5);
+  assert.ok(partnerSeq.day7.score >= 9.5);
+  assert.ok(partnerSeq.day7.content.includes('/dashboard?tab=tab3_offsite'));
 });

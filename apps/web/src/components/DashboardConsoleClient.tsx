@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
   buildAgencyColdOutreachNote,
+  buildAgencyColdOutreachSequence,
   buildAiAttributionSnippet,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
@@ -840,9 +841,25 @@ export function DashboardConsoleClient(props: {
     data.pitchReports.find((r) => r.share_slug === selectedPitchSlug) ??
     data.pitchReports[0];
 
-  const pitchOutreachArtifact = selectedPitchReport
-    ? buildAgencyColdOutreachNote(selectedPitchReport, 'https://verisource.dev')
+  const [selectedOutreachTouch, setSelectedOutreachTouch] = useState<
+    'day0' | 'day3' | 'day7'
+  >('day0');
+
+  const pitchOutreachSequence = selectedPitchReport
+    ? buildAgencyColdOutreachSequence(
+        selectedPitchReport,
+        'https://verisource.dev'
+      )
     : null;
+
+  const pitchOutreachArtifact = pitchOutreachSequence
+    ? pitchOutreachSequence[selectedOutreachTouch]
+    : selectedPitchReport
+      ? buildAgencyColdOutreachNote(
+          selectedPitchReport,
+          'https://verisource.dev'
+        )
+      : null;
 
   const pixelSnippet = activeDomain
     ? buildAiAttributionSnippet({
@@ -2087,18 +2104,92 @@ export function DashboardConsoleClient(props: {
             </div>
 
             {selectedPitchReport && pitchOutreachArtifact ? (
-              <CodeArtifactCard
-                title={`4-Sentence Founder Cold Outreach Note (${selectedPitchReport.prospect_brand_name})`}
-                plainSummary={
-                  isGuided
-                    ? 'Ready-to-send email or LinkedIn message introducing this client report.'
-                    : undefined
-                }
-                fileHint={`Target: https://verisource.dev/audit/${selectedPitchReport.share_slug} · Copy into Gmail, Superhuman, or LinkedIn DM`}
-                code={pitchOutreachArtifact.content}
-                qualityScore={pitchOutreachArtifact.score}
-                qualityBreakdown={pitchOutreachArtifact.breakdown}
-              />
+              <div style={{ marginBottom: '22px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <span
+                    className="vs-eyebrow"
+                    style={{ color: 'var(--vs-ink-secondary)' }}
+                  >
+                    {isGuided
+                      ? '3-STEP EMAIL FOLLOW-UP SEQUENCE'
+                      : 'CRITIC-VERIFIED 3-TOUCH SEQUENCE (INSTANTLY / SMARTLEAD / GMAIL)'}
+                  </span>
+                  <div
+                    role="group"
+                    aria-label="Cold outreach sequence touch"
+                    style={{
+                      display: 'inline-flex',
+                      border: '1px solid var(--vs-border)',
+                      borderRadius: '6px',
+                      padding: '2px',
+                      background: 'var(--vs-surface)',
+                    }}
+                  >
+                    {(
+                      [
+                        { id: 'day0', label: 'Touch 1 · Day 0' },
+                        { id: 'day3', label: 'Touch 2 · Day 3' },
+                        { id: 'day7', label: 'Touch 3 · Day 7' },
+                      ] as const
+                    ).map((step) => {
+                      const active = selectedOutreachTouch === step.id;
+                      return (
+                        <button
+                          key={step.id}
+                          type="button"
+                          onClick={() => setSelectedOutreachTouch(step.id)}
+                          style={{
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            background: active ? 'var(--vs-ink)' : 'transparent',
+                            color: active
+                              ? '#FFFFFF'
+                              : 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {step.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <CodeArtifactCard
+                  title={
+                    selectedOutreachTouch === 'day0'
+                      ? `Touch 1 (Day 0) — Diagnostic Scorecard (${selectedPitchReport.prospect_brand_name})`
+                      : selectedOutreachTouch === 'day3'
+                        ? `Touch 2 (Day 3) — Technical Gap Reply (${selectedPitchReport.prospect_brand_name})`
+                        : `Touch 3 (Day 7) — Direct Fix Handoff (${selectedPitchReport.prospect_brand_name})`
+                  }
+                  plainSummary={
+                    isGuided
+                      ? selectedOutreachTouch === 'day0'
+                        ? 'First message introducing the client audit link.'
+                        : selectedOutreachTouch === 'day3'
+                          ? 'Polite Day 3 thread reply highlighting why competitors rank higher in AI.'
+                          : 'Calm Day 7 final follow-up offering the finished website fixes.'
+                      : undefined
+                  }
+                  fileHint={`Target: https://verisource.dev/audit/${selectedPitchReport.share_slug} · Export CSV above for all 3 touches`}
+                  code={pitchOutreachArtifact.content}
+                  qualityScore={pitchOutreachArtifact.score}
+                  qualityBreakdown={pitchOutreachArtifact.breakdown}
+                />
+              </div>
             ) : null}
 
             {/* Paid MCP Server Connection Hub: Calm optional handoff in Guided Mode, full developer hub in Pro Mode */}

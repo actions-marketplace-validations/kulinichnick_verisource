@@ -77,8 +77,37 @@ async function main() {
   const useLiveProviders = args.includes('--live');
   const persistToSupabase = args.includes('--persist');
   const replaceExisting = args.includes('--replace');
+  const fromSupabase = args.includes('--from-supabase');
 
   const domains = parseBatchProspectDomains(rawDomainsArg, 25);
+  let reports;
+
+  if (fromSupabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) {
+      throw new Error(
+        'Cannot --from-supabase without NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.'
+      );
+    }
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const targetOrigins = domains.map((h) => `https://${h}`);
+    const { data, error } = await supabase
+      .from('agency_pitch_reports')
+      .select('*')
+      .eq('agency_brand_name_snapshot', agencyName)
+      .in('prospect_domain', targetOrigins);
+    if (error) throw error;
+    const byOrigin = new Map((data ?? []).map((row) => [row.prospect_domain, row]));
+    reports = targetOrigins
+      .map((origin) => byOrigin.get(origin))
+      .filter(Boolean);
+    console.log(
+      `[Verisource Batch Prospecting] Loaded ${reports.length} existing live report(s) from Supabase (slugs preserved).`
+    );
+  } else {
   const rawEnv = {
     PROVIDER_MODE: useLiveProviders ? 'live' : 'mock',
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
@@ -127,8 +156,9 @@ async function main() {
       created_at: createdIso,
     };
   });
+  }
 
-  if (persistToSupabase) {
+  if (persistToSupabase && !fromSupabase) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!supabaseUrl || !serviceKey) {
