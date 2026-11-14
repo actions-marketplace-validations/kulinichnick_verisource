@@ -1013,6 +1013,8 @@ test('Natural buyer prompt extractor, rival brand vs. directory separator & live
       'https://g2.com/products/posthog/competitors/alternatives',
       'https://thedigitalprojectmanager.com/tools/posthog-alternatives/',
       'https://directree.io/software/analytics',
+      'https://toolifynav.com/tool/posthog',
+      'https://saaspic.com/posthog',
       'https://statsig.com/comparisons/posthog',
     ],
   });
@@ -1023,6 +1025,8 @@ test('Natural buyer prompt extractor, rival brand vs. directory separator & live
   assert.ok(!rivals.includes('g2.com'));
   assert.ok(!rivals.includes('thedigitalprojectmanager.com'));
   assert.ok(!rivals.includes('directree.io'));
+  assert.ok(!rivals.includes('toolifynav.com'));
+  assert.ok(!rivals.includes('saaspic.com'));
 
   // 3. Live on-site fix classifier accurately identifies deployed JSON-LD, /llms.txt, /agents.md & FAQPage
   const mockDomain = normalizePublicDomain('aurearoasters.com');

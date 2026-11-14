@@ -234,8 +234,8 @@ export function generateDefaultPromptsForDomain(
   if (vertical.industryVertical === 'shopify_commerce') {
     return [
       cleanTopic
-        ? `Best ${cleanTopic} brands online — ${brandName} reviews and pricing`
-        : `${brandName} online store reviews, pricing, and shipping policies`,
+        ? `Best ${cleanTopic} brands online — how does ${brandName} compare on pricing and quality?`
+        : `${brandName} vs top online alternatives — reviews, pricing, and shipping`,
       `${brandName} product quality, shipping rules, and top alternatives`,
       cleanTopic
         ? `Which online brands do shoppers recommend for ${cleanTopic}?`
@@ -246,8 +246,8 @@ export function generateDefaultPromptsForDomain(
   if (vertical.industryVertical === 'b2b_agency') {
     return [
       cleanTopic
-        ? `Top agencies for ${cleanTopic} — ${brandName} reviews and retainers`
-        : `${brandName} agency case studies, pricing, and client results`,
+        ? `Top agencies for ${cleanTopic} — how does ${brandName} compare to alternatives?`
+        : `${brandName} agency reviews, retainers, and top alternatives`,
       `${brandName} client reviews, retainer structure, and top agency alternatives`,
       cleanTopic
         ? `Which B2B agencies do growth teams recommend for ${cleanTopic}?`
@@ -255,10 +255,17 @@ export function generateDefaultPromptsForDomain(
     ];
   }
 
+  const topicHasCategoryNoun =
+    /\b(?:tools?|software|platforms?|apps?|launchers?|analytics|crm|ide|services?|systems?|providers?|solutions?)\b/i.test(
+      cleanTopic
+    );
+
   return [
     cleanTopic
-      ? `Best software and providers for ${cleanTopic} — ${brandName} pricing and reviews`
-      : `${brandName} pricing tiers, features, and verified buyer reviews`,
+      ? topicHasCategoryNoun
+        ? `Best ${cleanTopic} — how does ${brandName} compare to top alternatives?`
+        : `Best software for ${cleanTopic} — how does ${brandName} compare to top alternatives?`
+      : `${brandName} vs top alternatives — pricing, features, and buyer reviews`,
     `${brandName} reviews, pricing, and top alternatives`,
     cleanTopic
       ? `What do teams recommend for ${cleanTopic} alongside ${brandName}?`
@@ -346,7 +353,7 @@ const EDITORIAL_AND_DIRECTORY_HOSTS = new Set([
 ]);
 
 const DIRECTORY_HOST_PATTERN =
-  /(?:compare|comparison|directory|directree|review|reviews|report|reports|radar|guide|guides|top10|bestof|softwareworld|saasworthy|crozdesk|listicle|rankings?)\./i;
+  /(?:toolify|toolglance|toolpilot|toolfinder|devstools|saaspic|saashub|saasgenius|saasworthy|aitools?|topai|futurepedia|futuretools|theresanaiforthat|happyvalley|compare|comparison|directory|directree|review|reviews|report|reports|radar|guide|guides|top10|bestof|softwareworld|crozdesk|listicle|rankings?)/i;
 
 const EDITORIAL_PATH_PATTERN =
   /\/(?:blog|blogs|articles?|news|guides?|comparisons?|best-[a-z0-9-]+|top-\d+-[a-z0-9-]+)(?:\/|$)/i;
@@ -360,7 +367,10 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'free',
   'free plan',
   'free tier',
+  'pro',
   'pro plan',
+  'team',
+  'team plan',
   'starter',
   'enterprise',
   'overview',
@@ -378,6 +388,7 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'top alternatives',
   'top picks',
   'comparison',
+  'how it compares',
   'rating',
   'reviews',
   'shipping',
@@ -385,15 +396,38 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'support',
   'integrations',
   'security',
+  'tool',
+  'tools',
+  'product',
+  'platform',
+  'feature',
+  'category',
+  'plan',
+  'tier',
+  'vendor',
+  'brand',
+  'provider',
+  'metric',
+  'criteria',
+  'option',
+  'competitor',
+  'alternative',
+  'os',
+  'strengths',
+  'limitations',
+  'weaknesses',
+  'use case',
+  'target user',
   'note',
   'important',
 ]);
 
 function isDirectoryOrEditorialHost(host: string, rawUrl?: string): boolean {
+  const hostStem = host.split('.')[0] ?? host;
   if (
     IGNORED_CITATION_HOSTS.has(host) ||
     EDITORIAL_AND_DIRECTORY_HOSTS.has(host) ||
-    DIRECTORY_HOST_PATTERN.test(`${host}.`)
+    DIRECTORY_HOST_PATTERN.test(hostStem)
   ) {
     return true;
   }
@@ -425,21 +459,21 @@ export function extractNamedRivalsFromAnswerText(
   const rivals: string[] = [];
   const seenLower = new Set<string>();
 
-  // Match Markdown list-item leads: "- **Alfred**: ...", "1. **GrowthBook** — ...", "### 1. **Amplitude**"
-  const listLeadRegex =
-    /(?:^|\n)\s*(?:(?:#{2,4}\s*)?(?:\d+[.)]\s*|[-*•]\s+))\*\*([A-Z0-9][A-Za-z0-9.+&/-]*(?:\s+[A-Za-z0-9.+&/-]+){0,2})\*\*/g;
-
-  let match: RegExpExecArray | null;
-  while ((match = listLeadRegex.exec(answerText)) !== null) {
-    const candidate = (match[1] ?? '')
+  const maybeAddCandidate = (rawCandidate: string) => {
+    const candidate = rawCandidate
+      .replace(/^\d+[.)]\s*/, '')
       .replace(/\s*\([^)]*\)\s*$/, '')
+      .replace(/\[\d+\]/g, '')
       .replace(/[:—–-]+$/, '')
       .trim();
-    if (candidate.length < 2 || candidate.length > 28) continue;
+    if (candidate.length < 2 || candidate.length > 26) return;
+    if (/^(?:how|what|why|when|where|which|who|key|top|best|final|overall|quick|direct|main|core|pricing|summary)\b/i.test(candidate)) {
+      return;
+    }
 
     const lower = candidate.toLowerCase();
     const slug = lower.replace(/[^a-z0-9]/g, '');
-    if (!slug || GENERIC_BOLD_HEADINGS.has(lower)) continue;
+    if (!slug || GENERIC_BOLD_HEADINGS.has(lower)) return;
     if (
       (brandSlug.length >= 3 &&
         (slug === brandSlug ||
@@ -447,12 +481,34 @@ export function extractNamedRivalsFromAnswerText(
           brandSlug.includes(slug))) ||
       (hostRoot.length >= 3 && slug === hostRoot)
     ) {
-      continue;
+      return;
     }
     if (!seenLower.has(lower)) {
       seenLower.add(lower);
       rivals.push(candidate);
     }
+  };
+
+  // 1. Markdown list-item leads: "- **Alfred**: ...", "1. **GrowthBook** — ...", "**1. Alfred**"
+  const listLeadRegex =
+    /(?:^|\n)\s*(?:(?:#{2,4}\s*)?(?:\d+[.)]\s*|[-*•]\s+))?\*\*((?:\d+[.)]\s*)?[A-Z0-9][A-Za-z0-9.+&/-]*(?:\s+[A-Za-z0-9.+&/-]+){0,2})\*\*(?=\s*(?:[:—–(-]|\n|$))/g;
+  let match: RegExpExecArray | null;
+  while ((match = listLeadRegex.exec(answerText)) !== null) {
+    maybeAddCandidate(match[1] ?? '');
+  }
+
+  // 2. Numbered Markdown subheadings: "### 1. Alfred", "## 2. LaunchBar"
+  const numberedHeadingRegex =
+    /(?:^|\n)\s*#{2,4}\s+\d+[.)]\s*\*?\*?([A-Z0-9][A-Za-z0-9.+&/-]*(?:\s+[A-Za-z0-9.+&/-]+){0,2})\*?\*?/g;
+  while ((match = numberedHeadingRegex.exec(answerText)) !== null) {
+    maybeAddCandidate(match[1] ?? '');
+  }
+
+  // 3. Markdown comparison table first-column cells: "| **Alfred** | ... |" or "| Alfred | ... |"
+  const tableRowRegex =
+    /(?:^|\n)\s*\|\s*\*?\*?([A-Z][A-Za-z0-9.+&/-]*(?:\s+[A-Za-z0-9.+&/-]+){0,2})\*?\*?\s*\|/g;
+  while ((match = tableRowRegex.exec(answerText)) !== null) {
+    maybeAddCandidate(match[1] ?? '');
   }
 
   return rivals.slice(0, 5);
