@@ -204,28 +204,28 @@ export function generateDefaultPromptsForDomain(
     return [
       `Best modern dental studios for implants, Invisalign, and cleanings — how does ${brandName} compare to alternatives?`,
       `${brandName} dental reviews, insurance coverage, and transparent pricing`,
-      `Top-rated multi-location dental groups with online appointment booking`,
+      `Which multi-location dental studio brands compete directly with ${brandName}?`,
     ];
   }
   if (vertical.industryVertical === 'medspa_clinic') {
     return [
       `Most trusted medical aesthetic clinics and MedSpas — how does ${brandName} compare to top alternatives?`,
       `${brandName} reviews, clinician credentials, and membership pricing`,
-      `Who do patients recommend for medical-grade laser facials and cosmetic dermatology?`,
+      `Which medical aesthetics and MedSpa clinic brands compete directly with ${brandName}?`,
     ];
   }
   if (vertical.industryVertical === 'hvac_home_service') {
     return [
       `Most reliable AC repair, heating, and plumbing companies — how does ${brandName} compare to alternatives?`,
       `${brandName} HVAC service area, emergency dispatch, and upfront pricing`,
-      `Top-rated residential HVAC and plumbing providers with licensed technicians`,
+      `Top residential HVAC and plumbing companies competing with ${brandName}`,
     ];
   }
   if (vertical.industryVertical === 'roofing_contractor') {
     return [
       `Best commercial and residential roofing contractors — how does ${brandName} compare to top alternatives?`,
       `${brandName} roof replacement inspections, materials, and service regions`,
-      `Which roofing contractors have the strongest long-term workmanship track record?`,
+      `Top roofing contractors compared directly against ${brandName}`,
     ];
   }
 
@@ -237,9 +237,7 @@ export function generateDefaultPromptsForDomain(
         ? `Best ${cleanTopic} brands online — how does ${brandName} compare on pricing and quality?`
         : `${brandName} vs top online alternatives — reviews, pricing, and shipping`,
       `${brandName} product quality, shipping rules, and top alternatives`,
-      cleanTopic
-        ? `Which online brands do shoppers recommend for ${cleanTopic}?`
-        : `Best direct-to-consumer alternatives to ${brandName}`,
+      `Which competing brands do shoppers compare directly against ${brandName}?`,
     ];
   }
 
@@ -281,6 +279,16 @@ const IGNORED_CITATION_HOSTS = new Set([
   'youtu.be',
   'wikipedia.org',
   'en.wikipedia.org',
+  'amazon.com',
+  'walmart.com',
+  'target.com',
+  'ebay.com',
+  'etsy.com',
+  'faire.com',
+  'apps.apple.com',
+  'apple.com',
+  'play.google.com',
+  'chromewebstore.google.com',
 ]);
 
 const EDITORIAL_AND_DIRECTORY_HOSTS = new Set([
@@ -307,6 +315,23 @@ const EDITORIAL_AND_DIRECTORY_HOSTS = new Set([
   'angi.com',
   'homeadvisor.com',
   'thumbtack.com',
+  'houzz.com',
+  'porch.com',
+  'bark.com',
+  'expertise.com',
+  'threebestrated.com',
+  'martindale.com',
+  'avvo.com',
+  'justia.com',
+  'findlaw.com',
+  'superlawyers.com',
+  'bestlawfirms.com',
+  'lawyers.com',
+  'zocdoc.com',
+  'healthgrades.com',
+  'vitals.com',
+  'webmd.com',
+  'realself.com',
   'reddit.com',
   'old.reddit.com',
   'quora.com',
@@ -341,6 +366,14 @@ const EDITORIAL_AND_DIRECTORY_HOSTS = new Set([
   'softwareworld.co',
   'financesonline.com',
   'selecthub.com',
+  'citehawk.com',
+  'brandtested.com',
+  'deal.ai',
+  'medspastandard.com',
+  'cceonlinenews.com',
+  'thedesigntourist.com',
+  'baristapath.com',
+  'dtcetc.com',
   'linkedin.com',
   'facebook.com',
   'instagram.com',
@@ -353,7 +386,7 @@ const EDITORIAL_AND_DIRECTORY_HOSTS = new Set([
 ]);
 
 const DIRECTORY_HOST_PATTERN =
-  /(?:toolify|toolglance|toolpilot|toolfinder|devstools|saaspic|saashub|saasgenius|saasworthy|aitools?|topai|futurepedia|futuretools|theresanaiforthat|happyvalley|compare|comparison|directory|directree|review|reviews|report|reports|radar|guide|guides|top10|bestof|softwareworld|crozdesk|listicle|rankings?)/i;
+  /(?:toolify|toolglance|toolpilot|toolfinder|devstools|saaspic|saashub|saasgenius|saasworthy|aitools?|topai|futurepedia|futuretools|theresanaiforthat|happyvalley|compare|comparison|directory|directree|review|reviews|report|reports|radar|guide|guides|top10|bestof|softwareworld|crozdesk|listicle|rankings?|citehawk|brandtested)/i;
 
 const EDITORIAL_PATH_PATTERN =
   /\/(?:blog|blogs|articles?|news|guides?|comparisons?|best-[a-z0-9-]+|top-\d+-[a-z0-9-]+)(?:\/|$)/i;
@@ -399,19 +432,60 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'tool',
   'tools',
   'product',
+  'products',
   'platform',
+  'platforms',
+  'service',
+  'services',
+  'agency',
+  'agencies',
+  'clinic',
+  'clinics',
+  'medspa',
+  'medspas',
+  'studio',
+  'studios',
+  'contractor',
+  'contractors',
+  'company',
+  'companies',
+  'firm',
+  'firms',
+  'law firm',
+  'practice',
+  'need',
+  'needs',
+  'treatment',
+  'treatments',
+  'procedure',
+  'procedures',
   'feature',
   'category',
   'plan',
   'tier',
   'vendor',
+  'vendors',
   'brand',
+  'brands',
   'provider',
+  'providers',
   'metric',
   'criteria',
   'option',
+  'options',
   'competitor',
+  'competitors',
   'alternative',
+  'aspect',
+  'factor',
+  'dimension',
+  'coverage',
+  'specialty',
+  'focus',
+  'locations',
+  'reputation',
+  'credentials',
+  'transparency',
   'os',
   'strengths',
   'limitations',
@@ -421,6 +495,12 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'note',
   'important',
 ]);
+
+const ENTITY_TABLE_HEADER_PATTERN =
+  /^(?:brands?|compan(?:y|ies)|vendors?|providers?|tools?|platforms?|products?|apps?|software|services?|agenc(?:y|ies)|firms?|law firms?|clinics?|medspas?|studios?|dental(?: groups?| studios?)?|contractors?|roasters?|competitors?|alternatives?|options?|peers?|players?|names?)$/i;
+
+const NON_BRAND_TREATMENT_OR_GENERIC_TERM =
+  /\b(?:photofacial|fillers?|botox|dysport|invisalign|implants?|cleanings?|whitening|veneers?|extractions?|crowns?|root canal|shingles?|gutters?|siding|tune-ups?|repairs?|installations?|inspections?|warrant(?:y|ies)|insurance|consultations?|memberships?|packages?|retainers?|litigation|emergency dispatch|upfront pricing)\b/i;
 
 function isDirectoryOrEditorialHost(host: string, rawUrl?: string): boolean {
   const hostStem = host.split('.')[0] ?? host;
@@ -460,32 +540,47 @@ export function extractNamedRivalsFromAnswerText(
   const seenLower = new Set<string>();
 
   const maybeAddCandidate = (rawCandidate: string) => {
-    const candidate = rawCandidate
-      .replace(/^\d+[.)]\s*/, '')
-      .replace(/\s*\([^)]*\)\s*$/, '')
-      .replace(/\[\d+\]/g, '')
-      .replace(/[:—–-]+$/, '')
-      .trim();
-    if (candidate.length < 2 || candidate.length > 26) return;
-    if (/^(?:how|what|why|when|where|which|who|key|top|best|final|overall|quick|direct|main|core|pricing|summary)\b/i.test(candidate)) {
-      return;
-    }
+    const parts = /\s+or\s+/i.test(rawCandidate)
+      ? rawCandidate.split(/\s+or\s+/i)
+      : [rawCandidate];
 
-    const lower = candidate.toLowerCase();
-    const slug = lower.replace(/[^a-z0-9]/g, '');
-    if (!slug || GENERIC_BOLD_HEADINGS.has(lower)) return;
-    if (
-      (brandSlug.length >= 3 &&
-        (slug === brandSlug ||
-          slug.includes(brandSlug) ||
-          brandSlug.includes(slug))) ||
-      (hostRoot.length >= 3 && slug === hostRoot)
-    ) {
-      return;
-    }
-    if (!seenLower.has(lower)) {
-      seenLower.add(lower);
-      rivals.push(candidate);
+    for (const part of parts) {
+      const candidate = part
+        .replace(/^\*+|\*+$/g, '')
+        .replace(/^\d+[.)]\s*/, '')
+        .replace(/\s*\([^)]*\)\s*$/, '')
+        .replace(/\[\d+\]/g, '')
+        .replace(/[:—–-]+$/, '')
+        .trim();
+      if (candidate.length < 2 || candidate.length > 26) continue;
+      if (!/^[A-Z0-9]/.test(candidate)) continue;
+      if (
+        /^(?:how|what|why|when|where|which|who|key|top|best|final|overall|quick|direct|main|core|pricing|summary)\b/i.test(
+          candidate
+        )
+      ) {
+        continue;
+      }
+      if (NON_BRAND_TREATMENT_OR_GENERIC_TERM.test(candidate)) {
+        continue;
+      }
+
+      const lower = candidate.toLowerCase();
+      const slug = lower.replace(/[^a-z0-9]/g, '');
+      if (!slug || GENERIC_BOLD_HEADINGS.has(lower)) continue;
+      if (
+        (brandSlug.length >= 3 &&
+          (slug === brandSlug ||
+            slug.includes(brandSlug) ||
+            brandSlug.includes(slug))) ||
+        (hostRoot.length >= 3 && slug === hostRoot)
+      ) {
+        continue;
+      }
+      if (!seenLower.has(lower)) {
+        seenLower.add(lower);
+        rivals.push(candidate);
+      }
     }
   };
 
@@ -504,11 +599,54 @@ export function extractNamedRivalsFromAnswerText(
     maybeAddCandidate(match[1] ?? '');
   }
 
-  // 3. Markdown comparison table first-column cells: "| **Alfred** | ... |" or "| Alfred | ... |"
-  const tableRowRegex =
-    /(?:^|\n)\s*\|\s*\*?\*?([A-Z][A-Za-z0-9.+&/-]*(?:\s+[A-Za-z0-9.+&/-]+){0,2})\*?\*?\s*\|/g;
-  while ((match = tableRowRegex.exec(answerText)) !== null) {
-    maybeAddCandidate(match[1] ?? '');
+  // 3. Markdown comparison tables: skip header rows above `| --- |` and skip non-entity treatment/attribute tables
+  const lines = answerText.split('\n');
+  for (let i = 0; i < lines.length - 1; i += 1) {
+    const headerLine = lines[i]?.trim() ?? '';
+    const sepLine = lines[i + 1]?.trim() ?? '';
+    if (
+      !headerLine.startsWith('|') ||
+      !/^\|[\s:|=-]*-+[\s:|=-]*\|/.test(sepLine)
+    ) {
+      continue;
+    }
+
+    const headerFirstCell = (headerLine.split('|')[1] ?? '')
+      .replace(/\*+/g, '')
+      .trim();
+
+    const dataFirstCells: string[] = [];
+    let j = i + 2;
+    while (j < lines.length) {
+      const rowLine = lines[j]?.trim() ?? '';
+      if (!rowLine.startsWith('|')) break;
+      const cell = (rowLine.split('|')[1] ?? '').replace(/\*+/g, '').trim();
+      if (cell && !/^[-:=]+$/.test(cell)) {
+        dataFirstCells.push(cell);
+      }
+      j += 1;
+    }
+    i = j - 1;
+
+    const tableIncludesTargetBrand = dataFirstCells.some((c) => {
+      const cellSlug = c.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return (
+        (brandSlug.length >= 3 &&
+          (cellSlug === brandSlug || cellSlug.includes(brandSlug))) ||
+        (hostRoot.length >= 3 && cellSlug === hostRoot)
+      );
+    });
+
+    if (
+      ENTITY_TABLE_HEADER_PATTERN.test(headerFirstCell) ||
+      tableIncludesTargetBrand
+    ) {
+      for (const cell of dataFirstCells) {
+        if (cell.split(/\s+/).length <= 3) {
+          maybeAddCandidate(cell);
+        }
+      }
+    }
   }
 
   return rivals.slice(0, 5);

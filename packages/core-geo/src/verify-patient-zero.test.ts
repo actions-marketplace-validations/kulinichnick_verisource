@@ -1169,4 +1169,29 @@ test('buildAgencyPitchPayload strips mock/generic rival placeholders when live r
     false
   );
   assert.ok(dentalPrompts[0]!.includes('alternatives'));
+
+  // Markdown table header rows (`| Service |`, `| Agency |`) and treatment/menu tables (`| Need |`, `| Botox/Dysport |`) never leak as rival brands
+  const tableRivals = extractCompetitorsFromAnswerAndCitations({
+    targetHostname: 'ovme.com',
+    brandName: 'OVME',
+    answerText: [
+      '| Treatment | Member Price |',
+      '| --- | --- |',
+      '| Botox/Dysport | $12/unit |',
+      '| Dermal filler | $650 |',
+      '',
+      '| Clinic | Positioning |',
+      '| --- | --- |',
+      '| OVME | Membership aesthetics |',
+      '| SkinSpirit | Medical-grade injectables |',
+      '| LaserAway | Laser hair removal & skin |',
+    ].join('\n'),
+    urls: [
+      'https://amazon.com/dp/B001',
+      'https://apps.apple.com/us/app/ovme/id123',
+      'https://martindale.com/organization/firm',
+      'https://citehawk.com/ovme',
+    ],
+  });
+  assert.deepEqual(tableRivals, ['SkinSpirit', 'LaserAway']);
 });
