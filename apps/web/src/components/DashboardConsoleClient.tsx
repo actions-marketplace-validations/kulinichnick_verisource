@@ -15,6 +15,7 @@ import {
   buildShopifyCustomerEventsPixel,
   computeShopifyCheckoutKey,
   normalizePublicDomain,
+  summarizeEngineCitationShare,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
@@ -335,6 +336,7 @@ export function DashboardConsoleClient(props: {
     );
     setLastAlertPreview(null);
     setLastFixVerification(null);
+    setSelectedEngineFilter('all');
     let cancelled = false;
     if (activeDomain.is_shopify) {
       void computeShopifyCheckoutKey({
@@ -375,6 +377,16 @@ export function DashboardConsoleClient(props: {
   const flaggedSnapshots = domainSnapshots.filter(
     (s) => s.hallucination_detected && (s.hallucination_details?.length ?? 0) > 0
   );
+
+  const [selectedEngineFilter, setSelectedEngineFilter] = useState<
+    'all' | 'chatgpt' | 'gemini' | 'perplexity'
+  >('all');
+
+  const engineCitationShare = summarizeEngineCitationShare(domainSnapshots);
+  const visibleSnapshots =
+    selectedEngineFilter === 'all'
+      ? domainSnapshots
+      : domainSnapshots.filter((s) => s.ai_engine === selectedEngineFilter);
 
   const authHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -1518,6 +1530,142 @@ export function DashboardConsoleClient(props: {
               </div>
             </div>
 
+            {/* Engine-by-Engine Citation Share Strip + 1-Click Engine Filter */}
+            <div className="vs-card" style={{ marginBottom: '22px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  padding: '10px 16px',
+                  borderBottom: '1px solid var(--vs-border)',
+                  background: 'var(--vs-surface-subtle)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                    ENGINE-BY-ENGINE CITATION SHARE
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
+                    {isGuided
+                      ? 'Click an engine to inspect only its answers below'
+                      : 'Prompt mention rate & best rank across tracked retrieval engines'}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    border: '1px solid var(--vs-border)',
+                    borderRadius: '5px',
+                    padding: '2px',
+                    background: '#FFFFFF',
+                    gap: '2px',
+                  }}
+                >
+                  {(
+                    [
+                      {
+                        id: 'all',
+                        label: `All (${domainSnapshots.length})`,
+                      },
+                      ...engineCitationShare.map((item) => ({
+                        id: item.aiEngine,
+                        label: `${item.shortLabel} (${item.totalSnapshots})`,
+                      })),
+                    ] as const
+                  ).map((pill) => {
+                    const active = selectedEngineFilter === pill.id;
+                    return (
+                      <button
+                        key={pill.id}
+                        type="button"
+                        onClick={() => setSelectedEngineFilter(pill.id)}
+                        style={{
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '3px 9px',
+                          borderRadius: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          background: active ? 'var(--vs-ink)' : 'transparent',
+                          color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        {pill.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="vs-ledger-strip-3">
+                {engineCitationShare.map((item) => {
+                  const isFiltered = selectedEngineFilter === item.aiEngine;
+                  const cellTone: 'pass' | 'warn' | 'critical' =
+                    item.hallucinationCount > 0 ||
+                    (item.totalSnapshots > 0 && item.mentionedCount === 0)
+                      ? 'critical'
+                      : item.mentionRatePct >= 66
+                        ? 'pass'
+                        : 'warn';
+                  const sublabel =
+                    item.totalSnapshots === 0
+                      ? 'Click Re-Scan to record snapshots'
+                      : item.mentionedCount > 0
+                        ? `Best rank #${item.bestRank ?? 1}${
+                            item.hallucinationCount > 0
+                              ? ` · ${item.hallucinationCount} factual conflict(s)`
+                              : ' · Claims verified'
+                          }`
+                        : `Omitted${
+                            item.topRivals.length > 0
+                              ? ` · Rivals: ${item.topRivals.join(', ')}`
+                              : ' · Rivals cited instead'
+                          }`;
+
+                  return (
+                    <div
+                      key={item.aiEngine}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() =>
+                        setSelectedEngineFilter((prev) =>
+                          prev === item.aiEngine ? 'all' : item.aiEngine
+                        )
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedEngineFilter((prev) =>
+                            prev === item.aiEngine ? 'all' : item.aiEngine
+                          );
+                        }
+                      }}
+                      style={{
+                        cursor: 'pointer',
+                        background: isFiltered
+                          ? 'var(--vs-surface-warm)'
+                          : undefined,
+                        transition: 'background 120ms ease',
+                      }}
+                      title={`Filter answers by ${item.engineLabel}`}
+                    >
+                      <MetricLedgerCell
+                        label={item.engineLabel}
+                        value={`${item.mentionedCount} / ${item.totalSnapshots}`}
+                        suffix="cited"
+                        tone={cellTone}
+                        sublabel={sublabel}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Module 1: Hallucination Watchdog + 1-Click Truth Sheet */}
             <div className="vs-grid-split" style={{ marginBottom: '24px' }}>
               <div className="vs-card vs-table-wrap">
@@ -1596,7 +1744,38 @@ export function DashboardConsoleClient(props: {
                     </tr>
                   </thead>
                   <tbody>
-                    {domainSnapshots.map((snap) => (
+                    {visibleSnapshots.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          style={{
+                            padding: '18px 16px',
+                            fontSize: '13px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          No snapshots recorded for this engine filter yet. Click{' '}
+                          <strong>↻ Re-Scan</strong> above or switch back to{' '}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedEngineFilter('all')}
+                            style={{
+                              border: 'none',
+                              background: 'none',
+                              padding: 0,
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                              fontWeight: 600,
+                              color: 'var(--vs-ink)',
+                            }}
+                          >
+                            All ({domainSnapshots.length})
+                          </button>
+                          .
+                        </td>
+                      </tr>
+                    ) : null}
+                    {visibleSnapshots.map((snap) => (
                       <tr key={snap.id}>
                         <td>
                           <div className="vs-mono" style={{ fontWeight: 600 }}>

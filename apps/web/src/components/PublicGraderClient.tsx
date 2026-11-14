@@ -1,9 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ReadinessScanSummary } from '@verisource/core-geo';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
+
+function extractSafeGraderHostname(raw: string | null): string | null {
+  if (!raw) return null;
+  const cleaned = raw
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split(/[/?#]/)[0]
+    ?.trim();
+  if (!cleaned || cleaned.length < 4 || cleaned.length > 120) return null;
+  if (
+    !/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/.test(
+      cleaned
+    )
+  ) {
+    return null;
+  }
+  return cleaned;
+}
 
 const INITIAL_AUREA_PREVIEW: ReadinessScanSummary = {
   domainUrl: 'https://aurearoasters.com',
@@ -57,6 +77,9 @@ export function PublicGraderClient(): React.ReactElement {
     INITIAL_AUREA_PREVIEW
   );
   const [cached24h, setCached24h] = useState<boolean | null>(null);
+  const [copiedScanLink, setCopiedScanLink] = useState(false);
+  const autoScannedRef = useRef(false);
+  const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   async function runScan(targetDomain: string, forceRefresh = false) {
     setLoading(true);
@@ -82,6 +105,54 @@ export function PublicGraderClient(): React.ReactElement {
       setError('Network error while probing domain.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (autoScannedRef.current || typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const candidate = extractSafeGraderHostname(params.get('domain'));
+    if (!candidate) return;
+    autoScannedRef.current = true;
+    setDomainInput(candidate);
+    const el = document.getElementById('grader');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (candidate !== 'aurearoasters.com') {
+      void runScan(candidate);
+    }
+  }, []);
+
+  async function handleCopyScanLink() {
+    const origin =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : 'https://verisource.dev';
+    const shareUrl = `${origin}/?domain=${encodeURIComponent(
+      result.hostname
+    )}#grader`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+      setCopiedScanLink(true);
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current);
+      }
+      copyResetTimerRef.current = setTimeout(() => {
+        setCopiedScanLink(false);
+      }, 2200);
+    } catch {
+      // Ignore clipboard permission denial
     }
   }
 
@@ -342,6 +413,15 @@ export function PublicGraderClient(): React.ReactElement {
             title="Bypass 24-hour cache and re-probe live HTTP & AI search state"
           >
             {loading ? 'Probing...' : '↻ Re-Scan Live'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleCopyScanLink()}
+            className="vs-btn vs-btn-secondary"
+            style={{ padding: '3px 9px', fontSize: '11.5px' }}
+            title="Copy direct link to run or share this domain scan"
+          >
+            {copiedScanLink ? '✓ Scan Link Copied' : 'Copy Scan Link'}
           </button>
         </div>
         <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px' }}>

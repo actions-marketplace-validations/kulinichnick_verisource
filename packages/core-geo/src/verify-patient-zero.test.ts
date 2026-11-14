@@ -28,6 +28,7 @@ import {
   buildWeeklyExecutiveDigest,
   classifyAgentsMdContent,
   classifyIndustryVertical,
+  classifyPitchShowcaseBucket,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
@@ -53,6 +54,7 @@ import {
   runDomainReadinessScan,
   runFullGeoAudit,
   runPerplexityAgentQuery,
+  summarizeEngineCitationShare,
   sanitizeCsvCell,
   sha256Hex,
 } from './index.js';
@@ -1213,4 +1215,142 @@ test('buildAgencyPitchPayload strips mock/generic rival placeholders when live r
   assert.ok(!escapedPipeRivals.some((r) => r.endsWith('\\')));
   assert.ok(!escapedPipeRivals.includes('Shipping and returns'));
   assert.ok(!escapedPipeRivals.includes('Alternatives to consider'));
+});
+
+test('M37 Engine-by-Engine Citation Share aggregator and /sample-audit vertical classifier compute deterministic metrics', () => {
+  const engineShare = summarizeEngineCitationShare([
+    {
+      id: 'snap-1',
+      domain_id: 'dom-1',
+      prompt_id: 'p-1',
+      ai_engine: 'chatgpt',
+      brand_mentioned: false,
+      citation_rank: null,
+      competitors_mentioned: [
+        'reddit.com buyer threads',
+        'Postmark',
+        'Mailgun',
+        'SendGrid',
+      ],
+      cited_source_urls: [],
+      fanout_telemetry_type: 'observed_query',
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'Postmark and Mailgun lead.',
+      scanned_at: '2026-11-14T00:00:00Z',
+    },
+    {
+      id: 'snap-2',
+      domain_id: 'dom-1',
+      prompt_id: 'p-1',
+      ai_engine: 'gemini',
+      brand_mentioned: true,
+      citation_rank: 2,
+      competitors_mentioned: ['Postmark'],
+      cited_source_urls: [],
+      fanout_telemetry_type: 'observed_query',
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'Resend ranked #2.',
+      scanned_at: '2026-11-14T00:00:00Z',
+    },
+    {
+      id: 'snap-3',
+      domain_id: 'dom-1',
+      prompt_id: 'p-2',
+      ai_engine: 'gemini',
+      brand_mentioned: true,
+      citation_rank: 1,
+      competitors_mentioned: ['Mailgun'],
+      cited_source_urls: [],
+      fanout_telemetry_type: 'observed_query',
+      hallucination_detected: true,
+      hallucination_details: [
+        {
+          claim_text: '$10/mo unlimited',
+          verified_truth: '$20/mo Pro tier',
+          severity: 'high',
+          category: 'pricing',
+        },
+      ],
+      raw_answer_excerpt: 'Resend ranked #1.',
+      scanned_at: '2026-11-14T00:00:00Z',
+    },
+    {
+      id: 'snap-4',
+      domain_id: 'dom-1',
+      prompt_id: 'p-1',
+      ai_engine: 'perplexity',
+      brand_mentioned: true,
+      citation_rank: 1,
+      competitors_mentioned: ['Top Resend Category Peer #1', 'Amazon SES'],
+      cited_source_urls: [],
+      fanout_telemetry_type: 'observed_query',
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'Resend cited first.',
+      scanned_at: '2026-11-14T00:00:00Z',
+    },
+  ]);
+
+  assert.equal(engineShare.length, 3);
+  const chatgpt = engineShare.find((e) => e.aiEngine === 'chatgpt')!;
+  const gemini = engineShare.find((e) => e.aiEngine === 'gemini')!;
+  const perplexity = engineShare.find((e) => e.aiEngine === 'perplexity')!;
+
+  assert.equal(chatgpt.mentionedCount, 0);
+  assert.equal(chatgpt.totalSnapshots, 1);
+  assert.equal(chatgpt.mentionRatePct, 0);
+  assert.equal(chatgpt.bestRank, null);
+  assert.deepEqual(chatgpt.topRivals, ['Postmark', 'Mailgun']);
+
+  assert.equal(gemini.mentionedCount, 2);
+  assert.equal(gemini.totalSnapshots, 2);
+  assert.equal(gemini.mentionRatePct, 100);
+  assert.equal(gemini.bestRank, 1);
+  assert.equal(gemini.hallucinationCount, 1);
+
+  assert.equal(perplexity.mentionedCount, 1);
+  assert.equal(perplexity.bestRank, 1);
+  assert.deepEqual(perplexity.topRivals, ['Amazon SES']);
+
+  assert.equal(
+    classifyPitchShowcaseBucket({
+      prospect_domain: 'https://resend.com',
+      prospect_brand_name: 'Resend',
+      summary_payload: {
+        top_gaps: [],
+        competitors_winning: [],
+        hallucination_examples: [],
+        recommended_fixes: [],
+      },
+    }),
+    'saas_d2c'
+  );
+  assert.equal(
+    classifyPitchShowcaseBucket({
+      prospect_domain: 'https://siegemedia.com',
+      prospect_brand_name: 'Siege Media',
+      summary_payload: {
+        top_gaps: [],
+        competitors_winning: [],
+        hallucination_examples: [],
+        recommended_fixes: [],
+      },
+    }),
+    'agencies'
+  );
+  assert.equal(
+    classifyPitchShowcaseBucket({
+      prospect_domain: 'https://lanierlawfirm.com',
+      prospect_brand_name: 'The Lanier Law Firm',
+      summary_payload: {
+        top_gaps: [],
+        competitors_winning: [],
+        hallucination_examples: [],
+        recommended_fixes: [],
+      },
+    }),
+    'local_services'
+  );
 });

@@ -1222,7 +1222,7 @@ async function run() {
         sampleAuditHtml.includes('Rivals Cited'),
       'Expected 3-engine benchmark heading and Rivals Cited column on /sample-audit'
     );
-    console.log('✔ [33/34] M35 Slug-preserving PATCH /api/dashboard/pitch refresh, /audit/[slug] rival strip & 3-engine /sample-audit verified');
+    console.log('✔ [33/35] M35 Slug-preserving PATCH /api/dashboard/pitch refresh, /audit/[slug] rival strip & 3-engine /sample-audit verified');
 
     // 32. M36 Dynamic 1200x630 /audit/[slug] Rival OpenGraph Card, Rival Meta Unfurl & 1-Click Copy Brief Link Controls
     const m36MosaicHtml = await (
@@ -1263,7 +1263,54 @@ async function run() {
       0,
       'Found banned lexicon on Tab 3 Pitch Ledger'
     );
-    console.log('✔ [34/34] M36 Dynamic 1200x630 /audit/[slug] rival OG PNG, Rival meta unfurl & 1-click Copy Brief Link / Copy URL verified');
+    console.log('✔ [34/35] M36 Dynamic 1200x630 /audit/[slug] rival OG PNG, Rival meta unfurl & 1-click Copy Brief Link / Copy URL verified');
+
+    // 33. M37 Tab 1 Engine-by-Engine Citation Share Strip, /sample-audit Vertical Filter Tabs & /?domain= Grader Deep-Link
+    const m37Tab1Html = await (await fetch(`${BASE}/dashboard`)).text();
+    assert.ok(
+      m37Tab1Html.includes('ENGINE-BY-ENGINE CITATION SHARE') &&
+        m37Tab1Html.includes('ChatGPT Search') &&
+        m37Tab1Html.includes('Google Gemini') &&
+        m37Tab1Html.includes('Perplexity Agent'),
+      'Expected Tab 1 Engine-by-Engine Citation Share strip across ChatGPT, Gemini & Perplexity'
+    );
+    const strippedM37Tab1 = m37Tab1Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM37Tab1.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Tab 1 Engine-by-Engine Citation Share strip'
+    );
+
+    const m37SampleHtml = await (await fetch(`${BASE}/sample-audit`)).text();
+    assert.ok(
+      m37SampleHtml.includes('All Verticals') &&
+        m37SampleHtml.includes('B2B SaaS &amp; D2C') &&
+        m37SampleHtml.includes('SEO &amp; Web Agencies') &&
+        m37SampleHtml.includes('High-Ticket Local Services') &&
+        m37SampleHtml.includes('Scan My Site Free'),
+      'Expected interactive vertical filter tabs and inline Scan My Site Free bar on /sample-audit'
+    );
+    const strippedM37Sample = m37SampleHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM37Sample.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /sample-audit vertical filter cohort'
+    );
+
+    const m37DeepLinkHomeRes = await fetch(`${BASE}/?domain=mosaicroasters.com`);
+    assert.equal(m37DeepLinkHomeRes.status, 200);
+    const m37DeepLinkHomeHtml = await m37DeepLinkHomeRes.text();
+    assert.ok(
+      m37DeepLinkHomeHtml.includes('Copy Scan Link'),
+      'Expected Copy Scan Link button on Landing Page Instant Grader'
+    );
+    console.log('✔ [35/35] M37 Tab 1 Engine Citation Share Strip, /sample-audit vertical filter tabs & /?domain= grader deep-link verified');
   } finally {
     server.kill();
   }

@@ -340,7 +340,7 @@ export default async function AgencyPitchReportPage({
               >
                 Self-Serve Fix Pack ($19) →
               </a>
-              <Link href="/" className="vs-btn vs-btn-secondary">
+              <Link href="/#grader" className="vs-btn vs-btn-secondary">
                 Scan Another Website
               </Link>
             </>

@@ -1,8 +1,10 @@
 import { resolveCoreGeoEnv, type RawEnvInput } from '../config/env.js';
 import type {
+  AgencyPitchReportRow,
   AgentsMdStatus,
   AiEngine,
   BrandTruthSheet,
+  CitationSnapshotRow,
   FanoutTelemetryType,
   FixType,
   HallucinationDetail,
@@ -941,4 +943,175 @@ export async function verifyLiveFixDeployment(
     appliedFixTypes,
     checks,
   };
+}
+
+export interface EngineCitationShareItem {
+  aiEngine: 'chatgpt' | 'gemini' | 'perplexity';
+  engineLabel: string;
+  shortLabel: string;
+  totalSnapshots: number;
+  mentionedCount: number;
+  mentionRatePct: number;
+  bestRank: number | null;
+  hallucinationCount: number;
+  topRivals: string[];
+  hasLiveTelemetry: boolean;
+}
+
+const TRACKED_ENGINES: Array<{
+  aiEngine: 'chatgpt' | 'gemini' | 'perplexity';
+  engineLabel: string;
+  shortLabel: string;
+}> = [
+  {
+    aiEngine: 'chatgpt',
+    engineLabel: 'ChatGPT Search',
+    shortLabel: 'ChatGPT',
+  },
+  {
+    aiEngine: 'gemini',
+    engineLabel: 'Google Gemini',
+    shortLabel: 'Gemini',
+  },
+  {
+    aiEngine: 'perplexity',
+    engineLabel: 'Perplexity Agent',
+    shortLabel: 'Perplexity',
+  },
+];
+
+export function summarizeEngineCitationShare(
+  snapshots: CitationSnapshotRow[]
+): EngineCitationShareItem[] {
+  return TRACKED_ENGINES.map(({ aiEngine, engineLabel, shortLabel }) => {
+    const engineSnaps = snapshots.filter((s) => s.ai_engine === aiEngine);
+    const totalSnapshots = engineSnaps.length;
+    const mentionedSnaps = engineSnaps.filter((s) => s.brand_mentioned);
+    const mentionedCount = mentionedSnaps.length;
+    const mentionRatePct =
+      totalSnapshots > 0
+        ? Math.round((mentionedCount / totalSnapshots) * 100)
+        : 0;
+
+    let bestRank: number | null = null;
+    for (const snap of mentionedSnaps) {
+      if (typeof snap.citation_rank === 'number' && snap.citation_rank > 0) {
+        bestRank =
+          bestRank === null
+            ? snap.citation_rank
+            : Math.min(bestRank, snap.citation_rank);
+      }
+    }
+
+    const hallucinationCount = engineSnaps.filter(
+      (s) => s.hallucination_detected && (s.hallucination_details?.length ?? 0) > 0
+    ).length;
+
+    const topRivals: string[] = [];
+    const seenLower = new Set<string>();
+    for (const snap of engineSnaps) {
+      for (const rawRival of snap.competitors_mentioned ?? []) {
+        const clean = rawRival.trim();
+        if (
+          !clean ||
+          /^(?:reddit\.com\s+buyer\s+threads|editorial\s+comparison\s+guides|category\s+directories)/i.test(
+            clean
+          ) ||
+          /^Top\s+.+\s+Category\s+Peer\s+#\d+$/i.test(clean)
+        ) {
+          continue;
+        }
+        const key = clean.toLowerCase();
+        if (!seenLower.has(key)) {
+          seenLower.add(key);
+          topRivals.push(clean);
+          if (topRivals.length >= 2) break;
+        }
+      }
+      if (topRivals.length >= 2) break;
+    }
+
+    const hasLiveTelemetry = engineSnaps.some(
+      (s) => s.fanout_telemetry_type !== 'mock_fixture'
+    );
+
+    return {
+      aiEngine,
+      engineLabel,
+      shortLabel,
+      totalSnapshots,
+      mentionedCount,
+      mentionRatePct,
+      bestRank,
+      hallucinationCount,
+      topRivals,
+      hasLiveTelemetry,
+    };
+  });
+}
+
+export type PitchShowcaseBucket = 'saas_d2c' | 'agencies' | 'local_services';
+
+const AGENCY_SHOWCASE_HOSTS = new Set([
+  'siegemedia.com',
+  'omniscientdigital.com',
+  'animalz.co',
+  'barrelny.com',
+  'singlegrain.com',
+  'velstar.co.uk',
+]);
+
+const LOCAL_SERVICE_SHOWCASE_HOSTS = new Set([
+  'hellotend.com',
+  'ovme.com',
+  'everbody.com',
+  'lanierlawfirm.com',
+  'bakerroofing.com',
+  'horizonservices.com',
+]);
+
+export function classifyPitchShowcaseBucket(
+  report: Pick<
+    AgencyPitchReportRow,
+    'prospect_domain' | 'prospect_brand_name' | 'summary_payload'
+  >
+): PitchShowcaseBucket {
+  const host = report.prospect_domain
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0] ?? '';
+
+  if (AGENCY_SHOWCASE_HOSTS.has(host)) {
+    return 'agencies';
+  }
+  if (LOCAL_SERVICE_SHOWCASE_HOSTS.has(host)) {
+    return 'local_services';
+  }
+
+  const corpus = [
+    host,
+    report.prospect_brand_name,
+    ...(report.summary_payload?.top_gaps ?? []),
+    ...(report.summary_payload?.recommended_fixes ?? []),
+  ].join(' ');
+
+  if (
+    /\b(?:dental|dentist|orthodont|medspa|med\s*spa|botox|injectable|law\s*firm|attorney|lawyer|legal\s+service|roofing|roofer|hvac|plumbing|heating|cooling|Dentist|MedicalBusiness|LegalService|RoofingContractor|HVACBusiness)\b/i.test(
+      corpus
+    )
+  ) {
+    return 'local_services';
+  }
+
+  if (
+    /\b(?:seo\s+agency|content\s+agency|digital\s+pr|marketing\s+agency|growth\s+agency|shopify\s+plus\s+agency|creative\s+agency|ProfessionalService)\b/i.test(
+      corpus
+    )
+  ) {
+    return 'agencies';
+  }
+
+  return 'saas_d2c';
 }

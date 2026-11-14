@@ -7,6 +7,7 @@ import {
   type AgencyPitchReportRow,
 } from '@verisource/core-geo';
 import { CodeArtifactCard, StatusBadge } from '@verisource/ui';
+import { SampleAuditCohortClient } from '../../components/SampleAuditCohortClient';
 import {
   getLocalMockStore,
   getServiceSupabaseClient,
@@ -229,76 +230,7 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
               Recent live 3-engine HTTP + AI Search audits (ChatGPT, Gemini &amp;
               Perplexity).
             </h2>
-            <div className="vs-card vs-table-wrap">
-              <table className="vs-table">
-                <thead>
-                  <tr>
-                    <th>Brand</th>
-                    <th>AI Visibility</th>
-                    <th>Rivals Cited</th>
-                    <th>Key Protocol Gap Flagged</th>
-                    <th style={{ textAlign: 'right' }}>Live Brief</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {liveCohortReports.map((r) => (
-                    <tr key={r.id}>
-                      <td>
-                        <strong>{r.prospect_brand_name}</strong>
-                        <div
-                          className="vs-mono"
-                          style={{
-                            fontSize: '11.5px',
-                            color: 'var(--vs-ink-muted)',
-                          }}
-                        >
-                          {r.prospect_domain}
-                        </div>
-                      </td>
-                      <td className="vs-mono" style={{ whiteSpace: 'nowrap' }}>
-                        <strong>{r.visibility_score}</strong> / 100
-                      </td>
-                      <td
-                        style={{
-                          fontSize: '12.5px',
-                          color: 'var(--vs-ink-secondary)',
-                          maxWidth: '240px',
-                        }}
-                      >
-                        {r.summary_payload.competitors_winning.length > 0
-                          ? r.summary_payload.competitors_winning
-                              .slice(0, 3)
-                              .join(' · ')
-                          : 'Category directories'}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: '13px',
-                          color: 'var(--vs-ink-secondary)',
-                        }}
-                      >
-                        {r.summary_payload.top_gaps[0] ??
-                          'Missing /agents.md and structured JSON-LD entity specs.'}
-                      </td>
-                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <Link
-                          href={`/audit/${r.share_slug}`}
-                          className="vs-mono"
-                          style={{
-                            fontSize: '12px',
-                            color: 'var(--vs-ink)',
-                            textDecoration: 'underline',
-                            textUnderlineOffset: '3px',
-                          }}
-                        >
-                          /audit/{r.share_slug} →
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SampleAuditCohortClient reports={liveCohortReports} />
           </section>
         ) : null}
 
