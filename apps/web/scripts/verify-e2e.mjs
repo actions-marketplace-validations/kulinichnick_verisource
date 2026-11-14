@@ -1171,7 +1171,58 @@ async function run() {
       429,
       'Expected 7th unauthenticated workspace scan in 1 hour from same IP to return 429 DEMO_SCAN_LIMIT_REACHED'
     );
-    console.log('✔ [32/32] M34 Direct ?domain= Grader-to-Console handoff banner, 403 Patient Zero delete guard & 429 guest scan cap verified');
+    console.log('✔ [32/33] M34 Direct ?domain= Grader-to-Console handoff banner, 403 Patient Zero delete guard & 429 guest scan cap verified');
+
+    // 31. M35 Slug-Preserving In-Place Pitch Refresh (PATCH /api/dashboard/pitch), Rival Strip & 3-Engine /sample-audit Table
+    const invalidSlugPatchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ share_slug: '../bad-slug' }),
+    });
+    assert.equal(invalidSlugPatchRes.status, 400);
+
+    const missingSlugPatchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ share_slug: 'nonexistent-slug-9999' }),
+    });
+    assert.equal(missingSlugPatchRes.status, 404);
+
+    const mintedSlugToRefresh = cleanPitchJson.report.share_slug;
+    const refreshPitchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ share_slug: mintedSlugToRefresh }),
+    });
+    assert.equal(refreshPitchRes.status, 200);
+    const refreshPitchJson = await refreshPitchRes.json();
+    assert.equal(refreshPitchJson.refreshed, true);
+    assert.equal(refreshPitchJson.report.share_slug, mintedSlugToRefresh);
+    assert.equal(refreshPitchJson.share_url, `/audit/${mintedSlugToRefresh}`);
+
+    const refreshedAuditHtml = await (
+      await fetch(`${BASE}/audit/${mintedSlugToRefresh}`)
+    ).text();
+    assert.ok(
+      refreshedAuditHtml.includes('AI-RECOMMENDED CATEGORY ALTERNATIVES'),
+      'Expected AI-RECOMMENDED CATEGORY ALTERNATIVES chip strip on /audit/[slug]'
+    );
+    const strippedRefreshedAudit = refreshedAuditHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedRefreshedAudit.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on refreshed /audit/[slug] brief'
+    );
+
+    assert.ok(
+      sampleAuditHtml.includes('Recent live 3-engine HTTP + AI Search audits') &&
+        sampleAuditHtml.includes('Rivals Cited'),
+      'Expected 3-engine benchmark heading and Rivals Cited column on /sample-audit'
+    );
+    console.log('✔ [33/33] M35 Slug-preserving PATCH /api/dashboard/pitch refresh, /audit/[slug] rival strip & 3-engine /sample-audit verified');
   } finally {
     server.kill();
   }

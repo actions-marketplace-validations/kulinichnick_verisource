@@ -179,12 +179,43 @@ export default async function AgencyPitchReportPage({
             label="Competitors Recommended"
             value={report.summary_payload.competitors_winning.length}
             sublabel={
-              report.summary_payload.competitors_winning.slice(0, 2).join(', ') ||
+              report.summary_payload.competitors_winning.slice(0, 3).join(', ') ||
               'Category directories'
             }
           />
         </div>
       </div>
+
+      {/* Rival Shortlist Strip */}
+      {report.summary_payload.competitors_winning.length > 0 ? (
+        <div
+          className="vs-card"
+          style={{
+            padding: '16px 20px',
+            marginBottom: '20px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div>
+            <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
+              AI-RECOMMENDED CATEGORY ALTERNATIVES
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+              ChatGPT, Google Gemini, and Perplexity cite these alternatives
+              when buyers compare options in your category.
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {report.summary_payload.competitors_winning.map((rival) => (
+              <StatusBadge key={rival}>{rival}</StatusBadge>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {/* Hallucination Evidence Alert */}
       {report.summary_payload.hallucination_examples.length > 0 ? (

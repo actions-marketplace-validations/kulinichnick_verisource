@@ -7,6 +7,8 @@ import {
 } from '@verisource/core-geo';
 import { getGraderCacheMap, getGraderIpMap } from '../../../lib/data-store';
 
+export const maxDuration = 60;
+
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',

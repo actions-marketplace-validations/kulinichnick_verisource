@@ -357,15 +357,49 @@ export function buildAgencyPitchPayload(params: {
     );
   }
 
-  const liveRivals = params.scanResults
+  const GENERIC_RIVAL_PLACEHOLDER =
+    /^(?:reddit\.com buyer threads|editorial comparison guides|top\s+.+\s+category peer(?:\s*#\d+)?)$/i;
+
+  const normalizeRivalKey = (label: string): string =>
+    label
+      .toLowerCase()
+      .replace(/^www\./, '')
+      .replace(/\.[a-z]{2,}(?:\.[a-z]{2})?$/, '')
+      .replace(/(?:app|hq|labs|co|inc)$/i, '')
+      .replace(/[^a-z0-9]/g, '');
+
+  const liveRaw = params.scanResults
     .filter((s) => s.fanoutTelemetryType !== 'mock_fixture')
     .flatMap((s) => s.competitorsMentioned);
-  const fallbackRivals = params.scanResults
+  const specificLive = liveRaw.filter(
+    (r) => r.trim().length > 0 && !GENERIC_RIVAL_PLACEHOLDER.test(r.trim())
+  );
+  const fallbackRaw = params.scanResults
     .filter((s) => s.fanoutTelemetryType === 'mock_fixture')
     .flatMap((s) => s.competitorsMentioned);
-  const competitorsWinning = Array.from(
-    new Set([...liveRivals, ...fallbackRivals])
-  ).slice(0, 5);
+
+  const candidateRivals =
+    specificLive.length > 0
+      ? specificLive
+      : liveRaw.length > 0
+        ? liveRaw
+        : fallbackRaw;
+
+  const seenRivalKeys = new Set<string>();
+  const competitorsWinning: string[] = [];
+  // Prefer human-cased brand names ahead of lowercase hostnames when deduplicating
+  const orderedCandidates = [
+    ...candidateRivals.filter((r) => !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(r.trim())),
+    ...candidateRivals.filter((r) => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(r.trim())),
+  ];
+  for (const raw of orderedCandidates) {
+    const cleaned = raw.trim();
+    const key = normalizeRivalKey(cleaned) || cleaned.toLowerCase();
+    if (!key || seenRivalKeys.has(key)) continue;
+    seenRivalKeys.add(key);
+    competitorsWinning.push(cleaned);
+    if (competitorsWinning.length >= 5) break;
+  }
 
   const recommendedFixes: string[] = [
     'Publish 9.5+/10 graded Organization + FAQPage JSON-LD schema.',

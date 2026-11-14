@@ -199,6 +199,9 @@ export function DashboardConsoleClient(props: {
     data.profile.agency_cta_url ?? 'https://cal.com/verisource-demo/geo-audit'
   );
   const [generatingPitch, setGeneratingPitch] = useState(false);
+  const [refreshingPitchSlug, setRefreshingPitchSlug] = useState<string | null>(
+    null
+  );
   const [selectedPitchSlug, setSelectedPitchSlug] = useState<string>(
     () => props.initialData.pitchReports[0]?.share_slug ?? ''
   );
@@ -692,6 +695,42 @@ export function DashboardConsoleClient(props: {
       setBannerError('Network error generating pitch report.');
     } finally {
       setGeneratingPitch(false);
+    }
+  }
+
+  async function handleRefreshPitchReport(shareSlug: string) {
+    setRefreshingPitchSlug(shareSlug);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/pitch', {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({ share_slug: shareSlug }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        report?: AgencyPitchReportRow;
+        share_url?: string;
+      };
+      if (!res.ok || json.error || !json.report) {
+        setBannerError(json.message ?? 'Unable to refresh pitch report.');
+      } else {
+        setData((prev) => ({
+          ...prev,
+          pitchReports: prev.pitchReports.map((r) =>
+            r.share_slug === json.report!.share_slug ? json.report! : r
+          ),
+        }));
+        setSelectedPitchSlug(json.report.share_slug);
+        setBannerSuccess(
+          `Refreshed /audit/${json.report.share_slug} in-place (${json.report.visibility_score}/100 visibility · link preserved).`
+        );
+      }
+    } catch {
+      setBannerError('Network error while refreshing pitch report.');
+    } finally {
+      setRefreshingPitchSlug(null);
     }
   }
 
@@ -2483,21 +2522,51 @@ export function DashboardConsoleClient(props: {
                               /audit/{r.share_slug} →
                             </Link>
                           </td>
-                          <td style={{ textAlign: 'right' }}>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPitchSlug(r.share_slug)}
-                              className="vs-btn vs-btn-secondary"
+                          <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                            <div
                               style={{
-                                padding: '4px 9px',
-                                fontSize: '11.5px',
-                                borderColor: isSelected
-                                  ? 'var(--vs-ink)'
-                                  : undefined,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
                               }}
                             >
-                              {isSelected ? 'Selected' : 'Cold Note'}
-                            </button>
+                              {accessToken ||
+                              (r.share_slug !== 'mosaic-springfield-audit' &&
+                                r.share_slug !== 'aurearoasters-com-vf9w' &&
+                                r.expires_at !== null) ? (
+                                <button
+                                  type="button"
+                                  disabled={refreshingPitchSlug !== null}
+                                  onClick={() =>
+                                    void handleRefreshPitchReport(r.share_slug)
+                                  }
+                                  className="vs-btn vs-btn-secondary"
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '11.5px',
+                                  }}
+                                  title="Re-scan client domain across ChatGPT, Gemini & Perplexity and update this /audit/[slug] link in-place"
+                                >
+                                  {refreshingPitchSlug === r.share_slug
+                                    ? 'Refreshing...'
+                                    : '↻'}
+                                </button>
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPitchSlug(r.share_slug)}
+                                className="vs-btn vs-btn-secondary"
+                                style={{
+                                  padding: '4px 9px',
+                                  fontSize: '11.5px',
+                                  borderColor: isSelected
+                                    ? 'var(--vs-ink)'
+                                    : undefined,
+                                }}
+                              >
+                                {isSelected ? 'Selected' : 'Cold Note'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -2528,16 +2597,47 @@ export function DashboardConsoleClient(props: {
                       : 'CRITIC-VERIFIED 3-TOUCH SEQUENCE (INSTANTLY / SMARTLEAD / GMAIL)'}
                   </span>
                   <div
-                    role="group"
-                    aria-label="Cold outreach sequence touch"
                     style={{
                       display: 'inline-flex',
-                      border: '1px solid var(--vs-border)',
-                      borderRadius: '6px',
-                      padding: '2px',
-                      background: 'var(--vs-surface)',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
                     }}
                   >
+                    {accessToken ||
+                    (selectedPitchReport.share_slug !==
+                      'mosaic-springfield-audit' &&
+                      selectedPitchReport.share_slug !==
+                        'aurearoasters-com-vf9w' &&
+                      selectedPitchReport.expires_at !== null) ? (
+                      <button
+                        type="button"
+                        disabled={refreshingPitchSlug !== null}
+                        onClick={() =>
+                          void handleRefreshPitchReport(
+                            selectedPitchReport.share_slug
+                          )
+                        }
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        title="Re-run 3-engine audit and update this /audit/[slug] link in-place"
+                      >
+                        {refreshingPitchSlug === selectedPitchReport.share_slug
+                          ? 'Refreshing Brief...'
+                          : '↻ Refresh Live Brief'}
+                      </button>
+                    ) : null}
+                    <div
+                      role="group"
+                      aria-label="Cold outreach sequence touch"
+                      style={{
+                        display: 'inline-flex',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '6px',
+                        padding: '2px',
+                        background: 'var(--vs-surface)',
+                      }}
+                    >
                     {(
                       [
                         { id: 'day0', label: 'Touch 1 · Day 0' },
@@ -2568,6 +2668,7 @@ export function DashboardConsoleClient(props: {
                         </button>
                       );
                     })}
+                    </div>
                   </div>
                 </div>
 

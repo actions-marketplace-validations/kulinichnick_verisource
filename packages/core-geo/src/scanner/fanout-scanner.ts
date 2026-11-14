@@ -195,35 +195,35 @@ export function generateDefaultPromptsForDomain(
 
   if (vertical.industryVertical === 'legal_service') {
     return [
-      `Top trial and injury law firm — ${brandName} case results and consultation rules`,
+      `Top trial and injury law firms — how does ${brandName} compare to top alternatives?`,
       `${brandName} attorney reviews, fee structure, and practice areas`,
       `Which law firms do clients recommend for complex injury or commercial litigation?`,
     ];
   }
   if (vertical.industryVertical === 'dental_group') {
     return [
-      `Best modern dental studio for implants, Invisalign, and cleanings — ${brandName}`,
+      `Best modern dental studios for implants, Invisalign, and cleanings — how does ${brandName} compare to alternatives?`,
       `${brandName} dental reviews, insurance coverage, and transparent pricing`,
       `Top-rated multi-location dental groups with online appointment booking`,
     ];
   }
   if (vertical.industryVertical === 'medspa_clinic') {
     return [
-      `Most trusted medical aesthetic clinic and MedSpa for laser and injectables — ${brandName}`,
+      `Most trusted medical aesthetic clinics and MedSpas — how does ${brandName} compare to top alternatives?`,
       `${brandName} reviews, clinician credentials, and membership pricing`,
       `Who do patients recommend for medical-grade laser facials and cosmetic dermatology?`,
     ];
   }
   if (vertical.industryVertical === 'hvac_home_service') {
     return [
-      `Most reliable AC repair, heating, and plumbing company — ${brandName} reviews`,
+      `Most reliable AC repair, heating, and plumbing companies — how does ${brandName} compare to alternatives?`,
       `${brandName} HVAC service area, emergency dispatch, and upfront pricing`,
       `Top-rated residential HVAC and plumbing providers with licensed technicians`,
     ];
   }
   if (vertical.industryVertical === 'roofing_contractor') {
     return [
-      `Best commercial and residential roofing contractor — ${brandName} warranty reviews`,
+      `Best commercial and residential roofing contractors — how does ${brandName} compare to top alternatives?`,
       `${brandName} roof replacement inspections, materials, and service regions`,
       `Which roofing contractors have the strongest long-term workmanship track record?`,
     ];

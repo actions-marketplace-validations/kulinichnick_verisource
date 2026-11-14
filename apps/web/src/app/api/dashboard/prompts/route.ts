@@ -15,6 +15,8 @@ import {
   resolveAuthenticatedProfile,
 } from '../../../../lib/data-store';
 
+export const maxDuration = 60;
+
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = (await request.json()) as {

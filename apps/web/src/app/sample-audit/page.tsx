@@ -7,14 +7,17 @@ import {
   type AgencyPitchReportRow,
 } from '@verisource/core-geo';
 import { CodeArtifactCard, StatusBadge } from '@verisource/ui';
-import { getServiceSupabaseClient } from '../../lib/data-store';
+import {
+  getLocalMockStore,
+  getServiceSupabaseClient,
+} from '../../lib/data-store';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Sample White-Label Client Audits & Outbound Playbook | Verisource',
   description:
-    'Inspect real white-label /audit/[slug] client briefs and Critic-verified (>= 9.5/10) 4-sentence founder outreach notes across Shopify D2C and B2B SaaS.',
+    'Inspect live 3-engine white-label /audit/[slug] client briefs (ChatGPT, Gemini & Perplexity) and Critic-verified (>= 9.5/10) 4-sentence founder outreach notes.',
   alternates: {
     canonical: 'https://verisource.dev/sample-audit',
   },
@@ -34,10 +37,12 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
       .select('*')
       .eq('agency_brand_name_snapshot', 'Verisource GEO Advisory')
       .order('created_at', { ascending: false })
-      .limit(12);
+      .limit(18);
     if (data && data.length > 0) {
       liveCohortReports = data as AgencyPitchReportRow[];
     }
+  } else {
+    liveCohortReports = getLocalMockStore().pitchReports.slice(0, 6);
   }
 
   return (
@@ -221,7 +226,8 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
                 margin: '0 0 14px 0',
               }}
             >
-              Recent live HTTP + Gemini Search Grounding audits.
+              Recent live 3-engine HTTP + AI Search audits (ChatGPT, Gemini &amp;
+              Perplexity).
             </h2>
             <div className="vs-card vs-table-wrap">
               <table className="vs-table">
@@ -229,6 +235,7 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
                   <tr>
                     <th>Brand</th>
                     <th>AI Visibility</th>
+                    <th>Rivals Cited</th>
                     <th>Key Protocol Gap Flagged</th>
                     <th style={{ textAlign: 'right' }}>Live Brief</th>
                   </tr>
@@ -248,8 +255,21 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
                           {r.prospect_domain}
                         </div>
                       </td>
-                      <td className="vs-mono">
+                      <td className="vs-mono" style={{ whiteSpace: 'nowrap' }}>
                         <strong>{r.visibility_score}</strong> / 100
+                      </td>
+                      <td
+                        style={{
+                          fontSize: '12.5px',
+                          color: 'var(--vs-ink-secondary)',
+                          maxWidth: '240px',
+                        }}
+                      >
+                        {r.summary_payload.competitors_winning.length > 0
+                          ? r.summary_payload.competitors_winning
+                              .slice(0, 3)
+                              .join(' · ')
+                          : 'Category directories'}
                       </td>
                       <td
                         style={{

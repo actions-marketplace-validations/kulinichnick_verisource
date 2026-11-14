@@ -15,6 +15,8 @@ import {
   provisionDomainAuditForWorkspace,
 } from '../../../../lib/data-store';
 
+export const maxDuration = 60;
+
 const ALLOWED_PLANS = new Set<PlanTier>([
   'tripwire_19',
   'starter_49',

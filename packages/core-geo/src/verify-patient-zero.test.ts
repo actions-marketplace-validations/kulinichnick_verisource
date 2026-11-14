@@ -13,6 +13,7 @@ import {
   buildAgencyPartnerOutreachNote,
   buildAgencyPartnerOutreachSequence,
   buildAgencyPartnerPlaybookMarkdown,
+  buildAgencyPitchPayload,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildHallucinationDriftAlert,
@@ -1083,4 +1084,89 @@ test('Natural buyer prompt extractor, rival brand vs. directory separator & live
     isFixTypeLiveOnDomain('citation_outreach_brief', liveProbe, liveShopify),
     false
   );
+});
+
+test('buildAgencyPitchPayload strips mock/generic rival placeholders when live rivals exist and deduplicates root brands', () => {
+  const payload = buildAgencyPitchPayload({
+    brandName: 'Resend',
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: true,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    llmsTxtStatus: 'present',
+    agentsMdStatus: 'missing',
+    isShopify: false,
+    shopifyMcpStatus: 'unavailable',
+    jsonLdCount: 2,
+    scanResults: [
+      {
+        promptText: 'Best developer email APIs — how does Resend compare to top alternatives?',
+        aiEngine: 'perplexity',
+        brandMentioned: true,
+        citationRank: 1,
+        competitorsMentioned: ['Postmark', 'SendGrid', 'Amazon SES'],
+        citedSourceUrls: ['https://postmarkapp.com'],
+        decompiledFanoutQueries: ['resend vs postmark pricing'],
+        fanoutTelemetryType: 'observed_query',
+        hallucinationDetected: false,
+        hallucinationDetails: [],
+        rawAnswerExcerpt: 'Resend competes with Postmark, SendGrid, and Amazon SES.',
+      },
+      {
+        promptText: 'Resend reviews and pricing',
+        aiEngine: 'gemini',
+        brandMentioned: true,
+        citationRank: 2,
+        competitorsMentioned: [
+          'postmarkapp.com',
+          'reddit.com buyer threads',
+          'editorial comparison guides',
+        ],
+        citedSourceUrls: [],
+        decompiledFanoutQueries: [],
+        fanoutTelemetryType: 'observed_query',
+        hallucinationDetected: false,
+        hallucinationDetails: [],
+        rawAnswerExcerpt: 'Resend offers transactional email.',
+      },
+      {
+        promptText: 'Top alternatives to Resend',
+        aiEngine: 'chatgpt',
+        brandMentioned: false,
+        citationRank: null,
+        competitorsMentioned: [
+          'Top Resend Category Peer #1',
+          'Top Resend Category Peer #2',
+        ],
+        citedSourceUrls: [],
+        decompiledFanoutQueries: [],
+        fanoutTelemetryType: 'mock_fixture',
+        hallucinationDetected: false,
+        hallucinationDetails: [],
+        rawAnswerExcerpt: 'Mock fallback.',
+      },
+    ],
+    allHallucinations: [],
+  });
+
+  assert.deepEqual(payload.competitors_winning, [
+    'Postmark',
+    'SendGrid',
+    'Amazon SES',
+  ]);
+  assert.ok(
+    !payload.competitors_winning.some((r) => /Category Peer|reddit\.com buyer/i.test(r))
+  );
+
+  const dentalPrompts = generateDefaultPromptsForDomain(
+    normalizePublicDomain('hellotend.com'),
+    'Tend Dental',
+    'Modern dental studio for cleanings, Invisalign, and implants.',
+    false
+  );
+  assert.ok(dentalPrompts[0]!.includes('alternatives'));
 });
