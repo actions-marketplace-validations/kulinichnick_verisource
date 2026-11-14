@@ -16,6 +16,8 @@ import {
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
   enforceQualityGate95,
+  extractAlternateMarkdownHref,
+  extractVerifiableTruthFromAlternateBody,
   generateMcpApiKey,
   gradeArtifactQuality,
   normalizePublicDomain,
@@ -336,4 +338,33 @@ This store is built on [Shopify](https://www.shopify.com). The Shop skill at [ht
       `Expected ${storeDir} JSON-LD >= 9.5, got ${jsonLdAudit.score}: ${jsonLdAudit.violations.join('; ')}`
     );
   }
+});
+
+test('Same-origin <link rel="alternate" type="text/markdown"> extractor upgrades Shopify truth overrides', () => {
+  const sampleHead = `<!doctype html><html><head>
+    <link href="https://aurearoasters.com/cdn/shop/files/aurea-verified-ai-facts.md" title="Aurea Truth" type="text/markdown" rel="alternate">
+  </head><body></body></html>`;
+  assert.equal(
+    extractAlternateMarkdownHref(sampleHead),
+    'https://aurearoasters.com/cdn/shop/files/aurea-verified-ai-facts.md'
+  );
+
+  const sampleShopifyPageHtml = `<!doctype html><html><head><title>Nav</title></head><body>
+    <header>Cart (0)</header>
+    <main>
+      <article class="verisource-ai-facts">
+        <h1>Mosaic Coffee Roasters — Verified Brand Truth</h1>
+        <p>Free local delivery on orders of $45.00 USD or more within 25 miles of Springfield, MO.</p>
+        <p>Exclusions: Mosaic does NOT offer $25 nationwide free shipping.</p>
+      </article>
+    </main>
+    <footer>Start your own store: https://www.shopify.com/start</footer>
+  </body></html>`;
+
+  const extracted = extractVerifiableTruthFromAlternateBody(
+    sampleShopifyPageHtml,
+    'text/html; charset=utf-8'
+  );
+  assert.ok(extracted && !extracted.includes('shopify.com/start'));
+  assert.equal(classifyAgentsMdContent(extracted), 'custom_enriched');
 });

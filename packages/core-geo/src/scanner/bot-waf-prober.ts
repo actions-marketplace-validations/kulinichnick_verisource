@@ -197,10 +197,63 @@ export function classifyAgentsMdContent(raw: string | null): AgentsMdStatus {
   return looksLikeAutoBoilerplate ? 'default_boilerplate' : 'custom_enriched';
 }
 
+export function extractAlternateMarkdownHref(html: string): string | null {
+  const linkRegex = /<link\b[^>]*>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = linkRegex.exec(html)) !== null) {
+    const tag = match[0];
+    if (!/\brel\s*=\s*["'][^"']*\balternate\b[^"']*["']/i.test(tag)) continue;
+    if (!/\btype\s*=\s*["']text\/markdown["']/i.test(tag)) continue;
+    const hrefMatch = tag.match(/\bhref\s*=\s*["']([^"']+)["']/i);
+    const href = hrefMatch?.[1]?.trim();
+    if (href) return href;
+  }
+  return null;
+}
+
+export function extractVerifiableTruthFromAlternateBody(
+  body: string,
+  contentType: string | null
+): string | null {
+  const raw = body.trim();
+  if (raw.length < 40) return null;
+
+  const isHtml = isLikelyHtmlSoft404(raw, contentType);
+  if (!isHtml) {
+    return raw;
+  }
+
+  // Extract primary semantic container on Shopify /pages/ai-facts so nav/footer chrome does not pollute classification
+  const articleMatch =
+    raw.match(
+      /<article[^>]*class=["'][^"']*verisource-ai-facts[^"']*["'][^>]*>([\s\S]*?)<\/article>/i
+    ) ?? raw.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
+
+  const scopedHtml = articleMatch?.[1] ?? raw;
+  const cleaned = scopedHtml
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<\/(?:h1|h2|h3|p|li|ul|article|section|div)>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&rsquo;/g, "'")
+    .replace(/&ndash;/g, '–')
+    .replace(/&mdash;/g, '—')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n+/g, '\n')
+    .trim();
+
+  return cleaned.length >= 40 ? cleaned : null;
+}
+
 function extractHtmlMetadata(html: string): {
   title: string | null;
   metaDescription: string | null;
   jsonLdBlocks: Record<string, unknown>[];
+  alternateMarkdownHref: string | null;
   htmlSignalsShopify: boolean;
   extractedPriceMentions: string[];
   extractedShippingMentions: string[];
@@ -218,6 +271,20 @@ function extractHtmlMetadata(html: string): {
   const metaDescription = descMatch?.[1]?.replace(/\s+/g, ' ').trim() ?? null;
 
   const jsonLdBlocks: Record<string, unknown>[] = [];
+  const pushJsonLdNode = (node: unknown): void => {
+    if (!node || typeof node !== 'object') return;
+    const obj = node as Record<string, unknown>;
+    if (Array.isArray(obj['@graph']) && obj['@graph'].length > 0) {
+      for (const graphItem of obj['@graph']) {
+        if (graphItem && typeof graphItem === 'object') {
+          jsonLdBlocks.push(graphItem as Record<string, unknown>);
+        }
+      }
+    } else {
+      jsonLdBlocks.push(obj);
+    }
+  };
+
   const scriptRegex =
     /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   let match: RegExpExecArray | null;
@@ -228,17 +295,17 @@ function extractHtmlMetadata(html: string): {
       const parsed = JSON.parse(rawJson);
       if (Array.isArray(parsed)) {
         for (const item of parsed) {
-          if (item && typeof item === 'object') {
-            jsonLdBlocks.push(item as Record<string, unknown>);
-          }
+          pushJsonLdNode(item);
         }
-      } else if (parsed && typeof parsed === 'object') {
-        jsonLdBlocks.push(parsed as Record<string, unknown>);
+      } else {
+        pushJsonLdNode(parsed);
       }
     } catch {
       // Ignore malformed third-party theme JSON-LD blocks
     }
   }
+
+  const alternateMarkdownHref = extractAlternateMarkdownHref(html);
 
   const htmlSignalsShopify =
     /Shopify\.shop|cdn\.shopify\.com|shopify-digital-wallet|myshopify\.com/i.test(
@@ -271,6 +338,7 @@ function extractHtmlMetadata(html: string): {
     title,
     metaDescription,
     jsonLdBlocks,
+    alternateMarkdownHref,
     htmlSignalsShopify,
     extractedPriceMentions: priceMatches,
     extractedShippingMentions: shippingSentences,
@@ -451,6 +519,48 @@ export async function probeDomainHttpReadiness(
     homeRes.headers?.get('x-shopid') || homeRes.headers?.get('x-shopify-stage')
   );
 
+  let effectiveAgentsMdRaw = validAgentsMd ? agentsRes.body : null;
+  let effectiveAgentsMdStatus = classifyAgentsMdContent(effectiveAgentsMdRaw);
+
+  // Follow same-origin <link rel="alternate" type="text/markdown" href="..."> overrides (e.g., native Shopify stores where platform edge intercepts /agents.md)
+  if (
+    effectiveAgentsMdStatus !== 'custom_enriched' &&
+    htmlMeta.alternateMarkdownHref
+  ) {
+    try {
+      const candidateUrl = new URL(htmlMeta.alternateMarkdownHref, domain.origin);
+      const candidateHost = candidateUrl.hostname
+        .toLowerCase()
+        .replace(/^www\./, '');
+      if (
+        candidateUrl.protocol === 'https:' &&
+        candidateHost === domain.hostname &&
+        !PRIVATE_OR_BLOCKED_HOST_REGEX.test(candidateHost)
+      ) {
+        const altRes = await safeFetchText(
+          candidateUrl.toString(),
+          undefined,
+          4500
+        );
+        if (altRes.ok && altRes.body.trim().length >= 80) {
+          const extractedTruth = extractVerifiableTruthFromAlternateBody(
+            altRes.body,
+            altRes.headers?.get('content-type') ?? null
+          );
+          if (
+            extractedTruth &&
+            classifyAgentsMdContent(extractedTruth) === 'custom_enriched'
+          ) {
+            effectiveAgentsMdRaw = extractedTruth;
+            effectiveAgentsMdStatus = 'custom_enriched';
+          }
+        }
+      }
+    } catch {
+      // Ignore malformed alternate hrefs
+    }
+  }
+
   return {
     domain,
     reachable: homeRes.ok || htmlBody.length > 0,
@@ -461,10 +571,8 @@ export async function probeDomainHttpReadiness(
     robotsAiBotStatus,
     llmsTxtStatus: validLlmsTxt ? 'present' : 'missing',
     llmsTxtExcerpt: validLlmsTxt ? llmsRes.body.slice(0, 500) : null,
-    agentsMdRaw: validAgentsMd ? agentsRes.body : null,
-    agentsMdInitialStatus: classifyAgentsMdContent(
-      validAgentsMd ? agentsRes.body : null
-    ),
+    agentsMdRaw: effectiveAgentsMdRaw,
+    agentsMdInitialStatus: effectiveAgentsMdStatus,
     htmlSignalsShopify: htmlMeta.htmlSignalsShopify || shopifyHeaderDetected,
     extractedPriceMentions: htmlMeta.extractedPriceMentions,
     extractedShippingMentions: htmlMeta.extractedShippingMentions,

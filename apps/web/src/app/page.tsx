@@ -184,7 +184,7 @@ export default function HomePage(): React.ReactElement {
         </div>
       </section>
 
-      {/* Patient Zero Empirical Case Ledger */}
+      {/* Patient Zero Empirical Before -> After Case Ledger */}
       <section id="case-ledger" style={{ marginTop: '64px' }}>
         <div
           className="vs-mono"
@@ -197,27 +197,44 @@ export default function HomePage(): React.ReactElement {
             marginBottom: '6px',
           }}
         >
-          PATIENT ZERO BENCHMARK LEDGER
+          PATIENT ZERO · BEFORE &rarr; AFTER REMEDIATION LEDGER
         </div>
         <h2
           style={{
             fontSize: '26px',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            margin: '0 0 18px 0',
+            margin: '0 0 8px 0',
           }}
         >
-          Verified live findings on specialty Shopify storefronts.
+          Live production deployments on specialty Shopify storefronts.
         </h2>
+        <p
+          style={{
+            fontSize: '14.5px',
+            lineHeight: 1.55,
+            color: 'var(--vs-ink-secondary)',
+            margin: '0 0 18px 0',
+            maxWidth: '780px',
+          }}
+        >
+          Every metric below is live in production right now. Type{' '}
+          <code className="vs-mono">aurearoasters.com</code> or{' '}
+          <code className="vs-mono">mosaicroasters.com</code> into the grader
+          above to verify the deployed <code className="vs-mono">JSON-LD</code>{' '}
+          graphs, <code className="vs-mono">/api/ucp/mcp</code> status, and
+          linked Markdown truth sheets in real time.
+        </p>
 
-        <div className="vs-card" style={{ overflow: 'hidden' }}>
+        <div className="vs-card" style={{ overflowX: 'auto' }}>
           <table className="vs-table">
             <thead>
               <tr>
                 <th>Storefront</th>
-                <th>Protocol &amp; Bot Status</th>
-                <th>Detected LLM Hallucination</th>
-                <th>Generated 9.5+/10 Fix</th>
+                <th>AI Readiness Uplift</th>
+                <th>Live Protocol &amp; Schema State</th>
+                <th>Hallucination Guardrail Deployed</th>
+                <th>White-Label Audit</th>
               </tr>
             </thead>
             <tbody>
@@ -228,17 +245,36 @@ export default function HomePage(): React.ReactElement {
                     aurearoasters.com
                   </div>
                 </td>
+                <td className="vs-mono" style={{ fontSize: '13.5px', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: 'var(--vs-ink-muted)' }}>41</span>{' '}
+                  &rarr;{' '}
+                  <strong style={{ color: '#059669' }}>92 / 100</strong>
+                  <div style={{ fontSize: '11px', color: '#059669' }}>+51 pts live</div>
+                </td>
                 <td>
-                  <StatusBadge tone="pass">UCP /api/ucp/mcp Active</StatusBadge>{' '}
-                  <StatusBadge tone="warn">Boilerplate /agents.md</StatusBadge>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <StatusBadge tone="pass">UCP /api/ucp/mcp Active</StatusBadge>
+                    <StatusBadge tone="pass">Custom Truth Linked</StatusBadge>
+                    <StatusBadge>7 JSON-LD Nodes</StatusBadge>
+                  </div>
                 </td>
-                <td style={{ fontSize: '13px' }}>
-                  ChatGPT claimed Aurea sells <strong>$15 K-Cup pods</strong>.
-                  Verified truth: 12oz whole-bean single-origin bags ($22–$28)
-                  with saint-biography QR codes; zero K-Cups.
+                <td style={{ fontSize: '13px', maxWidth: '320px' }}>
+                  Countered false <strong>$15 K-Cup pod</strong> claims with an
+                  8-SKU <code className="vs-mono">OfferCatalog</code> ($21.95–$109.95),{' '}
+                  <code className="vs-mono">FAQPage</code>, and canonical
+                  Markdown truth file via Shopify Admin API.
                 </td>
-                <td className="vs-mono" style={{ fontSize: '12px' }}>
-                  agents.md.liquid override + Product Offer JSON-LD (9.8 / 10.0)
+                <td className="vs-mono" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+                  <a
+                    href="/audit/aurearoasters-com-vf9w"
+                    style={{
+                      color: 'var(--vs-ink)',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '3px',
+                    }}
+                  >
+                    View Pitch &rarr;
+                  </a>
                 </td>
               </tr>
               <tr>
@@ -248,17 +284,36 @@ export default function HomePage(): React.ReactElement {
                     mosaicroasters.com
                   </div>
                 </td>
+                <td className="vs-mono" style={{ fontSize: '13.5px', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: 'var(--vs-ink-muted)' }}>52</span>{' '}
+                  &rarr;{' '}
+                  <strong style={{ color: '#059669' }}>84 / 100</strong>
+                  <div style={{ fontSize: '11px', color: '#059669' }}>+32 pts live</div>
+                </td>
                 <td>
-                  <StatusBadge tone="critical">PerplexityBot 403 WAF</StatusBadge>{' '}
-                  <StatusBadge tone="critical">/agents.md Missing</StatusBadge>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <StatusBadge tone="pass">UCP /api/ucp/mcp Active</StatusBadge>
+                    <StatusBadge tone="pass">/pages/ai-facts Live</StatusBadge>
+                    <StatusBadge>5 JSON-LD Nodes</StatusBadge>
+                  </div>
                 </td>
-                <td style={{ fontSize: '13px' }}>
-                  Perplexity claimed <strong>free nationwide shipping over $25</strong>.
-                  Verified truth: free local hand-delivery applies to{' '}
-                  <strong>$45+ orders within 25 miles of Springfield, MO</strong>.
+                <td style={{ fontSize: '13px', maxWidth: '320px' }}>
+                  Countered false <strong>$25 nationwide free shipping</strong>{' '}
+                  claims with a <code className="vs-mono">40.2km GeoCircle</code>{' '}
+                  schema encoding <strong>$45+ local delivery</strong> within 25
+                  miles of Springfield, MO.
                 </td>
-                <td className="vs-mono" style={{ fontSize: '12px' }}>
-                  LocalBusiness GeoCircle JSON-LD + WAF allowlist (9.7 / 10.0)
+                <td className="vs-mono" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+                  <a
+                    href="/audit/mosaic-springfield-audit"
+                    style={{
+                      color: 'var(--vs-ink)',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '3px',
+                    }}
+                  >
+                    View Pitch &rarr;
+                  </a>
                 </td>
               </tr>
             </tbody>

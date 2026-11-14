@@ -480,7 +480,21 @@ async function run() {
       }),
     });
     assert.equal(validShopifySandboxPixelRes.status, 201);
-    console.log('✔ [17/17] Shopify Customer Events sandboxed pixel blocked unauthenticated Origin:null (403) & recorded verified checkout_key (201)');
+    console.log('✔ [17/18] Shopify Customer Events sandboxed pixel blocked unauthenticated Origin:null (403) & recorded verified checkout_key (201)');
+
+    // 16. Before -> After Patient Zero Case Study Ledger on Landing Page
+    const homeAfterRes = await fetch(`${BASE}/`);
+    const homeAfterHtml = await homeAfterRes.text();
+    assert.ok(homeAfterHtml.includes('92 / 100'), 'Expected Aurea 92 / 100 post-remediation score');
+    assert.ok(homeAfterHtml.includes('84 / 100'), 'Expected Mosaic 84 / 100 post-remediation score');
+    assert.ok(homeAfterHtml.includes('/audit/aurearoasters-com-vf9w'));
+    assert.ok(homeAfterHtml.includes('/audit/mosaic-springfield-audit'));
+    const homeAfterVisible = homeAfterHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal((homeAfterVisible.match(BANNED_LEXICON) ?? []).length, 0);
+    console.log('✔ [18/18] Before -> After Patient Zero case study ledger verified on / (0 banned words)');
   } finally {
     server.kill();
   }
