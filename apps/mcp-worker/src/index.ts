@@ -5,6 +5,7 @@ import {
   type McpRequestContext,
 } from '@modelcontextprotocol/server';
 import {
+  buildMcpDiscoveryManifest,
   normalizePublicDomain,
   runDomainReadinessScan,
   runFullGeoAudit,
@@ -438,8 +439,25 @@ export default {
           service: 'verisource-mcp-worker',
           version: VERISOURCE_VERSION,
           mcp_endpoint: `${url.origin}/mcp`,
+          discovery_manifest: `${url.origin}/.well-known/mcp.json`,
           transport: 'streamable_http_stateless',
           status: 'ok',
+        })
+      );
+    }
+
+    if (
+      url.pathname === '/.well-known/mcp.json' ||
+      url.pathname === '/server.json'
+    ) {
+      const manifest = buildMcpDiscoveryManifest({
+        version: VERISOURCE_VERSION,
+        appOrigin: env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev',
+        mcpOrigin: url.origin,
+      });
+      return withCors(
+        Response.json(manifest, {
+          headers: { 'Cache-Control': 'public, max-age=3600' },
         })
       );
     }

@@ -5,6 +5,7 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 Streamable HTTP MCP Endpoint: https://mcp.verisource.dev/mcp
 Transport: Stateless Streamable HTTP (POST / GET / DELETE JSON-RPC 2.0)
+MCP Discovery Manifest: https://mcp.verisource.dev/.well-known/mcp.json
 OAuth Discovery (RFC 9728): https://mcp.verisource.dev/.well-known/oauth-protected-resource
 Machine Summary: https://verisource.dev/llms.txt
 

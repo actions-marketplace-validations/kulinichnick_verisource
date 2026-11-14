@@ -241,3 +241,21 @@ test('Scheduled weekly cron handler returns clean mock_noop summary with alertsD
     alertsDispatched: 0,
   });
 });
+
+test('GET /.well-known/mcp.json and /server.json expose 4-tool Streamable HTTP registry manifest', async () => {
+  const res = await worker.fetch(
+    new Request('https://mcp.verisource.dev/.well-known/mcp.json'),
+    TEST_ENV
+  );
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('access-control-allow-origin'), '*');
+  const manifest = (await res.json()) as {
+    name: string;
+    remotes: Array<{ type: string; url: string }>;
+    tools: Array<{ name: string }>;
+  };
+  assert.equal(manifest.name, 'io.github.kulinichnick/verisource');
+  assert.equal(manifest.remotes[0]?.type, 'streamable-http');
+  assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
+  assert.equal(manifest.tools.length, 4);
+});

@@ -7,6 +7,7 @@ const LLMS_TXT_BODY = `# Verisource — B2B Generative Engine Optimization (GEO)
 Canonical Web Console: https://verisource.dev
 Pricing & Plans: https://verisource.dev/pricing
 Streamable HTTP MCP Endpoint: https://mcp.verisource.dev/mcp
+MCP Registry Discovery Manifest: https://verisource.dev/.well-known/mcp.json
 OAuth 2.0 Protected Resource Metadata (RFC 9728): https://mcp.verisource.dev/.well-known/oauth-protected-resource
 Agent Capability Manifest: https://verisource.dev/agents.md
 Sample White-Label Agency Audit: https://verisource.dev/audit/mosaic-springfield-audit

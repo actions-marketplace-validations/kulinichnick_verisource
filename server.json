@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.kulinichnick/verisource",
+  "title": "Verisource — B2B GEO & AI Citation Intelligence MCP",
+  "description": "Stateless Streamable HTTP MCP server for auditing ChatGPT, Gemini, and Perplexity brand citations, catching pricing and SKU hallucinations, probing GPTBot/PerplexityBot WAF blocks and Shopify /api/ucp/mcp readiness, and generating >= 9.5/10 JSON-LD, /llms.txt, and /agents.md fixes.",
+  "version": "0.2.2",
+  "websiteUrl": "https://verisource.dev",
+  "repository": {
+    "url": "https://github.com/kulinichnick/verisource",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.verisource.dev/mcp",
+      "headers": [
+        {
+          "name": "Authorization",
+          "description": "Optional for free scan_domain_ai_readiness preview (0 credits); pass Bearer vs_live_<48-hex> or Supabase OAuth 2.0 JWT for Pro and Agency tools.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

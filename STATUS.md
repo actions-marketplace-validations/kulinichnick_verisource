@@ -7,7 +7,7 @@
 > 4. End EVERY turn with the exact `NEXT STEP & MODEL DIRECTIVE` callout required by `GEMINI.md`.
 
 ## Current Build State
-* **Active Phase:** PRODUCTION LIVE (`v0.2.1`), CHROME WEB STORE SUBMITTED FOR REVIEW, AGENCY GTM ENGINE & AUTOMATED HALLUCINATION DRIFT ALERTS SHIPPED (`M0.1` through `M16` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` live, Chrome Extension `v0.1.0` submitted to Chrome Web Store review queue, `28/28` automated unit/MCP/E2E assertions passed (`9/9` core-geo + `5/5` mcp-worker + `14/14` Next.js E2E)).
+* **Active Phase:** PRODUCTION LIVE (`v0.2.2`), GOOGLE SEARCH CONSOLE VERIFIED, CHROME WEB STORE SUBMITTED, DRIFT ALERTS & MCP REGISTRY DISCOVERY SHIPPED (`M0.1` through `M17` — `https://verisource.dev` + `https://mcp.verisource.dev/mcp` + `/.well-known/mcp.json` live, `verisource.dev` DNS `TXT` + `sitemap.xml` verified in Google Search Console, Chrome Extension `v0.1.0` in Chrome Web Store review queue, `31/31` automated assertions passed (`10/10` core-geo + `6/6` mcp-worker + `15/15` Next.js E2E)).
 * **Brand / Domain:** **Verisource** (`verisource.dev` | MCP: `mcp.verisource.dev`)
 * **Workspace Path:** `C:\dev\verisource` (local SSD; `STATUS.md` mirrored to `g:\My Drive\GEO MCP Engine\STATUS.md`)
 * **Patient Zero Seed Stores (Confirmed):** `aurearoasters.com` (Aurea Coffee Roasters) & `mosaicroasters.com` (Mosaic Coffee Roasters)
@@ -116,3 +116,10 @@
   3. **Tab 1 Watchdog `Send Drift Alert` + Open-Relay Safe API (`apps/web/src/app/api/dashboard/alerts/route.ts` + `DashboardConsoleClient.tsx`):** Added `POST /api/dashboard/alerts` (strict email validation, IP rate-limiting, and authenticated owner-only live Resend dispatch) plus 1-click `Send Drift Alert` and dismissible `CodeArtifactCard` preview in Tab 1 Module 1 while strictly preserving the 3-Tab shell.
   4. **Google Search Console Verification Support (`apps/web/src/app/layout.tsx`):** Added `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` metadata support alongside Cloudflare DNS `TXT` domain verification for `https://verisource.dev` and `/sitemap.xml` indexing.
   5. **Full Verification (`28/28` Automated Checks):** Passed `pnpm typecheck` (`5/5`), `@verisource/core-geo` unit tests (`9/9`), `@verisource/mcp-worker` `/mcp` & cron tests (`5/5`), `pnpm build` (`5/5`), and `@verisource/web` `verify-e2e.mjs` (`14/14`).
+
+### [x] M17 — Google Search Console Verification, MCP Registry Discovery (`/.well-known/mcp.json` + `server.json`) & Resend Automation (`v0.2.2`) *(DONE)*
+* **Completed:**
+  1. **Google Search Console Domain Ownership + Sitemap (`verisource.dev`):** Published Cloudflare DNS `TXT` verification record (`google-site-verification=...`), confirmed Search Console ownership on `verisource.dev`, and submitted `https://verisource.dev/sitemap.xml` (authorizing `Official URL` for Chrome Web Store).
+  2. **MCP Registry Discovery Manifest (`packages/core-geo/src/mcp/discovery-manifest.ts` + `server.json`):** Built `buildMcpDiscoveryManifest` (`io.github.kulinichnick/verisource`, schema `2025-10-17`) and served `/.well-known/mcp.json` (CORS `*`) on both `https://verisource.dev/.well-known/mcp.json` (`apps/web/src/app/.well-known/mcp.json/route.ts`) and `https://mcp.verisource.dev/.well-known/mcp.json` (`apps/mcp-worker/src/index.ts`), plus root `server.json` and Critic-verified `MCP_DIRECTORY_LAUNCH.md` (`>= 9.5/10`).
+  3. **1-Command Resend Secret Installer (`scripts/configure-resend.mjs`):** Added cross-platform helper syncing `RESEND_API_KEY` and `ALERT_FROM_EMAIL` across Vercel Production and Cloudflare Worker secrets in one command.
+  4. **Full Verification (`31/31` Automated Checks):** Passed `pnpm typecheck` (`5/5`), `@verisource/core-geo` unit tests (`10/10`), `@verisource/mcp-worker` `/mcp`, cron & discovery tests (`6/6`), `pnpm build` (`5/5`), and `@verisource/web` `verify-e2e.mjs` (`15/15`).

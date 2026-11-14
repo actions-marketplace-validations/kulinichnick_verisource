@@ -426,7 +426,21 @@ async function run() {
       0,
       'Found banned lexicon in drift alert email text'
     );
-    console.log('✔ [14/14] /api/dashboard/alerts rejected malformed email (400) & generated >= 9.5/10 drift alert');
+    console.log('✔ [14/15] /api/dashboard/alerts rejected malformed email (400) & generated >= 9.5/10 drift alert');
+
+    // 14. MCP Registry Discovery Manifest (/.well-known/mcp.json)
+    const mcpManifestRes = await fetch(`${BASE}/.well-known/mcp.json`);
+    assert.equal(mcpManifestRes.status, 200);
+    assert.equal(mcpManifestRes.headers.get('access-control-allow-origin'), '*');
+    const mcpManifestJson = await mcpManifestRes.json();
+    assert.equal(mcpManifestJson.name, 'io.github.kulinichnick/verisource');
+    assert.equal(mcpManifestJson.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
+    assert.equal(mcpManifestJson.tools.length, 4);
+    assert.equal(
+      (JSON.stringify(mcpManifestJson).match(BANNED_LEXICON) ?? []).length,
+      0
+    );
+    console.log('✔ [15/15] /.well-known/mcp.json registry discovery manifest verified (4 tools, CORS *, 0 banned words)');
   } finally {
     server.kill();
   }

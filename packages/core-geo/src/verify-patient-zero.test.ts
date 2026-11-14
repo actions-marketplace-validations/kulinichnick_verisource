@@ -10,6 +10,7 @@ import {
   buildAgencyColdOutreachNote,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
+  buildMcpDiscoveryManifest,
   dispatchHallucinationDriftEmail,
   enforceQualityGate95,
   generateMcpApiKey,
@@ -248,4 +249,29 @@ test('Hallucination drift email alert builder & dry-run dispatcher pass >= 9.5/1
   assert.equal(dryRun.delivered, false);
   assert.equal(dryRun.mode, 'preview_dry_run');
   assert.ok(dryRun.qualityScore >= 9.5);
+});
+
+test('MCP Registry discovery manifest & MCP_DIRECTORY_LAUNCH.md pass >= 9.5/10 Critic', () => {
+  const manifest = buildMcpDiscoveryManifest();
+  assert.equal(manifest.name, 'io.github.kulinichnick/verisource');
+  assert.equal(manifest.remotes[0]?.type, 'streamable-http');
+  assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
+  assert.equal(manifest.tools.length, 4);
+
+  const manifestAudit = gradeArtifactQuality(manifest.description);
+  assert.ok(
+    manifestAudit.score >= 9.5,
+    `Expected manifest description >= 9.5, got ${manifestAudit.score}`
+  );
+
+  const launchKitPath = path.resolve(
+    process.cwd(),
+    '../../MCP_DIRECTORY_LAUNCH.md'
+  );
+  const launchKitMd = fs.readFileSync(launchKitPath, 'utf8');
+  const kitAudit = gradeArtifactQuality(launchKitMd, 'agents_md');
+  assert.ok(
+    kitAudit.score >= 9.5,
+    `Expected MCP_DIRECTORY_LAUNCH.md >= 9.5, got ${kitAudit.score}: ${kitAudit.violations.join('; ')}`
+  );
 });
