@@ -394,7 +394,39 @@ async function run() {
     assert.equal(rootOgBytes[1], 80);
     assert.equal(pitchOgBytes[0], 137);
     assert.equal(pitchOgBytes[1], 80);
-    console.log('✔ [13/13] Root & white-label /audit/[slug] OpenGraph PNG cards (1200x630) verified');
+    console.log('✔ [13/14] Root & white-label /audit/[slug] OpenGraph PNG cards (1200x630) verified');
+
+    // 13. Hallucination Drift Alert API (/api/dashboard/alerts): invalid email rejection + >=9.5/10 Critic preview
+    const badEmailAlertRes = await fetch(`${BASE}/api/dashboard/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        recipient_email: 'not-an-email',
+      }),
+    });
+    assert.equal(badEmailAlertRes.status, 400);
+
+    const driftAlertRes = await fetch(`${BASE}/api/dashboard/alerts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+      }),
+    });
+    assert.equal(driftAlertRes.status, 200);
+    const driftAlertJson = await driftAlertRes.json();
+    assert.equal(driftAlertJson.mode, 'preview_dry_run');
+    assert.ok(
+      Number(driftAlertJson.qualityScore) >= 9.5,
+      `Expected drift alert qualityScore >= 9.5, got ${driftAlertJson.qualityScore}`
+    );
+    assert.equal(
+      (driftAlertJson.text.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in drift alert email text'
+    );
+    console.log('✔ [14/14] /api/dashboard/alerts rejected malformed email (400) & generated >= 9.5/10 drift alert');
   } finally {
     server.kill();
   }

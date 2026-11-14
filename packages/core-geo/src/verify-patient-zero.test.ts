@@ -6,8 +6,11 @@ import {
   PATIENT_ZERO_DOMAINS,
   PATIENT_ZERO_FIXES,
   PATIENT_ZERO_PITCH_REPORT,
+  PATIENT_ZERO_SNAPSHOTS,
   buildAgencyColdOutreachNote,
+  buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
+  dispatchHallucinationDriftEmail,
   enforceQualityGate95,
   generateMcpApiKey,
   gradeArtifactQuality,
@@ -205,4 +208,44 @@ test('Agency cold-outreach note & downloadable implementation bundle pass >= 9.5
     )
   );
   assert.ok(bundleMd.includes('templates/agents.md.liquid'));
+});
+
+test('Hallucination drift email alert builder & dry-run dispatcher pass >= 9.5/10 Critic', async () => {
+  const mosaicDomain = PATIENT_ZERO_DOMAINS[1]!;
+  const mosaicHallucinations = PATIENT_ZERO_SNAPSHOTS.filter(
+    (s) => s.domain_id === mosaicDomain.id
+  ).flatMap((s) => s.hallucination_details ?? []);
+
+  const built = buildHallucinationDriftAlert({
+    brandName: mosaicDomain.brand_name,
+    domainUrl: mosaicDomain.domain_url,
+    visibilityScore: mosaicDomain.visibility_score,
+    accuracyScore: mosaicDomain.accuracy_score,
+    hallucinations: mosaicHallucinations,
+    blockedBots: ['PerplexityBot'],
+    consoleBaseUrl: 'https://verisource.dev',
+  });
+
+  assert.ok(
+    built.quality.score >= 9.5,
+    `Expected drift alert >= 9.5, got ${built.quality.score}`
+  );
+  assert.ok(built.subject.includes('mosaicroasters.com'));
+  assert.ok(
+    built.text.includes('https://verisource.dev/dashboard?domain=mosaicroasters.com')
+  );
+  assert.ok(built.html.includes('VERISOURCE · HALLUCINATION DRIFT WATCHDOG'));
+
+  const dryRun = await dispatchHallucinationDriftEmail({
+    recipientEmail: 'founder@mosaicroasters.com',
+    brandName: mosaicDomain.brand_name,
+    domainUrl: mosaicDomain.domain_url,
+    visibilityScore: mosaicDomain.visibility_score,
+    accuracyScore: mosaicDomain.accuracy_score,
+    hallucinations: [],
+    blockedBots: [],
+  });
+  assert.equal(dryRun.delivered, false);
+  assert.equal(dryRun.mode, 'preview_dry_run');
+  assert.ok(dryRun.qualityScore >= 9.5);
 });

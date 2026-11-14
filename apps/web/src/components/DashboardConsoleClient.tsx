@@ -14,6 +14,7 @@ import {
   type GeneratedFixRow,
   type McpApiKeyRow,
   type ProfileRow,
+  type QualityRubricBreakdown,
   type TrackedPromptRow,
 } from '@verisource/core-geo';
 import {
@@ -112,6 +113,17 @@ export function DashboardConsoleClient(props: {
   const [selectedPitchSlug, setSelectedPitchSlug] = useState<string>(
     () => props.initialData.pitchReports[0]?.share_slug ?? ''
   );
+
+  // Tab 1 Hallucination Drift Alert state
+  const [sendingAlert, setSendingAlert] = useState(false);
+  const [lastAlertPreview, setLastAlertPreview] = useState<{
+    subject: string;
+    text: string;
+    qualityScore: number;
+    qualityBreakdown: QualityRubricBreakdown;
+    mode: 'live_resend' | 'preview_dry_run';
+    recipientEmail: string;
+  } | null>(null);
 
   // Tab 3 MCP Key Minting & Revocation state
   const [keyLabel, setKeyLabel] = useState('Cursor & Antigravity Agent Key');
@@ -212,6 +224,7 @@ export function DashboardConsoleClient(props: {
         '\n'
       )
     );
+    setLastAlertPreview(null);
   }, [activeDomain]);
 
   const domainSnapshots = data.snapshots.filter(
@@ -589,6 +602,62 @@ export function DashboardConsoleClient(props: {
     }
   }
 
+  async function handleSendDriftAlert() {
+    if (!activeDomain) return;
+    setSendingAlert(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/alerts', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ domain_id: activeDomain.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        delivered?: boolean;
+        mode?: 'live_resend' | 'preview_dry_run';
+        recipientEmail?: string;
+        subject?: string;
+        text?: string;
+        qualityScore?: number;
+        qualityBreakdown?: QualityRubricBreakdown;
+      };
+      if (
+        !res.ok ||
+        json.error ||
+        !json.subject ||
+        !json.text ||
+        json.qualityScore === undefined ||
+        !json.qualityBreakdown
+      ) {
+        setBannerError(
+          json.message ?? 'Unable to dispatch hallucination drift alert.'
+        );
+      } else {
+        const mode = json.mode ?? 'preview_dry_run';
+        const recipient = json.recipientEmail ?? data.profile.email;
+        setLastAlertPreview({
+          subject: json.subject,
+          text: json.text,
+          qualityScore: json.qualityScore,
+          qualityBreakdown: json.qualityBreakdown,
+          mode,
+          recipientEmail: recipient,
+        });
+        setBannerSuccess(
+          mode === 'live_resend'
+            ? `Dispatched hallucination drift alert to ${recipient} via Resend (${json.qualityScore}/10 Critic score).`
+            : `Generated drift-alert preview for ${recipient} (${json.qualityScore}/10 Critic score). Set RESEND_API_KEY for automated weekly delivery.`
+        );
+      }
+    } catch {
+      setBannerError('Network error while dispatching drift alert.');
+    } finally {
+      setSendingAlert(false);
+    }
+  }
+
   function handleDownloadFixBundle() {
     if (!activeDomain || domainFixes.length === 0) return;
     const bundleMarkdown = buildImplementationBundleMarkdown({
@@ -893,6 +962,8 @@ export function DashboardConsoleClient(props: {
                     borderBottom: '1px solid var(--vs-border)',
                     background: 'var(--vs-surface-subtle)',
                     display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                   }}
@@ -900,13 +971,31 @@ export function DashboardConsoleClient(props: {
                   <strong style={{ fontSize: '13.5px' }}>
                     Module 1 — AI Hallucination &amp; Claim Watchdog
                   </strong>
-                  <StatusBadge
-                    tone={flaggedSnapshots.length > 0 ? 'critical' : 'pass'}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
                   >
-                    {flaggedSnapshots.length > 0
-                      ? `${flaggedSnapshots.length} RED ALERT(S)`
-                      : 'ALL CLAIMS VERIFIED'}
-                  </StatusBadge>
+                    <StatusBadge
+                      tone={flaggedSnapshots.length > 0 ? 'critical' : 'pass'}
+                    >
+                      {flaggedSnapshots.length > 0
+                        ? `${flaggedSnapshots.length} RED ALERT(S)`
+                        : 'ALL CLAIMS VERIFIED'}
+                    </StatusBadge>
+                    <button
+                      type="button"
+                      disabled={sendingAlert}
+                      onClick={() => void handleSendDriftAlert()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                      title="Dispatch or preview weekly hallucination drift email"
+                    >
+                      {sendingAlert ? 'Dispatching...' : 'Send Drift Alert'}
+                    </button>
+                  </div>
                 </div>
 
                 <table className="vs-table">
@@ -1046,6 +1135,45 @@ export function DashboardConsoleClient(props: {
                 </button>
               </form>
             </div>
+
+            {lastAlertPreview ? (
+              <div style={{ marginBottom: '22px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <span
+                    className="vs-mono"
+                    style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}
+                  >
+                    WATCHDOG ALERT ARTIFACT (
+                    {lastAlertPreview.mode === 'live_resend'
+                      ? 'SENT VIA RESEND'
+                      : 'DRY-RUN PREVIEW'}{' '}
+                    → {lastAlertPreview.recipientEmail})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setLastAlertPreview(null)}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <CodeArtifactCard
+                  title={lastAlertPreview.subject}
+                  fileHint={`Recipient: ${lastAlertPreview.recipientEmail} · Mode: ${lastAlertPreview.mode}`}
+                  code={lastAlertPreview.text}
+                  qualityScore={lastAlertPreview.qualityScore}
+                  qualityBreakdown={lastAlertPreview.qualityBreakdown}
+                />
+              </div>
+            ) : null}
 
             {/* Module 2: AI Bot WAF Status & 10-Line Attribution Snippet */}
             <div className="vs-card" style={{ padding: '16px', marginBottom: '18px' }}>

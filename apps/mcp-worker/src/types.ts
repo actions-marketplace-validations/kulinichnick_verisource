@@ -11,6 +11,8 @@ export interface WorkerEnv {
   OPENAI_API_KEY?: string;
   PERPLEXITY_API_KEY?: string;
   FIRECRAWL_API_KEY?: string;
+  RESEND_API_KEY?: string;
+  ALERT_FROM_EMAIL?: string;
   MCP_CACHE_KV?: KVNamespace;
 }
 

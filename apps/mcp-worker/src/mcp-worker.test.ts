@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { resetMockCreditBalancesForTests } from './auth.js';
+import { runScheduledDomainScans } from './cron.js';
 import worker from './index.js';
 import type { WorkerEnv } from './types.js';
 
@@ -229,4 +230,14 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
   };
   assert.equal(forgedRes.isError, true);
   assert.ok(forgedRes.content[0]!.text.includes('INVALID_OR_REVOKED_KEY'));
+});
+
+test('Scheduled weekly cron handler returns clean mock_noop summary with alertsDispatched=0 when unconfigured', async () => {
+  const summary = await runScheduledDomainScans(TEST_ENV);
+  assert.deepEqual(summary, {
+    mode: 'mock_noop',
+    domainsScanned: 0,
+    snapshotsInserted: 0,
+    alertsDispatched: 0,
+  });
 });

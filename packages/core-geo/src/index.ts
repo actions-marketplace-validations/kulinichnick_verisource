@@ -10,6 +10,7 @@ export * from './watchdog/hallucination-watchdog.js';
 export * from './scanner/fanout-scanner.js';
 export * from './generator/fix-generator.js';
 export * from './generator/pitch-outreach.js';
+export * from './alerts/drift-alert.js';
 export * from './orchestrator/audit-domain.js';
 export * from './auth/api-key.js';
 export * from './pixel/snippet.js';

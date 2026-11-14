@@ -25,6 +25,9 @@ export const metadata: Metadata = {
     description:
       'Audit AI citations across ChatGPT, Gemini, and Perplexity and deploy >=9.5/10 JSON-LD, /llms.txt, and /agents.md fixes.',
   },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 const SOFTWARE_JSON_LD = {

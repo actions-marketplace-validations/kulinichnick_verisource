@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import {
+  dispatchHallucinationDriftEmail,
   runFullGeoAudit,
   type Database,
   type DomainRow,
+  type ProfileRow,
   type TrackedPromptRow,
 } from '@verisource/core-geo';
 import { workerEnvToRawInput, type WorkerEnv } from './types.js';
@@ -11,15 +13,37 @@ export interface CronScanBatchSummary {
   mode: 'live_supabase' | 'mock_noop';
   domainsScanned: number;
   snapshotsInserted: number;
+  alertsDispatched: number;
 }
 
 const MAX_DOMAINS_PER_CRON_CHUNK = 5;
+const SIX_DAYS_SECONDS = 518400;
+
+function extractBlockedBots(
+  botStatus: DomainRow['robots_ai_bot_status']
+): string[] {
+  const blocked: string[] = [];
+  if (!botStatus.GPTBot) blocked.push('GPTBot');
+  if (!botStatus['OAI-SearchBot']) blocked.push('OAI-SearchBot');
+  if (!botStatus.PerplexityBot) blocked.push('PerplexityBot');
+  if (!botStatus.ClaudeBot) blocked.push('ClaudeBot');
+  if (!botStatus['Google-Extended']) blocked.push('Google-Extended');
+  if (botStatus.waf_blocked && blocked.length === 0) {
+    blocked.push('Edge WAF HTTP 403');
+  }
+  return blocked;
+}
 
 export async function runScheduledDomainScans(
   env: WorkerEnv
 ): Promise<CronScanBatchSummary> {
   if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
-    return { mode: 'mock_noop', domainsScanned: 0, snapshotsInserted: 0 };
+    return {
+      mode: 'mock_noop',
+      domainsScanned: 0,
+      snapshotsInserted: 0,
+      alertsDispatched: 0,
+    };
   }
 
   const supabase = createClient<Database>(
@@ -36,6 +60,7 @@ export async function runScheduledDomainScans(
 
   const domains = (domainRows ?? []) as DomainRow[];
   let snapshotsInserted = 0;
+  let alertsDispatched = 0;
 
   for (const domain of domains) {
     const { data: promptRows } = await supabase
@@ -97,11 +122,59 @@ export async function runScheduledDomainScans(
         last_scanned_at: new Date().toISOString(),
       })
       .eq('id', domain.id);
+
+    const blockedBots = extractBlockedBots(audit.probe.robotsAiBotStatus);
+    if (audit.allHallucinations.length > 0 || blockedBots.length > 0) {
+      try {
+        const dedupKey = `alert_dedup:${domain.id}`;
+        const alreadySent = env.MCP_CACHE_KV
+          ? await env.MCP_CACHE_KV.get(dedupKey)
+          : null;
+
+        if (!alreadySent) {
+          const { data: ownerRow } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', domain.user_id)
+            .maybeSingle();
+
+          const owner = (ownerRow ?? null) as ProfileRow | null;
+          if (owner?.email && owner.plan_tier !== 'free') {
+            const dispatchResult = await dispatchHallucinationDriftEmail({
+              recipientEmail: owner.email,
+              brandName: domain.brand_name,
+              domainUrl: domain.domain_url,
+              visibilityScore: audit.visibilityScore,
+              accuracyScore: audit.accuracyScore,
+              hallucinations: audit.allHallucinations,
+              blockedBots,
+              consoleBaseUrl: env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev',
+              resendApiKey: env.RESEND_API_KEY,
+              fromEmail: env.ALERT_FROM_EMAIL,
+            });
+
+            if (dispatchResult.delivered) {
+              alertsDispatched += 1;
+              if (env.MCP_CACHE_KV) {
+                await env.MCP_CACHE_KV.put(
+                  dedupKey,
+                  new Date().toISOString(),
+                  { expirationTtl: SIX_DAYS_SECONDS }
+                );
+              }
+            }
+          }
+        }
+      } catch {
+        // Never block scheduled DB telemetry writes if outbound email fails
+      }
+    }
   }
 
   return {
     mode: 'live_supabase',
     domainsScanned: domains.length,
     snapshotsInserted,
+    alertsDispatched,
   };
 }

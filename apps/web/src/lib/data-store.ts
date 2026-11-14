@@ -36,6 +36,7 @@ const globalForVerisource = globalThis as unknown as {
   __verisourceGraderCache?: Map<string, { expiresAt: number; data: unknown }>;
   __verisourceGraderIpMap?: Map<string, { day: string; count: number }>;
   __verisourcePitchIpMap?: Map<string, { hourBucket: string; count: number }>;
+  __verisourceAlertIpMap?: Map<string, { hourBucket: string; count: number }>;
   __verisourceProcessedStripeEvents?: Set<string>;
 };
 
@@ -137,6 +138,16 @@ export function getPitchIpMap(): Map<
     globalForVerisource.__verisourcePitchIpMap = new Map();
   }
   return globalForVerisource.__verisourcePitchIpMap;
+}
+
+export function getAlertIpMap(): Map<
+  string,
+  { hourBucket: string; count: number }
+> {
+  if (!globalForVerisource.__verisourceAlertIpMap) {
+    globalForVerisource.__verisourceAlertIpMap = new Map();
+  }
+  return globalForVerisource.__verisourceAlertIpMap;
 }
 
 export function getServiceSupabaseClient(): SupabaseClient<Database> | null {
