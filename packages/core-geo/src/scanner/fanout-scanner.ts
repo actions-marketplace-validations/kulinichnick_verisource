@@ -425,6 +425,8 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'rating',
   'reviews',
   'shipping',
+  'shipping and returns',
+  'returns',
   'delivery',
   'support',
   'integrations',
@@ -476,6 +478,9 @@ const GENERIC_BOLD_HEADINGS = new Set([
   'competitor',
   'competitors',
   'alternative',
+  'alternatives to consider',
+  'who should use',
+  'when to choose',
   'aspect',
   'factor',
   'dimension',
@@ -550,7 +555,7 @@ export function extractNamedRivalsFromAnswerText(
         .replace(/^\d+[.)]\s*/, '')
         .replace(/\s*\([^)]*\)\s*$/, '')
         .replace(/\[\d+\]/g, '')
-        .replace(/[:—–-]+$/, '')
+        .replace(/[:—–\\-]+$/, '')
         .trim();
       if (candidate.length < 2 || candidate.length > 26) continue;
       if (!/^[A-Z0-9]/.test(candidate)) continue;
@@ -599,6 +604,12 @@ export function extractNamedRivalsFromAnswerText(
     maybeAddCandidate(match[1] ?? '');
   }
 
+  const extractFirstTableCell = (tableLine: string): string => {
+    const unescaped = tableLine.replace(/\\\|/g, '\u0000');
+    const first = unescaped.split('|')[1] ?? '';
+    return first.replace(/\u0000/g, '|').replace(/\*+/g, '').trim();
+  };
+
   // 3. Markdown comparison tables: skip header rows above `| --- |` and skip non-entity treatment/attribute tables
   const lines = answerText.split('\n');
   for (let i = 0; i < lines.length - 1; i += 1) {
@@ -611,16 +622,14 @@ export function extractNamedRivalsFromAnswerText(
       continue;
     }
 
-    const headerFirstCell = (headerLine.split('|')[1] ?? '')
-      .replace(/\*+/g, '')
-      .trim();
+    const headerFirstCell = extractFirstTableCell(headerLine);
 
     const dataFirstCells: string[] = [];
     let j = i + 2;
     while (j < lines.length) {
       const rowLine = lines[j]?.trim() ?? '';
       if (!rowLine.startsWith('|')) break;
-      const cell = (rowLine.split('|')[1] ?? '').replace(/\*+/g, '').trim();
+      const cell = extractFirstTableCell(rowLine);
       if (cell && !/^[-:=]+$/.test(cell)) {
         dataFirstCells.push(cell);
       }
@@ -642,7 +651,10 @@ export function extractNamedRivalsFromAnswerText(
       tableIncludesTargetBrand
     ) {
       for (const cell of dataFirstCells) {
-        if (cell.split(/\s+/).length <= 3) {
+        const wordTokens = cell
+          .split(/\s+/)
+          .filter((t) => /[A-Za-z0-9]/.test(t));
+        if (wordTokens.length <= 4) {
           maybeAddCandidate(cell);
         }
       }

@@ -202,6 +202,7 @@ export function DashboardConsoleClient(props: {
   const [refreshingPitchSlug, setRefreshingPitchSlug] = useState<string | null>(
     null
   );
+  const [copiedPitchSlug, setCopiedPitchSlug] = useState<string | null>(null);
   const [selectedPitchSlug, setSelectedPitchSlug] = useState<string>(
     () => props.initialData.pitchReports[0]?.share_slug ?? ''
   );
@@ -731,6 +732,33 @@ export function DashboardConsoleClient(props: {
       setBannerError('Network error while refreshing pitch report.');
     } finally {
       setRefreshingPitchSlug(null);
+    }
+  }
+
+  async function handleCopyPitchShareUrl(shareSlug: string) {
+    const shareUrl =
+      typeof window !== 'undefined'
+        ? `${window.location.origin}/audit/${shareSlug}`
+        : `https://verisource.dev/audit/${shareSlug}`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else if (typeof document !== 'undefined') {
+        const temp = document.createElement('textarea');
+        temp.value = shareUrl;
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        temp.remove();
+      }
+      setCopiedPitchSlug(shareSlug);
+      setTimeout(() => {
+        setCopiedPitchSlug((prev) => (prev === shareSlug ? null : prev));
+      }, 2000);
+    } catch {
+      // Ignore clipboard permission errors in restricted contexts
     }
   }
 
@@ -2513,14 +2541,38 @@ export function DashboardConsoleClient(props: {
                               </StatusBadge>
                             )}
                           </td>
-                          <td>
-                            <Link
-                              href={`/audit/${r.share_slug}`}
-                              className="vs-mono"
-                              style={{ fontSize: '12px', color: 'var(--vs-ink)' }}
+                          <td style={{ whiteSpace: 'nowrap' }}>
+                            <div
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                              }}
                             >
-                              /audit/{r.share_slug} →
-                            </Link>
+                              <Link
+                                href={`/audit/${r.share_slug}`}
+                                className="vs-mono"
+                                style={{ fontSize: '12px', color: 'var(--vs-ink)' }}
+                              >
+                                /audit/{r.share_slug} →
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  void handleCopyPitchShareUrl(r.share_slug)
+                                }
+                                className="vs-btn vs-btn-secondary"
+                                style={{
+                                  padding: '3px 8px',
+                                  fontSize: '11px',
+                                }}
+                                title="Copy shareable /audit/[slug] link to clipboard"
+                              >
+                                {copiedPitchSlug === r.share_slug
+                                  ? '✓ Copied'
+                                  : 'Copy URL'}
+                              </button>
+                            </div>
                           </td>
                           <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                             <div

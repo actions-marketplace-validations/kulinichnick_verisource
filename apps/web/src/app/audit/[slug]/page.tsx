@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import React from 'react';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
 import { AuditViewTracker } from '../../../components/AuditViewTracker';
+import { CopyAuditBriefButton } from '../../../components/CopyAuditBriefButton';
 import { PrintAuditBriefButton } from '../../../components/PrintAuditBriefButton';
 import { fetchPublicPitchBySlug } from '../../../lib/data-store';
 
@@ -26,7 +27,11 @@ export async function generateMetadata({
 
   const agencyName = report.agency_brand_name || 'Partner GEO Advisory';
   const title = `AI Search & Hallucination Audit: ${report.prospect_brand_name} | ${agencyName}`;
-  const description = `AI Visibility Score: ${report.visibility_score}/100 · Active Hallucinations: ${report.hallucination_count}. Confidential retrieval & schema audit prepared by ${agencyName}.`;
+  const topRivals = report.summary_payload.competitors_winning
+    .slice(0, 3)
+    .join(', ');
+  const rivalsClause = topRivals ? ` · Rivals Cited: ${topRivals}` : '';
+  const description = `AI Visibility Score: ${report.visibility_score}/100${rivalsClause} · Active Hallucinations: ${report.hallucination_count}. Confidential retrieval & schema audit prepared by ${agencyName}.`;
 
   return {
     title,
@@ -123,6 +128,7 @@ export default async function AgencyPitchReportPage({
           className="vs-no-print"
           style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}
         >
+          <CopyAuditBriefButton slug={slug} />
           <PrintAuditBriefButton />
           <a
             href={ctaUrl}

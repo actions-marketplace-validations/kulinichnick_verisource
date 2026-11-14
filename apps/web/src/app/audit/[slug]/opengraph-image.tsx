@@ -21,12 +21,27 @@ export default async function PitchOpenGraphImage({
     ? report!.agency_primary_color!
     : '#0A0E17';
 
-  const prospectBrand = report?.prospect_brand_name ?? 'Prospect Domain';
+  const prospectBrand = (report?.prospect_brand_name ?? 'Prospect Domain').slice(
+    0,
+    34
+  );
   const prospectDomain = report?.prospect_domain ?? 'https://verisource.dev';
   const visibilityScore = report?.visibility_score ?? 0;
   const hallucinationCount = report?.hallucination_count ?? 0;
-  const competitorCount =
-    report?.summary_payload.competitors_winning.length ?? 0;
+  const winningRivals = (report?.summary_payload.competitors_winning ?? [])
+    .map((r) => r.trim())
+    .filter((r) => r.length > 0);
+  const competitorCount = winningRivals.length;
+  const ogRivalChips = winningRivals.slice(0, 3).map((r) =>
+    r.length > 22 ? `${r.slice(0, 20)}…` : r
+  );
+  const ogRivalSublabel = (() => {
+    if (ogRivalChips.length === 0) {
+      return 'Category directories cited in fanouts';
+    }
+    const joined = ogRivalChips.join(' · ');
+    return joined.length > 44 ? `${joined.slice(0, 42)}…` : joined;
+  })();
 
   const scoreDanger = visibilityScore < 50;
   const hallucinationDanger = hallucinationCount > 0;
@@ -102,12 +117,52 @@ export default async function PitchOpenGraphImage({
           <div
             style={{
               display: 'flex',
-              fontSize: '22px',
+              fontSize: '21px',
               color: '#475569',
             }}
           >
             {`Target Domain: ${prospectDomain} · ChatGPT, Google Gemini & Perplexity Retrieval Scan`}
           </div>
+          {ogRivalChips.length > 0 ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '4px',
+              }}
+            >
+              <span
+                style={{
+                  display: 'flex',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  color: '#64748B',
+                  marginRight: '4px',
+                }}
+              >
+                RIVALS CITED:
+              </span>
+              {ogRivalChips.map((chip) => (
+                <div
+                  key={chip}
+                  style={{
+                    display: 'flex',
+                    padding: '5px 12px',
+                    borderRadius: '5px',
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    color: '#0F172A',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                  }}
+                >
+                  {chip}
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {/* 3-Metric Executive Scorecard */}
@@ -221,7 +276,7 @@ export default async function PitchOpenGraphImage({
               {String(competitorCount)}
             </span>
             <span style={{ fontSize: '15px', color: '#475569' }}>
-              Rival domains cited in commercial fanouts
+              {ogRivalSublabel}
             </span>
           </div>
         </div>

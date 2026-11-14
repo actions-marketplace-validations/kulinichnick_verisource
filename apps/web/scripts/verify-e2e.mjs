@@ -1222,7 +1222,48 @@ async function run() {
         sampleAuditHtml.includes('Rivals Cited'),
       'Expected 3-engine benchmark heading and Rivals Cited column on /sample-audit'
     );
-    console.log('✔ [33/33] M35 Slug-preserving PATCH /api/dashboard/pitch refresh, /audit/[slug] rival strip & 3-engine /sample-audit verified');
+    console.log('✔ [33/34] M35 Slug-preserving PATCH /api/dashboard/pitch refresh, /audit/[slug] rival strip & 3-engine /sample-audit verified');
+
+    // 32. M36 Dynamic 1200x630 /audit/[slug] Rival OpenGraph Card, Rival Meta Unfurl & 1-Click Copy Brief Link Controls
+    const m36MosaicHtml = await (
+      await fetch(`${BASE}/audit/mosaic-springfield-audit`)
+    ).text();
+    assert.ok(
+      m36MosaicHtml.includes('Copy Brief Link') &&
+        m36MosaicHtml.includes('Rivals Cited: Kingdom Coffee'),
+      'Expected Copy Brief Link button and Rivals Cited metadata on /audit/mosaic-springfield-audit'
+    );
+
+    const m36OgRes = await fetch(
+      `${BASE}/audit/mosaic-springfield-audit/opengraph-image`
+    );
+    assert.equal(m36OgRes.status, 200);
+    assert.equal(m36OgRes.headers.get('content-type'), 'image/png');
+    const m36OgBuf = Buffer.from(await m36OgRes.arrayBuffer());
+    assert.equal(m36OgBuf[0], 0x89);
+    assert.equal(m36OgBuf[1], 0x50);
+    assert.ok(
+      m36OgBuf.length > 5000,
+      'Expected non-empty 1200x630 PNG bytes from Satori rival OG card'
+    );
+
+    const m36Tab3Html = await (
+      await fetch(`${BASE}/dashboard?tab=tab3_offsite`)
+    ).text();
+    assert.ok(
+      m36Tab3Html.includes('Copy URL'),
+      'Expected 1-click Copy URL button inside Tab 3 Pitch Ledger'
+    );
+    const strippedM36Tab3 = m36Tab3Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM36Tab3.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Tab 3 Pitch Ledger'
+    );
+    console.log('✔ [34/34] M36 Dynamic 1200x630 /audit/[slug] rival OG PNG, Rival meta unfurl & 1-click Copy Brief Link / Copy URL verified');
   } finally {
     server.kill();
   }

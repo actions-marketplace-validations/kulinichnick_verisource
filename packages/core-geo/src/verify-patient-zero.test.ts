@@ -1194,4 +1194,23 @@ test('buildAgencyPitchPayload strips mock/generic rival placeholders when live r
     ],
   });
   assert.deepEqual(tableRivals, ['SkinSpirit', 'LaserAway']);
+
+  const escapedPipeRivals = extractCompetitorsFromAnswerAndCitations({
+    targetHostname: 'lanierlawfirm.com',
+    brandName: 'The Lanier Law Firm',
+    answerText: [
+      '**Shipping and returns**',
+      '**Alternatives to consider**',
+      '| Law Firm | Focus |',
+      '| --- | --- |',
+      '| Panish \\| Shea \\| Boyle | Trial litigation |',
+      '| Arnold & Itkin | Catastrophic injury |',
+    ].join('\n'),
+    urls: [],
+  });
+  assert.ok(escapedPipeRivals.includes('Panish | Shea | Boyle'));
+  assert.ok(escapedPipeRivals.includes('Arnold & Itkin'));
+  assert.ok(!escapedPipeRivals.some((r) => r.endsWith('\\')));
+  assert.ok(!escapedPipeRivals.includes('Shipping and returns'));
+  assert.ok(!escapedPipeRivals.includes('Alternatives to consider'));
 });
