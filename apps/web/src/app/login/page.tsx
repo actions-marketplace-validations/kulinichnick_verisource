@@ -49,14 +49,14 @@ export default function LoginPage(): React.ReactElement {
       className="vs-container"
       style={{ paddingTop: '64px', maxWidth: '460px' }}
     >
-      <div className="vs-card" style={{ padding: '28px' }}>
+      <div className="vs-card" style={{ padding: '30px' }}>
         <div style={{ marginBottom: '16px' }}>
           <StatusBadge tone={hasLiveAuth ? 'pass' : 'warn'}>
-            {hasLiveAuth ? 'SUPABASE AUTH LIVE' : 'LOCAL MOCK SESSION ACTIVE'}
+            {hasLiveAuth ? 'PASSWORDLESS SIGN-IN' : 'LOCAL DEMO SESSION'}
           </StatusBadge>
         </div>
 
-        <h1 style={{ margin: '0 0 8px 0', fontSize: '22px' }}>
+        <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', letterSpacing: '-0.025em' }}>
           Sign in to Verisource
         </h1>
         <p
@@ -66,8 +66,8 @@ export default function LoginPage(): React.ReactElement {
             color: 'var(--vs-ink-secondary)',
           }}
         >
-          Access your 3-Tab GEO Console, Brand Truth Sheets, Agency Pitch URLs,
-          and Paid <code className="vs-mono">/mcp</code> API keys.
+          Open your Guided or Pro 3-Tab Console, website fixes, branded client
+          reports, and <code className="vs-mono">/mcp</code> sync keys.
         </p>
 
         {sent ? (
@@ -77,11 +77,11 @@ export default function LoginPage(): React.ReactElement {
               background: 'var(--vs-pass-bg)',
               border: '1px solid var(--vs-pass-border)',
               color: 'var(--vs-pass-fg)',
-              borderRadius: '5px',
+              borderRadius: '6px',
               fontSize: '13px',
             }}
           >
-            Check <strong>{email}</strong> for your magic sign-in link.
+            Check <strong>{email}</strong> for your one-click sign-in link.
           </div>
         ) : (
           <form onSubmit={handleMagicLink}>
@@ -100,9 +100,9 @@ export default function LoginPage(): React.ReactElement {
               required={hasLiveAuth}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="founder@agency.com"
+              placeholder="you@company.com"
               className="vs-input"
-              style={{ marginBottom: '12px' }}
+              style={{ marginBottom: '12px', fontFamily: 'var(--vs-sans)' }}
             />
             {error ? (
               <div
@@ -124,8 +124,8 @@ export default function LoginPage(): React.ReactElement {
               {loading
                 ? 'Sending Link...'
                 : hasLiveAuth
-                  ? 'Send Magic Sign-In Link'
-                  : 'Continue with Email'}
+                  ? 'Email Me a Sign-In Link'
+                  : 'Continue to Console'}
             </button>
           </form>
         )}
@@ -142,7 +142,7 @@ export default function LoginPage(): React.ReactElement {
             className="vs-btn vs-btn-secondary"
             style={{ width: '100%' }}
           >
-            Open Patient Zero Demo Workspace →
+            Explore Live Demo Workspace →
           </Link>
         </div>
       </div>

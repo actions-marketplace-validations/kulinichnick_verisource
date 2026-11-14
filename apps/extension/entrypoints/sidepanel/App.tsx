@@ -13,12 +13,34 @@ import {
 } from '@verisource/core-geo';
 import {
   CodeArtifactCard,
+  GuidedExplainerBanner,
   MetricLedgerCell,
   StatusBadge,
   ThreeTabShell,
+  UxModeSwitch,
   VerisourceStyleTag,
   type ThreeTabId,
+  type UxMode,
 } from '@verisource/ui';
+
+function describeFixPlainly(fixType: string): string {
+  switch (fixType) {
+    case 'json_ld_schema':
+      return 'Hidden fact-sheet code for your site header so AI reads your real prices and FAQs.';
+    case 'shopify_agents_liquid':
+      return 'Shopify theme template giving AI shopping assistants verified product rules.';
+    case 'agents_md':
+      return 'Plain-English rulebook telling AI bots what you sell and what not to invent.';
+    case 'llms_txt':
+      return 'Quick-read directory of your key pages built for AI search crawlers.';
+    case 'fanout_faq_block':
+      return 'Ready-to-paste Q&A answering the exact questions buyers ask AI.';
+    case 'citation_outreach_brief':
+      return 'Short note to get your business included in third-party comparison guides.';
+    default:
+      return 'Verified copy-paste website fix.';
+  }
+}
 
 function buildInitialAureaAudit(): FullGeoAuditResult {
   const domain = PATIENT_ZERO_DOMAINS[0]!;
@@ -129,12 +151,33 @@ export default function App(): React.ReactElement {
   const [activeTabUrl, setActiveTabUrl] = useState<string | null>(null);
   const [workspaceOrigin, setWorkspaceOrigin] = useState('https://verisource.dev');
   const [activeTab, setActiveTab] = useState<ThreeTabId>('tab1_visibility');
+  const [uxMode, setUxMode] = useState<UxMode>('guided');
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [audit, setAudit] = useState<FullGeoAuditResult>(() =>
     buildInitialAureaAudit()
   );
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('vs_ux_mode');
+      if (saved === 'guided' || saved === 'pro') {
+        setUxMode(saved);
+      }
+    } catch {
+      // Ignore storage boundary in restricted contexts
+    }
+  }, []);
+
+  const handleChangeUxMode = (next: UxMode) => {
+    setUxMode(next);
+    try {
+      window.localStorage.setItem('vs_ux_mode', next);
+    } catch {
+      // Ignore storage boundary
+    }
+  };
 
   const inspectDomain = useCallback(
     async (target: string, preferredOrigin?: string) => {
@@ -145,14 +188,12 @@ export default function App(): React.ReactElement {
       setStatusMessage(null);
 
       try {
-        // Compute deterministic + Critic-verified full bundle without cross-origin browser fetch errors
         const fullAudit = await runFullGeoAudit({
           domainInput: cleaned,
           rawEnv: { PROVIDER_MODE: 'mock' },
           skipDirectHttpProbe: true,
         });
 
-        // Sync live server-side HTTP/WAF/Shopify probe via CORS-enabled Verisource /api/grader
         const originToQuery = (preferredOrigin ?? workspaceOrigin).replace(/\/$/, '');
         try {
           const apiRes = await fetch(`${originToQuery}/api/grader`, {
@@ -179,12 +220,12 @@ export default function App(): React.ReactElement {
               shopify: fullAudit.shopify,
               scanResults: fullAudit.scanResults,
             });
-            setStatusMessage(`Live HTTP probe synced via ${originToQuery}`);
+            setStatusMessage(`Synced live check via ${originToQuery}`);
           }
         } catch {
           if (!fullAudit.probe.reachable) {
             setStatusMessage(
-              'Offline sandbox active; connect to verisource.dev for live edge HTTP probes.'
+              'Offline preview active; connect to verisource.dev for live site checks.'
             );
           }
         }
@@ -267,29 +308,33 @@ export default function App(): React.ReactElement {
     ingestionUrl: `${cleanOrigin}/api/pixel`,
   });
 
+  const isGuided = uxMode === 'guided';
+
   return (
     <div style={{ padding: '12px', minHeight: '100vh', background: 'var(--vs-canvas)' }}>
       <VerisourceStyleTag />
 
-      {/* Top Brand Header */}
+      {/* Top Brand Header + Guided/Pro Toggle */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px',
           marginBottom: '10px',
           paddingBottom: '8px',
           borderBottom: '1px solid var(--vs-border)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <span
             className="vs-mono"
-            style={{ fontWeight: 700, fontSize: '13.5px', letterSpacing: '-0.02em' }}
+            style={{ fontWeight: 700, fontSize: '13px', letterSpacing: '-0.02em' }}
           >
             VERISOURCE
           </span>
-          <StatusBadge tone="pass">MV3 SIDEPANEL</StatusBadge>
+          <UxModeSwitch mode={uxMode} onChange={handleChangeUxMode} compact />
         </div>
 
         <a
@@ -316,7 +361,7 @@ export default function App(): React.ReactElement {
             type="text"
             value={domainInput}
             onChange={(e) => setDomainInput(e.target.value)}
-            placeholder="domain.com"
+            placeholder="yourwebsite.com"
             className="vs-input"
             style={{ padding: '7px 9px', fontSize: '12.5px' }}
             aria-label="Inspect target domain"
@@ -327,7 +372,7 @@ export default function App(): React.ReactElement {
             className="vs-btn"
             style={{ padding: '7px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
           >
-            {loading ? 'Scanning...' : 'Audit'}
+            {loading ? 'Scanning...' : 'Scan Site'}
           </button>
         </form>
 
@@ -338,7 +383,7 @@ export default function App(): React.ReactElement {
             style={{ padding: '4px 8px', fontSize: '11px' }}
             onClick={() => void readActiveTabAndScan()}
           >
-            {activeTabUrl ? `Active Tab (${activeTabUrl})` : 'Inspect Active Tab'}
+            {activeTabUrl ? `Current Tab (${activeTabUrl})` : 'Scan Current Tab'}
           </button>
           <button
             type="button"
@@ -367,7 +412,7 @@ export default function App(): React.ReactElement {
             background: 'var(--vs-crit-bg)',
             border: '1px solid var(--vs-crit-border)',
             color: 'var(--vs-crit-fg)',
-            borderRadius: '5px',
+            borderRadius: '6px',
             fontSize: '12px',
           }}
         >
@@ -383,7 +428,7 @@ export default function App(): React.ReactElement {
             background: 'var(--vs-surface-subtle)',
             border: '1px solid var(--vs-border)',
             color: 'var(--vs-ink-secondary)',
-            borderRadius: '5px',
+            borderRadius: '6px',
             fontSize: '11.5px',
           }}
         >
@@ -392,9 +437,22 @@ export default function App(): React.ReactElement {
       ) : null}
 
       {/* Strict 3-Tab Shared Shell */}
-      <ThreeTabShell activeTab={activeTab} onSelectTab={setActiveTab} compact>
+      <ThreeTabShell
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        compact
+        mode={uxMode}
+      >
         {activeTab === 'tab1_visibility' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {isGuided ? (
+              <GuidedExplainerBanner
+                stepLabel="STEP 1 · QUICK HEALTH CHECK"
+                title="See how AI describes this website"
+                description="Higher scores mean AI engines can read your pages and state your real prices accurately."
+              />
+            ) : null}
+
             <div
               className="vs-card"
               style={{
@@ -405,7 +463,7 @@ export default function App(): React.ReactElement {
             >
               <div style={{ borderRight: '1px solid var(--vs-border)' }}>
                 <MetricLedgerCell
-                  label="AI Visibility"
+                  label={isGuided ? 'AI Visibility' : 'AI Share of Voice'}
                   value={audit.visibilityScore}
                   suffix="/ 100"
                   tone={audit.visibilityScore < 50 ? 'warn' : 'pass'}
@@ -414,32 +472,24 @@ export default function App(): React.ReactElement {
               </div>
               <div>
                 <MetricLedgerCell
-                  label="Truth Accuracy"
+                  label={isGuided ? 'Fact Accuracy' : 'Truth Accuracy'}
                   value={`${audit.accuracyScore}%`}
                   tone={audit.accuracyScore < 80 ? 'critical' : 'pass'}
-                  sublabel={`${audit.allHallucinations.length} conflict(s)`}
+                  sublabel={`${audit.allHallucinations.length} issue(s)`}
                 />
               </div>
             </div>
 
             {/* Protocol & Crawler Readout */}
             <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <div
-                className="vs-mono"
-                style={{
-                  fontSize: '10.5px',
-                  color: 'var(--vs-ink-muted)',
-                  marginBottom: '6px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                CRAWLER &amp; PROTOCOL STATUS
+              <div className="vs-eyebrow" style={{ marginBottom: '6px', fontSize: '10px' }}>
+                {isGuided ? 'CAN AI BOTS READ THIS SITE?' : 'CRAWLER & PROTOCOL STATUS'}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                 <StatusBadge
                   tone={audit.probe.robotsAiBotStatus.GPTBot ? 'pass' : 'critical'}
                 >
-                  GPTBot: {audit.probe.robotsAiBotStatus.GPTBot ? '200' : '403'}
+                  GPTBot: {audit.probe.robotsAiBotStatus.GPTBot ? 'ALLOWED' : 'BLOCKED'}
                 </StatusBadge>
                 <StatusBadge
                   tone={
@@ -447,7 +497,7 @@ export default function App(): React.ReactElement {
                   }
                 >
                   PerplexityBot:{' '}
-                  {audit.probe.robotsAiBotStatus.PerplexityBot ? '200' : '403'}
+                  {audit.probe.robotsAiBotStatus.PerplexityBot ? 'ALLOWED' : 'BLOCKED'}
                 </StatusBadge>
                 <StatusBadge
                   tone={
@@ -458,7 +508,15 @@ export default function App(): React.ReactElement {
                         : 'critical'
                   }
                 >
-                  /agents.md: {audit.shopify.agentsMdStatus}
+                  {isGuided
+                    ? `AI Rulebook: ${
+                        audit.shopify.agentsMdStatus === 'custom_enriched'
+                          ? 'Verified'
+                          : audit.shopify.agentsMdStatus === 'default_boilerplate'
+                            ? 'Generic'
+                            : 'Missing'
+                      }`
+                    : `/agents.md: ${audit.shopify.agentsMdStatus}`}
                 </StatusBadge>
                 {audit.shopify.isShopify ? (
                   <StatusBadge
@@ -488,7 +546,7 @@ export default function App(): React.ReactElement {
                 }}
               >
                 <strong style={{ fontSize: '12.5px' }}>
-                  Hallucination Watchdog
+                  {isGuided ? 'Wrong AI Claims Caught' : 'Hallucination Watchdog'}
                 </strong>
                 <StatusBadge
                   tone={audit.allHallucinations.length > 0 ? 'critical' : 'pass'}
@@ -508,15 +566,15 @@ export default function App(): React.ReactElement {
                         padding: '8px 10px',
                         background: 'var(--vs-crit-bg)',
                         border: '1px solid var(--vs-crit-border)',
-                        borderRadius: '4px',
+                        borderRadius: '5px',
                         fontSize: '12px',
                       }}
                     >
                       <div style={{ color: 'var(--vs-crit-fg)', fontWeight: 600 }}>
-                        LLM Claim: &ldquo;{h.claim_text}&rdquo;
+                        AI Says: &ldquo;{h.claim_text}&rdquo;
                       </div>
                       <div style={{ color: 'var(--vs-ink)', marginTop: '4px' }}>
-                        <strong>Verified Truth:</strong> {h.verified_truth}
+                        <strong>Real Fact:</strong> {h.verified_truth}
                       </div>
                     </div>
                   ))}
@@ -532,7 +590,7 @@ export default function App(): React.ReactElement {
             {/* Brand Truth Snapshot */}
             <div className="vs-card" style={{ padding: '10px 12px', fontSize: '12px' }}>
               <strong style={{ display: 'block', marginBottom: '4px' }}>
-                Verified Storefront Ground Truth
+                {isGuided ? 'Real Website Facts' : 'Verified Storefront Ground Truth'}
               </strong>
               <div style={{ color: 'var(--vs-ink-secondary)', marginBottom: '4px' }}>
                 <strong>Pricing:</strong>{' '}
@@ -548,6 +606,14 @@ export default function App(): React.ReactElement {
 
         {activeTab === 'tab2_fixes' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {isGuided ? (
+              <GuidedExplainerBanner
+                stepLabel="STEP 2 · COPY-PASTE FIXES"
+                title="Download or copy your website fix code"
+                description="Send the single .md bundle to your web designer, or copy individual blocks below."
+              />
+            ) : null}
+
             <div
               className="vs-card"
               style={{
@@ -559,7 +625,7 @@ export default function App(): React.ReactElement {
               }}
             >
               <span style={{ fontSize: '12px', fontWeight: 600 }}>
-                {audit.fixes.length} Critic-Verified Artifacts
+                {audit.fixes.length} Ready-to-Paste Fix{audit.fixes.length === 1 ? '' : 'es'}
               </span>
               <button
                 type="button"
@@ -595,7 +661,7 @@ export default function App(): React.ReactElement {
                   URL.revokeObjectURL(url);
                 }}
               >
-                ↓ Export Bundle (.md)
+                ↓ Download All (.md)
               </button>
             </div>
 
@@ -604,11 +670,11 @@ export default function App(): React.ReactElement {
                 className="vs-card"
                 style={{
                   padding: '10px 12px',
-                  background: 'var(--vs-surface-subtle)',
+                  background: 'var(--vs-surface-warm)',
                   fontSize: '12px',
                 }}
               >
-                <strong>Shopify Deployment Guide:</strong> Save{' '}
+                <strong>Shopify Tip:</strong> Save{' '}
                 <code className="vs-mono">templates/agents.md.liquid</code> inside
                 your theme and paste <code className="vs-mono">JSON-LD</code> into{' '}
                 <code className="vs-mono">layout/theme.liquid</code> before{' '}
@@ -620,7 +686,8 @@ export default function App(): React.ReactElement {
               <CodeArtifactCard
                 key={`${fix.fixType}-${idx}`}
                 title={fix.title}
-                fileHint={`Artifact Type: ${fix.fixType}`}
+                plainSummary={isGuided ? describeFixPlainly(fix.fixType) : undefined}
+                fileHint={isGuided ? undefined : `Artifact Type: ${fix.fixType}`}
                 code={fix.contentPayload}
                 qualityScore={fix.naturalQualityScore}
                 qualityBreakdown={fix.qualityRubricBreakdown}
@@ -628,8 +695,13 @@ export default function App(): React.ReactElement {
             ))}
 
             <CodeArtifactCard
-              title="10-Line AI Referral Attribution Pixel"
-              fileHint="Captures chatgpt.com, perplexity.ai, gemini.google.com, claude.ai"
+              title="10-Line AI Visit & Order Tracker"
+              plainSummary={
+                isGuided
+                  ? 'Tracks visitors and purchases referred by ChatGPT, Perplexity, Gemini, and Claude.'
+                  : undefined
+              }
+              fileHint="Paste before </head> on your site"
               code={pixelPreview}
             />
           </div>
@@ -637,9 +709,19 @@ export default function App(): React.ReactElement {
 
         {activeTab === 'tab3_offsite' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {isGuided ? (
+              <GuidedExplainerBanner
+                stepLabel="STEP 3 · COMPETITORS & CLIENT LINKS"
+                title="See where competitors get mentioned"
+                description="Review the external articles AI trusts in your category, or create a shareable client audit page."
+              />
+            ) : null}
+
             <div className="vs-card" style={{ padding: '10px 12px' }}>
               <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '6px' }}>
-                Decompiled Engine Search Fanouts
+                {isGuided
+                  ? 'What AI Searches Behind the Scenes'
+                  : 'Decompiled Engine Search Fanouts'}
               </strong>
               {uniqueFanoutQueries.length > 0 ? (
                 uniqueFanoutQueries.map((q) => (
@@ -657,14 +739,14 @@ export default function App(): React.ReactElement {
                 ))
               ) : (
                 <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
-                  Run a multi-engine scan in Full Console for fanout sub-queries.
+                  Open Full Console to run multi-engine search tracking.
                 </div>
               )}
             </div>
 
             <div className="vs-card" style={{ padding: '10px 12px' }}>
               <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '6px' }}>
-                Cited Third-Party URLs
+                {isGuided ? 'Articles Feeding AI Answers' : 'Cited Third-Party URLs'}
               </strong>
               {uniqueCitationUrls.length > 0 ? (
                 uniqueCitationUrls.map((url) => (
@@ -685,7 +767,7 @@ export default function App(): React.ReactElement {
                 ))
               ) : (
                 <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
-                  Zero external citations detected for sample prompt.
+                  No external articles cited for this sample prompt.
                 </div>
               )}
             </div>
@@ -693,7 +775,7 @@ export default function App(): React.ReactElement {
             {/* White-Label Pitch Handoff */}
             <div className="vs-card" style={{ padding: '10px 12px' }}>
               <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '4px' }}>
-                60-Second White-Label Pitch Handoff
+                60-Second Branded Client Link
               </strong>
               <p
                 style={{
@@ -702,7 +784,7 @@ export default function App(): React.ReactElement {
                   margin: '0 0 8px 0',
                 }}
               >
-                Send a branded executive brief with your agency logo and calendar link.
+                Send a clean executive audit page with your agency logo and booking button.
               </p>
               <a
                 href={
@@ -716,36 +798,62 @@ export default function App(): React.ReactElement {
                 style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
               >
                 {audit.hostname === 'mosaicroasters.com'
-                  ? 'Open Mosaic White-Label Audit →'
-                  : 'Create Branded /audit/[slug] Pitch →'}
+                  ? 'Open Mosaic Client Report →'
+                  : 'Create Branded Client Link →'}
               </a>
             </div>
 
-            {/* Workspace Origin + MCP Config */}
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <label
+            {/* Developer /mcp Config: collapsed in Guided Mode, expanded in Pro Mode */}
+            {isGuided ? (
+              <div
+                className="vs-card"
                 style={{
-                  fontSize: '11.5px',
-                  fontWeight: 600,
-                  display: 'block',
-                  marginBottom: '4px',
+                  padding: '10px 12px',
+                  background: 'var(--vs-surface-warm)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
                 }}
               >
-                Verisource API Base URL
-              </label>
-              <input
-                type="url"
-                value={workspaceOrigin}
-                onChange={(e) => setWorkspaceOrigin(e.target.value)}
-                className="vs-input"
-                style={{ padding: '6px 8px', fontSize: '12px', marginBottom: '8px' }}
-              />
-              <CodeArtifactCard
-                title="Streamable HTTP /mcp Config"
-                fileHint="Endpoint: https://mcp.verisource.dev/mcp"
-                code={mcpSnippet}
-              />
-            </div>
+                <span style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>
+                  Using Cursor or Claude Desktop?
+                </span>
+                <button
+                  type="button"
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '5px 9px', fontSize: '11px' }}
+                  onClick={() => handleChangeUxMode('pro')}
+                >
+                  Open Pro /mcp →
+                </button>
+              </div>
+            ) : (
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <label
+                  style={{
+                    fontSize: '11.5px',
+                    fontWeight: 600,
+                    display: 'block',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Verisource API Base URL
+                </label>
+                <input
+                  type="url"
+                  value={workspaceOrigin}
+                  onChange={(e) => setWorkspaceOrigin(e.target.value)}
+                  className="vs-input"
+                  style={{ padding: '6px 8px', fontSize: '12px', marginBottom: '8px' }}
+                />
+                <CodeArtifactCard
+                  title="Streamable HTTP /mcp Config"
+                  fileHint="Endpoint: https://mcp.verisource.dev/mcp"
+                  code={mcpSnippet}
+                />
+              </div>
+            )}
           </div>
         ) : null}
       </ThreeTabShell>

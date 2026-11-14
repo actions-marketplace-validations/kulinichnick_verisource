@@ -494,7 +494,50 @@ async function run() {
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
       .replace(/<[^>]+>/g, ' ');
     assert.equal((homeAfterVisible.match(BANNED_LEXICON) ?? []).length, 0);
-    console.log('✔ [18/18] Before -> After Patient Zero case study ledger verified on / (0 banned words)');
+    console.log('✔ [18/19] Before -> After Patient Zero case study ledger verified on / (0 banned words)');
+
+    // 17. M21 Warm Architectural Paper Design System, Zero-Lag SVG Schematic, Responsive CSS & Guided/Pro UX Switch
+    assert.ok(
+      homeAfterHtml.includes('<svg') && homeAfterHtml.includes('vs-signal-path'),
+      'Expected inline zero-lag animated SVG signal schematic on /'
+    );
+    assert.ok(
+      homeAfterHtml.includes('--vs-canvas: #FAF9F6') &&
+        homeAfterHtml.includes('vs-ledger-strip-4'),
+      'Expected Warm Architectural Paper CSS tokens and responsive ledger grid classes'
+    );
+    assert.ok(
+      dashHtml.includes('Guided Mode') &&
+        dashHtml.includes('Pro Mode') &&
+        dashHtml.includes('STEP 01'),
+      'Expected 1-click Guided Mode / Pro Mode switch and plain-English step banner on /dashboard'
+    );
+
+    const [pricingHtml, loginHtml, privacyHtml, termsHtml] = await Promise.all([
+      fetch(`${BASE}/pricing`).then((r) => r.text()),
+      fetch(`${BASE}/login`).then((r) => r.text()),
+      fetch(`${BASE}/privacy`).then((r) => r.text()),
+      fetch(`${BASE}/terms`).then((r) => r.text()),
+    ]);
+    for (const [routeLabel, rawHtml] of [
+      ['/pricing', pricingHtml],
+      ['/login', loginHtml],
+      ['/privacy', privacyHtml],
+      ['/terms', termsHtml],
+      ['/audit/mosaic-springfield-audit', pitchHtml],
+    ]) {
+      const visible = rawHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      const violations = visible.match(BANNED_LEXICON) ?? [];
+      assert.equal(
+        violations.length,
+        0,
+        `Found banned lexicon on ${routeLabel}: ${violations.join(', ')}`
+      );
+    }
+    console.log('✔ [19/19] M21 Animated SVG schematic, Warm Architectural Paper tokens, Guided/Pro switch & 7-route 0-slop gate passed');
   } finally {
     server.kill();
   }

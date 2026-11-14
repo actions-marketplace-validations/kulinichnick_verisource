@@ -15,9 +15,9 @@ export default function OpenGraphImage(): ImageResponse {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: '#F8FAFC',
+          backgroundColor: '#FAF9F6',
           padding: '52px 60px',
-          color: '#0F172A',
+          color: '#0A0E17',
           fontFamily: 'sans-serif',
         }}
       >
@@ -35,7 +35,7 @@ export default function OpenGraphImage(): ImageResponse {
               style={{
                 width: '28px',
                 height: '28px',
-                backgroundColor: '#0F172A',
+                backgroundColor: '#0A0E17',
                 borderRadius: '5px',
                 display: 'flex',
                 alignItems: 'center',
@@ -64,10 +64,10 @@ export default function OpenGraphImage(): ImageResponse {
               alignItems: 'center',
               padding: '8px 14px',
               backgroundColor: '#FFFFFF',
-              border: '1px solid #CBD5E1',
+              border: '1px solid #CFCBC0',
               borderRadius: '6px',
               fontSize: '16px',
-              color: '#334155',
+              color: '#3A3F4B',
               fontWeight: 600,
             }}
           >

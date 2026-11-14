@@ -1,7 +1,34 @@
 import type { Metadata } from 'next';
+import {
+  Instrument_Serif,
+  JetBrains_Mono,
+  Plus_Jakarta_Sans,
+} from 'next/font/google';
 import Link from 'next/link';
 import React from 'react';
 import { VerisourceStyleTag } from '@verisource/ui';
+
+const fontSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-vs-sans',
+  display: 'swap',
+});
+
+const fontSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  variable: '--font-vs-serif',
+  display: 'swap',
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-vs-mono',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://verisource.dev'),
@@ -109,7 +136,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${fontSans.variable} ${fontSerif.variable} ${fontMono.variable}`}
+    >
       <head>
         <VerisourceStyleTag />
         <script
@@ -124,98 +154,72 @@ export default function RootLayout({
       <body>
         <header
           style={{
-            background: 'var(--vs-surface)',
+            background: 'rgba(250, 249, 246, 0.94)',
             borderBottom: '1px solid var(--vs-border)',
             position: 'sticky',
             top: 0,
             zIndex: 40,
           }}
         >
-          <div
-            className="vs-container"
-            style={{
-              height: '60px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div className="vs-container vs-header-inner">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <Link
                 href="/"
                 style={{
                   textDecoration: 'none',
                   color: 'var(--vs-ink)',
                   fontWeight: 700,
-                  fontSize: '16px',
-                  letterSpacing: '-0.02em',
-                  display: 'flex',
+                  fontSize: '15.5px',
+                  letterSpacing: '-0.025em',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '9px',
                 }}
               >
                 <span
-                  className="vs-mono"
+                  aria-hidden="true"
                   style={{
-                    display: 'inline-block',
-                    width: '10px',
-                    height: '10px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '18px',
+                    height: '18px',
                     background: 'var(--vs-ink)',
-                    borderRadius: '2px',
+                    borderRadius: '4px',
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      transform: 'rotate(45deg)',
+                      border: '1.5px solid #FAF9F6',
+                    }}
+                  />
+                </span>
                 VERISOURCE
               </Link>
               <span className="vs-badge">mcp.verisource.dev/mcp</span>
             </div>
 
-            <nav
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '20px',
-                fontSize: '13.5px',
-              }}
-            >
-              <Link
-                href="/#grader"
-                style={{
-                  color: 'var(--vs-ink-secondary)',
-                  textDecoration: 'none',
-                }}
-              >
+            <nav className="vs-nav-links" aria-label="Primary navigation">
+              <Link href="/#grader" className="vs-nav-link">
                 Free Grader
               </Link>
-              <Link
-                href="/#case-ledger"
-                style={{
-                  color: 'var(--vs-ink-secondary)',
-                  textDecoration: 'none',
-                }}
-              >
-                Patient Zero Ledger
+              <Link href="/#case-ledger" className="vs-nav-link">
+                Case Studies
               </Link>
-              <Link
-                href="/pricing"
-                style={{
-                  color: 'var(--vs-ink-secondary)',
-                  textDecoration: 'none',
-                }}
-              >
+              <Link href="/pricing" className="vs-nav-link">
                 Pricing
               </Link>
               <Link
                 href="/audit/mosaic-springfield-audit"
-                style={{
-                  color: 'var(--vs-ink-secondary)',
-                  textDecoration: 'none',
-                }}
+                className="vs-nav-link"
               >
-                Sample Pitch Link
+                Sample Client Report
               </Link>
               <Link href="/dashboard" className="vs-btn">
-                Open 3-Tab Console →
+                Open Console →
               </Link>
             </nav>
           </div>
@@ -227,8 +231,8 @@ export default function RootLayout({
           style={{
             borderTop: '1px solid var(--vs-border)',
             background: 'var(--vs-surface)',
-            marginTop: '72px',
-            padding: '32px 0',
+            marginTop: '80px',
+            padding: '36px 0',
             fontSize: '13px',
             color: 'var(--vs-ink-muted)',
           }}
@@ -245,8 +249,8 @@ export default function RootLayout({
           >
             <div>
               <strong style={{ color: 'var(--vs-ink)' }}>Verisource</strong> (
-              <code className="vs-mono">verisource.dev</code>) — Read-Write GEO
-              Intelligence &amp; Streamable HTTP MCP Engine.
+              <code className="vs-mono">verisource.dev</code>) — AI Brand Truth
+              &amp; Streamable HTTP MCP Engine.
             </div>
             <div
               className="vs-mono"

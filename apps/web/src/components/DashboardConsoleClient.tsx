@@ -21,11 +21,33 @@ import {
 } from '@verisource/core-geo';
 import {
   CodeArtifactCard,
+  GuidedExplainerBanner,
   MetricLedgerCell,
   StatusBadge,
   ThreeTabShell,
+  UxModeSwitch,
   type ThreeTabId,
+  type UxMode,
 } from '@verisource/ui';
+
+function describeFixPlainly(fixType: string): string {
+  switch (fixType) {
+    case 'json_ld_schema':
+      return 'Hidden fact-sheet code for your website header so AI engines read your real prices, products, and FAQs.';
+    case 'shopify_agents_liquid':
+      return 'Shopify theme file that gives AI shopping assistants your verified catalog and store rules.';
+    case 'agents_md':
+      return 'Plain-English instruction manual telling AI bots what you sell and what false claims to reject.';
+    case 'llms_txt':
+      return 'Clean 1-page directory of your key pages and policies built for AI search bots.';
+    case 'fanout_faq_block':
+      return 'Ready-to-publish Q&A section answering the exact questions buyers ask AI engines.';
+    case 'citation_outreach_brief':
+      return 'Short founder note to get your business included in third-party review and comparison articles.';
+    default:
+      return 'Verified copy-paste website fix.';
+  }
+}
 
 export interface WorkspacePayload {
   mode: string;
@@ -56,6 +78,28 @@ export function DashboardConsoleClient(props: {
     return props.initialData.domains[0]?.id ?? '';
   });
   const [activeTab, setActiveTab] = useState<ThreeTabId>('tab1_visibility');
+  const [uxMode, setUxMode] = useState<UxMode>('guided');
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('vs_ux_mode');
+      if (saved === 'guided' || saved === 'pro') {
+        setUxMode(saved);
+      }
+    } catch {
+      // Ignore storage restrictions
+    }
+  }, []);
+
+  function handleChangeUxMode(next: UxMode) {
+    setUxMode(next);
+    try {
+      window.localStorage.setItem('vs_ux_mode', next);
+    } catch {
+      // Ignore storage restrictions
+    }
+  }
+  const isGuided = uxMode === 'guided';
 
   // Domain lifecycle state
   const [newDomainUrl, setNewDomainUrl] = useState('');
@@ -106,7 +150,7 @@ export function DashboardConsoleClient(props: {
     data.profile.agency_logo_url ?? ''
   );
   const [agencyColor, setAgencyColor] = useState(
-    data.profile.agency_primary_color ?? '#0F172A'
+    data.profile.agency_primary_color ?? '#0A0E17'
   );
   const [agencyCtaUrl, setAgencyCtaUrl] = useState(
     data.profile.agency_cta_url ?? 'https://cal.com/verisource-demo/geo-audit'
@@ -828,13 +872,16 @@ export function DashboardConsoleClient(props: {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <UxModeSwitch mode={uxMode} onChange={handleChangeUxMode} />
           <StatusBadge tone="pass">
             PLAN: {data.profile.plan_tier.toUpperCase()}
           </StatusBadge>
-          <StatusBadge>
-            MCP CREDITS: {data.profile.mcp_calls_used_this_month} /{' '}
-            {data.profile.mcp_calls_limit}
-          </StatusBadge>
+          {!isGuided ? (
+            <StatusBadge>
+              MCP CREDITS: {data.profile.mcp_calls_used_this_month} /{' '}
+              {data.profile.mcp_calls_limit}
+            </StatusBadge>
+          ) : null}
           <form action="/api/billing/portal" method="POST">
             {accessToken ? (
               <input type="hidden" name="access_token" value={accessToken} />
@@ -902,11 +949,11 @@ export function DashboardConsoleClient(props: {
       ) : null}
 
       {/* Strict 3-Tab Layout */}
-      <ThreeTabShell activeTab={activeTab} onSelectTab={setActiveTab}>
+      <ThreeTabShell activeTab={activeTab} onSelectTab={setActiveTab} mode={uxMode}>
         {!activeDomain ? (
           <div className="vs-card" style={{ padding: '28px' }}>
             <h2 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>
-              Scan your first domain to initialize your workspace
+              Scan your first website to get started
             </h2>
             <p
               style={{
@@ -916,72 +963,92 @@ export function DashboardConsoleClient(props: {
                 maxWidth: '620px',
               }}
             >
-              Enter your storefront or B2B domain in the top bar and click{' '}
-              <strong>+ Scan Domain</strong>. Verisource probes{' '}
-              <code className="vs-mono">/robots.txt</code>,{' '}
-              <code className="vs-mono">/llms.txt</code>,{' '}
-              <code className="vs-mono">/agents.md</code>, and Shopify{' '}
-              <code className="vs-mono">/api/ucp/mcp</code>, then builds your
-              9.5+/10 fix bundle.
+              Type your website URL in the top bar and click{' '}
+              <strong>+ Scan Domain</strong>. Verisource checks what AI engines
+              say about your business, tests AI bot access, and prepares your
+              copy-paste fixes.
             </p>
           </div>
         ) : null}
 
         {activeTab === 'tab1_visibility' && activeDomain ? (
           <div>
+            {isGuided ? (
+              <GuidedExplainerBanner
+                stepLabel="STEP 01 OF 03 · BRAND HEALTH & AI MISTAKES"
+                title="See what AI tells buyers—and correct any invented facts"
+                description="Review ChatGPT, Gemini, and Perplexity answers on the left. Confirm your real prices and delivery rules on the right, then click Save Facts & Update Fixes."
+                glossary={[
+                  {
+                    term: 'AI Visibility',
+                    meaning: 'How often AI recommends your business (0–100)',
+                  },
+                  {
+                    term: 'Fact Accuracy',
+                    meaning: 'Whether AI states your real prices & policies',
+                  },
+                  {
+                    term: 'GPTBot / PerplexityBot',
+                    meaning: 'AI crawlers reading your pages',
+                  },
+                ]}
+              />
+            ) : null}
+
             {/* Metric Summary Strip */}
             <div
-              className="vs-card"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                marginBottom: '22px',
-              }}
+              className="vs-card vs-ledger-strip-4"
+              style={{ marginBottom: '22px' }}
             >
-              <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+              <div>
                 <MetricLedgerCell
-                  label="AI Share of Voice"
+                  label={isGuided ? 'AI Visibility Score' : 'AI Share of Voice'}
                   value={activeDomain.visibility_score}
                   suffix="/ 100"
                   tone={activeDomain.visibility_score < 50 ? 'warn' : 'pass'}
                   sublabel="ChatGPT · Gemini · Perplexity"
                 />
               </div>
-              <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+              <div>
                 <MetricLedgerCell
-                  label="Brand Truth Accuracy"
+                  label={isGuided ? 'Fact Accuracy' : 'Brand Truth Accuracy'}
                   value={`${activeDomain.accuracy_score}%`}
                   tone={activeDomain.accuracy_score < 85 ? 'critical' : 'pass'}
-                  sublabel={`${flaggedSnapshots.length} engine snapshot(s) w/ conflicts`}
-                />
-              </div>
-              <div style={{ borderRight: '1px solid var(--vs-border)' }}>
-                <MetricLedgerCell
-                  label="AI Referral Visits"
-                  value={totalAiVisits}
-                  sublabel="Attributed via utm_source + referrer"
+                  sublabel={
+                    isGuided
+                      ? `${flaggedSnapshots.length} AI answer(s) w/ wrong facts`
+                      : `${flaggedSnapshots.length} engine snapshot(s) w/ conflicts`
+                  }
                 />
               </div>
               <div>
                 <MetricLedgerCell
-                  label="Verified AI Checkout Revenue"
+                  label="AI Referral Visits"
+                  value={totalAiVisits}
+                  sublabel={
+                    isGuided
+                      ? 'Visitors sent by AI engines'
+                      : 'Attributed via utm_source + referrer'
+                  }
+                />
+              </div>
+              <div>
+                <MetricLedgerCell
+                  label={isGuided ? 'AI-Referred Sales' : 'Verified AI Checkout Revenue'}
                   value={`$${totalAiRevenueUsd.toFixed(2)}`}
                   tone="pass"
-                  sublabel="Origin-verified conversion events"
+                  sublabel={
+                    isGuided
+                      ? 'Completed orders from AI clicks'
+                      : 'Origin-verified conversion events'
+                  }
                 />
               </div>
             </div>
 
             {/* Module 1: Hallucination Watchdog + 1-Click Truth Sheet */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1.15fr 0.85fr',
-                gap: '18px',
-                marginBottom: '24px',
-              }}
-            >
-              <div className="vs-card" style={{ overflow: 'hidden' }}>
+            <div className="vs-grid-split" style={{ marginBottom: '24px' }}>
+              <div className="vs-card vs-table-wrap">
                 <div
                   style={{
                     padding: '12px 16px',
@@ -995,7 +1062,9 @@ export function DashboardConsoleClient(props: {
                   }}
                 >
                   <strong style={{ fontSize: '13.5px' }}>
-                    Module 1 — AI Hallucination &amp; Claim Watchdog
+                    {isGuided
+                      ? 'What AI Engines Tell Buyers Right Now'
+                      : 'Module 1 — AI Hallucination & Claim Watchdog'}
                   </strong>
                   <div
                     style={{
@@ -1019,7 +1088,11 @@ export function DashboardConsoleClient(props: {
                       style={{ padding: '5px 10px', fontSize: '11.5px' }}
                       title="Dispatch or preview weekly hallucination drift email"
                     >
-                      {sendingAlert ? 'Dispatching...' : 'Send Drift Alert'}
+                      {sendingAlert
+                        ? 'Dispatching...'
+                        : isGuided
+                          ? 'Preview Email Alert'
+                          : 'Send Drift Alert'}
                     </button>
                   </div>
                 </div>
@@ -1029,7 +1102,11 @@ export function DashboardConsoleClient(props: {
                     <tr>
                       <th>Engine</th>
                       <th>Rank</th>
-                      <th>Observed Answer / Hallucination Diff</th>
+                      <th>
+                        {isGuided
+                          ? 'What AI Says vs. Your Real Facts'
+                          : 'Observed Answer / Hallucination Diff'}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1056,13 +1133,17 @@ export function DashboardConsoleClient(props: {
                                 padding: '8px 10px',
                                 background: 'var(--vs-crit-bg)',
                                 border: '1px solid var(--vs-crit-border)',
-                                borderRadius: '4px',
+                                borderRadius: '5px',
                                 fontSize: '12px',
                                 color: 'var(--vs-crit-fg)',
                                 marginTop: '4px',
                               }}
                             >
-                              <strong>HALLUCINATION ({h.category}):</strong>{' '}
+                              <strong>
+                                {isGuided
+                                  ? `WRONG AI CLAIM (${h.category}):`
+                                  : `HALLUCINATION (${h.category}):`}
+                              </strong>{' '}
                               &ldquo;{h.claim_text}&rdquo;
                               <div style={{ color: 'var(--vs-ink)', marginTop: '2px' }}>
                                 <strong>Verified Truth:</strong> {h.verified_truth}
@@ -1090,7 +1171,7 @@ export function DashboardConsoleClient(props: {
                   }}
                 >
                   <strong style={{ fontSize: '13.5px' }}>
-                    Brand Truth Sheet
+                    {isGuided ? 'Your Real Business Facts' : 'Brand Truth Sheet'}
                   </strong>
                   <StatusBadge
                     tone={
@@ -1106,7 +1187,7 @@ export function DashboardConsoleClient(props: {
                 </div>
 
                 <label style={{ fontSize: '12px', fontWeight: 600 }}>
-                  Core Offering
+                  {isGuided ? 'What You Sell (1–2 sentences)' : 'Core Offering'}
                 </label>
                 <textarea
                   rows={2}
@@ -1117,7 +1198,7 @@ export function DashboardConsoleClient(props: {
                 />
 
                 <label style={{ fontSize: '12px', fontWeight: 600 }}>
-                  Verified Pricing Summary
+                  {isGuided ? 'Your Real Prices' : 'Verified Pricing Summary'}
                 </label>
                 <input
                   type="text"
@@ -1128,7 +1209,9 @@ export function DashboardConsoleClient(props: {
                 />
 
                 <label style={{ fontSize: '12px', fontWeight: 600 }}>
-                  Shipping / Local Service Radius
+                  {isGuided
+                    ? 'Shipping Rules or Service Area'
+                    : 'Shipping / Local Service Radius'}
                 </label>
                 <input
                   type="text"
@@ -1139,7 +1222,9 @@ export function DashboardConsoleClient(props: {
                 />
 
                 <label style={{ fontSize: '12px', fontWeight: 600 }}>
-                  False Claims / Exclusions to Flag (1 per line)
+                  {isGuided
+                    ? 'Things You Do NOT Offer (1 per line)'
+                    : 'False Claims / Exclusions to Flag (1 per line)'}
                 </label>
                 <textarea
                   rows={3}
@@ -1156,8 +1241,10 @@ export function DashboardConsoleClient(props: {
                   style={{ width: '100%' }}
                 >
                   {savingTruth
-                    ? 'Re-Running Watchdog & Critic...'
-                    : 'Verify Truth & Regenerate Fixes'}
+                    ? 'Updating Website Fixes...'
+                    : isGuided
+                      ? 'Save Facts & Update Website Fixes'
+                      : 'Verify Truth & Regenerate Fixes'}
                 </button>
               </form>
             </div>
@@ -1214,7 +1301,9 @@ export function DashboardConsoleClient(props: {
                 }}
               >
                 <strong style={{ fontSize: '13.5px' }}>
-                  Module 2 — Simulated Crawler WAF Check &amp; Referral Revenue Pixel
+                  {isGuided
+                    ? 'Can AI Bots Read Your Site? + 10-Line Sales Tracker'
+                    : 'Module 2 — Simulated Crawler WAF Check & Referral Revenue Pixel'}
                 </strong>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {(
@@ -1240,6 +1329,11 @@ export function DashboardConsoleClient(props: {
 
               <CodeArtifactCard
                 title={`10-Line Attribution Pixel (${activeDomain.brand_name})`}
+                plainSummary={
+                  isGuided
+                    ? 'Paste once into your site header to track visits coming from ChatGPT, Perplexity, Gemini, and Claude.'
+                    : undefined
+                }
                 fileHint="Paste before </head> in layout/theme.liquid for AI referral visits"
                 code={pixelSnippet}
               />
@@ -1248,6 +1342,11 @@ export function DashboardConsoleClient(props: {
                 <div style={{ marginTop: '14px' }}>
                   <CodeArtifactCard
                     title={`Shopify Customer Events Checkout Pixel (${activeDomain.brand_name})`}
+                    plainSummary={
+                      isGuided
+                        ? 'Tracks exact checkout order dollars from AI shoppers inside Shopify Admin -> Settings -> Customer events.'
+                        : undefined
+                    }
                     fileHint="Shopify Admin -> Settings -> Customer events -> Add custom pixel (tracks checkout_completed USD)"
                     code={shopifyCheckoutPixel}
                   />
@@ -1259,6 +1358,28 @@ export function DashboardConsoleClient(props: {
 
         {activeTab === 'tab2_fixes' && activeDomain ? (
           <div>
+            {isGuided ? (
+              <GuidedExplainerBanner
+                stepLabel="STEP 02 OF 03 · COPY-PASTE WEBSITE FIXES"
+                title="Publish verified facts onto your website"
+                description="Click Download Full Fix Bundle (.md) to hand one ready-to-use file to your web designer, or click Copy Code on any block below."
+                glossary={[
+                  {
+                    term: 'JSON-LD',
+                    meaning: 'Hidden fact-sheet code AI & search engines read',
+                  },
+                  {
+                    term: '/agents.md',
+                    meaning: 'Instruction rulebook for AI shopping assistants',
+                  },
+                  {
+                    term: '/llms.txt',
+                    meaning: 'Quick-read 1-page directory of your website',
+                  },
+                ]}
+              />
+            ) : null}
+
             {/* Shopify Native Adapter Callout */}
             {activeDomain.is_shopify ? (
               <div
@@ -1266,7 +1387,7 @@ export function DashboardConsoleClient(props: {
                 style={{
                   padding: '16px 18px',
                   marginBottom: '20px',
-                  background: 'var(--vs-surface-subtle)',
+                  background: 'var(--vs-surface-warm)',
                 }}
               >
                 <div
@@ -1364,6 +1485,9 @@ export function DashboardConsoleClient(props: {
                 <CodeArtifactCard
                   key={fix.id}
                   title={fix.title}
+                  plainSummary={
+                    isGuided ? describeFixPlainly(fix.fix_type) : undefined
+                  }
                   fileHint={`Fix Type: ${fix.fix_type}`}
                   code={fix.content_payload}
                   qualityScore={Number(fix.natural_quality_score)}
@@ -1376,8 +1500,26 @@ export function DashboardConsoleClient(props: {
 
         {activeTab === 'tab3_offsite' && activeDomain ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {isGuided ? (
+              <GuidedExplainerBanner
+                stepLabel="STEP 03 OF 03 · COMPETITORS & CLIENT REPORTS"
+                title="See where competitors get recommended & share client links"
+                description="Add real questions buyers ask to uncover which blogs and Reddit threads AI reads, or create a clean branded audit page to send to a prospect."
+                glossary={[
+                  {
+                    term: 'Competitor Sources',
+                    meaning: 'Third-party articles & threads AI trusts',
+                  },
+                  {
+                    term: 'White-Label Pitch URL',
+                    meaning: 'Shareable client report with your logo & booking button',
+                  },
+                ]}
+              />
+            ) : null}
+
             {/* Module 3: Query Fanout Decompiler & Citation Gap Map */}
-            <div className="vs-card" style={{ overflow: 'hidden' }}>
+            <div className="vs-card vs-table-wrap">
               <div
                 style={{
                   padding: '12px 16px',
@@ -1391,7 +1533,9 @@ export function DashboardConsoleClient(props: {
                 }}
               >
                 <strong style={{ fontSize: '13.5px' }}>
-                  Module 3 — Query Fanout Decompiler &amp; Third-Party Citation Gaps
+                  {isGuided
+                    ? 'Questions Buyers Ask AI & Websites Mentioning Competitors'
+                    : 'Module 3 — Query Fanout Decompiler & Third-Party Citation Gaps'}
                 </strong>
                 <form
                   onSubmit={handleAddPrompt}
@@ -1401,10 +1545,11 @@ export function DashboardConsoleClient(props: {
                     type="text"
                     value={newPromptText}
                     onChange={(e) => setNewPromptText(e.target.value)}
-                    placeholder="Add buyer prompt (e.g. best single origin coffee)"
+                    placeholder="Add buyer question (e.g. best single origin coffee)"
                     className="vs-input"
                     style={{
-                      width: '310px',
+                      width: '300px',
+                      maxWidth: '100%',
                       padding: '6px 10px',
                       fontSize: '12px',
                       fontFamily: 'var(--vs-sans)',
@@ -1423,9 +1568,17 @@ export function DashboardConsoleClient(props: {
               <table className="vs-table">
                 <thead>
                   <tr>
-                    <th>Buyer Prompt</th>
-                    <th>Observed Engine Fanout Sub-Queries</th>
-                    <th>Unblurred Competitor Citation Targets</th>
+                    <th>{isGuided ? 'Question Buyers Ask' : 'Buyer Prompt'}</th>
+                    <th>
+                      {isGuided
+                        ? 'What AI Searches Behind the Scenes'
+                        : 'Observed Engine Fanout Sub-Queries'}
+                    </th>
+                    <th>
+                      {isGuided
+                        ? 'Websites Mentioning Competitors'
+                        : 'Unblurred Competitor Citation Targets'}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1476,13 +1629,7 @@ export function DashboardConsoleClient(props: {
             </div>
 
             {/* Module 4: Agency 60-Second White-Label Pitch Mode */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '18px',
-              }}
-            >
+            <div className="vs-grid-2">
               <form
                 onSubmit={handleGeneratePitchLink}
                 className="vs-card"
@@ -1490,7 +1637,9 @@ export function DashboardConsoleClient(props: {
               >
                 <div style={{ marginBottom: '12px' }}>
                   <strong style={{ fontSize: '14px' }}>
-                    Module 4 — 60-Second White-Label Prospect Pitch Generator
+                    {isGuided
+                      ? 'Create a Shareable Client Audit Page (60 Seconds)'
+                      : 'Module 4 — 60-Second White-Label Prospect Pitch Generator'}
                   </strong>
                   <div
                     style={{
@@ -1499,8 +1648,9 @@ export function DashboardConsoleClient(props: {
                       marginTop: '2px',
                     }}
                   >
-                    Scans any prospect URL and mints an unbranded/agency-branded
-                    teaser report at <code className="vs-mono">/audit/[slug]</code>.
+                    {isGuided
+                      ? 'Scans any client website and builds a clean report page with your logo and calendar button.'
+                      : 'Scans any prospect URL and mints an agency-branded teaser report at /audit/[slug].'}
                   </div>
                 </div>
 
@@ -1584,7 +1734,7 @@ export function DashboardConsoleClient(props: {
                 </button>
               </form>
 
-              <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-card vs-table-wrap">
                 <div
                   style={{
                     padding: '12px 16px',
@@ -1593,7 +1743,7 @@ export function DashboardConsoleClient(props: {
                   }}
                 >
                   <strong style={{ fontSize: '13.5px' }}>
-                    Active Prospect Pitch Links
+                    {isGuided ? 'Your Shareable Client Links' : 'Active Prospect Pitch Links'}
                   </strong>
                 </div>
                 <table className="vs-table">
@@ -1662,6 +1812,11 @@ export function DashboardConsoleClient(props: {
             {selectedPitchReport && pitchOutreachArtifact ? (
               <CodeArtifactCard
                 title={`4-Sentence Founder Cold Outreach Note (${selectedPitchReport.prospect_brand_name})`}
+                plainSummary={
+                  isGuided
+                    ? 'Ready-to-send email or LinkedIn message introducing this client report.'
+                    : undefined
+                }
                 fileHint={`Target: https://verisource.dev/audit/${selectedPitchReport.share_slug} · Copy into Gmail, Superhuman, or LinkedIn DM`}
                 code={pitchOutreachArtifact.content}
                 qualityScore={pitchOutreachArtifact.score}
@@ -1669,7 +1824,37 @@ export function DashboardConsoleClient(props: {
               />
             ) : null}
 
-            {/* Paid MCP Server Connection Hub */}
+            {/* Paid MCP Server Connection Hub: Calm optional handoff in Guided Mode, full developer hub in Pro Mode */}
+            {isGuided ? (
+              <div
+                className="vs-card"
+                style={{
+                  padding: '16px 20px',
+                  background: 'var(--vs-surface-warm)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                }}
+              >
+                <div>
+                  <strong style={{ fontSize: '13.5px' }}>
+                    Optional Developer &amp; AI Assistant Sync (MCP)
+                  </strong>
+                  <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
+                    Want to connect Claude Desktop, Cursor, or Antigravity directly to your workspace? Switch to Pro Mode to manage API keys.
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="vs-btn vs-btn-secondary"
+                  onClick={() => handleChangeUxMode('pro')}
+                >
+                  Switch to Pro Mode for API Keys →
+                </button>
+              </div>
+            ) : (
             <div className="vs-card" style={{ padding: '18px' }}>
               <div
                 style={{
@@ -1741,11 +1926,11 @@ export function DashboardConsoleClient(props: {
 
               {data.mcpApiKeys.length > 0 ? (
                 <div
+                  className="vs-table-wrap"
                   style={{
                     marginTop: '16px',
                     border: '1px solid var(--vs-border)',
                     borderRadius: '6px',
-                    overflow: 'hidden',
                   }}
                 >
                   <table className="vs-table">
@@ -1803,6 +1988,7 @@ export function DashboardConsoleClient(props: {
                 </div>
               ) : null}
             </div>
+            )}
           </div>
         ) : null}
       </ThreeTabShell>

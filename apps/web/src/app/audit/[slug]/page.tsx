@@ -59,19 +59,19 @@ export default async function AgencyPitchReportPage({
   const agencyName = report.agency_brand_name || 'Partner GEO Advisory';
   const brandColor = /^#[0-9A-Fa-f]{6}$/.test(report.agency_primary_color ?? '')
     ? report.agency_primary_color!
-    : '#0F172A';
+    : '#0A0E17';
   const rawCta = report.agency_cta_url?.trim() ?? '';
   const ctaUrl = /^https?:\/\//i.test(rawCta) ? rawCta : '/pricing';
   const rawLogo = report.agency_logo_url?.trim() ?? '';
   const logoUrl = /^https?:\/\//i.test(rawLogo) ? rawLogo : null;
 
   return (
-    <div className="vs-container" style={{ paddingTop: '36px', maxWidth: '920px' }}>
+    <div className="vs-container" style={{ paddingTop: '36px', maxWidth: '940px' }}>
       {/* White-Label Agency Header Banner */}
       <div
         className="vs-card"
         style={{
-          padding: '20px 24px',
+          padding: '22px 24px',
           marginBottom: '20px',
           borderTop: `4px solid ${brandColor}`,
           display: 'flex',
@@ -83,7 +83,7 @@ export default async function AgencyPitchReportPage({
       >
         <div>
           {logoUrl ? (
-            <div style={{ marginBottom: '8px' }}>
+            <div style={{ marginBottom: '10px' }}>
               <img
                 src={logoUrl}
                 alt={`${agencyName} logo`}
@@ -96,19 +96,10 @@ export default async function AgencyPitchReportPage({
               />
             </div>
           ) : null}
-          <div
-            className="vs-mono"
-            style={{
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: 'var(--vs-ink-muted)',
-              marginBottom: '4px',
-            }}
-          >
-            PREPARED BY {agencyName.toUpperCase()} · CONFIDENTIAL AI RETRIEVAL BRIEF
+          <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+            PREPARED BY {agencyName.toUpperCase()} · EXECUTIVE AI SEARCH BRIEF
           </div>
-          <h1 style={{ margin: 0, fontSize: '24px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ margin: 0, fontSize: '25px', letterSpacing: '-0.025em' }}>
             AI Search &amp; Hallucination Audit: {report.prospect_brand_name}
           </h1>
           <div
@@ -116,10 +107,10 @@ export default async function AgencyPitchReportPage({
             style={{
               fontSize: '12.5px',
               color: 'var(--vs-ink-muted)',
-              marginTop: '4px',
+              marginTop: '5px',
             }}
           >
-            Target Domain: {report.prospect_domain} · Views: {report.views_count}
+            Website: {report.prospect_domain} · Views: {report.views_count}
           </div>
         </div>
 
@@ -134,16 +125,24 @@ export default async function AgencyPitchReportPage({
         </a>
       </div>
 
+      {/* Plain-English Executive Context Strip */}
+      <div className="vs-guided-banner" style={{ marginBottom: '20px' }}>
+        <div style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: '2px' }}>
+          How to read this 60-second audit
+        </div>
+        <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+          We tested how ChatGPT, Google Gemini, and Perplexity answer buyer
+          questions in your category, checked whether your website gives AI bots
+          verified pricing facts, and listed the exact fixes ready to publish.
+        </div>
+      </div>
+
       {/* Top Executive Score Strip */}
       <div
-        className="vs-card"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-          marginBottom: '20px',
-        }}
+        className="vs-card vs-ledger-strip-3"
+        style={{ marginBottom: '20px' }}
       >
-        <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+        <div>
           <MetricLedgerCell
             label="AI Visibility Score"
             value={report.visibility_score}
@@ -152,9 +151,9 @@ export default async function AgencyPitchReportPage({
             sublabel="Across ChatGPT, Gemini & Perplexity"
           />
         </div>
-        <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+        <div>
           <MetricLedgerCell
-            label="Active Hallucinations"
+            label="Wrong AI Claims Found"
             value={report.hallucination_count}
             tone={report.hallucination_count > 0 ? 'critical' : 'pass'}
             sublabel={
@@ -166,7 +165,7 @@ export default async function AgencyPitchReportPage({
         </div>
         <div>
           <MetricLedgerCell
-            label="Competitors Winning Share"
+            label="Competitors Recommended"
             value={report.summary_payload.competitors_winning.length}
             sublabel={
               report.summary_payload.competitors_winning.slice(0, 2).join(', ') ||
@@ -178,7 +177,7 @@ export default async function AgencyPitchReportPage({
 
       {/* Hallucination Evidence Alert */}
       {report.summary_payload.hallucination_examples.length > 0 ? (
-        <div className="vs-card" style={{ marginBottom: '20px', overflow: 'hidden' }}>
+        <div className="vs-card vs-table-wrap" style={{ marginBottom: '20px' }}>
           <div
             style={{
               padding: '12px 18px',
@@ -189,14 +188,14 @@ export default async function AgencyPitchReportPage({
               fontSize: '13.5px',
             }}
           >
-            Flagged AI Hallucinations Affecting Buyer Trust
+            Flagged AI Mistakes Affecting Buyer Trust
           </div>
           <table className="vs-table">
             <thead>
               <tr>
-                <th>Severity</th>
+                <th>Priority</th>
                 <th>What AI Engines Currently Tell Buyers</th>
-                <th>Verified Storefront Truth</th>
+                <th>Your Verified Website Truth</th>
               </tr>
             </thead>
             <tbody>
@@ -219,25 +218,10 @@ export default async function AgencyPitchReportPage({
       ) : null}
 
       {/* Technical Gaps & Remediation Plan */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '18px',
-          marginBottom: '24px',
-        }}
-      >
+      <div className="vs-grid-2" style={{ marginBottom: '24px' }}>
         <div className="vs-card" style={{ padding: '20px' }}>
-          <div
-            className="vs-mono"
-            style={{
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              color: 'var(--vs-ink-muted)',
-              marginBottom: '10px',
-            }}
-          >
-            DIAGNOSED RETRIEVAL GAPS
+          <div className="vs-eyebrow" style={{ marginBottom: '10px' }}>
+            WHAT IS HOLDING YOUR SCORE BACK
           </div>
           <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13.5px' }}>
             {report.summary_payload.top_gaps.map((gap, i) => (
@@ -249,16 +233,8 @@ export default async function AgencyPitchReportPage({
         </div>
 
         <div className="vs-card" style={{ padding: '20px' }}>
-          <div
-            className="vs-mono"
-            style={{
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              color: 'var(--vs-ink-muted)',
-              marginBottom: '10px',
-            }}
-          >
-            RECOMMENDED ENGINEERING FIXES
+          <div className="vs-eyebrow" style={{ marginBottom: '10px' }}>
+            READY-TO-PUBLISH WEBSITE FIXES
           </div>
           <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13.5px' }}>
             {report.summary_payload.recommended_fixes.map((fix, i) => (
@@ -280,19 +256,20 @@ export default async function AgencyPitchReportPage({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '14px',
-          background: 'var(--vs-surface-subtle)',
+          background: 'var(--vs-surface-warm)',
         }}
       >
         <div>
           <div style={{ fontWeight: 600, fontSize: '15px' }}>
-            Ready to deploy verified schema, /agents.md, and citation fixes for{' '}
+            Want these verified website fixes published for{' '}
             {report.prospect_brand_name}?
           </div>
           <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-            {agencyName} has already generated the implementation bundle for this domain.
+            {agencyName} has already prepared the copy-paste implementation
+            package for your site.
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
           <a
             href={ctaUrl}
             target={ctaUrl.startsWith('http') ? '_blank' : undefined}
@@ -303,7 +280,7 @@ export default async function AgencyPitchReportPage({
             Schedule Implementation Call
           </a>
           <Link href="/" className="vs-btn vs-btn-secondary">
-            Run Another Domain Scan
+            Scan Another Website
           </Link>
         </div>
       </div>

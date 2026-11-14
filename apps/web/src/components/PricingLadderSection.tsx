@@ -32,18 +32,18 @@ export function PricingLadderSection(props: {
   const tiers = [
     {
       id: 'tripwire_19',
-      name: 'Audit Pass (Tripwire)',
+      name: 'Audit Pass',
       price: '$19',
       cadence: 'one-time pass',
-      badge: '7-DAY UPGRADE CREDIT',
+      badge: '7-DAY CREDIT',
       highlight: false,
       summary:
-        'Complete 1-domain deep scan + full 9.5+/10 fix bundle once. Credited 100% toward Month 1 if you subscribe within 7 days.',
+        'Test Verisource on 1 website with zero recurring commitment. Credited 100% toward Month 1 if you subscribe within 7 days.',
       specs: [
-        '1 Complete Domain Audit (ChatGPT, Gemini, Perplexity)',
-        'Unblurred Competitor Citation URLs',
-        '1-Click JSON-LD, /llms.txt & /agents.md Bundle',
-        '$19 credited toward any plan within 7 days',
+        '1 Complete Website Audit (ChatGPT, Gemini, Perplexity)',
+        'Unblurred Competitor Source Links',
+        'Copy-Paste JSON-LD, /llms.txt & /agents.md Fixes',
+        '$19 credited toward any monthly plan within 7 days',
       ],
       cta: 'Buy $19 Audit Pass',
       href: `/api/checkout?plan=tripwire_19&cycle=one_time${domainParam}${tokenParam}`,
@@ -53,14 +53,14 @@ export function PricingLadderSection(props: {
       name: 'Starter Brand',
       price: annual ? '$39' : '$49',
       cadence: annual ? '/mo billed annually' : '/mo billed monthly',
-      badge: '1 DOMAIN',
+      badge: '1 WEBSITE',
       highlight: false,
       summary:
-        'Automated weekly prompt tracking and Hallucination Watchdog for a single B2B or Shopify brand.',
+        'Automated weekly AI checks and wrong-price alerts for a single local business, SaaS company, or Shopify store.',
       specs: [
-        '1 Tracked Domain + Weekly Cron Scans',
-        '35 Weekly Buyer Prompts (3 AI Engines)',
-        'Hallucination & Brand Truth Watchdog',
+        '1 Website + Weekly Automated Scans',
+        '35 Weekly Buyer Questions (3 AI Engines)',
+        'Wrong-Price & Policy Alert Watchdog',
         '9.5+/10 JSON-LD, /llms.txt & /agents.md Fixes',
       ],
       cta: 'Start Starter Plan',
@@ -76,11 +76,11 @@ export function PricingLadderSection(props: {
       badge: 'MOST POPULAR',
       highlight: true,
       summary:
-        'Full Query Fanout Decompiler, Shopify /api/ucp/mcp catalog enhancer, AI revenue pixel, and Paid MCP server access.',
+        'Competitor source map, Shopify catalog adapter, 10-line AI revenue tracker, and direct MCP sync for AI tools.',
       specs: [
-        'Up to 3 Domains & 100 Weekly Prompts',
-        'Query Fanout Decompiler + Outreach Briefs',
-        '10-Line AI Referral & Checkout Revenue Pixel',
+        'Up to 3 Websites & 100 Weekly Questions',
+        'Competitor Source Map + Outreach Drafts',
+        '10-Line AI Visit & Checkout Revenue Pixel',
         'Shopify /api/ucp/mcp + agents.md.liquid Adapter',
         'Paid /mcp Server (1,000 credits/mo: 1 cached / 10 live)',
       ],
@@ -94,14 +94,14 @@ export function PricingLadderSection(props: {
       name: 'Agency White-Label',
       price: annual ? '$199' : '$249',
       cadence: annual ? '/mo billed annually' : '/mo billed monthly',
-      badge: '15 CLIENT DOMAINS',
+      badge: '15 CLIENT SITES',
       highlight: false,
       summary:
-        'Close $1,500–$3,000/mo GEO retainers using 60-second white-label prospect audit URLs with your agency logo and booking link.',
+        'Close $1,500–$3,000/mo client retainers using 60-second branded audit links with your agency logo and booking button.',
       specs: [
-        'Up to 15 Client Domains & 400 Weekly Prompts',
-        '60-Second White-Label Pitch Link (/audit/[slug])',
-        'Custom Agency Logo, Brand Colors & Calendar CTA',
+        'Up to 15 Client Websites & 400 Weekly Questions',
+        '60-Second Branded Client Link (/audit/[slug])',
+        'Custom Agency Logo, Brand Color & Calendar CTA',
         '5,000 Paid /mcp Server Credits / Month',
       ],
       cta: 'Start Agency Plan',
@@ -112,7 +112,7 @@ export function PricingLadderSection(props: {
   ];
 
   return (
-    <section id="pricing" style={{ marginTop: '64px' }}>
+    <section id="pricing" style={{ marginTop: '68px' }}>
       <div
         style={{
           display: 'flex',
@@ -124,86 +124,48 @@ export function PricingLadderSection(props: {
         }}
       >
         <div>
-          <div
-            className="vs-mono"
-            style={{
-              fontSize: '11.5px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              color: 'var(--vs-ink-muted)',
-              marginBottom: '6px',
-            }}
-          >
-            TRANSPARENT PRICING LADDER
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            STRAIGHTFORWARD PRICING
           </div>
           <h2
             style={{
-              fontSize: '26px',
+              fontSize: '27px',
               fontWeight: 700,
-              letterSpacing: '-0.02em',
+              letterSpacing: '-0.025em',
               margin: 0,
             }}
           >
-            Replace passive $245–$579/mo visibility charts with a read-write fix engine.
+            Skip $245–$579/mo passive charts. Pay only for verified fixes.
           </h2>
         </div>
 
-        <div
-          style={{
-            display: 'inline-flex',
-            border: '1px solid var(--vs-border-strong)',
-            borderRadius: '5px',
-            overflow: 'hidden',
-            background: 'var(--vs-surface)',
-          }}
-        >
+        <div className="vs-mode-switch" role="group" aria-label="Billing cycle">
           <button
             type="button"
+            className="vs-mode-btn"
+            data-active={!annual ? 'true' : 'false'}
             onClick={() => setAnnual(false)}
-            style={{
-              padding: '8px 14px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              background: !annual ? 'var(--vs-ink)' : 'transparent',
-              color: !annual ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-            }}
           >
             Monthly
           </button>
           <button
             type="button"
+            className="vs-mode-btn"
+            data-active={annual ? 'true' : 'false'}
             onClick={() => setAnnual(true)}
-            style={{
-              padding: '8px 14px',
-              fontSize: '12.5px',
-              fontWeight: 600,
-              border: 'none',
-              cursor: 'pointer',
-              background: annual ? 'var(--vs-ink)' : 'transparent',
-              color: annual ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-            }}
           >
             Annual (Save 20%)
           </button>
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-          gap: '14px',
-        }}
-      >
+      <div className="vs-grid-4">
         {tiers.map((tier) => (
           <div
             key={tier.id}
             className="vs-card"
             style={{
-              padding: '20px',
+              padding: '22px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
@@ -220,10 +182,10 @@ export function PricingLadderSection(props: {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   gap: '8px',
-                  marginBottom: '10px',
+                  marginBottom: '12px',
                 }}
               >
-                <span style={{ fontWeight: 700, fontSize: '15px' }}>
+                <span style={{ fontWeight: 700, fontSize: '15.5px' }}>
                   {tier.name}
                 </span>
                 <StatusBadge tone={tier.highlight ? 'pass' : 'neutral'}>
@@ -234,7 +196,7 @@ export function PricingLadderSection(props: {
               <div style={{ marginBottom: '12px' }}>
                 <span
                   className="vs-mono"
-                  style={{ fontSize: '30px', fontWeight: 700 }}
+                  style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.02em' }}
                 >
                   {tier.price}
                 </span>
@@ -263,10 +225,9 @@ export function PricingLadderSection(props: {
               <ul
                 style={{
                   listStyle: 'none',
-                  padding: 0,
-                  margin: '0 0 20px 0',
+                  padding: '14px 0 0 0',
+                  margin: '0 0 22px 0',
                   borderTop: '1px solid var(--vs-border)',
-                  paddingTop: '14px',
                   fontSize: '12.5px',
                 }}
               >
@@ -280,7 +241,7 @@ export function PricingLadderSection(props: {
                       gap: '8px',
                     }}
                   >
-                    <span className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+                    <span className="vs-mono" style={{ color: 'var(--vs-ink)', fontWeight: 700 }}>
                       +
                     </span>
                     <span>{spec}</span>

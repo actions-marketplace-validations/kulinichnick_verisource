@@ -9,12 +9,12 @@ const INITIAL_AUREA_PREVIEW: ReadinessScanSummary = {
   domainUrl: 'https://aurearoasters.com',
   hostname: 'aurearoasters.com',
   brandName: 'Aurea Coffee Roasters',
-  visibilityScore: 41,
-  accuracyScore: 68,
+  visibilityScore: 92,
+  accuracyScore: 96,
   isShopify: true,
   shopifyMcpStatus: 'ucp_active',
-  agentsMdStatus: 'default_boilerplate',
-  llmsTxtStatus: 'missing',
+  agentsMdStatus: 'custom_enriched',
+  llmsTxtStatus: 'present',
   robotsAiBotStatus: {
     GPTBot: true,
     'OAI-SearchBot': true,
@@ -23,7 +23,7 @@ const INITIAL_AUREA_PREVIEW: ReadinessScanSummary = {
     'Google-Extended': true,
     waf_blocked: false,
   },
-  jsonLdCount: 1,
+  jsonLdCount: 7,
   samplePromptResult: {
     promptText:
       'Best luxury Catholic or saint-inspired specialty coffee gifts online',
@@ -38,7 +38,7 @@ const INITIAL_AUREA_PREVIEW: ReadinessScanSummary = {
       'https://reddit.com/••••••-locked-citation',
       'https://aurearoasters.com/••••••-locked-citation',
     ],
-    hallucinationDetected: true,
+    hallucinationDetected: false,
   },
   upgradeUrl: '/pricing?domain=aurearoasters.com',
 };
@@ -85,7 +85,7 @@ export function PublicGraderClient(): React.ReactElement {
     <div id="grader" className="vs-card" style={{ overflow: 'hidden' }}>
       <div
         style={{
-          padding: '16px 20px',
+          padding: '15px 20px',
           borderBottom: '1px solid var(--vs-border)',
           background: 'var(--vs-surface-subtle)',
           display: 'flex',
@@ -96,31 +96,24 @@ export function PublicGraderClient(): React.ReactElement {
         }}
       >
         <div>
-          <span
-            className="vs-mono"
-            style={{
-              fontSize: '11.5px',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.04em',
-            }}
-          >
-            LIVE AI READINESS &amp; PROTOCOL GRADER
-          </span>
-          <span
+          <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+            FREE INSTANT WEBSITE &amp; AI READINESS CHECK
+          </div>
+          <div
             style={{
               fontSize: '12.5px',
               color: 'var(--vs-ink-muted)',
-              marginLeft: '10px',
+              marginTop: '2px',
             }}
           >
-            Probes robots.txt, simulated GPTBot/PerplexityBot WAF headers, /agents.md, and Shopify UCP.
-          </span>
+            Checks whether ChatGPT, Gemini, and Perplexity bots can read your
+            site and verify your real prices.
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
-            Patient Zero presets:
+            Try a live store:
           </span>
           <button
             type="button"
@@ -147,20 +140,12 @@ export function PublicGraderClient(): React.ReactElement {
         </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          padding: '16px 20px',
-          borderBottom: '1px solid var(--vs-border)',
-          display: 'flex',
-          gap: '10px',
-        }}
-      >
+      <form onSubmit={handleSubmit} className="vs-grader-form">
         <input
           type="text"
           value={domainInput}
           onChange={(e) => setDomainInput(e.target.value)}
-          placeholder="Enter any domain (e.g. mosaicroasters.com or yourcompany.com)"
+          placeholder="Type your website (e.g. yourcompany.com or mosaicroasters.com)"
           className="vs-input"
           aria-label="Target domain to audit"
         />
@@ -168,7 +153,7 @@ export function PublicGraderClient(): React.ReactElement {
           type="submit"
           disabled={loading}
           className="vs-btn"
-          style={{ whiteSpace: 'nowrap', padding: '10px 20px' }}
+          style={{ whiteSpace: 'nowrap', padding: '10px 22px' }}
         >
           {loading ? 'Scanning Live...' : 'Run Free Audit'}
         </button>
@@ -189,41 +174,38 @@ export function PublicGraderClient(): React.ReactElement {
       ) : null}
 
       <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-          borderBottom: '1px solid var(--vs-border)',
-        }}
+        className="vs-ledger-strip-4"
+        style={{ borderBottom: '1px solid var(--vs-border)' }}
       >
-        <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+        <div>
           <MetricLedgerCell
             label="AI Visibility Score"
             value={result.visibilityScore}
             suffix="/ 100"
             tone={result.visibilityScore < 50 ? 'warn' : 'pass'}
-            sublabel={result.hostname}
+            sublabel={`Overall AI readiness for ${result.hostname}`}
           />
         </div>
-        <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+        <div>
           <MetricLedgerCell
-            label="Brand Truth Accuracy"
+            label="Fact Accuracy"
             value={`${result.accuracyScore}%`}
             tone={result.accuracyScore < 80 ? 'critical' : 'pass'}
             sublabel={
               result.samplePromptResult.hallucinationDetected
-                ? 'Hallucination flagged in sample'
-                : 'No pricing conflict in sample'
+                ? 'Wrong price or policy flagged in sample'
+                : 'Prices & policies match your site'
             }
           />
         </div>
-        <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+        <div>
           <MetricLedgerCell
-            label="/agents.md Status"
+            label="AI Rulebook (/agents.md)"
             value={
               result.agentsMdStatus === 'custom_enriched'
-                ? 'CUSTOM'
+                ? 'VERIFIED'
                 : result.agentsMdStatus === 'default_boilerplate'
-                  ? 'BOILERPLATE'
+                  ? 'GENERIC'
                   : 'MISSING'
             }
             tone={
@@ -235,21 +217,21 @@ export function PublicGraderClient(): React.ReactElement {
             }
             sublabel={
               result.llmsTxtStatus === 'present'
-                ? '/llms.txt present'
-                : '/llms.txt missing (404)'
+                ? 'AI summary file (/llms.txt) found'
+                : 'No /llms.txt summary file yet'
             }
           />
         </div>
         <div>
           <MetricLedgerCell
-            label={result.isShopify ? 'Shopify MCP / UCP' : 'JSON-LD Graph'}
+            label={result.isShopify ? 'Shopify AI Catalog' : 'Structured Fact Code'}
             value={
               result.isShopify
                 ? result.shopifyMcpStatus === 'ucp_active'
-                  ? 'UCP ACTIVE'
+                  ? 'UCP READY'
                   : result.shopifyMcpStatus === 'legacy_mcp_active'
                     ? 'LEGACY MCP'
-                    : 'UNAVAILABLE'
+                    : 'OFF'
                 : `${result.jsonLdCount} BLOCKS`
             }
             tone={
@@ -263,8 +245,8 @@ export function PublicGraderClient(): React.ReactElement {
             }
             sublabel={
               result.isShopify
-                ? 'Storefront catalog protocol'
-                : 'Schema.org entities on /'
+                ? `${result.jsonLdCount} JSON-LD fact node(s) on page`
+                : 'Machine-readable JSON-LD facts'
             }
           />
         </div>
@@ -272,7 +254,7 @@ export function PublicGraderClient(): React.ReactElement {
 
       <div
         style={{
-          padding: '14px 20px',
+          padding: '13px 20px',
           borderBottom: '1px solid var(--vs-border)',
           display: 'flex',
           flexWrap: 'wrap',
@@ -285,10 +267,10 @@ export function PublicGraderClient(): React.ReactElement {
           style={{
             fontSize: '11.5px',
             color: 'var(--vs-ink-muted)',
-            marginRight: '6px',
+            marginRight: '4px',
           }}
         >
-          BOT &amp; WAF ACCESS:
+          CAN AI BOTS READ YOUR SITE?
         </span>
         {(
           [
@@ -303,54 +285,42 @@ export function PublicGraderClient(): React.ReactElement {
           </StatusBadge>
         ))}
         {result.robotsAiBotStatus.waf_blocked ? (
-          <StatusBadge tone="critical">
-            EDGE WAF CHALLENGE DETECTED
-          </StatusBadge>
+          <StatusBadge tone="critical">FIREWALL BLOCKING AI</StatusBadge>
         ) : (
-          <StatusBadge tone="pass">EDGE WAF CLEAR</StatusBadge>
+          <StatusBadge tone="pass">NO FIREWALL BLOCKS</StatusBadge>
         )}
       </div>
 
       <div style={{ padding: '18px 20px' }}>
-        <div
-          className="vs-mono"
-          style={{
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            color: 'var(--vs-ink-muted)',
-            marginBottom: '6px',
-          }}
-        >
-          SAMPLE BUYER PROMPT ({result.samplePromptResult.aiEngine.toUpperCase()})
+        <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+          SAMPLE BUYER QUESTION ({result.samplePromptResult.aiEngine.toUpperCase()})
         </div>
-        <div style={{ fontWeight: 600, marginBottom: '10px' }}>
+        <div style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px' }}>
           &ldquo;{result.samplePromptResult.promptText}&rdquo;
         </div>
 
         <div
+          className="vs-grid-2"
           style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '16px',
-            padding: '12px 14px',
+            padding: '14px 16px',
             border: '1px solid var(--vs-border)',
-            borderRadius: '5px',
-            background: 'var(--vs-canvas)',
+            borderRadius: '6px',
+            background: 'var(--vs-surface-warm)',
             fontSize: '13px',
           }}
         >
           <div>
             <div style={{ fontWeight: 600, marginBottom: '4px' }}>
-              Competitors Recommended Ahead / Alongside {result.brandName}:
+              Competitors AI Recommends Alongside {result.brandName}:
             </div>
             <div style={{ color: 'var(--vs-ink-secondary)' }}>
               {result.samplePromptResult.competitorsMentioned.join(' · ') ||
-                'Incumbent category directories'}
+                'Category directories'}
             </div>
           </div>
           <div>
             <div style={{ fontWeight: 600, marginBottom: '4px' }}>
-              Third-Party Citation URLs Feeding AI Answers:
+              Websites Feeding Those AI Answers:
             </div>
             <div className="vs-mono" style={{ fontSize: '12px' }}>
               {result.samplePromptResult.citedSourceUrlsBlurred.map((u, idx) => (
@@ -374,11 +344,11 @@ export function PublicGraderClient(): React.ReactElement {
           }}
         >
           <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-            Reveal every unblurred citation URL, full 3-engine hallucinations, and all 1-click{' '}
-            <code className="vs-mono">JSON-LD</code> +{' '}
+            Reveal every exact source link, full 3-engine fact checks, and
+            copy-paste <code className="vs-mono">JSON-LD</code> +{' '}
             <code className="vs-mono">/agents.md</code> fixes.
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <Link
               href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
                 result.hostname
@@ -391,7 +361,7 @@ export function PublicGraderClient(): React.ReactElement {
               href={`/dashboard?domain=${encodeURIComponent(result.hostname)}`}
               className="vs-btn vs-btn-secondary"
             >
-              Inspect in 3-Tab Console
+              Open Guided Console →
             </Link>
           </div>
         </div>

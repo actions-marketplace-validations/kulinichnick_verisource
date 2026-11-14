@@ -49,7 +49,7 @@ export function buildMcpDiscoveryManifest(options?: {
   const mcpOrigin = (
     options?.mcpOrigin ?? 'https://mcp.verisource.dev'
   ).replace(/\/+$/, '');
-  const version = options?.version ?? '0.2.5';
+  const version = options?.version ?? '0.3.0';
 
   return {
     $schema:

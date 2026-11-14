@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 export type BadgeTone = 'pass' | 'warn' | 'critical' | 'neutral';
+export type UxMode = 'guided' | 'pro';
 
 export function StatusBadge(props: {
   tone?: BadgeTone;
@@ -18,6 +19,79 @@ export function StatusBadge(props: {
           : 'vs-badge';
 
   return <span className={toneClass}>{props.children}</span>;
+}
+
+export function UxModeSwitch(props: {
+  mode: UxMode;
+  onChange: (mode: UxMode) => void;
+  compact?: boolean;
+}): React.ReactElement {
+  return (
+    <div
+      className="vs-mode-switch"
+      role="group"
+      aria-label="Interface view mode"
+    >
+      <button
+        type="button"
+        className="vs-mode-btn"
+        data-active={props.mode === 'guided' ? 'true' : 'false'}
+        aria-pressed={props.mode === 'guided'}
+        onClick={() => props.onChange('guided')}
+        title="Plain-English step-by-step view for founders, marketers, and store owners"
+      >
+        {props.compact ? 'Guided' : 'Guided Mode'}
+      </button>
+      <button
+        type="button"
+        className="vs-mode-btn"
+        data-active={props.mode === 'pro' ? 'true' : 'false'}
+        aria-pressed={props.mode === 'pro'}
+        onClick={() => props.onChange('pro')}
+        title="Full HTTP crawler telemetry, raw schemas, query fanouts, and MCP Bearer keys"
+      >
+        {props.compact ? 'Pro' : 'Pro Mode'}
+      </button>
+    </div>
+  );
+}
+
+export function GuidedExplainerBanner(props: {
+  stepLabel?: string;
+  title: string;
+  description: string;
+  glossary?: Array<{ term: string; meaning: string }>;
+}): React.ReactElement {
+  return (
+    <div className="vs-guided-banner" style={{ marginBottom: '16px' }}>
+      {props.stepLabel ? (
+        <div
+          className="vs-eyebrow"
+          style={{ marginBottom: '4px', color: 'var(--vs-ink-secondary)' }}
+        >
+          {props.stepLabel}
+        </div>
+      ) : null}
+      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>
+        {props.title}
+      </div>
+      <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+        {props.description}
+      </div>
+      {props.glossary && props.glossary.length > 0 ? (
+        <div className="vs-glossary-grid">
+          {props.glossary.map((item) => (
+            <span key={item.term} className="vs-glossary-chip">
+              <strong className="vs-mono" style={{ color: 'var(--vs-ink)', fontSize: '11.5px' }}>
+                {item.term}:
+              </strong>
+              <span>{item.meaning}</span>
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function MetricLedgerCell(props: {
@@ -112,6 +186,7 @@ export function QualityRubricBadge(props: {
 export function CodeArtifactCard(props: {
   title: string;
   fileHint?: string;
+  plainSummary?: string;
   code: string;
   qualityScore?: number;
   qualityBreakdown?: {
@@ -143,17 +218,22 @@ export function CodeArtifactCard(props: {
           justifyContent: 'space-between',
           gap: '12px',
           flexWrap: 'wrap',
-          padding: '10px 14px',
+          padding: '11px 15px',
           borderBottom: '1px solid var(--vs-border)',
           background: 'var(--vs-surface-subtle)',
         }}
       >
         <div>
           <div style={{ fontWeight: 600, fontSize: '13.5px' }}>{props.title}</div>
+          {props.plainSummary ? (
+            <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
+              {props.plainSummary}
+            </div>
+          ) : null}
           {props.fileHint ? (
             <div
               className="vs-mono"
-              style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+              style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)', marginTop: '2px' }}
             >
               {props.fileHint}
             </div>
@@ -170,9 +250,9 @@ export function CodeArtifactCard(props: {
             type="button"
             onClick={handleCopy}
             className="vs-btn vs-btn-secondary"
-            style={{ padding: '6px 10px', fontSize: '12px' }}
+            style={{ padding: '6px 11px', fontSize: '12px' }}
           >
-            {copied ? 'Copied' : 'Copy Code'}
+            {copied ? 'Copied ✓' : 'Copy Code'}
           </button>
         </div>
       </div>
@@ -189,26 +269,53 @@ export function ThreeTabShell(props: {
   activeTab: ThreeTabId;
   onSelectTab: (tab: ThreeTabId) => void;
   compact?: boolean;
+  mode?: UxMode;
   children: React.ReactNode;
 }): React.ReactElement {
+  const isGuided = props.mode === 'guided';
+
   const tabs: Array<{ id: ThreeTabId; index: string; label: string; sub: string }> = [
     {
       id: 'tab1_visibility',
       index: '01',
-      label: props.compact ? 'Visibility & Truth' : 'Visibility, Hallucinations & ROI',
-      sub: 'Share of Voice, Watchdog & Bot WAF',
+      label: props.compact
+        ? isGuided
+          ? 'Health & Truth'
+          : 'Visibility & Truth'
+        : isGuided
+          ? 'Brand Health & AI Mistakes'
+          : 'Visibility, Hallucinations & ROI',
+      sub: isGuided
+        ? 'What AI says, wrong claims & bot access'
+        : 'Share of Voice, Watchdog & Bot WAF',
     },
     {
       id: 'tab2_fixes',
       index: '02',
-      label: props.compact ? 'On-Site Fixes' : 'One-Click On-Site Fixes',
-      sub: '9.5+/10 JSON-LD, /llms.txt & Shopify UCP',
+      label: props.compact
+        ? isGuided
+          ? 'Website Fixes'
+          : 'On-Site Fixes'
+        : isGuided
+          ? 'Copy-Paste Website Fixes'
+          : 'One-Click On-Site Fixes',
+      sub: isGuided
+        ? 'Ready-to-paste code for your site or Shopify'
+        : '9.5+/10 JSON-LD, /llms.txt & Shopify UCP',
     },
     {
       id: 'tab3_offsite',
       index: '03',
-      label: props.compact ? 'Fanouts & MCP' : 'Citations, Pitch Mode & MCP',
-      sub: 'Query Fanouts, 60s Pitch URL & /mcp Keys',
+      label: props.compact
+        ? isGuided
+          ? 'Rivals & Reports'
+          : 'Fanouts & MCP'
+        : isGuided
+          ? 'Competitors, Client Links & Sync'
+          : 'Citations, Pitch Mode & MCP',
+      sub: isGuided
+        ? 'Where rivals get cited & shareable client links'
+        : 'Query Fanouts, 60s Pitch URL & /mcp Keys',
     },
   ];
 
@@ -232,11 +339,11 @@ export function ThreeTabShell(props: {
                 style={{
                   fontSize: '10.5px',
                   fontWeight: 600,
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.06em',
                   marginBottom: '2px',
                 }}
               >
-                TAB {tab.index}
+                {isGuided ? `STEP ${tab.index}` : `TAB ${tab.index}`}
               </div>
               <div
                 style={{

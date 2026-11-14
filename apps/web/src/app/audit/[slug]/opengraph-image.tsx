@@ -19,7 +19,7 @@ export default async function PitchOpenGraphImage({
     report?.agency_primary_color ?? ''
   )
     ? report!.agency_primary_color!
-    : '#0F172A';
+    : '#0A0E17';
 
   const prospectBrand = report?.prospect_brand_name ?? 'Prospect Domain';
   const prospectDomain = report?.prospect_domain ?? 'https://verisource.dev';
@@ -40,10 +40,10 @@ export default async function PitchOpenGraphImage({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: '#F8FAFC',
+          backgroundColor: '#FAF9F6',
           borderTop: `12px solid ${brandColor}`,
           padding: '48px 60px 52px 60px',
-          color: '#0F172A',
+          color: '#0A0E17',
           fontFamily: 'sans-serif',
         }}
       >
