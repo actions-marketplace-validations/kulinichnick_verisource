@@ -1,4 +1,4 @@
-# Verisource — MCP Directory & Registry Submission Kit (`v0.2.2`)
+# Verisource — MCP Directory & Registry Submission Kit (`v1.0.0`)
 
 All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 
@@ -34,7 +34,7 @@ Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.de
 
 ### Exposed Tools
 1. `scan_domain_ai_readiness` (Free Preview — 0 credits, no key required): Returns AI Visibility Score (0-100), `GPTBot` / `OAI-SearchBot` / `PerplexityBot` / `ClaudeBot` WAF & `/robots.txt` access, Shopify `/api/ucp/mcp` + `/agents.md` status, and 1 sample buyer prompt citation check.
-2. `get_citation_gaps_and_fanouts` (Pro / Agency — 1 cached or 10 live credits): Returns unblurred competitor citation URLs and decompiled AI search fanout sub-queries across ChatGPT, Google Gemini, and Perplexity.
+2. `get_citation_gaps_and_fanouts` (Pro / Agency — 1 cached or 10 live credits): Returns 3-engine citation share, ranked citation gap domains, `>= 9.5/10` editorial outreach drafts, unblurred competitor citation URLs, and observed AI search sub-queries across ChatGPT, Google Gemini, and Perplexity.
 3. `check_brand_hallucinations` (Pro / Agency — 1 cached or 10 live credits): Diffs live AI claims against a verified Brand Truth Sheet to catch false pricing, shipping radii, or discontinued SKU claims.
 4. `generate_geo_fix_bundle` (Pro / Agency — 1 cached or 10 live credits): Generates Critic-verified (`>= 9.5/10`) `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, and Shopify `templates/agents.md.liquid` overrides.
 ```

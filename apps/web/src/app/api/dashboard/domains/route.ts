@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  computeScoreDeltaSummary,
   isFixTypeLiveOnDomain,
   runFullGeoAudit,
   type CitationSnapshotRow,
@@ -167,6 +168,9 @@ export async function PUT(request: Request): Promise<NextResponse> {
         : undefined,
     });
 
+    const previousVisibilityScore = domain.visibility_score;
+    const previousAccuracyScore = domain.accuracy_score;
+
     const nowIso = new Date().toISOString();
     const updatedDomain: DomainRow = {
       ...domain,
@@ -257,10 +261,20 @@ export async function PUT(request: Request): Promise<NextResponse> {
       ];
     }
 
+    const scoreDelta = computeScoreDeltaSummary({
+      previousVisibilityScore,
+      currentVisibilityScore: updatedDomain.visibility_score,
+      previousAccuracyScore,
+      currentAccuracyScore: updatedDomain.accuracy_score,
+      baselineLabel: 'previous_scan',
+      verifiedLiveChecksCount: refreshedFixes.filter((f) => f.is_applied).length,
+    });
+
     return NextResponse.json({
       domain: updatedDomain,
       snapshots: refreshedSnapshots,
       fixes: refreshedFixes,
+      scoreDelta,
     });
   } catch (err) {
     return NextResponse.json(

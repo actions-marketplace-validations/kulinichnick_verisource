@@ -9,6 +9,7 @@ import type {
   AiEngine,
   BrandTruthSheet,
   CitationSnapshotRow,
+  DomainRow,
   FanoutTelemetryType,
   FixType,
   HallucinationDetail,
@@ -1370,4 +1371,111 @@ export function buildTargetedCitationOutreachDraft(params: {
   ].join('\n');
 
   return enforceQualityGate95(draft, 'citation_outreach_brief');
+}
+
+export interface ScoreDeltaSummary {
+  previousVisibilityScore: number;
+  currentVisibilityScore: number;
+  visibilityDelta: number;
+  previousAccuracyScore: number;
+  currentAccuracyScore: number;
+  accuracyDelta: number;
+  baselineLabel: 'initial_audit' | 'previous_scan';
+  verifiedLiveChecksCount?: number;
+}
+
+export function computeScoreDeltaSummary(params: {
+  previousVisibilityScore: number;
+  currentVisibilityScore: number;
+  previousAccuracyScore: number;
+  currentAccuracyScore: number;
+  baselineLabel?: 'initial_audit' | 'previous_scan';
+  verifiedLiveChecksCount?: number;
+}): ScoreDeltaSummary {
+  const prevVis = Math.max(
+    0,
+    Math.min(100, Math.round(params.previousVisibilityScore))
+  );
+  const currVis = Math.max(
+    0,
+    Math.min(100, Math.round(params.currentVisibilityScore))
+  );
+  const prevAcc = Math.max(
+    0,
+    Math.min(100, Math.round(params.previousAccuracyScore))
+  );
+  const currAcc = Math.max(
+    0,
+    Math.min(100, Math.round(params.currentAccuracyScore))
+  );
+
+  return {
+    previousVisibilityScore: prevVis,
+    currentVisibilityScore: currVis,
+    visibilityDelta: currVis - prevVis,
+    previousAccuracyScore: prevAcc,
+    currentAccuracyScore: currAcc,
+    accuracyDelta: currAcc - prevAcc,
+    baselineLabel: params.baselineLabel ?? 'previous_scan',
+    ...(params.verifiedLiveChecksCount !== undefined
+      ? { verifiedLiveChecksCount: params.verifiedLiveChecksCount }
+      : {}),
+  };
+}
+
+const PATIENT_ZERO_REMEDIATION_BASELINES: Record<
+  string,
+  { visibility: number; accuracy: number }
+> = {
+  'aurearoasters.com': { visibility: 41, accuracy: 68 },
+  'mosaicroasters.com': { visibility: 52, accuracy: 54 },
+};
+
+export function resolveInitialDomainScoreDeltas(
+  domains: Array<
+    Pick<
+      DomainRow,
+      'id' | 'domain_url' | 'visibility_score' | 'accuracy_score'
+    >
+  >
+): Record<string, ScoreDeltaSummary> {
+  const map: Record<string, ScoreDeltaSummary> = {};
+  for (const domain of domains) {
+    let host = '';
+    try {
+      host = new URL(domain.domain_url).hostname
+        .replace(/^www\./, '')
+        .toLowerCase();
+    } catch {
+      host = domain.domain_url
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .split('/')[0] ?? '';
+    }
+
+    const baseline = PATIENT_ZERO_REMEDIATION_BASELINES[host];
+    if (!baseline) continue;
+
+    if (
+      domain.visibility_score > baseline.visibility ||
+      domain.accuracy_score > baseline.accuracy
+    ) {
+      map[domain.id] = computeScoreDeltaSummary({
+        previousVisibilityScore: Math.min(
+          baseline.visibility,
+          domain.visibility_score
+        ),
+        currentVisibilityScore: domain.visibility_score,
+        previousAccuracyScore: Math.min(
+          baseline.accuracy,
+          domain.accuracy_score
+        ),
+        currentAccuracyScore: domain.accuracy_score,
+        baselineLabel: 'initial_audit',
+      });
+    }
+  }
+  return map;
 }

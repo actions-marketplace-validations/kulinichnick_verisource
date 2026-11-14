@@ -64,6 +64,26 @@ export const metadata: Metadata = {
     : undefined,
 };
 
+const ORGANIZATION_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Verisource',
+  url: 'https://verisource.dev',
+  logo: 'https://verisource.dev/icon.png',
+  description:
+    'B2B Generative Engine Optimization (GEO) platform and Streamable HTTP MCP server (https://mcp.verisource.dev/mcp) for AI search citation auditing, brand claim verification, and >=9.5/10 JSON-LD, /llms.txt, and /agents.md remediation.',
+  sameAs: [
+    'https://github.com/kulinichnick/verisource',
+    'https://registry.modelcontextprotocol.io/?q=verisource',
+  ],
+  knowsAbout: [
+    'Generative Engine Optimization',
+    'Model Context Protocol',
+    'Shopify Universal Commerce Protocol',
+    'JSON-LD Entity Graphs',
+  ],
+};
+
 const SOFTWARE_JSON_LD = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
@@ -149,6 +169,24 @@ export default function RootLayout({
     >
       <head>
         <VerisourceStyleTag />
+        <link
+          rel="alternate"
+          type="text/markdown"
+          href="/agents.md"
+          title="Verisource Agent & MCP Truth Specification"
+        />
+        <link
+          rel="alternate"
+          type="text/plain"
+          href="/llms.txt"
+          title="Verisource LLM Summary"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(ORGANIZATION_JSON_LD),
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE_JSON_LD) }}

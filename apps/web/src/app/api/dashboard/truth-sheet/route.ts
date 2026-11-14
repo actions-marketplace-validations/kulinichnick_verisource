@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
+  computeScoreDeltaSummary,
+  isFixTypeLiveOnDomain,
   runFullGeoAudit,
   type BrandTruthSheet,
   type DomainRow,
@@ -60,6 +62,9 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       customTruthSheet: verifiedTruth,
     });
 
+    const previousVisibilityScore = domain.visibility_score;
+    const previousAccuracyScore = domain.accuracy_score;
+
     const nowIso = new Date().toISOString();
     const updatedDomain: DomainRow = {
       ...domain,
@@ -77,7 +82,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       content_payload: f.contentPayload,
       natural_quality_score: f.naturalQualityScore,
       quality_rubric_breakdown: f.qualityRubricBreakdown,
-      is_applied: false,
+      is_applied: isFixTypeLiveOnDomain(f.fixType, audit.probe, audit.shopify),
       created_at: nowIso,
     }));
 
@@ -106,10 +111,20 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       store.fixes.unshift(...refreshedFixes);
     }
 
+    const scoreDelta = computeScoreDeltaSummary({
+      previousVisibilityScore,
+      currentVisibilityScore: updatedDomain.visibility_score,
+      previousAccuracyScore,
+      currentAccuracyScore: updatedDomain.accuracy_score,
+      baselineLabel: 'previous_scan',
+      verifiedLiveChecksCount: refreshedFixes.filter((f) => f.is_applied).length,
+    });
+
     return NextResponse.json({
       domain: updatedDomain,
       fixes: refreshedFixes,
       hallucinations: audit.allHallucinations,
+      scoreDelta,
     });
   } catch (err) {
     return NextResponse.json(

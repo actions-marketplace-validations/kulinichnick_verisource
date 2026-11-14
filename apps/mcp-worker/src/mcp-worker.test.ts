@@ -211,11 +211,53 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
   assert.equal(hallPayload.credits_remaining, 989);
   assert.ok(hallPayload.hallucinations_count >= 1);
 
-  // 5. Forged short vs_live_fake key is rejected with INVALID_OR_REVOKED_KEY
-  const forgedCall = await postMcpRpc(
+  // 5. Paid get_citation_gaps_and_fanouts returns 3-engine citation share, ranked sources & >=9.5/10 outreach drafts (989 -> 988)
+  const gapsProCall = await postMcpRpc(
     {
       jsonrpc: '2.0',
       id: 7,
+      method: 'tools/call',
+      params: {
+        name: 'get_citation_gaps_and_fanouts',
+        arguments: { domain: 'mosaicroasters.com' },
+      },
+    },
+    'vs_demo_pro_key'
+  );
+  const gapsProRes = gapsProCall.json.result as {
+    isError?: boolean;
+    content: Array<{ text: string }>;
+  };
+  assert.notEqual(gapsProRes.isError, true);
+  const gapsPayload = JSON.parse(gapsProRes.content[0]!.text) as {
+    credits_charged: number;
+    credits_remaining: number;
+    engine_citation_share: Array<{ aiEngine: string }>;
+    ranked_citation_sources: Array<{ sourceHost: string; ownership: string }>;
+    targeted_outreach_drafts: Array<{
+      source_host: string;
+      quality_score: number;
+      draft_markdown: string;
+    }>;
+  };
+  assert.equal(gapsPayload.credits_charged, 1);
+  assert.equal(gapsPayload.credits_remaining, 988);
+  assert.equal(gapsPayload.engine_citation_share.length, 3);
+  assert.ok(gapsPayload.ranked_citation_sources.length >= 1);
+  assert.ok(gapsPayload.targeted_outreach_drafts.length >= 1);
+  assert.ok(
+    gapsPayload.targeted_outreach_drafts.every(
+      (d) =>
+        d.quality_score >= 9.5 &&
+        d.draft_markdown.includes('https://mosaicroasters.com/agents.md')
+    )
+  );
+
+  // 6. Forged short vs_live_fake key is rejected with INVALID_OR_REVOKED_KEY
+  const forgedCall = await postMcpRpc(
+    {
+      jsonrpc: '2.0',
+      id: 8,
       method: 'tools/call',
       params: {
         name: 'check_brand_hallucinations',
@@ -252,10 +294,12 @@ test('GET /.well-known/mcp.json and /server.json expose 4-tool Streamable HTTP r
   assert.equal(res.headers.get('access-control-allow-origin'), '*');
   const manifest = (await res.json()) as {
     name: string;
+    version: string;
     remotes: Array<{ type: string; url: string }>;
     tools: Array<{ name: string }>;
   };
   assert.equal(manifest.name, 'dev.verisource/mcp');
+  assert.equal(manifest.version, '1.0.0');
   assert.equal(manifest.remotes[0]?.type, 'streamable-http');
   assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
   assert.equal(manifest.tools.length, 4);

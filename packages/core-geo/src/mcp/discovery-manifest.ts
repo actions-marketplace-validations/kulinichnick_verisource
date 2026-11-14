@@ -49,7 +49,7 @@ export function buildMcpDiscoveryManifest(options?: {
   const mcpOrigin = (
     options?.mcpOrigin ?? 'https://mcp.verisource.dev'
   ).replace(/\/+$/, '');
-  const version = options?.version ?? '0.4.9';
+  const version = options?.version ?? '1.0.0';
 
   return {
     $schema:
@@ -103,7 +103,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Returns unblurred third-party competitor citation URLs and observed AI search sub-queries across ChatGPT, Google Gemini, and Perplexity.',
+          'Returns 3-engine citation share, ranked citation gap domains, >=9.5/10 editorial outreach drafts, and observed search sub-queries across ChatGPT, Google Gemini, and Perplexity.',
       },
       {
         name: 'check_brand_hallucinations',

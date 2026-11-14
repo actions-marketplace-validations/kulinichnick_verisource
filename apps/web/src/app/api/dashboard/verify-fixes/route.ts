@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  computeScoreDeltaSummary,
   computeVisibilityScore,
   verifyLiveFixDeployment,
   type CitationSnapshotRow,
@@ -125,6 +126,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       scanResults: mappedScans,
     });
 
+    const previousVisibilityScore = domain.visibility_score;
+    const previousAccuracyScore = domain.accuracy_score;
+
     const updatedDomain: DomainRow = {
       ...domain,
       is_shopify: verification.isShopify,
@@ -178,10 +182,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Evict 24h public grader cache for this hostname so re-checks reflect fresh fixes immediately
     getGraderCacheMap().delete(verification.hostname);
 
+    const scoreDelta = computeScoreDeltaSummary({
+      previousVisibilityScore,
+      currentVisibilityScore: updatedDomain.visibility_score,
+      previousAccuracyScore,
+      currentAccuracyScore: updatedDomain.accuracy_score,
+      baselineLabel: 'previous_scan',
+      verifiedLiveChecksCount: verification.checks.filter((c) => c.live).length,
+    });
+
     return NextResponse.json({
       verification,
       domain: updatedDomain,
       appliedFixIds,
+      scoreDelta,
     });
   } catch (err) {
     return NextResponse.json(

@@ -6,9 +6,12 @@ import {
 } from '@modelcontextprotocol/server';
 import {
   buildMcpDiscoveryManifest,
+  buildTargetedCitationOutreachDraft,
   normalizePublicDomain,
+  rankCitationGapSources,
   runDomainReadinessScan,
   runFullGeoAudit,
+  summarizeEngineCitationShare,
   VERISOURCE_VERSION,
   type FullGeoAuditResult,
   type ReadinessScanSummary,
@@ -175,7 +178,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
       {
         title: 'Get Citation Gaps & Decompiled Query Fanouts',
         description:
-          'Paid Tool (Pro/Agency): Returns unblurred third-party competitor citation URLs and observed AI engine sub-queries (Gemini webSearchQueries, ChatGPT web_search_call, Perplexity citations). Costs 1 credit cached or 10 credits with live_refresh=true.',
+          'Paid Tool (Pro/Agency): Returns 3-engine citation share, ranked citation gap domains, >=9.5/10 editorial outreach drafts, unblurred competitor citation URLs, and observed AI engine sub-queries (Gemini webSearchQueries, ChatGPT web_search_call, Perplexity Agent citations). Costs 1 credit cached or 10 credits with live_refresh=true.',
         inputSchema: z.object({
           domain: z.string().min(3).describe('Target domain or URL'),
           custom_prompts: z
@@ -226,6 +229,38 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           env,
         });
 
+        const engineCitationShare = summarizeEngineCitationShare(
+          audit.scanResults
+        );
+        const rankedCitationSources = rankCitationGapSources({
+          targetHostname: audit.hostname,
+          snapshots: audit.scanResults,
+        });
+        const targetedOutreachDrafts = rankedCitationSources
+          .filter((s) => s.ownership !== 'owned' && Boolean(s.urls[0]))
+          .slice(0, 3)
+          .map((source) => {
+            const artifact = buildTargetedCitationOutreachDraft({
+              brandName: audit.brandName,
+              hostname: audit.hostname,
+              coreOffering: audit.brandTruthSheet.core_offering,
+              pricingSummary: audit.brandTruthSheet.verified_pricing_summary,
+              sourceHost: source.sourceHost,
+              targetUrl: source.urls[0]!,
+              enginesCiting: source.enginesCiting,
+              rivalsFed: source.rivalsFed,
+            });
+            return {
+              source_host: source.sourceHost,
+              ownership: source.ownership,
+              target_url: source.urls[0]!,
+              engines_citing: source.enginesCiting,
+              rivals_fed: source.rivalsFed,
+              quality_score: artifact.score,
+              draft_markdown: artifact.content,
+            };
+          });
+
         const payload = {
           domain: audit.domainUrl,
           brand_name: audit.brandName,
@@ -233,6 +268,9 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           served_from_cache: servedFromCache,
           credits_charged: gate.creditsCharged,
           credits_remaining: gate.creditsRemaining,
+          engine_citation_share: engineCitationShare,
+          ranked_citation_sources: rankedCitationSources,
+          targeted_outreach_drafts: targetedOutreachDrafts,
           engine_snapshots: audit.scanResults.map((s) => ({
             prompt: s.promptText,
             engine: s.aiEngine,

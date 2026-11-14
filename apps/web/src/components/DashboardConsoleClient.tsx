@@ -17,6 +17,7 @@ import {
   computeShopifyCheckoutKey,
   normalizePublicDomain,
   rankCitationGapSources,
+  resolveInitialDomainScoreDeltas,
   summarizeEngineCitationShare,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
@@ -27,6 +28,7 @@ import {
   type McpApiKeyRow,
   type ProfileRow,
   type QualityRubricBreakdown,
+  type ScoreDeltaSummary,
   type TrackedPromptRow,
 } from '@verisource/core-geo';
 import {
@@ -216,6 +218,9 @@ export function DashboardConsoleClient(props: {
   const [verifyingFixes, setVerifyingFixes] = useState(false);
   const [lastFixVerification, setLastFixVerification] =
     useState<LiveFixVerificationReport | null>(null);
+  const [scoreDeltaByDomainId, setScoreDeltaByDomainId] = useState<
+    Record<string, ScoreDeltaSummary>
+  >(() => resolveInitialDomainScoreDeltas(props.initialData.domains));
   const [shopifyCheckoutKey, setShopifyCheckoutKey] = useState<string>('');
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
@@ -259,6 +264,10 @@ export function DashboardConsoleClient(props: {
         const payload = (await res.json()) as WorkspacePayload;
         if (cancelled) return;
         setData(payload);
+        setScoreDeltaByDomainId((prev) => ({
+          ...resolveInitialDomainScoreDeltas(payload.domains),
+          ...prev,
+        }));
         setSelectedDomainId((prev) => {
           if (props.initialDomainQuery) {
             const matchedQuery = payload.domains.find((d) =>
@@ -327,6 +336,14 @@ export function DashboardConsoleClient(props: {
   }
 
   useEffect(() => {
+    setLastAlertPreview(null);
+    setLastFixVerification(null);
+    setSelectedEngineFilter('all');
+    setCitationSourceFilter('all');
+    setSelectedCitationSourceHost(null);
+  }, [activeDomain?.id]);
+
+  useEffect(() => {
     if (!activeDomain) return;
     setCoreOffering(activeDomain.brand_truth_sheet.core_offering);
     setPricingSummary(activeDomain.brand_truth_sheet.verified_pricing_summary);
@@ -336,11 +353,6 @@ export function DashboardConsoleClient(props: {
         '\n'
       )
     );
-    setLastAlertPreview(null);
-    setLastFixVerification(null);
-    setSelectedEngineFilter('all');
-    setCitationSourceFilter('all');
-    setSelectedCitationSourceHost(null);
     let cancelled = false;
     if (activeDomain.is_shopify) {
       void computeShopifyCheckoutKey({
@@ -355,7 +367,12 @@ export function DashboardConsoleClient(props: {
     return () => {
       cancelled = true;
     };
-  }, [activeDomain]);
+  }, [
+    activeDomain?.id,
+    activeDomain?.is_shopify,
+    activeDomain?.tracking_pixel_token,
+    activeDomain?.brand_truth_sheet,
+  ]);
 
   const domainSnapshots = data.snapshots.filter(
     (s) => s.domain_id === activeDomain?.id
@@ -366,6 +383,53 @@ export function DashboardConsoleClient(props: {
   const domainFixes = data.fixes.filter(
     (f) => f.domain_id === activeDomain?.id
   );
+  const onSiteDomainFixes = domainFixes.filter(
+    (f) => f.fix_type !== 'citation_outreach_brief'
+  );
+  const appliedOnSiteFixesCount = onSiteDomainFixes.filter(
+    (f) => f.is_applied
+  ).length;
+  const activeScoreDelta: ScoreDeltaSummary | null = activeDomain
+    ? scoreDeltaByDomainId[activeDomain.id] ?? null
+    : null;
+
+  function recordDomainScoreDelta(
+    domainId: string,
+    incoming?: ScoreDeltaSummary
+  ) {
+    if (!incoming) return;
+    setScoreDeltaByDomainId((prev) => {
+      const existing = prev[domainId];
+      if (
+        existing &&
+        incoming.visibilityDelta === 0 &&
+        existing.previousVisibilityScore !== incoming.currentVisibilityScore
+      ) {
+        return {
+          ...prev,
+          [domainId]: {
+            previousVisibilityScore: existing.previousVisibilityScore,
+            currentVisibilityScore: incoming.currentVisibilityScore,
+            visibilityDelta:
+              incoming.currentVisibilityScore -
+              existing.previousVisibilityScore,
+            previousAccuracyScore: existing.previousAccuracyScore,
+            currentAccuracyScore: incoming.currentAccuracyScore,
+            accuracyDelta:
+              incoming.currentAccuracyScore - existing.previousAccuracyScore,
+            baselineLabel: existing.baselineLabel,
+            ...(incoming.verifiedLiveChecksCount !== undefined
+              ? { verifiedLiveChecksCount: incoming.verifiedLiveChecksCount }
+              : {}),
+          },
+        };
+      }
+      return {
+        ...prev,
+        [domainId]: incoming,
+      };
+    });
+  }
   const domainAttribution = data.attributionEvents.filter(
     (e) => e.domain_id === activeDomain?.id
   );
@@ -555,10 +619,12 @@ export function DashboardConsoleClient(props: {
         domain?: DomainRow;
         snapshots?: CitationSnapshotRow[];
         fixes?: GeneratedFixRow[];
+        scoreDelta?: ScoreDeltaSummary;
       };
       if (!res.ok || json.error || !json.domain) {
         setBannerError(json.message ?? 'Unable to re-scan domain.');
       } else {
+        recordDomainScoreDelta(json.domain.id, json.scoreDelta);
         setData((prev) => ({
           ...prev,
           domains: prev.domains.map((d) =>
@@ -573,8 +639,12 @@ export function DashboardConsoleClient(props: {
             ...prev.fixes.filter((f) => f.domain_id !== json.domain!.id),
           ],
         }));
+        const deltaNote =
+          json.scoreDelta && json.scoreDelta.visibilityDelta !== 0
+            ? ` (${json.scoreDelta.previousVisibilityScore} → ${json.scoreDelta.currentVisibilityScore}, ${json.scoreDelta.visibilityDelta > 0 ? '+' : ''}${json.scoreDelta.visibilityDelta} pts)`
+            : '';
         setBannerSuccess(
-          `Re-scanned ${json.domain.brand_name}: ${json.domain.visibility_score}/100 visibility, ${json.domain.accuracy_score}% accuracy.`
+          `Re-scanned ${json.domain.brand_name}: ${json.domain.visibility_score}/100 visibility${deltaNote}, ${json.domain.accuracy_score}% accuracy.`
         );
       }
     } catch {
@@ -702,10 +772,12 @@ export function DashboardConsoleClient(props: {
         message?: string;
         domain?: DomainRow;
         fixes?: GeneratedFixRow[];
+        scoreDelta?: ScoreDeltaSummary;
       };
       if (!res.ok || json.error || !json.domain) {
         setBannerError(json.message ?? 'Unable to save Brand Truth Sheet.');
       } else {
+        recordDomainScoreDelta(json.domain.id, json.scoreDelta);
         setData((prev) => ({
           ...prev,
           domains: prev.domains.map((d) =>
@@ -1074,6 +1146,7 @@ export function DashboardConsoleClient(props: {
         verification?: LiveFixVerificationReport;
         domain?: DomainRow;
         appliedFixIds?: string[];
+        scoreDelta?: ScoreDeltaSummary;
       };
       if (!res.ok || json.error || !json.verification || !json.domain) {
         setBannerError(
@@ -1081,6 +1154,7 @@ export function DashboardConsoleClient(props: {
         );
       } else {
         const appliedIdSet = new Set(json.appliedFixIds ?? []);
+        recordDomainScoreDelta(json.domain.id, json.scoreDelta);
         setLastFixVerification(json.verification);
         setData((prev) => ({
           ...prev,
@@ -1096,8 +1170,12 @@ export function DashboardConsoleClient(props: {
         const liveCheckCount = json.verification.checks.filter(
           (c) => c.live
         ).length;
+        const deltaText =
+          json.scoreDelta && json.scoreDelta.visibilityDelta !== 0
+            ? `${json.scoreDelta.previousVisibilityScore} → ${json.scoreDelta.currentVisibilityScore}/100 (${json.scoreDelta.visibilityDelta > 0 ? '+' : ''}${json.scoreDelta.visibilityDelta} pts)`
+            : `${json.domain.visibility_score}/100`;
         setBannerSuccess(
-          `Verified ${liveCheckCount}/4 on-site checks live on ${json.verification.hostname} (${appliedIdSet.size} artifact(s) marked live · Visibility ${json.domain.visibility_score}/100).`
+          `Verified ${liveCheckCount}/4 on-site checks live on ${json.verification.hostname} (${appliedIdSet.size} artifact(s) marked live · Visibility ${deltaText}).`
         );
       }
     } catch {
@@ -1559,7 +1637,7 @@ export function DashboardConsoleClient(props: {
             {/* Metric Summary Strip */}
             <div
               className="vs-card vs-ledger-strip-4"
-              style={{ marginBottom: '22px' }}
+              style={{ marginBottom: '14px' }}
             >
               <div>
                 <MetricLedgerCell
@@ -1567,7 +1645,21 @@ export function DashboardConsoleClient(props: {
                   value={activeDomain.visibility_score}
                   suffix="/ 100"
                   tone={activeDomain.visibility_score < 50 ? 'warn' : 'pass'}
-                  sublabel="ChatGPT · Gemini · Perplexity"
+                  sublabel={
+                    activeScoreDelta
+                      ? activeScoreDelta.visibilityDelta > 0
+                        ? `${
+                            activeScoreDelta.baselineLabel === 'initial_audit'
+                              ? 'Baseline'
+                              : 'Prev'
+                          } ${activeScoreDelta.previousVisibilityScore} → ${
+                            activeScoreDelta.currentVisibilityScore
+                          } (+${activeScoreDelta.visibilityDelta} pts)`
+                        : activeScoreDelta.visibilityDelta < 0
+                          ? `Prev ${activeScoreDelta.previousVisibilityScore} → ${activeScoreDelta.currentVisibilityScore} (${activeScoreDelta.visibilityDelta} pts)`
+                          : `Verified ${activeScoreDelta.previousVisibilityScore} → ${activeScoreDelta.currentVisibilityScore} (0 pts)`
+                      : 'ChatGPT · Gemini · Perplexity'
+                  }
                 />
               </div>
               <div>
@@ -1576,9 +1668,15 @@ export function DashboardConsoleClient(props: {
                   value={`${activeDomain.accuracy_score}%`}
                   tone={activeDomain.accuracy_score < 85 ? 'critical' : 'pass'}
                   sublabel={
-                    isGuided
-                      ? `${flaggedSnapshots.length} AI answer(s) w/ wrong facts`
-                      : `${flaggedSnapshots.length} engine snapshot(s) w/ conflicts`
+                    activeScoreDelta && activeScoreDelta.accuracyDelta !== 0
+                      ? `${activeScoreDelta.previousAccuracyScore}% → ${
+                          activeScoreDelta.currentAccuracyScore
+                        }% (${
+                          activeScoreDelta.accuracyDelta > 0 ? '+' : ''
+                        }${activeScoreDelta.accuracyDelta}%)`
+                      : isGuided
+                        ? `${flaggedSnapshots.length} AI answer(s) w/ wrong facts`
+                        : `${flaggedSnapshots.length} engine snapshot(s) w/ conflicts`
                   }
                 />
               </div>
@@ -1604,6 +1702,95 @@ export function DashboardConsoleClient(props: {
                       : 'Origin-verified conversion events'
                   }
                 />
+              </div>
+            </div>
+
+            {/* Before -> After Remediation Proof Bar */}
+            <div
+              className="vs-card"
+              style={{
+                padding: '10px 16px',
+                marginBottom: '22px',
+                background:
+                  activeScoreDelta && activeScoreDelta.visibilityDelta > 0
+                    ? 'var(--vs-surface-warm)'
+                    : 'var(--vs-surface-subtle)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontSize: '12.5px',
+                }}
+              >
+                <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                  BEFORE → AFTER REMEDIATION PROOF
+                </span>
+                {activeScoreDelta && activeScoreDelta.visibilityDelta > 0 ? (
+                  <span style={{ color: 'var(--vs-ink-secondary)' }}>
+                    AI Visibility moved from{' '}
+                    <strong className="vs-mono">
+                      {activeScoreDelta.previousVisibilityScore}/100
+                    </strong>{' '}
+                    to{' '}
+                    <strong className="vs-mono">
+                      {activeScoreDelta.currentVisibilityScore}/100 (+
+                      {activeScoreDelta.visibilityDelta} pts)
+                    </strong>
+                    {activeScoreDelta.accuracyDelta > 0
+                      ? ` · Fact accuracy ${activeScoreDelta.previousAccuracyScore}% → ${activeScoreDelta.currentAccuracyScore}% (+${activeScoreDelta.accuracyDelta}%)`
+                      : ''}
+                    .
+                  </span>
+                ) : activeScoreDelta ? (
+                  <span style={{ color: 'var(--vs-ink-secondary)' }}>
+                    Latest live check:{' '}
+                    <strong className="vs-mono">
+                      {activeScoreDelta.previousVisibilityScore}/100 →{' '}
+                      {activeScoreDelta.currentVisibilityScore}/100 (
+                      {activeScoreDelta.visibilityDelta >= 0
+                        ? `+${activeScoreDelta.visibilityDelta}`
+                        : activeScoreDelta.visibilityDelta}{' '}
+                      pts)
+                    </strong>
+                    . Publish pending Tab 2 fixes to lift visibility.
+                  </span>
+                ) : (
+                  <span style={{ color: 'var(--vs-ink-secondary)' }}>
+                    Baseline locked at{' '}
+                    <strong className="vs-mono">
+                      {activeDomain.visibility_score}/100
+                    </strong>{' '}
+                    ({appliedOnSiteFixesCount}/{onSiteDomainFixes.length} on-site
+                    fixes live). Publish Tab 2 fixes, then run{' '}
+                    <strong>✓ Verify Live Fixes</strong> to record score uplift.
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                {activeScoreDelta && activeScoreDelta.visibilityDelta > 0 ? (
+                  <StatusBadge tone="pass">
+                    +{activeScoreDelta.visibilityDelta} PTS VERIFIED
+                  </StatusBadge>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('tab2_fixes')}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                  >
+                    {isGuided ? 'Open Step 2 Fixes →' : 'Inspect Tab 2 Fixes →'}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -2235,10 +2422,41 @@ export function DashboardConsoleClient(props: {
               }}
             >
               <div>
-                <strong style={{ fontSize: '13.5px' }}>
-                  Critic-Verified Implementation Bundle ({domainFixes.length}{' '}
-                  artifacts)
-                </strong>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '3px',
+                  }}
+                >
+                  <strong style={{ fontSize: '13.5px' }}>
+                    Critic-Verified Implementation Bundle ({domainFixes.length}{' '}
+                    artifacts)
+                  </strong>
+                  {activeScoreDelta && activeScoreDelta.visibilityDelta > 0 ? (
+                    <StatusBadge tone="pass">
+                      BEFORE → AFTER: {activeScoreDelta.previousVisibilityScore} →{' '}
+                      {activeScoreDelta.currentVisibilityScore} (+
+                      {activeScoreDelta.visibilityDelta} PTS)
+                    </StatusBadge>
+                  ) : activeScoreDelta ? (
+                    <StatusBadge tone="neutral">
+                      VERIFIED: {activeScoreDelta.previousVisibilityScore} →{' '}
+                      {activeScoreDelta.currentVisibilityScore} (
+                      {activeScoreDelta.visibilityDelta >= 0
+                        ? `+${activeScoreDelta.visibilityDelta}`
+                        : activeScoreDelta.visibilityDelta}{' '}
+                      PTS)
+                    </StatusBadge>
+                  ) : (
+                    <StatusBadge tone="neutral">
+                      BASELINE: {activeDomain.visibility_score}/100 ·{' '}
+                      {appliedOnSiteFixesCount}/{onSiteDomainFixes.length} LIVE
+                    </StatusBadge>
+                  )}
+                </div>
                 <div
                   style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}
                 >
@@ -2290,13 +2508,40 @@ export function DashboardConsoleClient(props: {
                   <strong style={{ fontSize: '13px' }}>
                     Live Fix Deployment Check — {lastFixVerification.hostname}
                   </strong>
-                  <span
-                    className="vs-mono"
-                    style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                    }}
                   >
-                    Checked{' '}
-                    {new Date(lastFixVerification.checkedAt).toLocaleTimeString()}
-                  </span>
+                    {activeScoreDelta ? (
+                      <StatusBadge
+                        tone={
+                          activeScoreDelta.visibilityDelta > 0
+                            ? 'pass'
+                            : 'neutral'
+                        }
+                      >
+                        SCORE IMPACT: {activeScoreDelta.previousVisibilityScore}{' '}
+                        → {activeScoreDelta.currentVisibilityScore} (
+                        {activeScoreDelta.visibilityDelta >= 0
+                          ? `+${activeScoreDelta.visibilityDelta}`
+                          : activeScoreDelta.visibilityDelta}{' '}
+                        PTS)
+                      </StatusBadge>
+                    ) : null}
+                    <span
+                      className="vs-mono"
+                      style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+                    >
+                      Checked{' '}
+                      {new Date(
+                        lastFixVerification.checkedAt
+                      ).toLocaleTimeString()}
+                    </span>
+                  </div>
                 </div>
                 <div className="vs-ledger-strip-4">
                   {lastFixVerification.checks.map((item) => (

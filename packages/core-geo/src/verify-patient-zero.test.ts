@@ -7,6 +7,7 @@ import {
   PATIENT_ZERO_FIXES,
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
+  VERISOURCE_VERSION,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAgencyPartnerBatchCsv,
@@ -30,6 +31,7 @@ import {
   classifyAgentsMdContent,
   classifyIndustryVertical,
   classifyPitchShowcaseBucket,
+  computeScoreDeltaSummary,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
@@ -53,6 +55,7 @@ import {
   parsePerplexityAgentResponse,
   parseRobotsAiBotRules,
   rankCitationGapSources,
+  resolveInitialDomainScoreDeltas,
   runDomainReadinessScan,
   runFullGeoAudit,
   runPerplexityAgentQuery,
@@ -1396,4 +1399,45 @@ test('M38 Ranked Citation Gap Source Leaderboard & targeted editorial outreach d
   assert.ok(outreach.score >= 9.5, `Expected >= 9.5/10, got ${outreach.score}`);
   assert.ok(outreach.content.includes('https://aurearoasters.com/agents.md'));
   assert.ok(outreach.content.includes(redditRow.urls[0]!));
+});
+
+test('M39-M41 ScoreDeltaSummary, Patient Zero remediation baselines & v1.0.0 manifest sync work cleanly', () => {
+  assert.equal(VERISOURCE_VERSION, '1.0.0');
+  const manifest = buildMcpDiscoveryManifest();
+  assert.equal(manifest.version, '1.0.0');
+
+  const delta = computeScoreDeltaSummary({
+    previousVisibilityScore: 41,
+    currentVisibilityScore: 92,
+    previousAccuracyScore: 68,
+    currentAccuracyScore: 100,
+    baselineLabel: 'initial_audit',
+    verifiedLiveChecksCount: 4,
+  });
+  assert.equal(delta.visibilityDelta, 51);
+  assert.equal(delta.accuracyDelta, 32);
+  assert.equal(delta.baselineLabel, 'initial_audit');
+  assert.equal(delta.verifiedLiveChecksCount, 4);
+
+  // Unremediated fixtures (41 and 36) should not report synthetic uplift
+  const preRemediationMap = resolveInitialDomainScoreDeltas(PATIENT_ZERO_DOMAINS);
+  assert.equal(Object.keys(preRemediationMap).length, 0);
+
+  // Remediated Patient Zero production rows (92 and 84) resolve exact baseline uplifts (+51 and +32)
+  const remediatedMap = resolveInitialDomainScoreDeltas([
+    {
+      ...PATIENT_ZERO_DOMAINS[0]!,
+      visibility_score: 92,
+      accuracy_score: 100,
+    },
+    {
+      ...PATIENT_ZERO_DOMAINS[1]!,
+      visibility_score: 84,
+      accuracy_score: 92,
+    },
+  ]);
+  assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[0]!.id]?.visibilityDelta, 51);
+  assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[0]!.id]?.accuracyDelta, 32);
+  assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[1]!.id]?.visibilityDelta, 32);
+  assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[1]!.id]?.accuracyDelta, 38);
 });

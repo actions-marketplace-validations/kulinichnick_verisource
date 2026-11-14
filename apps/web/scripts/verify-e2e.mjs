@@ -1333,7 +1333,106 @@ async function run() {
       0,
       'Found banned lexicon on Tab 3 Citation Gap Source Leaderboard'
     );
-    console.log('✔ [36/36] M38 Tab 3 Ranked Citation Gap Source Leaderboard & targeted outreach draft verified');
+    console.log('✔ [36/37] M38 Tab 3 Ranked Citation Gap Source Leaderboard & targeted outreach draft verified');
+
+    // 35. M39 + M40 + M41: Self-GEO alternate Markdown + 3-node JSON-LD graph, scoreDelta telemetry, Tab 1/Tab 2 remediation proof & v1.0.0 manifest
+    const v1HomeHtml = await (await fetch(`${BASE}/`)).text();
+    assert.ok(
+      v1HomeHtml.includes('rel="alternate"') &&
+        v1HomeHtml.includes('type="text/markdown"') &&
+        v1HomeHtml.includes('href="/agents.md"') &&
+        v1HomeHtml.includes('href="/llms.txt"'),
+      'Expected <link rel="alternate" type="text/markdown" href="/agents.md"> and /llms.txt alternate link on Landing Page <head>'
+    );
+    const v1JsonLdMatches = [
+      ...v1HomeHtml.matchAll(
+        /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+      ),
+    ];
+    assert.ok(
+      v1JsonLdMatches.length >= 3,
+      `Expected >= 3 application/ld+json blocks (Organization + SoftwareApplication + FAQPage), found ${v1JsonLdMatches.length}`
+    );
+    const parsedTypes = v1JsonLdMatches.map(
+      (m) => JSON.parse(m[1].trim())['@type']
+    );
+    assert.ok(
+      parsedTypes.includes('Organization') &&
+        parsedTypes.includes('SoftwareApplication') &&
+        parsedTypes.includes('FAQPage'),
+      `Expected Organization, SoftwareApplication, and FAQPage JSON-LD types, got: ${parsedTypes.join(', ')}`
+    );
+
+    assert.ok(
+      verifyFixesJson.scoreDelta &&
+        typeof verifyFixesJson.scoreDelta.visibilityDelta === 'number' &&
+        typeof verifyFixesJson.scoreDelta.accuracyDelta === 'number',
+      'Expected scoreDelta payload on POST /api/dashboard/verify-fixes'
+    );
+
+    const rescanDeltaRes = await fetch(`${BASE}/api/dashboard/domains`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-forwarded-for': '198.51.100.41',
+      },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+      }),
+    });
+    assert.equal(rescanDeltaRes.status, 200);
+    const rescanDeltaJson = await rescanDeltaRes.json();
+    assert.ok(
+      rescanDeltaJson.scoreDelta &&
+        typeof rescanDeltaJson.scoreDelta.previousVisibilityScore === 'number' &&
+        typeof rescanDeltaJson.scoreDelta.currentVisibilityScore === 'number' &&
+        typeof rescanDeltaJson.scoreDelta.visibilityDelta === 'number',
+      'Expected scoreDelta payload on PUT /api/dashboard/domains'
+    );
+
+    const v1Tab1Html = await (await fetch(`${BASE}/dashboard`)).text();
+    assert.ok(
+      v1Tab1Html.includes('BEFORE → AFTER REMEDIATION PROOF'),
+      'Expected BEFORE → AFTER REMEDIATION PROOF bar on Tab 1'
+    );
+    const strippedV1Tab1 = v1Tab1Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedV1Tab1.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Tab 1 Before -> After Remediation Proof view'
+    );
+
+    const v1Tab2Html = await (
+      await fetch(`${BASE}/dashboard?tab=tab2_fixes`)
+    ).text();
+    assert.ok(
+      v1Tab2Html.includes('BASELINE:') ||
+        v1Tab2Html.includes('BEFORE → AFTER:') ||
+        v1Tab2Html.includes('VERIFIED:'),
+      'Expected baseline or Before -> After score badge on Tab 2'
+    );
+    const strippedV1Tab2 = v1Tab2Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedV1Tab2.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Tab 2 Before -> After Remediation Proof view'
+    );
+
+    const v1ManifestJson = await (
+      await fetch(`${BASE}/.well-known/mcp.json`)
+    ).json();
+    assert.equal(
+      v1ManifestJson.version,
+      '1.0.0',
+      `Expected /.well-known/mcp.json version 1.0.0, got ${v1ManifestJson.version}`
+    );
+    console.log('✔ [37/37] M39-M41 Self-GEO alternate Markdown + 3-node JSON-LD, scoreDelta telemetry, Tab 1/Tab 2 remediation proof & v1.0.0 manifest verified');
   } finally {
     server.kill();
   }

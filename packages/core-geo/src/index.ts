@@ -1,4 +1,4 @@
-export const VERISOURCE_VERSION = '0.4.9';
+export const VERISOURCE_VERSION = '1.0.0';
 
 export * from './db/types.js';
 export * from './fixtures/patient-zero.js';
