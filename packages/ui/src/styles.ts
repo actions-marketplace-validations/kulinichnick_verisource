@@ -544,6 +544,24 @@ html, body {
   .vs-nav-links {
     gap: 12px;
     font-size: 12.5px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    white-space: nowrap;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .vs-nav-links::-webkit-scrollbar {
+    display: none;
+  }
+  .vs-card {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .vs-table th,
+  .vs-table td {
+    padding: 9px 10px;
   }
   .vs-grader-form {
     flex-direction: column;

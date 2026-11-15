@@ -200,7 +200,9 @@ export default function RootLayout({
         <header
           className="vs-site-chrome"
           style={{
-            background: 'rgba(250, 249, 246, 0.94)',
+            background: '#FAF9F6',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             borderBottom: '1px solid var(--vs-border)',
             position: 'sticky',
             top: 0,
