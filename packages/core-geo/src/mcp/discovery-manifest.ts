@@ -95,7 +95,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'free_preview',
         creditsCost: 0,
         description:
-          'Returns AI Visibility Score (0-100), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF and robots.txt access, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation check.',
+          'Returns AI Visibility Score (0-100), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF and robots.txt access, SSR vs JS crawler readability, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation check.',
       },
       {
         name: 'get_citation_gaps_and_fanouts',
@@ -103,7 +103,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Returns 3-engine citation share, ranked citation gap domains, >=9.5/10 editorial outreach drafts, and observed search sub-queries across ChatGPT, Google Gemini, and Perplexity.',
+          'Returns 3-engine Mention vs Citation share, Source-Type categorized citation gap domains (UGC/Reddit, Review Directory, Editorial, Competitor), suggested funnel prompts, >=9.5/10 outreach drafts, and observed search sub-queries.',
       },
       {
         name: 'check_brand_hallucinations',
@@ -111,7 +111,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Compares ChatGPT, Gemini, and Perplexity claims against verified pricing, shipping or delivery radii, and SKU exclusions.',
+          'Compares ChatGPT, Gemini, and Perplexity claims and brand sentiment framing against verified pricing, shipping or delivery radii, and SKU exclusions.',
       },
       {
         name: 'generate_geo_fix_bundle',

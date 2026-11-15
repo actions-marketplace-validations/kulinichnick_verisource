@@ -12,6 +12,7 @@ import type {
   DomainRow,
   FanoutTelemetryType,
   FixType,
+  GeneratedFixRow,
   HallucinationDetail,
   LlmsTxtStatus,
   PitchSummaryPayload,
@@ -26,8 +27,10 @@ import {
   type IndustryVerticalId,
 } from '../generator/fix-generator.js';
 import {
+  analyzeCrawlerHtmlReadability,
   normalizePublicDomain,
   probeDomainHttpReadiness,
+  type CrawlerReadabilityReport,
   type DomainHttpProbeResult,
 } from '../scanner/bot-waf-prober.js';
 import {
@@ -57,6 +60,7 @@ export interface ReadinessScanSummary {
   llmsTxtStatus: LlmsTxtStatus;
   robotsAiBotStatus: RobotsAiBotStatus;
   jsonLdCount: number;
+  crawlerReadability?: CrawlerReadabilityReport;
   samplePromptResult: {
     promptText: string;
     aiEngine: string;
@@ -106,6 +110,7 @@ export interface LiveFixVerificationReport {
   robotsAiBotStatus: RobotsAiBotStatus;
   jsonLdCount: number;
   hasFaqSchema: boolean;
+  crawlerReadability?: CrawlerReadabilityReport;
   appliedFixTypes: FixType[];
   checks: LiveFixCheckItem[];
 }
@@ -684,6 +689,13 @@ export async function runDomainReadinessScan(
     llmsTxtStatus: probe.llmsTxtStatus,
     robotsAiBotStatus: probe.robotsAiBotStatus,
     jsonLdCount: probe.jsonLdBlocks.length,
+    crawlerReadability:
+      probe.crawlerReadability ??
+      analyzeCrawlerHtmlReadability(
+        `<main><h1>${brandName}</h1><p>${truthSheet.core_offering} ${truthSheet.verified_pricing_summary} ${truthSheet.shipping_or_service_area}</p></main>`.repeat(
+          3
+        )
+      ),
     samplePromptResult: {
       promptText: sample.promptText,
       aiEngine: sample.aiEngine,
@@ -945,6 +957,7 @@ export async function verifyLiveFixDeployment(
     robotsAiBotStatus: probe.robotsAiBotStatus,
     jsonLdCount: probe.jsonLdBlocks.length,
     hasFaqSchema,
+    crawlerReadability: probe.crawlerReadability,
     appliedFixTypes,
     checks,
   };
@@ -957,6 +970,8 @@ export interface EngineCitationShareItem {
   totalSnapshots: number;
   mentionedCount: number;
   mentionRatePct: number;
+  citedUrlCount: number;
+  citationRatePct: number;
   bestRank: number | null;
   hallucinationCount: number;
   topRivals: string[];
@@ -998,6 +1013,7 @@ function normalizeSnapshotLike(item: SnapshotOrScanItem): {
   fanoutTelemetryType: FanoutTelemetryType;
   hallucinationDetected: boolean;
   hallucinationDetails: HallucinationDetail[];
+  rawAnswerExcerpt: string;
 } {
   if ('ai_engine' in item) {
     return {
@@ -1009,6 +1025,7 @@ function normalizeSnapshotLike(item: SnapshotOrScanItem): {
       fanoutTelemetryType: item.fanout_telemetry_type,
       hallucinationDetected: item.hallucination_detected,
       hallucinationDetails: item.hallucination_details ?? [],
+      rawAnswerExcerpt: item.raw_answer_excerpt ?? '',
     };
   }
   return {
@@ -1020,12 +1037,23 @@ function normalizeSnapshotLike(item: SnapshotOrScanItem): {
     fanoutTelemetryType: item.fanoutTelemetryType,
     hallucinationDetected: item.hallucinationDetected,
     hallucinationDetails: item.hallucinationDetails ?? [],
+    rawAnswerExcerpt: item.rawAnswerExcerpt ?? '',
   };
 }
 
 export function summarizeEngineCitationShare(
-  snapshots: SnapshotOrScanItem[]
+  snapshots: SnapshotOrScanItem[],
+  targetHostname?: string
 ): EngineCitationShareItem[] {
+  const cleanTarget = targetHostname
+    ? targetHostname
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .split('/')[0] ?? ''
+    : '';
+
   const normalized = snapshots.map(normalizeSnapshotLike);
   return TRACKED_ENGINES.map(({ aiEngine, engineLabel, shortLabel }) => {
     const engineSnaps = normalized.filter((s) => s.aiEngine === aiEngine);
@@ -1035,6 +1063,27 @@ export function summarizeEngineCitationShare(
     const mentionRatePct =
       totalSnapshots > 0
         ? Math.round((mentionedCount / totalSnapshots) * 100)
+        : 0;
+
+    const citedUrlCount = engineSnaps.filter((s) => {
+      if (cleanTarget) {
+        return s.citedSourceUrls.some((rawUrl) => {
+          try {
+            const host = new URL(rawUrl.trim()).hostname
+              .replace(/^www\./, '')
+              .toLowerCase();
+            return host === cleanTarget || host.endsWith(`.${cleanTarget}`);
+          } catch {
+            return false;
+          }
+        });
+      }
+      return s.brandMentioned && s.citedSourceUrls.length > 0;
+    }).length;
+
+    const citationRatePct =
+      totalSnapshots > 0
+        ? Math.round((citedUrlCount / totalSnapshots) * 100)
         : 0;
 
     let bestRank: number | null = null;
@@ -1086,6 +1135,8 @@ export function summarizeEngineCitationShare(
       totalSnapshots,
       mentionedCount,
       mentionRatePct,
+      citedUrlCount,
+      citationRatePct,
       bestRank,
       hallucinationCount,
       topRivals,
@@ -1162,13 +1213,131 @@ export function classifyPitchShowcaseBucket(
 
 export type CitationSourceOwnership = 'citation_gap' | 'co_cited' | 'owned';
 
+export type CitationSourceCategory =
+  | 'ugc_community'
+  | 'review_directory'
+  | 'editorial_media'
+  | 'competitor_site'
+  | 'owned_domain';
+
 export interface RankedCitationSourceItem {
   sourceHost: string;
   ownership: CitationSourceOwnership;
+  sourceCategory: CitationSourceCategory;
+  sourceCategoryLabel: string;
+  recommendedAction: string;
   enginesCiting: AiEngine[];
   citationCount: number;
   rivalsFed: string[];
   urls: string[];
+}
+
+const UGC_COMMUNITY_HOSTS = new Set([
+  'reddit.com',
+  'quora.com',
+  'news.ycombinator.com',
+  'github.com',
+  'stackoverflow.com',
+  'youtube.com',
+  'youtu.be',
+  'medium.com',
+  'substack.com',
+  'dev.to',
+  'discord.com',
+]);
+
+const REVIEW_DIRECTORY_HOSTS = new Set([
+  'g2.com',
+  'capterra.com',
+  'trustpilot.com',
+  'clutch.co',
+  'gartner.com',
+  'trustradius.com',
+  'getapp.com',
+  'softwareadvice.com',
+  'producthunt.com',
+  'yelp.com',
+  'avvo.com',
+  'zocdoc.com',
+  'angi.com',
+  'bbb.org',
+  'martindale.com',
+  'superlawyers.com',
+  'goodfirms.co',
+  'designrush.com',
+  'apps.shopify.com',
+  'shopify.com',
+]);
+
+export function classifyCitationSourceCategory(params: {
+  sourceHost: string;
+  isOwned: boolean;
+  knownRivals: string[];
+}): {
+  sourceCategory: CitationSourceCategory;
+  sourceCategoryLabel: string;
+  recommendedAction: string;
+} {
+  if (params.isOwned) {
+    return {
+      sourceCategory: 'owned_domain',
+      sourceCategoryLabel: 'Owned Domain',
+      recommendedAction: 'Keep JSON-LD & /agents.md synced',
+    };
+  }
+
+  const host = params.sourceHost.toLowerCase().replace(/^www\./, '');
+  const matchesSet = (set: Set<string>): boolean => {
+    for (const entry of set) {
+      if (host === entry || host.endsWith(`.${entry}`)) return true;
+    }
+    return false;
+  };
+
+  if (matchesSet(UGC_COMMUNITY_HOSTS)) {
+    return {
+      sourceCategory: 'ugc_community',
+      sourceCategoryLabel: 'UGC / Community',
+      recommendedAction: 'Join thread with factual founder reply',
+    };
+  }
+
+  if (matchesSet(REVIEW_DIRECTORY_HOSTS)) {
+    return {
+      sourceCategory: 'review_directory',
+      sourceCategoryLabel: 'Review Directory',
+      recommendedAction: 'Claim & verify directory profile',
+    };
+  }
+
+  const hostSlug = (host.split('.')[0] ?? '').replace(/[^a-z0-9]/g, '');
+  if (hostSlug.length >= 4) {
+    const matchesRival = params.knownRivals.some((r) => {
+      const rivalSlug = r
+        .toLowerCase()
+        .replace(/\.[a-z]{2,}(?:\.[a-z]{2})?$/, '')
+        .replace(/[^a-z0-9]/g, '');
+      return (
+        rivalSlug.length >= 4 &&
+        (hostSlug === rivalSlug ||
+          hostSlug.includes(rivalSlug) ||
+          rivalSlug.includes(hostSlug))
+      );
+    });
+    if (matchesRival) {
+      return {
+        sourceCategory: 'competitor_site',
+        sourceCategoryLabel: 'Competitor Site',
+        recommendedAction: 'Publish direct comparison FAQ on your site',
+      };
+    }
+  }
+
+  return {
+    sourceCategory: 'editorial_media',
+    sourceCategoryLabel: 'Editorial / Media',
+    recommendedAction: 'Send factual spec & /agents.md update',
+  };
 }
 
 const OWNERSHIP_PRIORITY: Record<CitationSourceOwnership, number> = {
@@ -1270,6 +1439,12 @@ export function rankCitationGapSources(params: {
     }
   }
 
+  const allKnownRivals = Array.from(
+    new Set(
+      params.snapshots.flatMap((s) => normalizeSnapshotLike(s).competitorsMentioned)
+    )
+  );
+
   const ENGINE_ORDER: AiEngine[] = ['chatgpt', 'gemini', 'perplexity', 'claude'];
   const items: RankedCitationSourceItem[] = [];
 
@@ -1283,10 +1458,19 @@ export function rankCitationGapSources(params: {
         ? 'co_cited'
         : 'citation_gap';
 
+    const categoryInfo = classifyCitationSourceCategory({
+      sourceHost,
+      isOwned,
+      knownRivals: allKnownRivals,
+    });
+
     const enginesCiting = ENGINE_ORDER.filter((e) => bucket.engines.has(e));
     items.push({
       sourceHost,
       ownership,
+      sourceCategory: categoryInfo.sourceCategory,
+      sourceCategoryLabel: categoryInfo.sourceCategoryLabel,
+      recommendedAction: categoryInfo.recommendedAction,
       enginesCiting,
       citationCount: bucket.citationCount,
       rivalsFed: isOwned ? [] : bucket.rivals,
@@ -1478,4 +1662,331 @@ export function resolveInitialDomainScoreDeltas(
     }
   }
   return map;
+}
+
+export type BrandSentimentFraming =
+  | 'recommended'
+  | 'neutral'
+  | 'cautionary'
+  | 'invisible';
+
+export interface RivalShareOfVoiceItem {
+  entityName: string;
+  isTargetBrand: boolean;
+  mentions: number;
+  shareOfVoicePct: number;
+}
+
+export interface BrandSentimentSummary {
+  dominantFraming: BrandSentimentFraming;
+  sentimentScore: number;
+  recommendedCount: number;
+  neutralCount: number;
+  cautionaryCount: number;
+  omittedCount: number;
+  recommendedPct: number;
+  neutralPct: number;
+  cautionaryPct: number;
+  averageRank: number | null;
+  headToHeadSov: RivalShareOfVoiceItem[];
+}
+
+const POSITIVE_FRAMING_MARKER =
+  /\b(?:top\s+pick|recommended|standout|best\s+for|trusted|leading|strong\s+choice|verified|popular\s+choice|ranked\s+#1)\b/i;
+
+const CAUTIONARY_FRAMING_MARKER =
+  /\b(?:expensive|overpriced|limited|lacks|complaint|complaints|drawback|drawbacks|outdated|not\s+ideal|missing|downside|slow\s+support)\b/i;
+
+export function summarizeBrandSentimentAndSov(params: {
+  brandName: string;
+  snapshots: SnapshotOrScanItem[];
+}): BrandSentimentSummary {
+  const normalized = params.snapshots.map(normalizeSnapshotLike);
+  const total = normalized.length;
+
+  let recommendedCount = 0;
+  let neutralCount = 0;
+  let cautionaryCount = 0;
+  let omittedCount = 0;
+  let rankSum = 0;
+  let rankCount = 0;
+
+  for (const snap of normalized) {
+    if (!snap.brandMentioned) {
+      omittedCount += 1;
+      continue;
+    }
+
+    if (typeof snap.citationRank === 'number' && snap.citationRank > 0) {
+      rankSum += snap.citationRank;
+      rankCount += 1;
+    }
+
+    const excerpt = snap.rawAnswerExcerpt;
+    const hasHallucination =
+      snap.hallucinationDetected && snap.hallucinationDetails.length > 0;
+
+    if (hasHallucination || CAUTIONARY_FRAMING_MARKER.test(excerpt)) {
+      cautionaryCount += 1;
+    } else if (
+      (typeof snap.citationRank === 'number' && snap.citationRank <= 2) ||
+      POSITIVE_FRAMING_MARKER.test(excerpt)
+    ) {
+      recommendedCount += 1;
+    } else {
+      neutralCount += 1;
+    }
+  }
+
+  const mentionedTotal = recommendedCount + neutralCount + cautionaryCount;
+  const recommendedPct =
+    mentionedTotal > 0
+      ? Math.round((recommendedCount / mentionedTotal) * 100)
+      : 0;
+  const cautionaryPct =
+    mentionedTotal > 0
+      ? Math.round((cautionaryCount / mentionedTotal) * 100)
+      : 0;
+  const neutralPct =
+    mentionedTotal > 0
+      ? Math.max(0, 100 - recommendedPct - cautionaryPct)
+      : 0;
+
+  let dominantFraming: BrandSentimentFraming = 'invisible';
+  if (mentionedTotal > 0) {
+    if (cautionaryCount > recommendedCount && cautionaryCount >= neutralCount) {
+      dominantFraming = 'cautionary';
+    } else if (recommendedCount >= neutralCount) {
+      dominantFraming = 'recommended';
+    } else {
+      dominantFraming = 'neutral';
+    }
+  }
+
+  const sentimentScore =
+    mentionedTotal === 0
+      ? 0
+      : Math.max(
+          10,
+          Math.min(
+            100,
+            Math.round(
+              (recommendedCount * 100 +
+                neutralCount * 72 +
+                cautionaryCount * 28) /
+                mentionedTotal
+            )
+          )
+        );
+
+  const averageRank =
+    rankCount > 0 ? Math.round((rankSum / rankCount) * 10) / 10 : null;
+
+  // Head-to-head Share of Voice against top 3 named rivals across all snapshots
+  const rivalCounts = new Map<string, { display: string; count: number }>();
+  const targetClean = params.brandName.trim();
+  const targetKey = targetClean.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  for (const snap of normalized) {
+    const seenInSnap = new Set<string>();
+    for (const rawRival of snap.competitorsMentioned) {
+      const clean = rawRival.trim();
+      if (
+        !clean ||
+        /^(?:reddit\.com\s+buyer\s+threads|editorial\s+comparison\s+guides|category\s+directories)/i.test(
+          clean
+        ) ||
+        /^Top\s+.+\s+Category\s+Peer\s+#\d+$/i.test(clean)
+      ) {
+        continue;
+      }
+      const key = clean
+        .toLowerCase()
+        .replace(/^www\./, '')
+        .replace(/\.[a-z]{2,}(?:\.[a-z]{2})?$/, '')
+        .replace(/[^a-z0-9]/g, '');
+      if (!key || key === targetKey || seenInSnap.has(key)) continue;
+      seenInSnap.add(key);
+
+      const prev = rivalCounts.get(key);
+      if (prev) {
+        prev.count += 1;
+      } else {
+        rivalCounts.set(key, { display: clean, count: 1 });
+      }
+    }
+  }
+
+  const topThreeRivals = Array.from(rivalCounts.values())
+    .sort((a, b) => b.count - a.count || a.display.localeCompare(b.display))
+    .slice(0, 3);
+
+  const denom = Math.max(1, total);
+  const headToHeadSov: RivalShareOfVoiceItem[] = [
+    {
+      entityName: targetClean || 'Your Brand',
+      isTargetBrand: true,
+      mentions: mentionedTotal,
+      shareOfVoicePct: total > 0 ? Math.round((mentionedTotal / denom) * 100) : 0,
+    },
+    ...topThreeRivals.map((r) => ({
+      entityName: r.display,
+      isTargetBrand: false,
+      mentions: r.count,
+      shareOfVoicePct: total > 0 ? Math.round((r.count / denom) * 100) : 0,
+    })),
+  ].sort((a, b) => {
+    if (b.shareOfVoicePct !== a.shareOfVoicePct) {
+      return b.shareOfVoicePct - a.shareOfVoicePct;
+    }
+    if (a.isTargetBrand !== b.isTargetBrand) {
+      return a.isTargetBrand ? -1 : 1;
+    }
+    return a.entityName.localeCompare(b.entityName);
+  });
+
+  return {
+    dominantFraming,
+    sentimentScore,
+    recommendedCount,
+    neutralCount,
+    cautionaryCount,
+    omittedCount,
+    recommendedPct,
+    neutralPct,
+    cautionaryPct,
+    averageRank,
+    headToHeadSov,
+  };
+}
+
+export interface CommerceAttributeItem {
+  id:
+    | 'price_specification'
+    | 'fulfillment_or_area'
+    | 'availability_and_exclusions'
+    | 'entity_identifiers'
+    | 'agent_protocol_feed';
+  label: string;
+  liveOnSite: boolean;
+  readyInBundle: boolean;
+  detail: string;
+}
+
+export interface CommerceReadinessSummary {
+  readinessPct: number;
+  passedCount: number;
+  totalCount: number;
+  attributes: CommerceAttributeItem[];
+}
+
+export function evaluateCommerceAttributeReadiness(params: {
+  domain: Pick<
+    DomainRow,
+    | 'brand_name'
+    | 'domain_url'
+    | 'is_shopify'
+    | 'shopify_mcp_status'
+    | 'agents_md_status'
+    | 'llms_txt_status'
+    | 'brand_truth_sheet'
+  >;
+  fixes: Array<Pick<GeneratedFixRow, 'fix_type' | 'content_payload' | 'is_applied'>>;
+}): CommerceReadinessSummary {
+  const { domain, fixes } = params;
+  const truth = domain.brand_truth_sheet;
+
+  const jsonLdFix = fixes.find((f) => f.fix_type === 'json_ld_schema');
+  const agentsFix = fixes.find(
+    (f) => f.fix_type === 'agents_md' || f.fix_type === 'shopify_agents_liquid'
+  );
+  const llmsFix = fixes.find((f) => f.fix_type === 'llms_txt');
+
+  const hasExplicitPricing =
+    /\$\d|\bUSD\b|\bEUR\b|\bGBP\b|\bfree\b|\bper\s+month\b|\/mo\b/i.test(
+      truth.verified_pricing_summary
+    );
+  const hasExplicitArea = truth.shipping_or_service_area.trim().length >= 8;
+  const hasExplicitExclusions =
+    truth.discontinued_or_false_claims_to_flag.length > 0;
+
+  const jsonLdLive = Boolean(jsonLdFix?.is_applied);
+  const agentsLive =
+    domain.agents_md_status === 'custom_enriched' || Boolean(agentsFix?.is_applied);
+  const llmsLive =
+    domain.llms_txt_status === 'present' || Boolean(llmsFix?.is_applied);
+  const ucpLive =
+    domain.is_shopify &&
+    (domain.shopify_mcp_status === 'ucp_active' ||
+      domain.shopify_mcp_status === 'legacy_mcp_active');
+
+  const attributes: CommerceAttributeItem[] = [
+    {
+      id: 'price_specification',
+      label: domain.is_shopify
+        ? 'SKU OfferCatalog & Currency Pricing'
+        : 'Plan Tiers & Currency Offer Schema',
+      liveOnSite: hasExplicitPricing && (jsonLdLive || agentsLive),
+      readyInBundle: Boolean(jsonLdFix || agentsFix),
+      detail: hasExplicitPricing
+        ? `Verified pricing (${truth.verified_pricing_summary.slice(0, 68)})${jsonLdLive || agentsLive ? ' published live' : ' ready in JSON-LD + /agents.md bundle'}`
+        : 'Add explicit tier or SKU pricing in Step 1 Brand Truth Sheet so ChatGPT Shopping does not guess.',
+    },
+    {
+      id: 'fulfillment_or_area',
+      label: domain.is_shopify
+        ? 'Shipping Thresholds & Delivery Radius'
+        : 'Service Coverage, Onboarding & SLA Terms',
+      liveOnSite: hasExplicitArea && (jsonLdLive || agentsLive),
+      readyInBundle: Boolean(jsonLdFix || agentsFix),
+      detail: hasExplicitArea
+        ? `${truth.shipping_or_service_area.slice(0, 74)}${jsonLdLive || agentsLive ? ' live on site' : ' encoded in fix bundle'}`
+        : 'Specify shipping minimums, regions, or service coverage in Step 1.',
+    },
+    {
+      id: 'availability_and_exclusions',
+      label: 'Negative SKU / Feature Guardrails',
+      liveOnSite: hasExplicitExclusions && agentsLive,
+      readyInBundle: Boolean(agentsFix),
+      detail: hasExplicitExclusions
+        ? `${truth.discontinued_or_false_claims_to_flag.length} false-claim guardrail(s) ${agentsLive ? 'enforced at /agents.md' : 'staged in /agents.md fix'}`
+        : 'Add discontinued SKUs or unsupported features in Step 1 to prevent AI hallucinations.',
+    },
+    {
+      id: 'entity_identifiers',
+      label: 'Canonical Entity & FAQPage JSON-LD Graph',
+      liveOnSite: jsonLdLive,
+      readyInBundle: Boolean(jsonLdFix),
+      detail: jsonLdLive
+        ? 'Live schema.org entity + FAQPage graph verified on homepage'
+        : 'Paste the generated JSON-LD graph before </head> and click Verify Live Fixes.',
+    },
+    {
+      id: 'agent_protocol_feed',
+      label: domain.is_shopify
+        ? 'Shopify UCP (/api/ucp/mcp) + /agents.md Feed'
+        : 'Canonical /llms.txt + /agents.md Protocol Feeds',
+      liveOnSite: domain.is_shopify ? ucpLive && agentsLive : llmsLive && agentsLive,
+      readyInBundle: Boolean(llmsFix && agentsFix),
+      detail: domain.is_shopify
+        ? ucpLive && agentsLive
+          ? 'Shopify /api/ucp/mcp catalog + custom AI truth feed active'
+          : ucpLive
+            ? '/api/ucp/mcp active — publish custom agents.md.liquid / AI facts override'
+            : 'Enable Shopify storefront catalog endpoint and publish custom AI facts'
+        : llmsLive && agentsLive
+          ? 'Both /llms.txt and /agents.md return verified HTTP 200 Markdown'
+          : 'Publish /llms.txt and /agents.md at your domain root for direct agent retrieval.',
+    },
+  ];
+
+  const passedCount = attributes.filter((a) => a.liveOnSite).length;
+  const readinessPct = Math.round((passedCount / attributes.length) * 100);
+
+  return {
+    readinessPct,
+    passedCount,
+    totalCount: attributes.length,
+    attributes,
+  };
 }

@@ -9,11 +9,32 @@ import {
 } from '@verisource/core-geo';
 import {
   getLocalMockStore,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to update your Brand Truth Sheet.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a $19 Audit Pass or monthly Console plan to verify Brand Truth Sheets and regenerate fixes.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json()) as {
       domain_id?: string;
       brand_truth_sheet?: BrandTruthSheet;
@@ -28,16 +49,15 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    const auth = await resolveAuthenticatedProfile(request);
     const store = getLocalMockStore();
 
     let domain: DomainRow | undefined;
-    if (auth) {
-      const { data } = await auth.supabase
+    if (access.supabase) {
+      const { data } = await access.supabase
         .from('domains')
         .select('*')
         .eq('id', body.domain_id)
-        .eq('user_id', auth.profile.id)
+        .eq('user_id', access.profile.id)
         .maybeSingle();
       domain = data ?? undefined;
     } else {
@@ -86,8 +106,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       created_at: nowIso,
     }));
 
-    if (auth) {
-      await auth.supabase
+    if (access.supabase) {
+      await access.supabase
         .from('domains')
         .update({
           brand_truth_sheet: verifiedTruth,
@@ -96,14 +116,14 @@ export async function PATCH(request: Request): Promise<NextResponse> {
           last_scanned_at: nowIso,
         })
         .eq('id', domain.id)
-        .eq('user_id', auth.profile.id);
+        .eq('user_id', access.profile.id);
 
-      await auth.supabase
+      await access.supabase
         .from('generated_fixes')
         .delete()
         .eq('domain_id', domain.id);
       if (refreshedFixes.length > 0) {
-        await auth.supabase.from('generated_fixes').insert(refreshedFixes);
+        await access.supabase.from('generated_fixes').insert(refreshedFixes);
       }
     } else {
       Object.assign(domain, updatedDomain);

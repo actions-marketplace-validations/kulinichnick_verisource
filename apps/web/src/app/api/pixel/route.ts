@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   computeShopifyCheckoutKey,
+  normalizeAiBotCrawlerSource,
   normalizeAiReferralSource,
 } from '@verisource/core-geo';
 import { z } from 'zod';
@@ -26,7 +27,7 @@ const PixelPayloadSchema = z.object({
     'ai_referral_conversion',
     'ai_bot_crawl',
   ]),
-  source_engine: z.string().min(2).max(64),
+  source_engine: z.string().min(2).max(256),
   landing_path: z.string().max(512).nullable().optional(),
   conversion_value_usd: z.number().min(0).max(1_000_000).nullable().optional(),
 });
@@ -54,72 +55,82 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    // Strict mandatory Origin / Referer verification to block headerless curl spoofing
+    const expectedCheckoutKey = await computeShopifyCheckoutKey({
+      domainId: domain.id,
+      trackingPixelToken: domain.tracking_pixel_token,
+    });
+    const hasVerifiedServerKey =
+      Boolean(parsed.data.checkout_key) &&
+      parsed.data.checkout_key === expectedCheckoutKey;
+
+    // Edge/Middleware ai_bot_crawl telemetry may authenticate server-to-server via checkout_key;
+    // browser referral events require strict Origin / Referer verification.
     const originHeader =
       request.headers.get('origin') ?? request.headers.get('referer');
-    if (!originHeader) {
-      return NextResponse.json(
-        {
-          error: 'MISSING_ORIGIN',
-          message: 'Origin or Referer header is required for attribution telemetry.',
-        },
-        { status: 403, headers: PIXEL_CORS_HEADERS }
-      );
-    }
-
-    // Shopify Customer Events Custom Web Pixels execute inside a sandboxed iframe (`Origin: null`).
-    // Require the workspace-only 24-hex SHA-256 checkout_key to block cross-site sandboxed iframe spoofing.
-    if (originHeader.trim().toLowerCase() === 'null') {
-      const expectedCheckoutKey = await computeShopifyCheckoutKey({
-        domainId: domain.id,
-        trackingPixelToken: domain.tracking_pixel_token,
-      });
-      if (
-        !parsed.data.checkout_key ||
-        parsed.data.checkout_key !== expectedCheckoutKey
-      ) {
+    if (
+      !(parsed.data.event_type === 'ai_bot_crawl' && hasVerifiedServerKey)
+    ) {
+      if (!originHeader) {
         return NextResponse.json(
           {
-            error: 'INVALID_SANDBOX_CHECKOUT_KEY',
+            error: 'MISSING_ORIGIN',
             message:
-              'Sandboxed Shopify Customer Events pixels require a valid checkout_key.',
+              'Origin or Referer header is required for attribution telemetry.',
           },
           { status: 403, headers: PIXEL_CORS_HEADERS }
         );
       }
-    } else {
-      let callerHost: string;
-      let expectedHost: string;
-      try {
-        callerHost = new URL(originHeader).hostname
-          .toLowerCase()
-          .replace(/^www\./, '');
-        expectedHost = new URL(domain.domain_url).hostname
-          .toLowerCase()
-          .replace(/^www\./, '');
-      } catch {
-        return NextResponse.json(
-          { error: 'MALFORMED_ORIGIN' },
-          { status: 403, headers: PIXEL_CORS_HEADERS }
-        );
-      }
 
-      const isLocalhostDev =
-        process.env.NODE_ENV !== 'production' &&
-        (callerHost === 'localhost' || callerHost === '127.0.0.1');
+      // Shopify Customer Events Custom Web Pixels execute inside a sandboxed iframe (`Origin: null`).
+      if (originHeader.trim().toLowerCase() === 'null') {
+        if (!hasVerifiedServerKey) {
+          return NextResponse.json(
+            {
+              error: 'INVALID_SANDBOX_CHECKOUT_KEY',
+              message:
+                'Sandboxed Shopify Customer Events pixels require a valid checkout_key.',
+            },
+            { status: 403, headers: PIXEL_CORS_HEADERS }
+          );
+        }
+      } else {
+        let callerHost: string;
+        let expectedHost: string;
+        try {
+          callerHost = new URL(originHeader).hostname
+            .toLowerCase()
+            .replace(/^www\./, '');
+          expectedHost = new URL(domain.domain_url).hostname
+            .toLowerCase()
+            .replace(/^www\./, '');
+        } catch {
+          return NextResponse.json(
+            { error: 'MALFORMED_ORIGIN' },
+            { status: 403, headers: PIXEL_CORS_HEADERS }
+          );
+        }
 
-      if (!isLocalhostDev && callerHost !== expectedHost) {
-        return NextResponse.json(
-          {
-            error: 'ORIGIN_MISMATCH',
-            message: `Origin ${callerHost} is not authorized to record attribution for ${expectedHost}.`,
-          },
-          { status: 403, headers: PIXEL_CORS_HEADERS }
-        );
+        const isLocalhostDev =
+          process.env.NODE_ENV !== 'production' &&
+          (callerHost === 'localhost' || callerHost === '127.0.0.1');
+
+        if (!isLocalhostDev && callerHost !== expectedHost) {
+          return NextResponse.json(
+            {
+              error: 'ORIGIN_MISMATCH',
+              message: `Origin ${callerHost} is not authorized to record attribution for ${expectedHost}.`,
+            },
+            { status: 403, headers: PIXEL_CORS_HEADERS }
+          );
+        }
       }
     }
 
-    const normalizedEngine = normalizeAiReferralSource(parsed.data.source_engine);
+    const normalizedEngine =
+      parsed.data.event_type === 'ai_bot_crawl'
+        ? (normalizeAiBotCrawlerSource(parsed.data.source_engine) ??
+          normalizeAiReferralSource(parsed.data.source_engine))
+        : normalizeAiReferralSource(parsed.data.source_engine);
     if (!normalizedEngine) {
       return NextResponse.json(
         { error: 'UNSUPPORTED_AI_ENGINE' },

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  classifyPromptIntent,
   normalizePublicDomain,
   resolveCoreGeoEnv,
   runMultiEnginePromptScan,
@@ -9,16 +10,36 @@ import {
 } from '@verisource/core-geo';
 import {
   PROTECTED_PATIENT_ZERO_IDS,
-  checkAndConsumeDemoScanQuota,
   getLocalMockStore,
   promptCapForPlan,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to track buyer prompts.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a $19 Audit Pass or monthly Console plan to track buyer prompts across AI engines.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json()) as {
       domain_id?: string;
       prompt_text?: string;
@@ -39,29 +60,15 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const auth = await resolveAuthenticatedProfile(request);
-    if (!auth) {
-      const demoQuota = checkAndConsumeDemoScanQuota(request, 6);
-      if (!demoQuota.allowed) {
-        return NextResponse.json(
-          {
-            error: 'DEMO_SCAN_LIMIT_REACHED',
-            message:
-              'Hourly guest workspace scan limit reached (6/hr). Activate a permanent domain audit + all 1-click fixes for $19 (credited toward any monthly plan within 7 days) or sign in.',
-          },
-          { status: 429 }
-        );
-      }
-    }
     const store = getLocalMockStore();
-    const activeProfile = auth ? auth.profile : store.profile;
+    const activeProfile = access.profile;
     const maxPrompts = promptCapForPlan(activeProfile.plan_tier);
 
     let domain: DomainRow | undefined;
     let totalUserPrompts = 0;
 
-    if (auth) {
-      const { data: domData } = await auth.supabase
+    if (access.supabase) {
+      const { data: domData } = await access.supabase
         .from('domains')
         .select('*')
         .eq('id', domainId)
@@ -70,13 +77,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       domain = domData ?? undefined;
 
       if (domain) {
-        const { data: userDomains } = await auth.supabase
+        const { data: userDomains } = await access.supabase
           .from('domains')
           .select('id')
           .eq('user_id', activeProfile.id);
         const ids = (userDomains ?? []).map((d) => d.id);
         if (ids.length > 0) {
-          const { count } = await auth.supabase
+          const { count } = await access.supabase
             .from('tracked_prompts')
             .select('id', { count: 'exact', head: true })
             .in('domain_id', ids);
@@ -127,12 +134,16 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const nowIso = new Date().toISOString();
     const promptId = crypto.randomUUID();
+    const inferredIntent = classifyPromptIntent(
+      promptText,
+      domain.brand_name
+    ).intentCategory;
 
     const newPrompt: TrackedPromptRow = {
       id: promptId,
       domain_id: domain.id,
       prompt_text: promptText,
-      intent_category: body.intent_category?.trim() || 'commercial_comparison',
+      intent_category: body.intent_category?.trim() || inferredIntent,
       decompiled_fanout_queries: Array.from(
         new Set(scanResults.flatMap((s) => s.decompiledFanoutQueries))
       ),
@@ -157,10 +168,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       scanned_at: nowIso,
     }));
 
-    if (auth) {
-      await auth.supabase.from('tracked_prompts').insert(newPrompt);
+    if (access.supabase) {
+      await access.supabase.from('tracked_prompts').insert(newPrompt);
       if (newSnapshots.length > 0) {
-        await auth.supabase.from('citation_snapshots').insert(newSnapshots);
+        await access.supabase.from('citation_snapshots').insert(newSnapshots);
       }
     } else {
       store.prompts.push(newPrompt);

@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import Link from 'next/link';
 import React from 'react';
 import { VerisourceStyleTag } from '@verisource/ui';
+import { SiteHeaderClient } from '../components/SiteHeaderClient';
 
 const fontSans = localFont({
   src: './fonts/PlusJakartaSans-Latin.woff2',
@@ -151,7 +152,7 @@ const FAQ_JSON_LD = {
       name: 'How does the $19 One-Time Audit Pass 7-day credit work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Purchasing the $19 Audit Pass unlocks a complete 3-engine audit and >=9.5/10 fix bundle for one domain. Upgrading to Starter ($49/mo), Pro + MCP ($99/mo), or Agency ($249/mo) within 7 days automatically deducts $19.00 from your first recurring invoice.',
+        text: 'Purchasing the $19 Audit Pass activates a complete 3-engine audit and >=9.5/10 fix bundle for one domain inside the Console. Upgrading to Starter ($49/mo), Pro + MCP ($99/mo), or Agency ($249/mo) within 7 days automatically deducts $19.00 from your first recurring invoice.',
       },
     },
   ],
@@ -197,91 +198,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <header
-          className="vs-site-chrome"
-          style={{
-            background: '#FAF9F6',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderBottom: '1px solid var(--vs-border)',
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-          }}
-        >
-          <div className="vs-container vs-header-inner">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <Link
-                href="/"
-                style={{
-                  textDecoration: 'none',
-                  color: 'var(--vs-ink)',
-                  fontWeight: 700,
-                  fontSize: '15.5px',
-                  letterSpacing: '-0.025em',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '9px',
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '18px',
-                    height: '18px',
-                    background: 'var(--vs-ink)',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      transform: 'rotate(45deg)',
-                      border: '1.5px solid #FAF9F6',
-                    }}
-                  />
-                </span>
-                VERISOURCE
-              </Link>
-              <Link
-                href="/mcp-guide"
-                className="vs-badge"
-                style={{ textDecoration: 'none' }}
-                title="View 30-second Claude, Cursor, Windsurf & Antigravity setup guide"
-              >
-                mcp.verisource.dev/mcp
-              </Link>
-            </div>
-
-            <nav className="vs-nav-links" aria-label="Primary navigation">
-              <Link href="/#grader" className="vs-nav-link">
-                Free Grader
-              </Link>
-              <Link href="/#case-ledger" className="vs-nav-link">
-                Case Studies
-              </Link>
-              <Link href="/pricing" className="vs-nav-link">
-                Pricing
-              </Link>
-              <Link href="/agencies" className="vs-nav-link">
-                Agencies
-              </Link>
-              <Link href="/mcp-guide" className="vs-nav-link">
-                MCP Guide
-              </Link>
-              <Link href="/sample-audit" className="vs-nav-link">
-                Sample Audits
-              </Link>
-              <Link href="/dashboard" className="vs-btn">
-                Open Console →
-              </Link>
-            </nav>
-          </div>
-        </header>
+        <SiteHeaderClient />
 
         <main>{children}</main>
 

@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json(
         {
           error: 'INVALID_DOMAIN',
-          message: 'Enter a valid public domain (e.g. aurearoasters.com).',
+          message: 'Enter a valid public domain (e.g. yourcompany.com).',
         },
         { status: 400, headers: CORS_HEADERS }
       );

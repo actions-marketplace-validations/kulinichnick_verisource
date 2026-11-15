@@ -7,10 +7,12 @@ import {
 import {
   buildMcpDiscoveryManifest,
   buildTargetedCitationOutreachDraft,
+  generateSuggestedBuyerPrompts,
   normalizePublicDomain,
   rankCitationGapSources,
   runDomainReadinessScan,
   runFullGeoAudit,
+  summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   VERISOURCE_VERSION,
   type FullGeoAuditResult,
@@ -111,7 +113,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           domain: z
             .string()
             .min(3)
-            .describe('Public domain or URL to scan, e.g. aurearoasters.com'),
+            .describe('Public domain or URL to scan, e.g. yourcompany.com'),
         }),
       },
       async ({ domain }) => {
@@ -230,11 +232,22 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
         });
 
         const engineCitationShare = summarizeEngineCitationShare(
-          audit.scanResults
+          audit.scanResults,
+          audit.hostname
         );
         const rankedCitationSources = rankCitationGapSources({
           targetHostname: audit.hostname,
           snapshots: audit.scanResults,
+        });
+        const suggestedFunnelPrompts = generateSuggestedBuyerPrompts({
+          hostname: audit.hostname,
+          brandName: audit.brandName,
+          coreOffering: audit.brandTruthSheet.core_offering,
+          pricingSummary: audit.brandTruthSheet.verified_pricing_summary,
+          shippingOrServiceArea: audit.brandTruthSheet.shipping_or_service_area,
+          isShopify: audit.shopify.isShopify,
+          topRivals: audit.pitchSummaryPayload.competitors_winning,
+          existingPrompts: audit.trackedPrompts,
         });
         const targetedOutreachDrafts = rankedCitationSources
           .filter((s) => s.ownership !== 'owned' && Boolean(s.urls[0]))
@@ -253,6 +266,8 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
             return {
               source_host: source.sourceHost,
               ownership: source.ownership,
+              source_category: source.sourceCategory,
+              recommended_action: source.recommendedAction,
               target_url: source.urls[0]!,
               engines_citing: source.enginesCiting,
               rivals_fed: source.rivalsFed,
@@ -270,6 +285,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           credits_remaining: gate.creditsRemaining,
           engine_citation_share: engineCitationShare,
           ranked_citation_sources: rankedCitationSources,
+          suggested_funnel_prompts: suggestedFunnelPrompts,
           targeted_outreach_drafts: targetedOutreachDrafts,
           engine_snapshots: audit.scanResults.map((s) => ({
             prompt: s.promptText,
@@ -371,10 +387,16 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
             })
           : base.audit;
 
+        const brandSentiment = summarizeBrandSentimentAndSov({
+          brandName: audit.brandName,
+          snapshots: audit.scanResults,
+        });
+
         const payload = {
           domain: audit.domainUrl,
           brand_name: audit.brandName,
           accuracy_score: audit.accuracyScore,
+          brand_sentiment_summary: brandSentiment,
           brand_truth_sheet: audit.brandTruthSheet,
           hallucinations_count: audit.allHallucinations.length,
           hallucinations: audit.allHallucinations,

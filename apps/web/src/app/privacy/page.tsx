@@ -81,7 +81,7 @@ export default function PrivacyPage(): React.ReactElement {
             <li>
               <strong>Readiness probe payload:</strong> Only the public domain
               hostname (for example,{' '}
-              <code className="vs-mono">aurearoasters.com</code>) is sent to{' '}
+              <code className="vs-mono">yourcompany.com</code>) is sent to{' '}
               <code className="vs-mono">https://verisource.dev/api/grader</code>{' '}
               to inspect <code className="vs-mono">/robots.txt</code>,{' '}
               <code className="vs-mono">/llms.txt</code>, and{' '}

@@ -2,34 +2,127 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
 import {
-  PATIENT_ZERO_PITCH_REPORT,
   buildAgencyColdOutreachNote,
   type AgencyPitchReportRow,
 } from '@verisource/core-geo';
 import { CodeArtifactCard, StatusBadge } from '@verisource/ui';
 import { SampleAuditCohortClient } from '../../components/SampleAuditCohortClient';
-import {
-  getLocalMockStore,
-  getServiceSupabaseClient,
-} from '../../lib/data-store';
+import { getServiceSupabaseClient } from '../../lib/data-store';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Sample White-Label Client Audits & Outbound Playbook | Verisource',
   description:
-    'Inspect live 3-engine white-label /audit/[slug] client briefs (ChatGPT, Gemini & Perplexity) and Critic-verified (>= 9.5/10) 4-sentence founder outreach notes.',
+    'Inspect live 3-engine white-label /audit/[slug] client briefs (ChatGPT, Gemini & Perplexity) across B2B SaaS, Agencies, and Local Services.',
   alternates: {
     canonical: 'https://verisource.dev/sample-audit',
   },
 };
 
-export default async function SampleAuditShowcasePage(): Promise<React.ReactElement> {
-  const sampleOutreach = buildAgencyColdOutreachNote(
-    PATIENT_ZERO_PITCH_REPORT,
-    'https://verisource.dev'
-  );
+const FALLBACK_COHORT_REPORTS: AgencyPitchReportRow[] = [
+  {
+    id: '66666666-2222-4000-8000-000000000101',
+    agency_user_id: '00000000-0000-4000-8000-000000000001',
+    share_slug: 'northstar-cloud-b2b-brief',
+    prospect_domain: 'https://resend.com',
+    prospect_brand_name: 'Resend',
+    visibility_score: 64,
+    hallucination_count: 1,
+    agency_brand_name_snapshot: 'Verisource GEO Advisory',
+    agency_logo_url_snapshot: null,
+    agency_primary_color_snapshot: '#0A0E17',
+    agency_cta_url_snapshot: 'https://verisource.dev/pricing',
+    summary_payload: {
+      top_gaps: [
+        'Missing canonical /agents.md pricing and API tier guardrail file.',
+        'Third-party Reddit and G2 comparison threads outrank owned docs on commercial queries.',
+      ],
+      competitors_winning: ['Postmark', 'SendGrid', 'Amazon SES'],
+      hallucination_examples: [
+        {
+          claim_text: 'Offers a $10/mo unlimited transactional email plan.',
+          verified_truth: 'Paid Pro tier starts at $20/mo for 50,000 emails.',
+          severity: 'high',
+          category: 'pricing',
+        },
+      ],
+      recommended_fixes: [
+        'Publish >= 9.5/10 SoftwareApplication + FAQPage JSON-LD graph.',
+        'Deploy /agents.md and /llms.txt at domain root.',
+      ],
+    },
+    views_count: 12,
+    expires_at: null,
+    created_at: '2026-11-15T12:00:00.000Z',
+  },
+  {
+    id: '66666666-2222-4000-8000-000000000102',
+    agency_user_id: '00000000-0000-4000-8000-000000000001',
+    share_slug: 'siegemedia-agency-brief',
+    prospect_domain: 'https://siegemedia.com',
+    prospect_brand_name: 'Siege Media',
+    visibility_score: 58,
+    hallucination_count: 0,
+    agency_brand_name_snapshot: 'Verisource GEO Advisory',
+    agency_logo_url_snapshot: null,
+    agency_primary_color_snapshot: '#0A0E17',
+    agency_cta_url_snapshot: 'https://verisource.dev/pricing',
+    summary_payload: {
+      top_gaps: [
+        'Missing /llms.txt machine-readable agency scope and retainer overview.',
+        'Clutch and editorial agency listicles dominate unbranded B2B SEO prompts.',
+      ],
+      competitors_winning: ['Omniscient Digital', 'Animalz', 'Single Grain'],
+      hallucination_examples: [],
+      recommended_fixes: [
+        'Publish ProfessionalService + FAQPage JSON-LD entity graph.',
+        'Publish canonical /agents.md engagement and ICP truth file.',
+      ],
+    },
+    views_count: 8,
+    expires_at: null,
+    created_at: '2026-11-15T12:05:00.000Z',
+  },
+  {
+    id: '66666666-2222-4000-8000-000000000103',
+    agency_user_id: '00000000-0000-4000-8000-000000000001',
+    share_slug: 'hellotend-dental-brief',
+    prospect_domain: 'https://hellotend.com',
+    prospect_brand_name: 'Tend Dental',
+    visibility_score: 52,
+    hallucination_count: 1,
+    agency_brand_name_snapshot: 'Verisource GEO Advisory',
+    agency_logo_url_snapshot: null,
+    agency_primary_color_snapshot: '#0A0E17',
+    agency_cta_url_snapshot: 'https://verisource.dev/pricing',
+    summary_payload: {
+      top_gaps: [
+        'Missing /agents.md insurance and studio membership policy guardrails.',
+        'Zocdoc and Yelp directories capture top Perplexity footnote slots.',
+      ],
+      competitors_winning: ['Aspen Dental', 'One Medical', 'Local Studio Peers'],
+      hallucination_examples: [
+        {
+          claim_text: 'Accepts all state Medicaid dental plans nationwide.',
+          verified_truth:
+            'Accepts major PPO dental insurance plans across operating metro studios.',
+          severity: 'high',
+          category: 'offering',
+        },
+      ],
+      recommended_fixes: [
+        'Publish Dentist + LocalBusiness JSON-LD across studio locations.',
+        'Publish canonical /agents.md insurance and pricing truth sheet.',
+      ],
+    },
+    views_count: 9,
+    expires_at: null,
+    created_at: '2026-11-15T12:10:00.000Z',
+  },
+];
 
+export default async function SampleAuditShowcasePage(): Promise<React.ReactElement> {
   let liveCohortReports: AgencyPitchReportRow[] = [];
   const supabase = getServiceSupabaseClient();
   if (supabase) {
@@ -38,13 +131,26 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
       .select('*')
       .eq('agency_brand_name_snapshot', 'Verisource GEO Advisory')
       .order('created_at', { ascending: false })
-      .limit(18);
+      .limit(24);
     if (data && data.length > 0) {
-      liveCohortReports = data as AgencyPitchReportRow[];
+      liveCohortReports = (data as AgencyPitchReportRow[]).filter(
+        (r) =>
+          !/aurearoasters|mosaicroasters/i.test(
+            `${r.prospect_domain} ${r.prospect_brand_name}`
+          )
+      );
     }
-  } else {
-    liveCohortReports = getLocalMockStore().pitchReports.slice(0, 6);
   }
+
+  if (liveCohortReports.length === 0) {
+    liveCohortReports = FALLBACK_COHORT_REPORTS;
+  }
+
+  const featuredReport = liveCohortReports[0] ?? FALLBACK_COHORT_REPORTS[0]!;
+  const sampleOutreach = buildAgencyColdOutreachNote(
+    featuredReport,
+    'https://verisource.dev'
+  );
 
   return (
     <div>
@@ -98,21 +204,18 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
               maxWidth: '680px',
             }}
           >
-            SEO, web design, and digital PR agencies use Tab 3 Batch Mode to
+            SEO, web design, and digital PR agencies use Console Batch Mode to
             audit up to 10 prospect domains in parallel, mint white-label{' '}
             <code className="vs-mono">/audit/[slug]</code> scorecards with their
             own logo and calendar link, and export a ready-to-send outreach CSV.
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            <Link href="/dashboard?tab=tab3_offsite" className="vs-btn">
-              Build a Free Sample Pitch Link →
+            <Link href="/#grader" className="vs-btn">
+              Audit Any Website Free →
             </Link>
-            <Link
-              href="/audit/mosaic-springfield-audit"
-              className="vs-btn vs-btn-secondary"
-            >
-              Open Full Mosaic Brief →
+            <Link href="/agencies" className="vs-btn vs-btn-secondary">
+              Agency Partner Architecture →
             </Link>
             <Link href="/pricing" className="vs-btn vs-btn-secondary">
               Agency Plan ($249/mo)
@@ -122,117 +225,23 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
       </section>
 
       <div className="vs-container">
-        {/* Flagship Before -> After Verified Briefs */}
         <section style={{ marginBottom: '52px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            FLAGSHIP CASE-STUDY REPORTS
+            LIVE MULTI-VERTICAL BENCHMARK COHORT
           </div>
           <h2
             style={{
-              fontSize: '25px',
+              fontSize: '24px',
               fontWeight: 700,
               letterSpacing: '-0.02em',
-              margin: '0 0 16px 0',
+              margin: '0 0 14px 0',
             }}
           >
-            Inspect live executive briefs before and after remediation.
+            Live 3-engine HTTP + AI Search audits across B2B SaaS, Agencies, and
+            Local Services.
           </h2>
-
-          <div className="vs-grid-2">
-            <div className="vs-card" style={{ padding: '22px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  marginBottom: '10px',
-                }}
-              >
-                <span className="vs-eyebrow">SPECIALTY SHOPIFY · NATIONWIDE</span>
-                <StatusBadge tone="pass">41 → 92 / 100 LIVE</StatusBadge>
-              </div>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '18px' }}>
-                Aurea Coffee Roasters (<code className="vs-mono">aurearoasters.com</code>)
-              </h3>
-              <p
-                style={{
-                  fontSize: '13.5px',
-                  color: 'var(--vs-ink-secondary)',
-                  margin: '0 0 16px 0',
-                }}
-              >
-                Flagged an invented $15 K-Cup pod claim in ChatGPT and
-                Perplexity, then published an 8-SKU{' '}
-                <code className="vs-mono">OfferCatalog</code> ($21.95–$109.95)
-                and canonical Markdown truth link.
-              </p>
-              <Link
-                href="/audit/aurearoasters-com-vf9w"
-                className="vs-btn vs-btn-secondary"
-              >
-                Open Live Aurea Audit →
-              </Link>
-            </div>
-
-            <div className="vs-card" style={{ padding: '22px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                  marginBottom: '10px',
-                }}
-              >
-                <span className="vs-eyebrow">REGIONAL + E-COMMERCE · SPRINGFIELD MO</span>
-                <StatusBadge tone="pass">52 → 84 / 100 LIVE</StatusBadge>
-              </div>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '18px' }}>
-                Mosaic Coffee Roasters (<code className="vs-mono">mosaicroasters.com</code>)
-              </h3>
-              <p
-                style={{
-                  fontSize: '13.5px',
-                  color: 'var(--vs-ink-secondary)',
-                  margin: '0 0 16px 0',
-                }}
-              >
-                Corrected a false $25 nationwide free-shipping claim with a{' '}
-                <code className="vs-mono">40.2km GeoCircle</code> schema and
-                live <code className="vs-mono">/pages/ai-facts</code> endpoint
-                stating $45+ local delivery within 25 miles.
-              </p>
-              <Link
-                href="/audit/mosaic-springfield-audit"
-                className="vs-btn vs-btn-secondary"
-              >
-                Open Live Mosaic Audit →
-              </Link>
-            </div>
-          </div>
+          <SampleAuditCohortClient reports={liveCohortReports} />
         </section>
-
-        {/* Live Multi-Vertical Cohort Gallery (populated automatically when Supabase cohort rows exist) */}
-        {liveCohortReports.length > 0 ? (
-          <section style={{ marginBottom: '52px' }}>
-            <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-              LIVE MULTI-VERTICAL BENCHMARK COHORT
-            </div>
-            <h2
-              style={{
-                fontSize: '24px',
-                fontWeight: 700,
-                letterSpacing: '-0.02em',
-                margin: '0 0 14px 0',
-              }}
-            >
-              Recent live 3-engine HTTP + AI Search audits (ChatGPT, Gemini &amp;
-              Perplexity).
-            </h2>
-            <SampleAuditCohortClient reports={liveCohortReports} />
-          </section>
-        ) : null}
 
         {/* Critic-Verified 4-Sentence Cold Outreach Preview */}
         <section style={{ marginBottom: '40px' }}>
@@ -264,9 +273,9 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
           </p>
 
           <CodeArtifactCard
-            title="Sample Exported Cold-Outreach Note (Mosaic Coffee Roasters)"
+            title={`Sample Exported Cold-Outreach Note (${featuredReport.prospect_brand_name})`}
             plainSummary="Generated automatically alongside every single or batch client audit."
-            fileHint="Exported in 1 click via ↓ Export CSV or ↓ Playbook (.md) in Tab 3"
+            fileHint="Exported in 1 click via ↓ Export CSV or ↓ Playbook (.md) in Console Step 3"
             code={sampleOutreach.content}
             qualityScore={sampleOutreach.score}
             qualityBreakdown={sampleOutreach.breakdown}

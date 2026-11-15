@@ -8,6 +8,7 @@ export * from './scanner/bot-waf-prober.js';
 export * from './shopify/shopify-adapter.js';
 export * from './watchdog/hallucination-watchdog.js';
 export * from './scanner/fanout-scanner.js';
+export * from './scanner/prompt-discovery.js';
 export * from './generator/fix-generator.js';
 export * from './generator/pitch-outreach.js';
 export * from './generator/agency-partner-outreach.js';

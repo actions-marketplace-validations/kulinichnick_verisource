@@ -8,6 +8,7 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
   VERISOURCE_VERSION,
+  analyzeCrawlerHtmlReadability,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAgencyPartnerBatchCsv,
@@ -17,6 +18,7 @@ import {
   buildAgencyPitchPayload,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
+  buildEdgeBotCrawlerSnippet,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildLocalServiceBatchCsv,
@@ -29,8 +31,10 @@ import {
   buildTargetedCitationOutreachDraft,
   buildWeeklyExecutiveDigest,
   classifyAgentsMdContent,
+  classifyCitationSourceCategory,
   classifyIndustryVertical,
   classifyPitchShowcaseBucket,
+  classifyPromptIntent,
   computeScoreDeltaSummary,
   computeShopifyCheckoutKey,
   dispatchHallucinationDriftEmail,
@@ -38,6 +42,7 @@ import {
   dispatchProspectOpenEmail,
   dispatchWeeklyExecutiveDigestEmail,
   enforceQualityGate95,
+  evaluateCommerceAttributeReadiness,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
   extractCleanCategoryTopic,
@@ -47,9 +52,11 @@ import {
   extractVerifiableTruthFromAlternateBody,
   generateDefaultPromptsForDomain,
   generateMcpApiKey,
+  generateSuggestedBuyerPrompts,
   gradeArtifactQuality,
   isAutomatedPreviewBot,
   isFixTypeLiveOnDomain,
+  normalizeAiBotCrawlerSource,
   normalizePublicDomain,
   parseBatchProspectDomains,
   parsePerplexityAgentResponse,
@@ -59,6 +66,7 @@ import {
   runDomainReadinessScan,
   runFullGeoAudit,
   runPerplexityAgentQuery,
+  summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   sanitizeCsvCell,
   sha256Hex,
@@ -1440,4 +1448,189 @@ test('M39-M41 ScoreDeltaSummary, Patient Zero remediation baselines & v1.0.0 man
   assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[0]!.id]?.accuracyDelta, 32);
   assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[1]!.id]?.visibilityDelta, 32);
   assert.equal(remediatedMap[PATIENT_ZERO_DOMAINS[1]!.id]?.accuracyDelta, 38);
+});
+
+test('M42 5 Competitor Intelligence Upgrades (Suggested Prompts, Mention/Citation Split, Source Categories, Sentiment & Rival SoV, JS Readability, Commerce Attributes) work deterministically', () => {
+  // 1. Auto-Suggested Buyer Prompts + Funnel-Stage & Branded/Unbranded Tags
+  const suggested = generateSuggestedBuyerPrompts({
+    hostname: 'resend.com',
+    brandName: 'Resend',
+    coreOffering: 'Developer email API and transactional email delivery platform.',
+    pricingSummary: '$20/mo Pro tier for 50,000 emails',
+    topRivals: ['Postmark', 'SendGrid'],
+    existingPrompts: ['Resend pricing plans, usage limits, and enterprise billing options'],
+  });
+  assert.equal(suggested.length, 7, 'Expected 7 remaining prompts after filtering 1 existing');
+  assert.ok(suggested.some((p) => p.intentCategory === 'discovery_unbranded' && !p.isBranded));
+  assert.ok(
+    suggested.some(
+      (p) =>
+        p.intentCategory === 'commercial_comparison' &&
+        p.promptText.includes('Postmark')
+    )
+  );
+  assert.equal(
+    classifyPromptIntent('Best developer email APIs for startups', 'Resend')
+      .intentCategory,
+    'discovery_unbranded'
+  );
+  assert.equal(
+    classifyPromptIntent('Resend vs Postmark deliverability', 'Resend')
+      .intentCategory,
+    'commercial_comparison'
+  );
+  assert.equal(
+    classifyPromptIntent('Resend monthly pricing tiers', 'Resend').intentCategory,
+    'pricing_purchase'
+  );
+
+  // 2. Mention Rate vs. Citation Rate Split + Source Type Categorization
+  const snaps = [
+    {
+      id: 's1',
+      domain_id: 'd1',
+      prompt_id: 'p1',
+      ai_engine: 'chatgpt' as const,
+      brand_mentioned: true,
+      citation_rank: 1,
+      competitors_mentioned: ['Postmark', 'SendGrid'],
+      cited_source_urls: [
+        'https://reddit.com/r/webdev/comments/email_apis',
+        'https://g2.com/categories/transactional-email',
+        'https://postmarkapp.com/comparison',
+      ],
+      fanout_telemetry_type: 'observed_query' as const,
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'Resend is a top pick for modern React email teams.',
+      scanned_at: '2026-11-15T00:00:00Z',
+    },
+    {
+      id: 's2',
+      domain_id: 'd1',
+      prompt_id: 'p2',
+      ai_engine: 'chatgpt' as const,
+      brand_mentioned: true,
+      citation_rank: 2,
+      competitors_mentioned: ['Postmark'],
+      cited_source_urls: ['https://resend.com/pricing'],
+      fanout_telemetry_type: 'observed_query' as const,
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'Resend and Postmark both offer strong APIs.',
+      scanned_at: '2026-11-15T00:00:00Z',
+    },
+  ];
+  const share = summarizeEngineCitationShare(snaps, 'resend.com');
+  const gptShare = share.find((s) => s.aiEngine === 'chatgpt')!;
+  assert.equal(gptShare.mentionRatePct, 100);
+  assert.equal(gptShare.citedUrlCount, 1);
+  assert.equal(gptShare.citationRatePct, 50);
+
+  const ranked = rankCitationGapSources({
+    targetHostname: 'resend.com',
+    snapshots: snaps,
+  });
+  assert.equal(
+    ranked.find((r) => r.sourceHost === 'reddit.com')?.sourceCategory,
+    'ugc_community'
+  );
+  assert.equal(
+    ranked.find((r) => r.sourceHost === 'g2.com')?.sourceCategory,
+    'review_directory'
+  );
+  assert.equal(
+    ranked.find((r) => r.sourceHost === 'postmarkapp.com')?.sourceCategory,
+    'competitor_site'
+  );
+  assert.equal(
+    ranked.find((r) => r.sourceHost === 'resend.com')?.sourceCategory,
+    'owned_domain'
+  );
+  assert.equal(
+    classifyCitationSourceCategory({
+      sourceHost: 'techcrunch.com',
+      isOwned: false,
+      knownRivals: ['Postmark'],
+    }).sourceCategory,
+    'editorial_media'
+  );
+
+  // 3. Brand Sentiment Framing + Head-to-Head Rival Share-of-Voice
+  const sentiment = summarizeBrandSentimentAndSov({
+    brandName: 'Resend',
+    snapshots: snaps,
+  });
+  assert.equal(sentiment.dominantFraming, 'recommended');
+  assert.equal(sentiment.recommendedPct, 100);
+  assert.equal(sentiment.averageRank, 1.5);
+  assert.equal(sentiment.headToHeadSov[0]?.entityName, 'Resend');
+  assert.equal(sentiment.headToHeadSov[0]?.shareOfVoicePct, 100);
+  assert.ok(
+    sentiment.headToHeadSov.some(
+      (i) => i.entityName === 'Postmark' && i.shareOfVoicePct === 100
+    )
+  );
+
+  // 4. JS-Rendering / Crawler Readability + Edge Bot Crawl Snippet
+  const csrTrap = analyzeCrawlerHtmlReadability(
+    '<!doctype html><html><head><title>App</title></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>'
+  );
+  assert.equal(csrTrap.status, 'csr_js_trap');
+  assert.equal(csrTrap.detectedCsrShell, true);
+
+  const ssrClean = analyzeCrawlerHtmlReadability(
+    `<!doctype html><html><body><main><h1>Enterprise Email Infrastructure</h1><p>${'Verified transactional API documentation, transparent pricing tiers, SLA guarantees, and developer SDK guides. '.repeat(12)}</p></main></body></html>`
+  );
+  assert.equal(ssrClean.status, 'ssr_clean');
+  assert.ok(ssrClean.visibleWordCount >= 100);
+
+  assert.equal(
+    normalizeAiBotCrawlerSource(
+      'Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)'
+    ),
+    'PerplexityBot'
+  );
+  assert.equal(normalizeAiBotCrawlerSource('GPTBot/1.2'), 'GPTBot');
+  const edgeSnippet = buildEdgeBotCrawlerSnippet({
+    trackingPixelToken: 'aaaaaaaa-1111-4000-8000-000000000001',
+    checkoutKey: '0123456789abcdef01234567',
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+  assert.ok(edgeSnippet.includes("event_type: 'ai_bot_crawl'"));
+
+  // 5. AI Shopping & Offer Attribute Completeness
+  const partialCommerce = evaluateCommerceAttributeReadiness({
+    domain: {
+      ...PATIENT_ZERO_DOMAINS[0]!,
+      agents_md_status: 'custom_enriched',
+      llms_txt_status: 'present',
+    },
+    fixes: PATIENT_ZERO_FIXES.filter(
+      (f) => f.domain_id === PATIENT_ZERO_DOMAINS[0]!.id
+    ).map((f) => ({ ...f, is_applied: true })),
+  });
+  assert.equal(partialCommerce.totalCount, 5);
+  assert.equal(partialCommerce.passedCount, 4);
+  assert.equal(partialCommerce.readinessPct, 80);
+
+  const fullCommerce = evaluateCommerceAttributeReadiness({
+    domain: {
+      ...PATIENT_ZERO_DOMAINS[0]!,
+      agents_md_status: 'custom_enriched',
+      llms_txt_status: 'present',
+    },
+    fixes: [
+      ...PATIENT_ZERO_FIXES.filter(
+        (f) => f.domain_id === PATIENT_ZERO_DOMAINS[0]!.id
+      ).map((f) => ({ ...f, is_applied: true })),
+      {
+        fix_type: 'json_ld_schema',
+        content_payload: '{"@context":"https://schema.org","@type":"Store"}',
+        is_applied: true,
+      },
+    ],
+  });
+  assert.equal(fullCommerce.passedCount, 5);
+  assert.equal(fullCommerce.readinessPct, 100);
 });

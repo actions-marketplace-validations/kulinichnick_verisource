@@ -4,24 +4,28 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
-  AUREA_DOMAIN_ID,
-  MOSAIC_DOMAIN_ID,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAiAttributionSnippet,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
+  buildEdgeBotCrawlerSnippet,
   buildImplementationBundleMarkdown,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
   computeShopifyCheckoutKey,
+  evaluateCommerceAttributeReadiness,
+  generateSuggestedBuyerPrompts,
+  getPromptIntentMeta,
   normalizePublicDomain,
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
+  summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
+  type CrawlerReadabilityReport,
   type DomainRow,
   type GeneratedFixRow,
   type LiveFixVerificationReport,
@@ -182,15 +186,31 @@ export function DashboardConsoleClient(props: {
   // Tab 3 Buyer Prompt tracking state
   const [newPromptText, setNewPromptText] = useState('');
   const [addingPrompt, setAddingPrompt] = useState(false);
+  const [scanningSuggestedPrompt, setScanningSuggestedPrompt] = useState<
+    string | null
+  >(null);
+  const [attributionTab, setAttributionTab] = useState<
+    'browser_pixel' | 'edge_crawler'
+  >('browser_pixel');
+
+  // Gate inline sign-in state (when unauthenticated on /dashboard)
+  const [gateAuthMethod, setGateAuthMethod] = useState<
+    'magic_link' | 'password'
+  >('magic_link');
+  const [gateEmail, setGateEmail] = useState('');
+  const [gatePassword, setGatePassword] = useState('');
+  const [gateSent, setGateSent] = useState(false);
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateError, setGateError] = useState<string | null>(null);
 
   // Tab 3 Agency White-Label Pitch generator state
   const [pitchInputMode, setPitchInputMode] = useState<'single' | 'batch'>(
     'single'
   );
-  const [pitchDomain, setPitchDomain] = useState('mosaicroasters.com');
-  const [batchPitchDomains, setBatchPitchDomains] = useState(
-    'aurearoasters.com\nmosaicroasters.com'
+  const [pitchDomain, setPitchDomain] = useState(
+    () => extractSafeHandoffHostname(props.initialDomainQuery) ?? ''
   );
+  const [batchPitchDomains, setBatchPitchDomains] = useState('');
   const [agencyName, setAgencyName] = useState(
     data.profile.agency_brand_name ?? 'Verisource Partner Agency'
   );
@@ -221,6 +241,8 @@ export function DashboardConsoleClient(props: {
   const [scoreDeltaByDomainId, setScoreDeltaByDomainId] = useState<
     Record<string, ScoreDeltaSummary>
   >(() => resolveInitialDomainScoreDeltas(props.initialData.domains));
+  const [crawlerReadabilityByDomainId, setCrawlerReadabilityByDomainId] =
+    useState<Record<string, CrawlerReadabilityReport>>({});
   const [shopifyCheckoutKey, setShopifyCheckoutKey] = useState<string>('');
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
@@ -256,6 +278,13 @@ export function DashboardConsoleClient(props: {
       if (cancelled) return;
       setAccessToken(token);
       setAuthEmail(email ?? null);
+      try {
+        document.cookie = `vs_access_token=${encodeURIComponent(
+          token
+        )}; Path=/; Max-Age=604800; SameSite=Lax`;
+      } catch {
+        // Ignore cookie write restrictions
+      }
       try {
         const res = await fetch('/api/dashboard/state', {
           headers: { Authorization: `Bearer ${token}` },
@@ -326,6 +355,12 @@ export function DashboardConsoleClient(props: {
   }, []);
 
   async function handleSignOut() {
+    try {
+      document.cookie = 'vs_access_token=; Path=/; Max-Age=0; SameSite=Lax';
+      document.cookie = 'vs_mock_session=; Path=/; Max-Age=0; SameSite=Lax';
+    } catch {
+      // Ignore cookie write restrictions
+    }
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (supabaseUrl && supabaseAnonKey) {
@@ -333,6 +368,60 @@ export function DashboardConsoleClient(props: {
       await supabase.auth.signOut();
     }
     window.location.href = '/login';
+  }
+
+  async function handleGateSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    setGateError(null);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const hasLiveAuth = Boolean(supabaseUrl && supabaseAnonKey);
+
+    if (!hasLiveAuth) {
+      document.cookie = 'vs_mock_session=owner; Path=/; SameSite=Lax';
+      window.location.reload();
+      return;
+    }
+
+    setGateLoading(true);
+    try {
+      const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
+      if (gateAuthMethod === 'password') {
+        const { data: signInRes, error: signInErr } =
+          await supabase.auth.signInWithPassword({
+            email: gateEmail.trim(),
+            password: gatePassword,
+          });
+        if (signInErr || !signInRes.session) {
+          setGateError(
+            signInErr?.message ??
+              'Invalid email or password. Switch to 1-Click Email Link if you have not set a password.'
+          );
+        } else {
+          document.cookie = `vs_access_token=${encodeURIComponent(
+            signInRes.session.access_token
+          )}; Path=/; Max-Age=604800; SameSite=Lax`;
+          window.location.reload();
+        }
+        return;
+      }
+
+      const { error: otpErr } = await supabase.auth.signInWithOtp({
+        email: gateEmail.trim(),
+        options: {
+          emailRedirectTo: window.location.href,
+        },
+      });
+      if (otpErr) {
+        setGateError(otpErr.message);
+      } else {
+        setGateSent(true);
+      }
+    } catch {
+      setGateError('Unable to authenticate right now. Please try again.');
+    } finally {
+      setGateLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -354,22 +443,17 @@ export function DashboardConsoleClient(props: {
       )
     );
     let cancelled = false;
-    if (activeDomain.is_shopify) {
-      void computeShopifyCheckoutKey({
-        domainId: activeDomain.id,
-        trackingPixelToken: activeDomain.tracking_pixel_token,
-      }).then((key) => {
-        if (!cancelled) setShopifyCheckoutKey(key);
-      });
-    } else {
-      setShopifyCheckoutKey('');
-    }
+    void computeShopifyCheckoutKey({
+      domainId: activeDomain.id,
+      trackingPixelToken: activeDomain.tracking_pixel_token,
+    }).then((key) => {
+      if (!cancelled) setShopifyCheckoutKey(key);
+    });
     return () => {
       cancelled = true;
     };
   }, [
     activeDomain?.id,
-    activeDomain?.is_shopify,
     activeDomain?.tracking_pixel_token,
     activeDomain?.brand_truth_sheet,
   ]);
@@ -442,6 +526,10 @@ export function DashboardConsoleClient(props: {
     (e) => e.event_type === 'ai_referral_visit'
   ).length;
 
+  const totalBotCrawls = domainAttribution.filter(
+    (e) => e.event_type === 'ai_bot_crawl'
+  ).length;
+
   const flaggedSnapshots = domainSnapshots.filter(
     (s) => s.hallucination_detected && (s.hallucination_details?.length ?? 0) > 0
   );
@@ -450,7 +538,21 @@ export function DashboardConsoleClient(props: {
     'all' | 'chatgpt' | 'gemini' | 'perplexity'
   >('all');
 
-  const engineCitationShare = summarizeEngineCitationShare(domainSnapshots);
+  const activeDomainHostname = (() => {
+    if (!activeDomain) return '';
+    try {
+      return new URL(activeDomain.domain_url).hostname
+        .replace(/^www\./, '')
+        .toLowerCase();
+    } catch {
+      return '';
+    }
+  })();
+
+  const engineCitationShare = summarizeEngineCitationShare(
+    domainSnapshots,
+    activeDomainHostname
+  );
   const visibleSnapshots =
     selectedEngineFilter === 'all'
       ? domainSnapshots
@@ -466,16 +568,41 @@ export function DashboardConsoleClient(props: {
     null
   );
 
-  const activeDomainHostname = (() => {
-    if (!activeDomain) return '';
-    try {
-      return new URL(activeDomain.domain_url).hostname
-        .replace(/^www\./, '')
-        .toLowerCase();
-    } catch {
-      return '';
-    }
-  })();
+  const activeCrawlerReadability: CrawlerReadabilityReport | null = activeDomain
+    ? crawlerReadabilityByDomainId[activeDomain.id] ?? null
+    : null;
+
+  const brandSentimentAndSov = activeDomain
+    ? summarizeBrandSentimentAndSov({
+        brandName: activeDomain.brand_name,
+        snapshots: domainSnapshots,
+      })
+    : null;
+
+  const commerceReadiness = activeDomain
+    ? evaluateCommerceAttributeReadiness({
+        domain: activeDomain,
+        fixes: domainFixes,
+      })
+    : null;
+
+  const suggestedBuyerPrompts =
+    activeDomain && brandSentimentAndSov
+      ? generateSuggestedBuyerPrompts({
+          hostname: activeDomainHostname,
+          brandName: activeDomain.brand_name,
+          coreOffering: activeDomain.brand_truth_sheet.core_offering,
+          pricingSummary:
+            activeDomain.brand_truth_sheet.verified_pricing_summary,
+          shippingOrServiceArea:
+            activeDomain.brand_truth_sheet.shipping_or_service_area,
+          isShopify: activeDomain.is_shopify,
+          topRivals: brandSentimentAndSov.headToHeadSov
+            .filter((r) => !r.isTargetBrand)
+            .map((r) => r.entityName),
+          existingPrompts: domainPrompts.map((p) => p.prompt_text),
+        })
+      : [];
 
   const rankedCitationSources = activeDomain
     ? rankCitationGapSources({
@@ -545,11 +672,11 @@ export function DashboardConsoleClient(props: {
   })();
 
   const isProtectedDemoSeedDomain =
-    !accessToken &&
+    data.mode === 'mock' &&
     Boolean(
       activeDomain &&
-        (activeDomain.id === AUREA_DOMAIN_ID ||
-          activeDomain.id === MOSAIC_DOMAIN_ID)
+        (activeDomain.id === '11111111-1111-4000-8000-000000000001' ||
+          activeDomain.id === '22222222-2222-4000-8000-000000000002')
     );
 
   async function scanDomainIntoWorkspace(rawDomain: string) {
@@ -571,6 +698,7 @@ export function DashboardConsoleClient(props: {
         prompts?: TrackedPromptRow[];
         snapshots?: CitationSnapshotRow[];
         fixes?: GeneratedFixRow[];
+        crawlerReadability?: CrawlerReadabilityReport;
       };
       if (!res.ok || json.error || !json.domain) {
         setBannerError(json.message ?? 'Could not add domain.');
@@ -578,6 +706,12 @@ export function DashboardConsoleClient(props: {
         setSelectedDomainId(json.domain.id);
         setNewDomainUrl('');
       } else {
+        if (json.crawlerReadability) {
+          setCrawlerReadabilityByDomainId((prev) => ({
+            ...prev,
+            [json.domain!.id]: json.crawlerReadability!,
+          }));
+        }
         setData((prev) => ({
           ...prev,
           domains: [...prev.domains, json.domain!],
@@ -620,11 +754,18 @@ export function DashboardConsoleClient(props: {
         snapshots?: CitationSnapshotRow[];
         fixes?: GeneratedFixRow[];
         scoreDelta?: ScoreDeltaSummary;
+        crawlerReadability?: CrawlerReadabilityReport;
       };
       if (!res.ok || json.error || !json.domain) {
         setBannerError(json.message ?? 'Unable to re-scan domain.');
       } else {
         recordDomainScoreDelta(json.domain.id, json.scoreDelta);
+        if (json.crawlerReadability) {
+          setCrawlerReadabilityByDomainId((prev) => ({
+            ...prev,
+            [json.domain!.id]: json.crawlerReadability!,
+          }));
+        }
         setData((prev) => ({
           ...prev,
           domains: prev.domains.map((d) =>
@@ -738,6 +879,50 @@ export function DashboardConsoleClient(props: {
       setBannerError('Network error while scanning buyer prompt.');
     } finally {
       setAddingPrompt(false);
+    }
+  }
+
+  async function handleTrackSuggestedPrompt(
+    promptText: string,
+    intentCategory: string
+  ) {
+    if (!activeDomain) return;
+    setScanningSuggestedPrompt(promptText);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/prompts', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          prompt_text: promptText,
+          intent_category: intentCategory,
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        prompt?: TrackedPromptRow;
+        snapshots?: CitationSnapshotRow[];
+      };
+      if (!res.ok || json.error || !json.prompt) {
+        setBannerError(json.message ?? 'Unable to track suggested buyer prompt.');
+      } else {
+        setData((prev) => ({
+          ...prev,
+          prompts: [...prev.prompts, json.prompt!],
+          snapshots: [...(json.snapshots ?? []), ...prev.snapshots],
+        }));
+        setBannerSuccess(
+          `Tracked "${json.prompt.prompt_text}" across ChatGPT, Gemini, and Perplexity (${
+            json.snapshots?.length ?? 3
+          } snapshots recorded).`
+        );
+      }
+    } catch {
+      setBannerError('Network error while scanning suggested buyer prompt.');
+    } finally {
+      setScanningSuggestedPrompt(null);
     }
   }
 
@@ -1288,6 +1473,14 @@ export function DashboardConsoleClient(props: {
         })
       : '';
 
+  const edgeCrawlerSnippet = activeDomain
+    ? buildEdgeBotCrawlerSnippet({
+        trackingPixelToken: activeDomain.tracking_pixel_token,
+        checkoutKey: shopifyCheckoutKey || 'pending_hmac_key',
+        ingestionUrl: 'https://verisource.dev/api/pixel',
+      })
+    : '';
+
   const mcpClientConfigJson = JSON.stringify(
     {
       mcpServers: {
@@ -1304,6 +1497,463 @@ export function DashboardConsoleClient(props: {
     null,
     2
   );
+
+  const gateDomainParam = extractSafeHandoffHostname(props.initialDomainQuery);
+  const buildGateCheckoutHref = (
+    plan: 'tripwire_19' | 'starter_49' | 'pro_99' | 'agency_249',
+    cycle: 'one_time' | 'monthly'
+  ): string => {
+    const qs = new URLSearchParams({ plan, cycle });
+    if (gateDomainParam) qs.set('domain', gateDomainParam);
+    if (accessToken) qs.set('access_token', accessToken);
+    return `/api/checkout?${qs.toString()}`;
+  };
+
+  if (
+    data.mode === 'unauthenticated_locked' ||
+    data.mode === 'plan_activation_required'
+  ) {
+    const isPlanActivation = data.mode === 'plan_activation_required';
+    return (
+      <div
+        className="vs-container"
+        style={{ paddingTop: '44px', paddingBottom: '72px', maxWidth: '1040px' }}
+      >
+        {props.upgradedPlan ? (
+          <div
+            style={{
+              padding: '12px 16px',
+              marginBottom: '20px',
+              borderRadius: '6px',
+              background: 'var(--vs-pass-bg)',
+              border: '1px solid var(--vs-pass-border)',
+              color: 'var(--vs-pass-fg)',
+              fontSize: '13px',
+            }}
+          >
+            <strong>
+              Stripe checkout confirmed ({props.upgradedPlan.toUpperCase()}).
+            </strong>{' '}
+            Sign in below with the email you used at checkout to open your
+            private Console and generated code fixes.
+          </div>
+        ) : null}
+
+        <div style={{ marginBottom: '26px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '8px' }}>
+            PRIVATE SUBSCRIBER CONSOLE · WORKSPACE ACCESS REQUIRED
+          </div>
+          <h1
+            style={{
+              margin: '0 0 10px 0',
+              fontSize: 'clamp(26px, 3.6vw, 36px)',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.12,
+            }}
+          >
+            {isPlanActivation
+              ? 'Activate a plan to provision your private AI Search Console.'
+              : 'Sign in to your private AI Search Console.'}
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              fontSize: '15px',
+              color: 'var(--vs-ink-secondary)',
+              maxWidth: '720px',
+              lineHeight: 1.6,
+            }}
+          >
+            Every subscriber gets an isolated 3-tab workspace to add their own
+            domains, monitor ChatGPT, Gemini, and Perplexity answers, ship{' '}
+            <code className="vs-mono">JSON-LD</code> +{' '}
+            <code className="vs-mono">/agents.md</code> +{' '}
+            <code className="vs-mono">/llms.txt</code> fixes, and log real AI
+            crawler hits. Want to test a domain for free first?{' '}
+            <Link
+              href="/#audit"
+              style={{
+                color: 'var(--vs-ink)',
+                fontWeight: 600,
+                textDecoration: 'underline',
+              }}
+            >
+              Run a free limited site audit on the homepage →
+            </Link>
+          </p>
+        </div>
+
+        <div className="vs-grid-2" style={{ alignItems: 'start' }}>
+          {/* Left Column: Sign-In Card or Signed-In Account Card */}
+          <div className="vs-card" style={{ padding: '26px' }}>
+            {isPlanActivation ? (
+              <div>
+                <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+                  AUTHENTICATED ACCOUNT
+                </div>
+                <h2 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>
+                  Signed in as{' '}
+                  <span className="vs-mono">
+                    {data.profile.email || authEmail || 'verified user'}
+                  </span>
+                </h2>
+                <p
+                  style={{
+                    margin: '0 0 18px 0',
+                    fontSize: '13.5px',
+                    color: 'var(--vs-ink-secondary)',
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Your account is currently on the public{' '}
+                  <code className="vs-mono">FREE</code> tier. Choose the{' '}
+                  <strong>$19 One-Time Audit Pass</strong> or a monthly Console
+                  plan on the right to provision your workspace immediately.
+                </p>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <Link href="/#audit" className="vs-btn vs-btn-secondary">
+                    Run Free Homepage Audit
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => void handleSignOut()}
+                    className="vs-btn vs-btn-secondary"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <div>
+                    <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
+                      SUBSCRIBER SIGN-IN
+                    </div>
+                    <strong style={{ fontSize: '17px' }}>
+                      Open Your Workspace
+                    </strong>
+                  </div>
+
+                  <div
+                    role="group"
+                    aria-label="Console sign-in method"
+                    style={{
+                      display: 'inline-flex',
+                      border: '1px solid var(--vs-border)',
+                      borderRadius: '6px',
+                      padding: '2px',
+                      background: 'var(--vs-surface-subtle)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGateAuthMethod('magic_link');
+                        setGateError(null);
+                      }}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 9px',
+                        borderRadius: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        background:
+                          gateAuthMethod === 'magic_link'
+                            ? 'var(--vs-ink)'
+                            : 'transparent',
+                        color:
+                          gateAuthMethod === 'magic_link'
+                            ? '#FFFFFF'
+                            : 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      1-Click Link
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGateAuthMethod('password');
+                        setGateError(null);
+                      }}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px 9px',
+                        borderRadius: '4px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        background:
+                          gateAuthMethod === 'password'
+                            ? 'var(--vs-ink)'
+                            : 'transparent',
+                        color:
+                          gateAuthMethod === 'password'
+                            ? '#FFFFFF'
+                            : 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Password
+                    </button>
+                  </div>
+                </div>
+
+                {gateSent ? (
+                  <div
+                    style={{
+                      padding: '14px',
+                      background: 'var(--vs-pass-bg)',
+                      border: '1px solid var(--vs-pass-border)',
+                      color: 'var(--vs-pass-fg)',
+                      borderRadius: '6px',
+                      fontSize: '13.5px',
+                    }}
+                  >
+                    <strong>Sign-in link dispatched to {gateEmail}.</strong>{' '}
+                    Click the verification link in your inbox to enter your
+                    private Console.
+                  </div>
+                ) : (
+                  <form onSubmit={handleGateSignIn}>
+                    <label
+                      htmlFor="vs-gate-email"
+                      style={{
+                        display: 'block',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        marginBottom: '6px',
+                      }}
+                    >
+                      Subscriber / Checkout Email
+                    </label>
+                    <input
+                      id="vs-gate-email"
+                      type="email"
+                      required
+                      placeholder="founder@yourcompany.com"
+                      value={gateEmail}
+                      onChange={(e) => setGateEmail(e.target.value)}
+                      className="vs-input"
+                      style={{
+                        marginBottom: '12px',
+                        fontFamily: 'var(--vs-sans)',
+                      }}
+                    />
+
+                    {gateAuthMethod === 'password' ? (
+                      <>
+                        <label
+                          htmlFor="vs-gate-password"
+                          style={{
+                            display: 'block',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            marginBottom: '6px',
+                          }}
+                        >
+                          Password
+                        </label>
+                        <input
+                          id="vs-gate-password"
+                          type="password"
+                          required
+                          placeholder="••••••••••••"
+                          value={gatePassword}
+                          onChange={(e) => setGatePassword(e.target.value)}
+                          className="vs-input"
+                          style={{
+                            marginBottom: '12px',
+                            fontFamily: 'var(--vs-sans)',
+                          }}
+                        />
+                      </>
+                    ) : null}
+
+                    {gateError ? (
+                      <div
+                        style={{
+                          padding: '9px 11px',
+                          marginBottom: '12px',
+                          borderRadius: '5px',
+                          background: 'var(--vs-crit-bg)',
+                          border: '1px solid var(--vs-crit-border)',
+                          color: 'var(--vs-crit-fg)',
+                          fontSize: '12.5px',
+                        }}
+                      >
+                        {gateError}
+                      </div>
+                    ) : null}
+
+                    <button
+                      type="submit"
+                      disabled={gateLoading}
+                      className="vs-btn"
+                      style={{ width: '100%' }}
+                    >
+                      {gateLoading
+                        ? 'Authenticating...'
+                        : gateAuthMethod === 'password'
+                          ? 'Sign In to Private Console →'
+                          : 'Send 1-Click Console Link →'}
+                    </button>
+                  </form>
+                )}
+
+                <div
+                  style={{
+                    marginTop: '16px',
+                    paddingTop: '14px',
+                    borderTop: '1px solid var(--vs-border)',
+                    fontSize: '12.5px',
+                    color: 'var(--vs-ink-muted)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  What is inside your Console: Prompt Discovery, Mention vs.
+                  Citation Rate split, Brand Sentiment &amp; Rival Share of
+                  Voice, 9.5+/10 <code className="vs-mono">JSON-LD</code> +{' '}
+                  <code className="vs-mono">/agents.md</code> +{' '}
+                  <code className="vs-mono">/llms.txt</code> bundles, Dual
+                  Attribution, and Streamable HTTP{' '}
+                  <code className="vs-mono">/mcp</code> keys.
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Plan Activation Cards */}
+          <div className="vs-card" style={{ padding: '26px' }}>
+            <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+              NEW TO VERISOURCE?
+            </div>
+            <h2 style={{ margin: '0 0 6px 0', fontSize: '18px' }}>
+              Activate Your Private Console
+              {gateDomainParam ? (
+                <>
+                  {' '}
+                  for <span className="vs-mono">{gateDomainParam}</span>
+                </>
+              ) : null}
+            </h2>
+            <p
+              style={{
+                margin: '0 0 16px 0',
+                fontSize: '13px',
+                color: 'var(--vs-ink-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
+              Start with a $19 one-time pass for one website (100% credited if
+              you upgrade within 7 days) or choose a recurring workspace plan.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {(
+                [
+                  {
+                    plan: 'tripwire_19',
+                    cycle: 'one_time',
+                    title: '$19 One-Time Audit Pass',
+                    badge: '7-DAY UPGRADE CREDIT',
+                    desc: '1 domain · Full Tab 2 Fix Bundle (JSON-LD, /agents.md, /llms.txt) · 35 buyer prompts.',
+                  },
+                  {
+                    plan: 'starter_49',
+                    cycle: 'monthly',
+                    title: '$49/mo Starter Console',
+                    badge: '1 DOMAIN',
+                    desc: 'Weekly drift alerts · Prompt Discovery · Browser + Edge Bot Crawl Logger.',
+                  },
+                  {
+                    plan: 'pro_99',
+                    cycle: 'monthly',
+                    title: '$99/mo Pro + Paid MCP',
+                    badge: 'MOST POPULAR',
+                    desc: '3 domains · 100 prompts · 1,000 Streamable HTTP /mcp credits for Cursor & Claude.',
+                  },
+                  {
+                    plan: 'agency_249',
+                    cycle: 'monthly',
+                    title: '$249/mo Agency Pipeline',
+                    badge: 'WHITE-LABEL',
+                    desc: '15 client domains · 400 prompts · Branded /audit/[slug] links · 5,000 /mcp credits.',
+                  },
+                ] as const
+              ).map((tier) => (
+                <div
+                  key={tier.plan}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--vs-border)',
+                    background:
+                      tier.plan === 'pro_99'
+                        ? 'var(--vs-surface-warm)'
+                        : '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div style={{ flex: '1 1 220px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '3px',
+                      }}
+                    >
+                      <strong style={{ fontSize: '13.5px' }}>
+                        {tier.title}
+                      </strong>
+                      <StatusBadge
+                        tone={tier.plan === 'pro_99' ? 'pass' : 'neutral'}
+                      >
+                        {tier.badge}
+                      </StatusBadge>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      {tier.desc}
+                    </div>
+                  </div>
+                  <a
+                    href={buildGateCheckoutHref(tier.plan, tier.cycle)}
+                    className={
+                      tier.plan === 'pro_99' || tier.plan === 'tripwire_19'
+                        ? 'vs-btn'
+                        : 'vs-btn vs-btn-secondary'
+                    }
+                    style={{ padding: '7px 12px', fontSize: '12px' }}
+                  >
+                    Activate →
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="vs-container" style={{ paddingTop: '28px' }}>
@@ -1398,12 +2048,11 @@ export function DashboardConsoleClient(props: {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <UxModeSwitch mode={uxMode} onChange={handleChangeUxMode} />
           <StatusBadge tone="pass">
-            PLAN: {data.profile.plan_tier.toUpperCase()}
+            {`PLAN: ${data.profile.plan_tier.toUpperCase()}`}
           </StatusBadge>
           {!isGuided ? (
             <StatusBadge>
-              MCP CREDITS: {data.profile.mcp_calls_used_this_month} /{' '}
-              {data.profile.mcp_calls_limit}
+              {`MCP CREDITS: ${data.profile.mcp_calls_used_this_month} / ${data.profile.mcp_calls_limit}`}
             </StatusBadge>
           ) : null}
           <form action="/api/billing/portal" method="POST">
@@ -1463,8 +2112,12 @@ export function DashboardConsoleClient(props: {
               ChatGPT, Gemini &amp; Perplexity
             </div>
             <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
-              Console is currently previewing benchmark data for{' '}
-              <strong>{activeDomain?.brand_name ?? 'Aurea Coffee Roasters'}</strong>.
+              {activeDomain ? (
+                <>
+                  Your workspace is currently inspecting{' '}
+                  <strong>{activeDomain.brand_name}</strong>.{' '}
+                </>
+              ) : null}
               Run a live 3-engine audit on{' '}
               <span className="vs-mono">{handoffHostname}</span> to inspect its AI
               Share of Voice, claim accuracy, and &gt;=9.5/10 code fixes across all
@@ -1500,7 +2153,7 @@ export function DashboardConsoleClient(props: {
               className="vs-btn vs-btn-secondary"
               style={{ padding: '8px 11px', fontSize: '12px' }}
             >
-              Keep Demo Store
+              Dismiss
             </button>
           </div>
         </div>
@@ -1590,23 +2243,62 @@ export function DashboardConsoleClient(props: {
       {/* Strict 3-Tab Layout */}
       <ThreeTabShell activeTab={activeTab} onSelectTab={setActiveTab} mode={uxMode}>
         {!activeDomain ? (
-          <div className="vs-card" style={{ padding: '28px' }}>
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '18px' }}>
-              Scan your first website to get started
+          <div className="vs-card" style={{ padding: '32px' }}>
+            <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+              PRIVATE WORKSPACE READY · 0 DOMAINS TRACKED
+            </div>
+            <h2 style={{ margin: '0 0 8px 0', fontSize: '21px' }}>
+              Add your website to start your 3-engine AI audit
             </h2>
             <p
               style={{
-                margin: '0 0 16px 0',
-                fontSize: '13.5px',
+                margin: '0 0 18px 0',
+                fontSize: '14px',
                 color: 'var(--vs-ink-secondary)',
-                maxWidth: '620px',
+                maxWidth: '660px',
+                lineHeight: 1.55,
               }}
             >
-              Type your website URL in the top bar and click{' '}
-              <strong>+ Scan Domain</strong>. Verisource checks what AI engines
-              say about your business, tests AI bot access, and prepares your
-              copy-paste fixes.
+              Enter your primary domain below. Verisource probes{' '}
+              <code className="vs-mono">GPTBot</code>,{' '}
+              <code className="vs-mono">OAI-SearchBot</code>,{' '}
+              <code className="vs-mono">PerplexityBot</code>,{' '}
+              <code className="vs-mono">ClaudeBot</code>, and{' '}
+              <code className="vs-mono">Google-Extended</code>, checks ChatGPT,
+              Gemini, and Perplexity buyer prompts, and generates your
+              Critic-verified <code className="vs-mono">JSON-LD</code>,{' '}
+              <code className="vs-mono">/agents.md</code>, and{' '}
+              <code className="vs-mono">/llms.txt</code> Fix Bundle.
             </p>
+            <form
+              onSubmit={handleAddDomain}
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '10px',
+                maxWidth: '580px',
+              }}
+            >
+              <input
+                type="text"
+                required
+                value={newDomainUrl}
+                onChange={(e) => setNewDomainUrl(e.target.value)}
+                placeholder="yourcompany.com"
+                className="vs-input vs-mono"
+                style={{ flex: '1 1 260px', fontSize: '13.5px' }}
+              />
+              <button
+                type="submit"
+                disabled={addingDomain}
+                className="vs-btn"
+                style={{ padding: '10px 18px' }}
+              >
+                {addingDomain
+                  ? 'Scanning Across 3 AI Engines...'
+                  : '+ Scan My Website →'}
+              </button>
+            </form>
           </div>
         ) : null}
 
@@ -1879,12 +2571,12 @@ export function DashboardConsoleClient(props: {
                     item.totalSnapshots === 0
                       ? 'Click Re-Scan to record snapshots'
                       : item.mentionedCount > 0
-                        ? `Best rank #${item.bestRank ?? 1}${
+                        ? `Mention ${item.mentionRatePct}% · Cited URL ${item.citationRatePct}% · Best #${item.bestRank ?? 1}${
                             item.hallucinationCount > 0
-                              ? ` · ${item.hallucinationCount} factual conflict(s)`
-                              : ' · Claims verified'
+                              ? ` · ${item.hallucinationCount} conflict(s)`
+                              : ''
                           }`
-                        : `Omitted${
+                        : `Mention 0% · Cited URL ${item.citationRatePct}%${
                             item.topRivals.length > 0
                               ? ` · Rivals: ${item.topRivals.join(', ')}`
                               : ' · Rivals cited instead'
@@ -1920,7 +2612,7 @@ export function DashboardConsoleClient(props: {
                       <MetricLedgerCell
                         label={item.engineLabel}
                         value={`${item.mentionedCount} / ${item.totalSnapshots}`}
-                        suffix="cited"
+                        suffix="mentioned"
                         tone={cellTone}
                         sublabel={sublabel}
                       />
@@ -1929,6 +2621,263 @@ export function DashboardConsoleClient(props: {
                 })}
               </div>
             </div>
+
+            {/* Brand Sentiment Framing & Head-to-Head Rival Share of Voice */}
+            {brandSentimentAndSov ? (
+              <div
+                className="vs-card"
+                style={{ marginBottom: '22px', overflow: 'hidden' }}
+              >
+                <div
+                  style={{
+                    padding: '10px 16px',
+                    borderBottom: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                      BRAND SENTIMENT FRAMING &amp; RIVAL SHARE OF VOICE
+                    </span>
+                    <span
+                      style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}
+                    >
+                      {isGuided
+                        ? 'Whether AI recommends your business positively vs. naming competitors instead'
+                        : 'Answer framing polarity & head-to-head entity share across tracked prompts'}
+                    </span>
+                  </div>
+                  <StatusBadge
+                    tone={
+                      brandSentimentAndSov.dominantFraming === 'recommended'
+                        ? 'pass'
+                        : brandSentimentAndSov.dominantFraming === 'cautionary' ||
+                            brandSentimentAndSov.dominantFraming === 'invisible'
+                          ? 'critical'
+                          : 'warn'
+                    }
+                  >
+                    DOMINANT FRAMING:{' '}
+                    {brandSentimentAndSov.dominantFraming.toUpperCase()} ·{' '}
+                    {brandSentimentAndSov.sentimentScore}/100
+                  </StatusBadge>
+                </div>
+
+                <div
+                  className="vs-grid-2"
+                  style={{ padding: '16px', gap: '18px', alignItems: 'center' }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                        gap: '10px',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--vs-border)',
+                          background: 'var(--vs-surface-subtle)',
+                        }}
+                      >
+                        <div
+                          className="vs-mono"
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--vs-ink-muted)',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          RECOMMENDED
+                        </div>
+                        <strong
+                          className="vs-mono"
+                          style={{
+                            fontSize: '17px',
+                            color: 'var(--vs-pass-fg)',
+                          }}
+                        >
+                          {brandSentimentAndSov.recommendedPct}%
+                        </strong>
+                        <div
+                          style={{
+                            fontSize: '11.5px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {brandSentimentAndSov.recommendedCount} answer(s)
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--vs-border)',
+                          background: 'var(--vs-surface-subtle)',
+                        }}
+                      >
+                        <div
+                          className="vs-mono"
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--vs-ink-muted)',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          NEUTRAL LISTING
+                        </div>
+                        <strong className="vs-mono" style={{ fontSize: '17px' }}>
+                          {brandSentimentAndSov.neutralPct}%
+                        </strong>
+                        <div
+                          style={{
+                            fontSize: '11.5px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {brandSentimentAndSov.neutralCount} answer(s)
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--vs-border)',
+                          background: 'var(--vs-surface-subtle)',
+                        }}
+                      >
+                        <div
+                          className="vs-mono"
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--vs-ink-muted)',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          CAUTION / DRIFT
+                        </div>
+                        <strong
+                          className="vs-mono"
+                          style={{
+                            fontSize: '17px',
+                            color:
+                              brandSentimentAndSov.cautionaryCount > 0
+                                ? 'var(--vs-crit-fg)'
+                                : 'var(--vs-ink)',
+                          }}
+                        >
+                          {brandSentimentAndSov.cautionaryPct}%
+                        </strong>
+                        <div
+                          style={{
+                            fontSize: '11.5px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {brandSentimentAndSov.cautionaryCount} conflict(s)
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Average citation rank when mentioned:{' '}
+                      <strong className="vs-mono">
+                        {brandSentimentAndSov.averageRank !== null
+                          ? `#${brandSentimentAndSov.averageRank}`
+                          : 'OMITTED'}
+                      </strong>{' '}
+                      · Omitted in{' '}
+                      <strong className="vs-mono">
+                        {brandSentimentAndSov.omittedCount}
+                      </strong>{' '}
+                      of {domainSnapshots.length} tracked engine snapshot(s).
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div
+                      className="vs-mono"
+                      style={{ fontSize: '11px', color: 'var(--vs-ink-muted)' }}
+                    >
+                      HEAD-TO-HEAD ENTITY SHARE OF VOICE (TOP RIVALS)
+                    </div>
+                    {brandSentimentAndSov.headToHeadSov.map((row) => (
+                      <div key={row.entityName}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontSize: '12.5px',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          <span style={{ fontWeight: row.isTargetBrand ? 700 : 500 }}>
+                            {row.entityName}{' '}
+                            {row.isTargetBrand ? (
+                              <span
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '10.5px',
+                                  color: 'var(--vs-pass-fg)',
+                                  marginLeft: '4px',
+                                }}
+                              >
+                                (YOUR BRAND)
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="vs-mono" style={{ fontSize: '12px' }}>
+                            {row.shareOfVoicePct}% ({row.mentions} mentions)
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            height: '6px',
+                            borderRadius: '999px',
+                            background: 'var(--vs-border)',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${Math.max(row.shareOfVoicePct, row.mentions > 0 ? 6 : 0)}%`,
+                              height: '100%',
+                              background: row.isTargetBrand
+                                ? 'var(--vs-pass-fg)'
+                                : 'var(--vs-ink-muted)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {/* Module 1: Hallucination Watchdog + 1-Click Truth Sheet */}
             <div className="vs-grid-split" style={{ marginBottom: '24px' }}>
@@ -2254,7 +3203,7 @@ export function DashboardConsoleClient(props: {
               </div>
             ) : null}
 
-            {/* Module 2: AI Bot WAF Status & 10-Line Attribution Snippet */}
+            {/* Module 2: AI Bot WAF Status, Crawler Readability & Dual Attribution */}
             <div className="vs-card" style={{ padding: '16px', marginBottom: '18px' }}>
               <div
                 style={{
@@ -2268,8 +3217,8 @@ export function DashboardConsoleClient(props: {
               >
                 <strong style={{ fontSize: '13.5px' }}>
                   {isGuided
-                    ? 'Can AI Bots Read Your Site? + 10-Line Sales Tracker'
-                    : 'Module 2 — Simulated Crawler WAF Check & Referral Revenue Pixel'}
+                    ? 'AI Bot Access, Crawler Readability & Dual Attribution'
+                    : 'Module 2 — AI Bot WAF Check, HTML Signal Density & Dual Attribution'}
                 </strong>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {(
@@ -2284,40 +3233,184 @@ export function DashboardConsoleClient(props: {
                         activeDomain.robots_ai_bot_status.PerplexityBot,
                       ],
                       ['ClaudeBot', activeDomain.robots_ai_bot_status.ClaudeBot],
+                      [
+                        'Google-Extended',
+                        activeDomain.robots_ai_bot_status['Google-Extended'],
+                      ],
                     ] as const
                   ).map(([bot, ok]) => (
                     <StatusBadge key={bot} tone={ok ? 'pass' : 'critical'}>
-                      {bot}: {ok ? 'ALLOWED' : '403 BLOCKED'}
+                      {`${bot}: ${ok ? 'ALLOWED' : '403 BLOCKED'}`}
                     </StatusBadge>
                   ))}
+                  <StatusBadge tone={totalBotCrawls > 0 ? 'pass' : 'neutral'}>
+                    {`BOT CRAWLS: ${totalBotCrawls}`}
+                  </StatusBadge>
                 </div>
               </div>
 
-              <CodeArtifactCard
-                title={`10-Line Attribution Pixel (${activeDomain.brand_name})`}
-                plainSummary={
-                  isGuided
-                    ? 'Paste once into your site header to track visits coming from ChatGPT, Perplexity, Gemini, and Claude.'
-                    : undefined
-                }
-                fileHint="Paste before </head> in layout/theme.liquid for AI referral visits"
-                code={pixelSnippet}
-              />
-
-              {shopifyCheckoutPixel ? (
-                <div style={{ marginTop: '14px' }}>
-                  <CodeArtifactCard
-                    title={`Shopify Customer Events Checkout Pixel (${activeDomain.brand_name})`}
-                    plainSummary={
-                      isGuided
-                        ? 'Tracks exact checkout order dollars from AI shoppers inside Shopify Admin -> Settings -> Customer events.'
-                        : undefined
-                    }
-                    fileHint="Shopify Admin -> Settings -> Customer events -> Add custom pixel (tracks checkout_completed USD)"
-                    code={shopifyCheckoutPixel}
-                  />
+              {activeCrawlerReadability ? (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    marginBottom: '14px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    fontSize: '12.5px',
+                  }}
+                >
+                  <div>
+                    <strong className="vs-mono" style={{ fontSize: '11.5px' }}>
+                      RAW HTML CRAWLER READABILITY:
+                    </strong>{' '}
+                    <span style={{ color: 'var(--vs-ink-secondary)' }}>
+                      {activeCrawlerReadability.summary}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <StatusBadge
+                      tone={
+                        activeCrawlerReadability.status === 'ssr_clean'
+                          ? 'pass'
+                          : activeCrawlerReadability.status === 'csr_js_trap'
+                            ? 'critical'
+                            : 'warn'
+                      }
+                    >
+                      {activeCrawlerReadability.status
+                        .replace(/_/g, ' ')
+                        .toUpperCase()}
+                    </StatusBadge>
+                    <StatusBadge>
+                      SIGNAL DENSITY: {activeCrawlerReadability.signalToHtmlPct}%
+                    </StatusBadge>
+                    <StatusBadge>
+                      WORDS: {activeCrawlerReadability.visibleWordCount} · TOKENS: ~
+                      {activeCrawlerReadability.estimatedTokens}
+                    </StatusBadge>
+                  </div>
                 </div>
               ) : null}
+
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  marginBottom: '12px',
+                }}
+              >
+                <span style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
+                  {attributionTab === 'browser_pixel'
+                    ? 'Track human AI-referred visits and checkout conversions from ChatGPT, Perplexity, Gemini, and Claude.'
+                    : 'Log verified server/edge crawls from GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, and Google-Extended.'}
+                </span>
+                <div
+                  role="group"
+                  aria-label="Attribution snippet mode"
+                  style={{
+                    display: 'inline-flex',
+                    border: '1px solid var(--vs-border)',
+                    borderRadius: '6px',
+                    padding: '2px',
+                    background: 'var(--vs-surface-subtle)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setAttributionTab('browser_pixel')}
+                    style={{
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      background:
+                        attributionTab === 'browser_pixel'
+                          ? 'var(--vs-ink)'
+                          : 'transparent',
+                      color:
+                        attributionTab === 'browser_pixel'
+                          ? '#FFFFFF'
+                          : 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Browser Revenue Pixel (10 Lines)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAttributionTab('edge_crawler')}
+                    style={{
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px 10px',
+                      borderRadius: '4px',
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      background:
+                        attributionTab === 'edge_crawler'
+                          ? 'var(--vs-ink)'
+                          : 'transparent',
+                      color:
+                        attributionTab === 'edge_crawler'
+                          ? '#FFFFFF'
+                          : 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Edge AI Bot Crawl Logger
+                  </button>
+                </div>
+              </div>
+
+              {attributionTab === 'browser_pixel' ? (
+                <>
+                  <CodeArtifactCard
+                    title={`10-Line Attribution Pixel (${activeDomain.brand_name})`}
+                    plainSummary={
+                      isGuided
+                        ? 'Paste once into your site header to track visits coming from ChatGPT, Perplexity, Gemini, and Claude.'
+                        : undefined
+                    }
+                    fileHint="Paste before </head> in layout/theme.liquid for AI referral visits"
+                    code={pixelSnippet}
+                  />
+
+                  {shopifyCheckoutPixel ? (
+                    <div style={{ marginTop: '14px' }}>
+                      <CodeArtifactCard
+                        title={`Shopify Customer Events Checkout Pixel (${activeDomain.brand_name})`}
+                        plainSummary={
+                          isGuided
+                            ? 'Tracks exact checkout order dollars from AI shoppers inside Shopify Admin -> Settings -> Customer events.'
+                            : undefined
+                        }
+                        fileHint="Shopify Admin -> Settings -> Customer events -> Add custom pixel (tracks checkout_completed USD)"
+                        code={shopifyCheckoutPixel}
+                      />
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <CodeArtifactCard
+                  title={`Edge / Next.js Middleware AI Bot Crawl Logger (${activeDomain.brand_name})`}
+                  plainSummary={
+                    isGuided
+                      ? 'Optional server middleware snippet that logs real GPTBot, PerplexityBot, ClaudeBot, and Google-Extended hits without slowing page loads.'
+                      : undefined
+                  }
+                  fileHint="Paste into middleware.ts or Cloudflare Worker fetch() — authenticated via HMAC-SHA256 checkout_key"
+                  code={edgeCrawlerSnippet}
+                />
+              )}
             </div>
           </div>
         ) : null}
@@ -2405,6 +3498,117 @@ export function DashboardConsoleClient(props: {
                   <code className="vs-mono">&lt;/head&gt;</code>, and map{' '}
                   <code className="vs-mono">/llms.txt</code> via Shopify URL
                   Redirects or Cloudflare Worker edge route.
+                </div>
+              </div>
+            ) : null}
+
+            {/* AI Shopping & Offer Attribute Readiness Matrix */}
+            {commerceReadiness ? (
+              <div
+                className="vs-card"
+                style={{ overflow: 'hidden', marginBottom: '18px' }}
+              >
+                <div
+                  style={{
+                    padding: '10px 16px',
+                    borderBottom: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                  }}
+                >
+                  <div>
+                    <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                      AI SHOPPING &amp; OFFER ATTRIBUTE READINESS
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-muted)',
+                        marginLeft: '8px',
+                      }}
+                    >
+                      {isGuided
+                        ? '5 structured fields ChatGPT Shopping & Perplexity check before recommending products or services'
+                        : 'Structured offer, policy & entity completeness across live pages and generated Fix Bundle'}
+                    </span>
+                  </div>
+                  <StatusBadge
+                    tone={
+                      commerceReadiness.readinessPct >= 80 ? 'pass' : 'warn'
+                    }
+                  >
+                    {commerceReadiness.passedCount} /{' '}
+                    {commerceReadiness.totalCount} LIVE (
+                    {commerceReadiness.readinessPct}%)
+                  </StatusBadge>
+                </div>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns:
+                      'repeat(auto-fit, minmax(190px, 1fr))',
+                    gap: '1px',
+                    background: 'var(--vs-border)',
+                  }}
+                >
+                  {commerceReadiness.attributes.map((attr) => (
+                    <div
+                      key={attr.id}
+                      style={{
+                        padding: '12px 14px',
+                        background: '#FFFFFF',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '6px',
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '6px',
+                            marginBottom: '5px',
+                          }}
+                        >
+                          <strong style={{ fontSize: '12.5px' }}>
+                            {attr.label}
+                          </strong>
+                          <StatusBadge
+                            tone={
+                              attr.liveOnSite
+                                ? 'pass'
+                                : attr.readyInBundle
+                                  ? 'neutral'
+                                  : 'warn'
+                            }
+                          >
+                            {attr.liveOnSite
+                              ? 'LIVE'
+                              : attr.readyInBundle
+                                ? 'IN BUNDLE'
+                                : 'PENDING'}
+                          </StatusBadge>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '11.5px',
+                            color: 'var(--vs-ink-secondary)',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {attr.detail}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : null}
@@ -2739,25 +3943,34 @@ export function DashboardConsoleClient(props: {
                     return (
                       <tr key={src.sourceHost}>
                         <td>
-                          <strong>{src.sourceHost}</strong>
-                          {src.urls.length > 1 ? (
-                            <span
-                              className="vs-mono"
-                              style={{
-                                marginLeft: '6px',
-                                fontSize: '11px',
-                                color: 'var(--vs-ink-muted)',
-                              }}
-                            >
-                              (+{src.urls.length - 1} URL
-                              {src.urls.length - 1 === 1 ? '' : 's'})
-                            </span>
-                          ) : null}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <strong>{src.sourceHost}</strong>
+                            <StatusBadge>{src.sourceCategoryLabel}</StatusBadge>
+                            {src.urls.length > 1 ? (
+                              <span
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '11px',
+                                  color: 'var(--vs-ink-muted)',
+                                }}
+                              >
+                                (+{src.urls.length - 1} URL
+                                {src.urls.length - 1 === 1 ? '' : 's'})
+                              </span>
+                            ) : null}
+                          </div>
                           <div
                             className="vs-mono"
                             style={{
                               fontSize: '11.5px',
-                              marginTop: '2px',
+                              marginTop: '3px',
                               wordBreak: 'break-all',
                             }}
                           >
@@ -2769,6 +3982,15 @@ export function DashboardConsoleClient(props: {
                             >
                               {primaryUrl}
                             </a>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '11.5px',
+                              marginTop: '3px',
+                              color: 'var(--vs-ink-muted)',
+                            }}
+                          >
+                            {src.recommendedAction}
                           </div>
                         </td>
                         <td style={{ whiteSpace: 'nowrap' }}>
@@ -2913,8 +4135,8 @@ export function DashboardConsoleClient(props: {
               >
                 <strong style={{ fontSize: '13.5px' }}>
                   {isGuided
-                    ? 'Questions Buyers Ask AI & Websites Mentioning Competitors'
-                    : 'Module 3 — Query Fanout Decompiler & Third-Party Citation Gaps'}
+                    ? 'Questions Buyers Ask AI & Auto-Suggested Prompts'
+                    : 'Module 3 — Prompt Discovery, Funnel Intent & Query Fanout Decompiler'}
                 </strong>
                 <form
                   onSubmit={handleAddPrompt}
@@ -2924,7 +4146,7 @@ export function DashboardConsoleClient(props: {
                     type="text"
                     value={newPromptText}
                     onChange={(e) => setNewPromptText(e.target.value)}
-                    placeholder="Add buyer question (e.g. best single origin coffee)"
+                    placeholder="Add buyer question (e.g. best B2B software or storefront for...)"
                     className="vs-input"
                     style={{
                       width: '300px',
@@ -2944,10 +4166,123 @@ export function DashboardConsoleClient(props: {
                   </button>
                 </form>
               </div>
+
+              {suggestedBuyerPrompts.length > 0 ? (
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    borderBottom: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-warm)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                      AUTO-SUGGESTED BUYER PROMPTS (1-CLICK SCAN ACROSS 3 ENGINES)
+                    </span>
+                    <span style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}>
+                      Synthesized from your Brand Truth Sheet &amp; named category rivals
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns:
+                        'repeat(auto-fit, minmax(260px, 1fr))',
+                      gap: '8px',
+                    }}
+                  >
+                    {suggestedBuyerPrompts.slice(0, 4).map((sug) => {
+                      const isScanningThis =
+                        scanningSuggestedPrompt === sug.promptText;
+                      return (
+                        <div
+                          key={sug.promptText}
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--vs-border)',
+                            background: '#FFFFFF',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            gap: '8px',
+                          }}
+                        >
+                          <div>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                flexWrap: 'wrap',
+                                marginBottom: '5px',
+                              }}
+                            >
+                              <StatusBadge
+                                tone={sug.isBranded ? 'neutral' : 'pass'}
+                              >
+                                {sug.shortBadge}
+                              </StatusBadge>
+                              <StatusBadge>
+                                {sug.isBranded ? 'BRANDED' : 'UNBRANDED'}
+                              </StatusBadge>
+                            </div>
+                            <div
+                              style={{
+                                fontWeight: 600,
+                                fontSize: '12.5px',
+                                marginBottom: '3px',
+                              }}
+                            >
+                              &ldquo;{sug.promptText}&rdquo;
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '11.5px',
+                                color: 'var(--vs-ink-secondary)',
+                              }}
+                            >
+                              {sug.rationale}
+                            </div>
+                          </div>
+                          <div>
+                            <button
+                              type="button"
+                              disabled={scanningSuggestedPrompt !== null}
+                              onClick={() =>
+                                void handleTrackSuggestedPrompt(
+                                  sug.promptText,
+                                  sug.intentCategory
+                                )
+                              }
+                              className="vs-btn vs-btn-secondary"
+                              style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                            >
+                              {isScanningThis
+                                ? 'Scanning 3 Engines...'
+                                : '+ Track & Scan →'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
               <table className="vs-table">
                 <thead>
                   <tr>
-                    <th>{isGuided ? 'Question Buyers Ask' : 'Buyer Prompt'}</th>
+                    <th>{isGuided ? 'Question Buyers Ask' : 'Buyer Prompt & Funnel Stage'}</th>
                     <th>
                       {isGuided
                         ? 'What AI Searches Behind the Scenes'
@@ -2968,9 +4303,34 @@ export function DashboardConsoleClient(props: {
                     const citedUrls = Array.from(
                       new Set(relatedSnaps.flatMap((s) => s.cited_source_urls))
                     );
+                    const intentMeta = getPromptIntentMeta(
+                      p.intent_category,
+                      p.prompt_text,
+                      activeDomain.brand_name
+                    );
                     return (
                       <tr key={p.id}>
-                        <td style={{ fontWeight: 600 }}>{p.prompt_text}</td>
+                        <td>
+                          <div style={{ fontWeight: 600, marginBottom: '5px' }}>
+                            {p.prompt_text}
+                          </div>
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              gap: '5px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <StatusBadge
+                              tone={intentMeta.isBranded ? 'neutral' : 'pass'}
+                            >
+                              {intentMeta.shortBadge}
+                            </StatusBadge>
+                            <StatusBadge>
+                              {intentMeta.isBranded ? 'BRANDED' : 'UNBRANDED'}
+                            </StatusBadge>
+                          </div>
+                        </td>
                         <td>
                           {p.decompiled_fanout_queries.map((q) => (
                             <div
@@ -3125,7 +4485,7 @@ export function DashboardConsoleClient(props: {
                     <textarea
                       required
                       rows={4}
-                      placeholder={'aurearoasters.com\nmosaicroasters.com\nlinear.app'}
+                      placeholder={'vanguardfreight.io\nlinear.app\nstripe.com'}
                       value={batchPitchDomains}
                       onChange={(e) => setBatchPitchDomains(e.target.value)}
                       className="vs-input vs-mono"
@@ -3353,9 +4713,8 @@ export function DashboardConsoleClient(props: {
                               }}
                             >
                               {accessToken ||
-                              (r.share_slug !== 'mosaic-springfield-audit' &&
-                                r.share_slug !== 'aurearoasters-com-vf9w' &&
-                                r.expires_at !== null) ? (
+                              data.mode === 'mock' ||
+                              r.expires_at !== null ? (
                                 <button
                                   type="button"
                                   disabled={refreshingPitchSlug !== null}
@@ -3427,11 +4786,8 @@ export function DashboardConsoleClient(props: {
                     }}
                   >
                     {accessToken ||
-                    (selectedPitchReport.share_slug !==
-                      'mosaic-springfield-audit' &&
-                      selectedPitchReport.share_slug !==
-                        'aurearoasters-com-vf9w' &&
-                      selectedPitchReport.expires_at !== null) ? (
+                    data.mode === 'mock' ||
+                    selectedPitchReport.expires_at !== null ? (
                       <button
                         type="button"
                         disabled={refreshingPitchSlug !== null}

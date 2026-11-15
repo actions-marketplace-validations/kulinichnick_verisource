@@ -1,16 +1,41 @@
 import { NextResponse } from 'next/server';
 import {
   getLocalMockStore,
-  getServiceSupabaseClient,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export async function GET(request: Request): Promise<NextResponse> {
-  const auth = await resolveAuthenticatedProfile(request);
-  if (!auth) {
+  const access = await resolveConsoleRequestAccess(request);
+
+  if (access.status === 'unauthenticated') {
+    return NextResponse.json(
+      {
+        error: 'AUTHENTICATION_REQUIRED',
+        mode: 'unauthenticated_locked',
+        message: 'Sign in to access your private Verisource Console.',
+      },
+      { status: 401 }
+    );
+  }
+
+  if (access.status === 'plan_activation_required') {
+    return NextResponse.json({
+      mode: 'plan_activation_required',
+      profile: access.profile,
+      domains: [],
+      prompts: [],
+      snapshots: [],
+      fixes: [],
+      attributionEvents: [],
+      pitchReports: [],
+      mcpApiKeys: [],
+    });
+  }
+
+  if (access.status === 'mock_owner') {
     const store = getLocalMockStore();
     return NextResponse.json({
-      mode: getServiceSupabaseClient() ? 'demo_sandbox' : 'mock',
+      mode: 'mock',
       profile: store.profile,
       domains: store.domains,
       prompts: store.prompts,
@@ -22,7 +47,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     });
   }
 
-  const { supabase, profile } = auth;
+  const { supabase, profile } = access;
   const { data: domains } = await supabase
     .from('domains')
     .select('*')

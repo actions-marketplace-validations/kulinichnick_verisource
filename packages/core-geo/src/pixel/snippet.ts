@@ -8,6 +8,29 @@ export const SUPPORTED_AI_REFERRAL_ENGINES = [
   'claude.ai',
 ] as const;
 
+export const SUPPORTED_AI_CRAWLER_BOTS = [
+  'GPTBot',
+  'OAI-SearchBot',
+  'PerplexityBot',
+  'ClaudeBot',
+  'Google-Extended',
+] as const;
+
+export function normalizeAiBotCrawlerSource(
+  raw: string | null | undefined
+): string | null {
+  if (!raw) return null;
+  const lower = raw.toLowerCase().trim();
+  if (lower.includes('oai-searchbot')) return 'OAI-SearchBot';
+  if (lower.includes('gptbot')) return 'GPTBot';
+  if (lower.includes('perplexitybot') || lower.includes('perplexity-user'))
+    return 'PerplexityBot';
+  if (lower.includes('claudebot') || lower.includes('claude-web') || lower.includes('anthropic-ai'))
+    return 'ClaudeBot';
+  if (lower.includes('google-extended')) return 'Google-Extended';
+  return null;
+}
+
 export function normalizeAiReferralSource(
   raw: string | null | undefined
 ): string | null {
@@ -89,4 +112,32 @@ analytics.subscribe('checkout_completed', async (event) => {
     }),
   }).catch(() => {});
 });`;
+}
+
+export function buildEdgeBotCrawlerSnippet(params: {
+  trackingPixelToken: string;
+  checkoutKey: string;
+  ingestionUrl: string;
+}): string {
+  return `// Next.js middleware.ts or Cloudflare Worker — Logs real incoming AI bot crawls (invisible to GA4)
+const VS_BOT_REGEX = /(OAI-SearchBot|GPTBot|PerplexityBot|ClaudeBot|Google-Extended)/i;
+
+export function logVerisourceAiCrawler(request: Request, waitUntil?: (p: Promise<unknown>) => void): void {
+  const ua = request.headers.get('user-agent') || '';
+  const match = ua.match(VS_BOT_REGEX);
+  if (!match) return;
+  const url = new URL(request.url);
+  const ping = fetch('${params.ingestionUrl}', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token: '${params.trackingPixelToken}',
+      checkout_key: '${params.checkoutKey}',
+      event_type: 'ai_bot_crawl',
+      source_engine: match[1],
+      landing_path: url.pathname || '/',
+    }),
+  }).catch(() => {});
+  if (waitUntil) waitUntil(ping);
+}`;
 }

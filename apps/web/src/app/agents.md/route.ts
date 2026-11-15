@@ -42,9 +42,9 @@ Paid tools accept either a SHA-256 \`vs_live_\` Bearer API key minted at https:/
 
 ## 3. Public HTTP Endpoints for Web & Extension Clients
 
-- \`POST https://verisource.dev/api/grader\` — JSON body \`{ "domain": "aurearoasters.com" }\`. CORS-enabled (\`Access-Control-Allow-Origin: *\`) for browser extensions and agent pre-checks.
+- \`POST https://verisource.dev/api/grader\` — JSON body \`{ "domain": "yourcompany.com" }\`. CORS-enabled (\`Access-Control-Allow-Origin: *\`) for browser extensions and agent pre-checks.
 - \`GET https://mcp.verisource.dev/health\` — Health & transport status check.
-- \`GET https://verisource.dev/audit/{share_slug}\` — Scoped read-only white-label agency pitch brief (e.g. https://verisource.dev/audit/mosaic-springfield-audit).
+- \`GET https://verisource.dev/audit/{share_slug}\` — Scoped read-only white-label agency pitch brief.
 
 ## 4. Verified Commercial Terms & Exclusions
 

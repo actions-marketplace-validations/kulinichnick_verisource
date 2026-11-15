@@ -40,7 +40,7 @@ const CLIENT_GUIDES: Record<
     plainWhereToPaste:
       'Open Claude Desktop → Settings → Developer → Edit Config, paste the block below, save, and restart Claude once.',
     firstPromptExample:
-      'Scan aurearoasters.com with Verisource and tell me if GPTBot or /agents.md has any issues.',
+      'Scan yourcompany.com with Verisource and tell me if GPTBot or /agents.md has any issues.',
   },
   cursor: {
     label: 'Cursor IDE',
@@ -56,7 +56,7 @@ const CLIENT_GUIDES: Record<
     plainWhereToPaste:
       'Add the verisource server entry to your Antigravity MCP configuration so agents can audit citations and commit >= 9.5/10 fixes directly.',
     firstPromptExample:
-      'Call Verisource check_brand_hallucinations on mosaicroasters.com and list any wrong pricing claims.',
+      'Call Verisource check_brand_hallucinations on our production domain and list any wrong pricing claims.',
   },
   windsurf: {
     label: 'Windsurf',
@@ -88,7 +88,7 @@ function buildConfigCode(client: ClientAppId, authMode: AuthTierMode): string {
     "method": "tools/call",
     "params": {
       "name": "scan_domain_ai_readiness",
-      "arguments": { "domain": "aurearoasters.com" }
+      "arguments": { "domain": "yourcompany.com" }
     }
   }'`;
     }
@@ -103,7 +103,7 @@ function buildConfigCode(client: ClientAppId, authMode: AuthTierMode): string {
     "method": "tools/call",
     "params": {
       "name": "generate_geo_fix_bundle",
-      "arguments": { "domain": "aurearoasters.com" }
+      "arguments": { "domain": "yourcompany.com" }
     }
   }'`;
   }
@@ -138,17 +138,11 @@ function buildConfigCode(client: ClientAppId, authMode: AuthTierMode): string {
   );
 }
 
-const SAMPLE_DOMAINS = [
-  'aurearoasters.com',
-  'mosaicroasters.com',
-  'verisource.dev',
-];
-
 export function McpQuickstartClient(): React.ReactElement {
   const [selectedClient, setSelectedClient] = useState<ClientAppId>('claude');
   const [authMode, setAuthMode] = useState<AuthTierMode>('free_no_key');
 
-  const [domainInput, setDomainInput] = useState('aurearoasters.com');
+  const [domainInput, setDomainInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [previewResult, setPreviewResult] =
@@ -371,7 +365,7 @@ export function McpQuickstartClient(): React.ReactElement {
             type="text"
             value={domainInput}
             onChange={(e) => setDomainInput(e.target.value)}
-            placeholder="Enter any domain (e.g. aurearoasters.com)"
+            placeholder="Enter your website domain (e.g. yourcompany.com)"
             aria-label="Domain to test with scan_domain_ai_readiness"
             className="vs-input"
             style={{ flex: '1 1 260px', maxWidth: '420px' }}
@@ -384,36 +378,6 @@ export function McpQuickstartClient(): React.ReactElement {
             {loading ? 'Running /mcp Tool...' : 'Run Free /mcp Scan →'}
           </button>
         </form>
-
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: previewResult || errorMsg ? '18px' : '0',
-          }}
-        >
-          <span
-            className="vs-mono"
-            style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
-          >
-            1-Click Samples:
-          </span>
-          {SAMPLE_DOMAINS.map((sample) => (
-            <button
-              key={sample}
-              type="button"
-              onClick={() => {
-                void runLiveMcpScan(sample);
-              }}
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '4px 10px', fontSize: '12px' }}
-            >
-              {sample}
-            </button>
-          ))}
-        </div>
 
         {errorMsg ? (
           <div

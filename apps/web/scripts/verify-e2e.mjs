@@ -9,6 +9,13 @@ const webDir = path.resolve(__dirname, '..');
 const PORT = 3488;
 const BASE = `http://127.0.0.1:${PORT}`;
 const E2E_WEBHOOK_SECRET = 'whsec_verisource_e2e_hmac_secret_95';
+const OWNER_HEADERS = {
+  Authorization: 'Bearer vs_mock_owner_session',
+};
+const OWNER_JSON_HEADERS = {
+  'Content-Type': 'application/json',
+  Authorization: 'Bearer vs_mock_owner_session',
+};
 
 const BANNED_LEXICON =
   /\b(delve\w*|testament\w*|tapestr\w*|elevat\w*|game[- ]chang\w*|unleash\w*|unlock\w*|seamless\w*|comprehensive\w*|moreover|furthermore|beacon\w*|symphon\w*|turbocharg\w*|lorem ipsum)\b/gi;
@@ -53,10 +60,19 @@ async function run() {
     await waitForServer(`${BASE}/`);
     console.log('✔ [1/12] Production Next.js server booted cleanly on port', PORT);
 
-    // 1. Landing Page & Zero AI-Slop HTML check
+    // 1. Landing Page, Coffee-Store Scrub & Zero AI-Slop HTML check
     const homeHtml = await (await fetch(`${BASE}/`)).text();
-    assert.ok(homeHtml.includes('Aurea Coffee Roasters'));
-    assert.ok(homeHtml.includes('Mosaic Coffee Roasters'));
+    assert.ok(
+      !homeHtml.includes('Aurea Coffee Roasters') &&
+        !homeHtml.includes('Mosaic Coffee Roasters') &&
+        !homeHtml.includes('aurearoasters.com') &&
+        !homeHtml.includes('mosaicroasters.com'),
+      'Expected zero personal coffee-store names or domains on /'
+    );
+    assert.ok(
+      homeHtml.includes('Control how AI search recommends your brand'),
+      'Expected Profound-caliber AI search hero positioning on /'
+    );
     const strippedVisible = homeHtml
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -67,7 +83,7 @@ async function run() {
       0,
       `Found banned lexicon on /: ${bannedMatches.join(', ')}`
     );
-    console.log('✔ [2/12] Landing page rendered with 0 Quality Gate lexicon violations');
+    console.log('✔ [2/12] Landing page rendered with 0 coffee-store leaks & 0 Quality Gate lexicon violations');
 
     // 2. Public Instant Grader on Aurea & Mosaic + CORS preflight + SSRF block
     const graderCorsRes = await fetch(`${BASE}/api/grader`, {
@@ -154,11 +170,39 @@ async function run() {
     assert.equal(validPixel.status, 201);
     console.log('✔ [4/12] /api/pixel blocked headerless & cross-origin spoofs (403) and recorded valid conversion (201)');
 
-    // 4. 3-Tab Dashboard & White-Label Prospect Pitch View (+ Zero AI-Slop HTML check)
-    const dashRes = await fetch(`${BASE}/dashboard`);
+    // 4. Unauthenticated Gate + Authenticated 3-Tab Dashboard & White-Label Prospect Pitch View
+    const unauthDashRes = await fetch(`${BASE}/dashboard`);
+    assert.equal(unauthDashRes.status, 200);
+    const unauthDashHtml = await unauthDashRes.text();
+    assert.ok(
+      unauthDashHtml.includes('PRIVATE SUBSCRIBER CONSOLE') &&
+        !unauthDashHtml.includes('Aurea Coffee Roasters') &&
+        !unauthDashHtml.includes('PLAN: AGENCY_249'),
+      'Expected unauthenticated /dashboard to render locked Subscriber Console Gate with zero coffee stores'
+    );
+    const strippedUnauthDash = unauthDashHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedUnauthDash.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on unauthenticated /dashboard gate'
+    );
+
+    const unauthStateRes = await fetch(`${BASE}/api/dashboard/state`);
+    assert.equal(
+      unauthStateRes.status,
+      401,
+      'Expected unauthenticated GET /api/dashboard/state to return HTTP 401'
+    );
+
+    const dashRes = await fetch(`${BASE}/dashboard`, {
+      headers: OWNER_HEADERS,
+    });
     assert.equal(dashRes.status, 200);
     const dashHtml = await dashRes.text();
-    assert.ok(dashHtml.includes('Aurea Coffee Roasters'));
+    assert.ok(dashHtml.includes('PLAN: AGENCY_249'));
     const strippedDash = dashHtml
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -174,12 +218,12 @@ async function run() {
     const pitchHtml = await pitchViewRes.text();
     assert.ok(pitchHtml.includes('Mosaic Coffee Roasters'));
     assert.ok(pitchHtml.includes('Springfield, MO'));
-    console.log('✔ [5/12] /dashboard and /audit/mosaic-springfield-audit rendered cleanly (0 banned words)');
+    console.log('✔ [5/12] Locked unauthenticated /dashboard gate (401 API), authenticated Console & /audit/[slug] verified (0 banned words)');
 
     // 5. Agency Pitch XSS defense (CTA + Logo) + live White-Label slug creation with Agency Logo
     const xssPitchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         prospect_domain: 'aurearoasters.com',
         agency_brand_name: 'Apex GEO Partners',
@@ -190,7 +234,7 @@ async function run() {
 
     const xssLogoRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         prospect_domain: 'aurearoasters.com',
         agency_brand_name: 'Apex GEO Partners',
@@ -201,7 +245,7 @@ async function run() {
 
     const cleanPitchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         prospect_domain: 'aurearoasters.com',
         agency_brand_name: 'Apex GEO Partners',
@@ -221,7 +265,7 @@ async function run() {
     // 6. Paid MCP SHA-256 Key Minting
     const keyRes = await fetch(`${BASE}/api/dashboard/mcp-keys`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({ label: 'E2E Test Agent Key' }),
     });
     assert.equal(keyRes.status, 200);
@@ -232,7 +276,7 @@ async function run() {
     // 7. Brand Truth Sheet Verification & 9.5+/10 Fix Regeneration
     const truthRes = await fetch(`${BASE}/api/dashboard/truth-sheet`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
         brand_truth_sheet: {
@@ -315,7 +359,7 @@ async function run() {
     // 10. Custom Buyer Prompt Tracking + Self-Serve Live Domain Re-Scan
     const promptRes = await fetch(`${BASE}/api/dashboard/prompts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
         prompt_text: 'best single origin specialty coffee gift box online',
@@ -328,7 +372,7 @@ async function run() {
 
     const rescanRes = await fetch(`${BASE}/api/dashboard/domains`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
       }),
@@ -343,7 +387,7 @@ async function run() {
     // 11. 1-Click MCP Key Revocation + Self-Serve Domain Addition & Deletion
     const revokeRes = await fetch(
       `${BASE}/api/dashboard/mcp-keys?id=${encodeURIComponent(keyJson.keyRow.id)}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: OWNER_HEADERS }
     );
     assert.equal(revokeRes.status, 200);
     const revokeJson = await revokeRes.json();
@@ -352,7 +396,7 @@ async function run() {
 
     const addDomainRes = await fetch(`${BASE}/api/dashboard/domains`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({ domain_url: 'stripe.com' }),
     });
     assert.equal(addDomainRes.status, 200);
@@ -361,7 +405,7 @@ async function run() {
 
     const deleteDomainRes = await fetch(
       `${BASE}/api/dashboard/domains?id=${encodeURIComponent(addDomainJson.domain.id)}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: OWNER_HEADERS }
     );
     assert.equal(deleteDomainRes.status, 200);
     const deleteDomainJson = await deleteDomainRes.json();
@@ -369,7 +413,7 @@ async function run() {
 
     const deleteAgainRes = await fetch(
       `${BASE}/api/dashboard/domains?id=${encodeURIComponent(addDomainJson.domain.id)}`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: OWNER_HEADERS }
     );
     assert.equal(deleteAgainRes.status, 404);
     console.log('✔ [12/13] 1-click MCP key revocation (DELETE) & self-serve domain lifecycle (POST + DELETE + 404 verify) passed');
@@ -402,7 +446,7 @@ async function run() {
     // 13. Hallucination Drift Alert API (/api/dashboard/alerts): invalid email rejection + >=9.5/10 Critic preview
     const badEmailAlertRes = await fetch(`${BASE}/api/dashboard/alerts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
         recipient_email: 'not-an-email',
@@ -412,7 +456,7 @@ async function run() {
 
     const driftAlertRes = await fetch(`${BASE}/api/dashboard/alerts`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
       }),
@@ -485,19 +529,20 @@ async function run() {
     assert.equal(validShopifySandboxPixelRes.status, 201);
     console.log('✔ [17/18] Shopify Customer Events sandboxed pixel blocked unauthenticated Origin:null (403) & recorded verified checkout_key (201)');
 
-    // 16. Before -> After Patient Zero Case Study Ledger on Landing Page
+    // 16. Profound-Caliber Platform Modules & Dual Attribution Showcase on Landing Page
     const homeAfterRes = await fetch(`${BASE}/`);
     const homeAfterHtml = await homeAfterRes.text();
-    assert.ok(homeAfterHtml.includes('92 / 100'), 'Expected Aurea 92 / 100 post-remediation score');
-    assert.ok(homeAfterHtml.includes('84 / 100'), 'Expected Mosaic 84 / 100 post-remediation score');
-    assert.ok(homeAfterHtml.includes('/audit/aurearoasters-com-vf9w'));
-    assert.ok(homeAfterHtml.includes('/audit/mosaic-springfield-audit'));
+    assert.ok(
+      homeAfterHtml.includes('READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION') &&
+        homeAfterHtml.includes('FREE AI SEARCH &amp; AGENT READINESS AUDIT'),
+      'Expected Read-Only vs. Read-Write Execution comparison and Free Audit box on /'
+    );
     const homeAfterVisible = homeAfterHtml
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
       .replace(/<[^>]+>/g, ' ');
     assert.equal((homeAfterVisible.match(BANNED_LEXICON) ?? []).length, 0);
-    console.log('✔ [18/19] Before -> After Patient Zero case study ledger verified on / (0 banned words)');
+    console.log('✔ [18/19] Profound-caliber platform showcase & Read-Write comparison verified on / (0 banned words)');
 
     // 17. M21 Warm Architectural Paper Design System, Zero-Lag SVG Schematic, Responsive CSS & Guided/Pro UX Switch
     assert.ok(
@@ -506,7 +551,7 @@ async function run() {
     );
     assert.ok(
       homeAfterHtml.includes('--vs-canvas: #FAF9F6') &&
-        homeAfterHtml.includes('vs-ledger-strip-4'),
+        dashHtml.includes('vs-ledger-strip-4'),
       'Expected Warm Architectural Paper CSS tokens and responsive ledger grid classes'
     );
     assert.ok(
@@ -544,8 +589,12 @@ async function run() {
 
     // 18. M22 Automated Agency Batch Prospecting Pipeline (/api/dashboard/pitch batch + SSRF guard + live /audit/[slug] verify)
     const [tab2Html, tab3Html] = await Promise.all([
-      fetch(`${BASE}/dashboard?tab=tab2_fixes`).then((r) => r.text()),
-      fetch(`${BASE}/dashboard?tab=tab3_offsite`).then((r) => r.text()),
+      fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+        headers: OWNER_HEADERS,
+      }).then((r) => r.text()),
+      fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+        headers: OWNER_HEADERS,
+      }).then((r) => r.text()),
     ]);
     assert.ok(
       tab3Html.includes('Batch List') &&
@@ -571,7 +620,7 @@ async function run() {
 
     const ssrfBatchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         prospect_domains: [
           'aurearoasters.com',
@@ -588,9 +637,9 @@ async function run() {
 
     const batchPitchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
-        prospect_domains: 'aurearoasters.com\nmosaicroasters.com',
+        prospect_domains: 'stripe.com\nlinear.app',
         agency_brand_name: 'Northstar Search Studio',
         agency_primary_color: '#0A0E17',
         agency_cta_url: 'https://cal.com/northstar/geo-brief',
@@ -625,7 +674,7 @@ async function run() {
     }
     console.log('✔ [20/21] M22 Batch agency pitch pipeline verified (2 slugs minted, SSRF batch rejected, 0 banned words)');
 
-    // 19. M23 /sample-audit Showcase, Sitemap Inclusion & Direct Outbound $19 Tripwire CTA
+    // 19. M23 /sample-audit Showcase (Zero Personal Coffee Stores), Sitemap Inclusion & Direct Outbound $19 Tripwire CTA
     const [sampleAuditRes, sitemapCheckRes] = await Promise.all([
       fetch(`${BASE}/sample-audit`),
       fetch(`${BASE}/sitemap.xml`),
@@ -634,8 +683,11 @@ async function run() {
     const sampleAuditHtml = await sampleAuditRes.text();
     const sitemapXml = await sitemapCheckRes.text();
     assert.ok(sitemapXml.includes('https://verisource.dev/sample-audit'));
-    assert.ok(sampleAuditHtml.includes('Aurea Coffee Roasters'));
-    assert.ok(sampleAuditHtml.includes('Mosaic Coffee Roasters'));
+    assert.ok(
+      !sampleAuditHtml.includes('Aurea Coffee Roasters') &&
+        !sampleAuditHtml.includes('Mosaic Coffee Roasters'),
+      'Expected zero personal coffee stores on /sample-audit'
+    );
     assert.ok(
       pitchHtml.includes('Self-Serve Fix Pack ($19)'),
       'Expected $19 Tripwire CTA on Verisource-authored /audit/[slug]'
@@ -756,7 +808,9 @@ async function run() {
     assert.ok(carryRedirect.includes('domain=onyxcoffeelab.com'));
     assert.ok(carryRedirect.includes('tab=tab2_fixes'));
 
-    const postBuyStateRes = await fetch(`${BASE}/api/dashboard/state`);
+    const postBuyStateRes = await fetch(`${BASE}/api/dashboard/state`, {
+      headers: OWNER_HEADERS,
+    });
     assert.equal(postBuyStateRes.status, 200);
     const postBuyStateJson = await postBuyStateRes.json();
     const provisionedOnyx = postBuyStateJson.domains.find(
@@ -772,7 +826,9 @@ async function run() {
     assert.ok(onyxFixes.length >= 4);
     assert.ok(onyxFixes.every((f) => Number(f.natural_quality_score) >= 9.5));
 
-    const postBuyDashRes = await fetch(carryRedirect);
+    const postBuyDashRes = await fetch(carryRedirect, {
+      headers: OWNER_HEADERS,
+    });
     assert.equal(postBuyDashRes.status, 200);
     const postBuyDashHtml = await postBuyDashRes.text();
     assert.ok(postBuyDashHtml.includes('onyxcoffeelab.com'));
@@ -854,7 +910,7 @@ async function run() {
     assert.equal(replayHookJson.duplicate, true);
 
     const afterWebhookState = await (
-      await fetch(`${BASE}/api/dashboard/state`)
+      await fetch(`${BASE}/api/dashboard/state`, { headers: OWNER_HEADERS })
     ).json();
     assert.equal(afterWebhookState.profile.plan_tier, 'agency_249');
     assert.ok(
@@ -898,7 +954,9 @@ async function run() {
     assert.ok(agenciesHtml.includes('$7,251'));
     assert.ok(agenciesHtml.includes('96.7%'));
 
-    const m28Tab3Res = await fetch(`${BASE}/dashboard?tab=tab3_offsite`);
+    const m28Tab3Res = await fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+      headers: OWNER_HEADERS,
+    });
     assert.equal(m28Tab3Res.status, 200);
     const m28Tab3Html = await m28Tab3Res.text();
     assert.ok(m28Tab3Html.includes('Touch 1 · Day 0'));
@@ -992,7 +1050,7 @@ async function run() {
     // 27. M31 Weekly Executive Client Digest (/api/dashboard/digest) & Tab 1 Summary Controls
     const badDigestEmailRes = await fetch(`${BASE}/api/dashboard/digest`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
         recipient_email: 'invalid-email-address',
@@ -1002,7 +1060,7 @@ async function run() {
 
     const validDigestRes = await fetch(`${BASE}/api/dashboard/digest`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
         previous_visibility_score: 35,
@@ -1039,9 +1097,8 @@ async function run() {
     );
     const m32HomeHtml = await (await fetch(`${BASE}/`)).text();
     assert.ok(
-      m32HomeHtml.includes('Observed AI Search Sub-Queries:') &&
-        m32HomeHtml.includes('LIVE WEB SEARCH'),
-      'Expected live fanout telemetry readout on Landing Page grader'
+      m32HomeHtml.includes('FREE AI SEARCH &amp; AGENT READINESS AUDIT'),
+      'Expected customer-first Free Audit section on Landing Page'
     );
     assert.ok(
       dashHtml.includes('LIVE SEARCH') || dashHtml.includes('LIVE FANOUT'),
@@ -1052,14 +1109,14 @@ async function run() {
     // 29. M33 Closed-Loop Live Fix Verification (/api/dashboard/verify-fixes), Tab 2 Live Badges & Grader forceRefresh
     const missingVerifyRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({}),
     });
     assert.equal(missingVerifyRes.status, 400);
 
     const verifyFixesRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({
         domain_id: '11111111-1111-4000-8000-000000000001',
       }),
@@ -1082,7 +1139,7 @@ async function run() {
       await fetch(`${BASE}/api/grader`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: 'aurearoasters.com' }),
+        body: JSON.stringify({ domain: 'linear.app' }),
       })
     ).json();
     assert.equal(firstGraderCheck.cached24h, false);
@@ -1091,7 +1148,7 @@ async function run() {
       await fetch(`${BASE}/api/grader`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain: 'aurearoasters.com' }),
+        body: JSON.stringify({ domain: 'linear.app' }),
       })
     ).json();
     assert.equal(secondGraderCheck.cached24h, true);
@@ -1101,7 +1158,7 @@ async function run() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          domain: 'aurearoasters.com',
+          domain: 'linear.app',
           forceRefresh: true,
         }),
       })
@@ -1109,7 +1166,9 @@ async function run() {
     assert.equal(forcedGraderCheck.cached24h, false);
 
     const m33Tab2Html = await (
-      await fetch(`${BASE}/dashboard?tab=tab2_fixes`)
+      await fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+        headers: OWNER_HEADERS,
+      })
     ).text();
     assert.ok(
       m33Tab2Html.includes('Verify Live Fixes') &&
@@ -1117,15 +1176,13 @@ async function run() {
           m33Tab2Html.includes('READY TO PUBLISH')),
       'Expected Verify Live Fixes button and artifact deployment badges in Tab 2'
     );
-    assert.ok(
-      m32HomeHtml.includes('Re-Scan Live'),
-      'Expected Re-Scan Live button on Public Grader'
-    );
     console.log('✔ [31/32] M33 Closed-Loop Live Fix Verification (/api/dashboard/verify-fixes), Tab 2 live badges & Grader forceRefresh verified');
 
-    // 30. M34 Direct ?domain= Grader-to-Console Handoff, Protected Seed Store Delete Guard & Guest Scan Rate Limit
+    // 30. M34 Direct ?domain= Grader-to-Console Handoff, Protected Seed Store Delete Guard & Unauthenticated 401 Lock
     const handoffHtml = await (
-      await fetch(`${BASE}/dashboard?domain=raycast.com`)
+      await fetch(`${BASE}/dashboard?domain=raycast.com`, {
+        headers: OWNER_HEADERS,
+      })
     ).text();
     assert.ok(
       handoffHtml.includes('READY TO AUDIT YOUR DOMAIN') &&
@@ -1144,46 +1201,42 @@ async function run() {
 
     const protectedDeleteRes = await fetch(
       `${BASE}/api/dashboard/domains?id=11111111-1111-4000-8000-000000000001`,
-      { method: 'DELETE' }
+      { method: 'DELETE', headers: OWNER_HEADERS }
     );
     assert.equal(
       protectedDeleteRes.status,
       403,
-      'Expected unauthenticated DELETE on Patient Zero store to return 403 PROTECTED_DEMO_DOMAIN'
+      'Expected DELETE on protected fixture store in mock mode to return 403 PROTECTED_DEMO_DOMAIN'
     );
 
-    let lastRateStatus = 200;
-    for (let i = 0; i < 7; i += 1) {
-      const rateRes = await fetch(`${BASE}/api/dashboard/domains`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-forwarded-for': '203.0.113.77',
-        },
-        body: JSON.stringify({
-          domain_id: '11111111-1111-4000-8000-000000000001',
-        }),
-      });
-      lastRateStatus = rateRes.status;
-    }
+    const unauthScanAttempt = await fetch(`${BASE}/api/dashboard/domains`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-forwarded-for': '203.0.113.77',
+      },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+      }),
+    });
     assert.equal(
-      lastRateStatus,
-      429,
-      'Expected 7th unauthenticated workspace scan in 1 hour from same IP to return 429 DEMO_SCAN_LIMIT_REACHED'
+      unauthScanAttempt.status,
+      401,
+      'Expected unauthenticated workspace scan attempt to return HTTP 401'
     );
-    console.log('✔ [32/33] M34 Direct ?domain= Grader-to-Console handoff banner, 403 Patient Zero delete guard & 429 guest scan cap verified');
+    console.log('✔ [32/33] M34 Direct ?domain= Grader-to-Console handoff banner, 403 fixture delete guard & 401 unauthenticated API lock verified');
 
     // 31. M35 Slug-Preserving In-Place Pitch Refresh (PATCH /api/dashboard/pitch), Rival Strip & 3-Engine /sample-audit Table
     const invalidSlugPatchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({ share_slug: '../bad-slug' }),
     });
     assert.equal(invalidSlugPatchRes.status, 400);
 
     const missingSlugPatchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({ share_slug: 'nonexistent-slug-9999' }),
     });
     assert.equal(missingSlugPatchRes.status, 404);
@@ -1191,7 +1244,7 @@ async function run() {
     const mintedSlugToRefresh = cleanPitchJson.report.share_slug;
     const refreshPitchRes = await fetch(`${BASE}/api/dashboard/pitch`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: OWNER_JSON_HEADERS,
       body: JSON.stringify({ share_slug: mintedSlugToRefresh }),
     });
     assert.equal(refreshPitchRes.status, 200);
@@ -1218,7 +1271,7 @@ async function run() {
     );
 
     assert.ok(
-      sampleAuditHtml.includes('Recent live 3-engine HTTP + AI Search audits') &&
+      sampleAuditHtml.includes('Live 3-engine HTTP + AI Search audits') &&
         sampleAuditHtml.includes('Rivals Cited'),
       'Expected 3-engine benchmark heading and Rivals Cited column on /sample-audit'
     );
@@ -1248,7 +1301,9 @@ async function run() {
     );
 
     const m36Tab3Html = await (
-      await fetch(`${BASE}/dashboard?tab=tab3_offsite`)
+      await fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+        headers: OWNER_HEADERS,
+      })
     ).text();
     assert.ok(
       m36Tab3Html.includes('Copy URL'),
@@ -1266,7 +1321,9 @@ async function run() {
     console.log('✔ [34/35] M36 Dynamic 1200x630 /audit/[slug] rival OG PNG, Rival meta unfurl & 1-click Copy Brief Link / Copy URL verified');
 
     // 33. M37 Tab 1 Engine-by-Engine Citation Share Strip, /sample-audit Vertical Filter Tabs & /?domain= Grader Deep-Link
-    const m37Tab1Html = await (await fetch(`${BASE}/dashboard`)).text();
+    const m37Tab1Html = await (
+      await fetch(`${BASE}/dashboard`, { headers: OWNER_HEADERS })
+    ).text();
     assert.ok(
       m37Tab1Html.includes('ENGINE-BY-ENGINE CITATION SHARE') &&
         m37Tab1Html.includes('ChatGPT Search') &&
@@ -1303,18 +1360,20 @@ async function run() {
       'Found banned lexicon on /sample-audit vertical filter cohort'
     );
 
-    const m37DeepLinkHomeRes = await fetch(`${BASE}/?domain=mosaicroasters.com`);
+    const m37DeepLinkHomeRes = await fetch(`${BASE}/?domain=linear.app`);
     assert.equal(m37DeepLinkHomeRes.status, 200);
     const m37DeepLinkHomeHtml = await m37DeepLinkHomeRes.text();
     assert.ok(
-      m37DeepLinkHomeHtml.includes('Copy Scan Link'),
-      'Expected Copy Scan Link button on Landing Page Instant Grader'
+      m37DeepLinkHomeHtml.includes('Run Free AI Audit'),
+      'Expected Run Free AI Audit button on Landing Page Instant Grader'
     );
     console.log('✔ [35/36] M37 Tab 1 Engine Citation Share Strip, /sample-audit vertical filter tabs & /?domain= grader deep-link verified');
 
     // 34. M38 Ranked Citation Gap Source Leaderboard & 1-Click Targeted Editorial Outreach Draft inside Tab 3
     const m38Tab3Html = await (
-      await fetch(`${BASE}/dashboard?tab=tab3_offsite`)
+      await fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+        headers: OWNER_HEADERS,
+      })
     ).text();
     assert.ok(
       m38Tab3Html.includes('CITATION GAP SOURCE LEADERBOARD') &&
@@ -1373,7 +1432,7 @@ async function run() {
     const rescanDeltaRes = await fetch(`${BASE}/api/dashboard/domains`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
+        ...OWNER_JSON_HEADERS,
         'x-forwarded-for': '198.51.100.41',
       },
       body: JSON.stringify({
@@ -1390,7 +1449,9 @@ async function run() {
       'Expected scoreDelta payload on PUT /api/dashboard/domains'
     );
 
-    const v1Tab1Html = await (await fetch(`${BASE}/dashboard`)).text();
+    const v1Tab1Html = await (
+      await fetch(`${BASE}/dashboard`, { headers: OWNER_HEADERS })
+    ).text();
     assert.ok(
       v1Tab1Html.includes('BEFORE → AFTER REMEDIATION PROOF'),
       'Expected BEFORE → AFTER REMEDIATION PROOF bar on Tab 1'
@@ -1406,7 +1467,9 @@ async function run() {
     );
 
     const v1Tab2Html = await (
-      await fetch(`${BASE}/dashboard?tab=tab2_fixes`)
+      await fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+        headers: OWNER_HEADERS,
+      })
     ).text();
     assert.ok(
       v1Tab2Html.includes('BASELINE:') ||
@@ -1432,7 +1495,106 @@ async function run() {
       '1.0.0',
       `Expected /.well-known/mcp.json version 1.0.0, got ${v1ManifestJson.version}`
     );
-    console.log('✔ [37/37] M39-M41 Self-GEO alternate Markdown + 3-node JSON-LD, scoreDelta telemetry, Tab 1/Tab 2 remediation proof & v1.0.0 manifest verified');
+    console.log('✔ [37/38] M39-M41 Self-GEO alternate Markdown + 3-node JSON-LD, scoreDelta telemetry, Tab 1/Tab 2 remediation proof & v1.0.0 manifest verified');
+
+    // 36. M42 Profound-Caliber Brand Architecture, Coffee-Store Scrub, Route-Aware Header, Edge AI Bot Crawl Logger & 5 Competitor Intelligence Tools
+    for (const [pubRoute, pubContent] of [
+      ['/', v1HomeHtml],
+      ['/sample-audit', m37SampleHtml],
+      ['/agencies', agenciesHtml],
+      ['/mcp-guide', mcpGuideHtml],
+      ['/privacy', privacyHtml],
+      ['/login', loginHtml],
+      ['/dashboard (unauth)', unauthDashHtml],
+      ['/llms.txt', llmsText],
+      ['/agents.md', agentsText],
+    ]) {
+      assert.ok(
+        !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+          pubContent
+        ),
+        `Expected zero personal coffee-store references on ${pubRoute}`
+      );
+    }
+
+    assert.ok(
+      !unauthDashHtml.includes('Open Console') &&
+        !loginHtml.includes('Open Console'),
+      'Expected SiteHeaderClient to suppress Open Console CTA on /dashboard and /login'
+    );
+
+    const forgedBotCrawlRes = await fetch(`${BASE}/api/pixel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: 'aaaaaaaa-1111-4000-8000-000000000001',
+        checkout_key: '000000000000000000000000',
+        event_type: 'ai_bot_crawl',
+        source_engine: 'Mozilla/5.0 (compatible; GPTBot/1.1; +https://openai.com/gptbot)',
+        landing_path: '/pricing',
+      }),
+    });
+    assert.equal(
+      forgedBotCrawlRes.status,
+      403,
+      'Expected forged checkout_key on ai_bot_crawl to return HTTP 403'
+    );
+
+    const validBotCrawlRes = await fetch(`${BASE}/api/pixel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: 'aaaaaaaa-1111-4000-8000-000000000001',
+        checkout_key: 'e2b962fabcc3dc0ef625ae83',
+        event_type: 'ai_bot_crawl',
+        source_engine: 'Mozilla/5.0 (compatible; GPTBot/1.1; +https://openai.com/gptbot)',
+        landing_path: '/agents.md',
+      }),
+    });
+    assert.equal(
+      validBotCrawlRes.status,
+      201,
+      'Expected HMAC-verified ai_bot_crawl event to return HTTP 201'
+    );
+    const validBotCrawlJson = await validBotCrawlRes.json();
+    assert.equal(validBotCrawlJson.source_engine, 'GPTBot');
+
+    const [m42Tab1Html, m42Tab2Html, m42Tab3Html] = (
+      await Promise.all([
+        fetch(`${BASE}/dashboard`, { headers: OWNER_HEADERS }).then((r) =>
+          r.text()
+        ),
+        fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+          headers: OWNER_HEADERS,
+        }).then((r) => r.text()),
+        fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+          headers: OWNER_HEADERS,
+        }).then((r) => r.text()),
+      ])
+    ).map((h) => h.replace(/<!--[\s\S]*?-->/g, ''));
+
+    assert.ok(
+      m42Tab1Html.includes('BRAND SENTIMENT FRAMING &amp; RIVAL SHARE OF VOICE') &&
+        m42Tab1Html.includes('Mention ') &&
+        m42Tab1Html.includes('Cited URL ') &&
+        m42Tab1Html.includes('Google-Extended:') &&
+        m42Tab1Html.includes('BOT CRAWLS: 1') &&
+        m42Tab1Html.includes('Edge AI Bot Crawl Logger'),
+      'Expected Sentiment & Rival SOV, Mention vs Cited URL split, Google-Extended, BOT CRAWLS: 1, and Edge AI Bot Crawl Logger on Tab 1'
+    );
+    assert.ok(
+      m42Tab2Html.includes('AI SHOPPING &amp; OFFER ATTRIBUTE READINESS'),
+      'Expected AI Shopping & Offer Attribute Readiness matrix on Tab 2'
+    );
+    assert.ok(
+      m42Tab3Html.includes('AUTO-SUGGESTED BUYER PROMPTS') &&
+        m42Tab3Html.includes('UNBRANDED') &&
+        (m42Tab3Html.includes('UGC / Community') ||
+          m42Tab3Html.includes('Editorial / Media') ||
+          m42Tab3Html.includes('Review Directory')),
+      'Expected Auto-Suggested Buyer Prompts, Funnel/Branded badges, and Source-Type Categorization on Tab 3'
+    );
+    console.log('✔ [38/38] M42 Profound-caliber funnel, coffee-store scrub, route-aware nav, HMAC ai_bot_crawl logger & all 5 Competitor Intelligence Tools verified!');
   } finally {
     server.kill();
   }

@@ -6,10 +6,8 @@ import {
   type HallucinationDetail,
 } from '@verisource/core-geo';
 import {
-  getAlertIpMap,
   getLocalMockStore,
-  getServiceSupabaseClient,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -50,41 +48,37 @@ function collectUniqueHallucinations(
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to dispatch drift alerts.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a Console plan to dispatch hallucination drift alerts.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json().catch(() => ({}))) as {
       domain_id?: string;
       recipient_email?: string;
     };
 
-    const auth = await resolveAuthenticatedProfile(request);
-    const serviceSupabase = auth?.supabase ?? getServiceSupabaseClient();
     const store = getLocalMockStore();
-
-    if (!auth && serviceSupabase) {
-      const ip =
-        request.headers.get('cf-connecting-ip') ??
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-        '127.0.0.1';
-      const hourBucket = new Date().toISOString().slice(0, 13);
-      const ipMap = getAlertIpMap();
-      const entry = ipMap.get(ip);
-      const used = entry && entry.hourBucket === hourBucket ? entry.count : 0;
-      if (used >= 5) {
-        return NextResponse.json(
-          {
-            error: 'ALERT_RATE_LIMIT',
-            message:
-              'Demo drift-alert preview limit reached (5/hour). Sign in at /login to enable scheduled Resend delivery.',
-          },
-          { status: 429 }
-        );
-      }
-      ipMap.set(ip, { hourBucket, count: used + 1 });
-    }
-
     const rawRecipient =
       body.recipient_email !== undefined
         ? body.recipient_email.trim()
-        : (auth?.profile.email ?? store.profile.email);
+        : access.profile.email;
 
     if (!rawRecipient || !EMAIL_REGEX.test(rawRecipient)) {
       return NextResponse.json(
@@ -99,11 +93,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     let domain: DomainRow | null = null;
     let snapshots: CitationSnapshotRow[] = [];
 
-    if (auth) {
-      let query = auth.supabase
+    if (access.supabase) {
+      let query = access.supabase
         .from('domains')
         .select('*')
-        .eq('user_id', auth.profile.id);
+        .eq('user_id', access.profile.id);
 
       if (body.domain_id) {
         query = query.eq('id', body.domain_id);
@@ -115,7 +109,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       domain = (domainRows?.[0] as DomainRow | undefined) ?? null;
 
       if (domain) {
-        const { data: snapRows } = await auth.supabase
+        const { data: snapRows } = await access.supabase
           .from('citation_snapshots')
           .select('*')
           .eq('domain_id', domain.id)
@@ -146,9 +140,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     const hallucinations = collectUniqueHallucinations(snapshots);
     const blockedBots = extractBlockedBots(domain.robots_ai_bot_status);
 
-    // Prevent unauthenticated callers from using live Resend as an open relay
-    const canSendLiveEmail = Boolean(auth && auth.profile.plan_tier !== 'free');
-    const recipientForDispatch = auth ? auth.profile.email : rawRecipient;
+    const canSendLiveEmail = Boolean(
+      access.supabase && access.profile.plan_tier !== 'free'
+    );
+    const recipientForDispatch = access.supabase
+      ? access.profile.email
+      : rawRecipient;
 
     const result = await dispatchHallucinationDriftEmail({
       recipientEmail: recipientForDispatch,

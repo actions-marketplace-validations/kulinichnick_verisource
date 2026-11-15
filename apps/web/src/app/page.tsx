@@ -1,25 +1,35 @@
 import Link from 'next/link';
 import React from 'react';
-import { buildAiAttributionSnippet } from '@verisource/core-geo';
+import {
+  buildAiAttributionSnippet,
+  buildEdgeBotCrawlerSnippet,
+} from '@verisource/core-geo';
 import { CodeArtifactCard, StatusBadge } from '@verisource/ui';
 import { HeroSignalSchematic } from '../components/HeroSignalSchematic';
+import { PlatformModulesShowcase } from '../components/PlatformModulesShowcase';
 import { PricingLadderSection } from '../components/PricingLadderSection';
 import { PublicGraderClient } from '../components/PublicGraderClient';
 
 export default function HomePage(): React.ReactElement {
   const samplePixel = buildAiAttributionSnippet({
-    trackingPixelToken: 'aaaaaaaa-1111-4000-8000-000000000001',
+    trackingPixelToken: 'YOUR-DOMAIN-PIXEL-UUID',
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+
+  const sampleEdgeCrawlerSnippet = buildEdgeBotCrawlerSnippet({
+    trackingPixelToken: 'YOUR-DOMAIN-PIXEL-UUID',
+    checkoutKey: 'YOUR_24_CHAR_SERVER_KEY',
     ingestionUrl: 'https://verisource.dev/api/pixel',
   });
 
   return (
     <div>
-      {/* Architectural Warm-Paper Hero Band with Zero-Lag Animated SVG Schematic */}
+      {/* Profound-Caliber Editorial AI Search Platform Hero */}
       <section
         className="vs-arch-backdrop"
         style={{
           borderBottom: '1px solid var(--vs-border)',
-          padding: '46px 0 50px 0',
+          padding: '48px 0 52px 0',
           marginBottom: '36px',
         }}
       >
@@ -34,26 +44,28 @@ export default function HomePage(): React.ReactElement {
                 marginBottom: '16px',
               }}
             >
-              <StatusBadge tone="pass">GUIDED + PRO /MCP MODES</StatusBadge>
-              <StatusBadge>SHOPIFY &amp; ANY WEBSITE</StatusBadge>
+              <StatusBadge tone="pass">
+                CHATGPT · PERPLEXITY · GEMINI · CLAUDE
+              </StatusBadge>
+              <StatusBadge>ACTION CONSOLE + /MCP SERVER</StatusBadge>
               <StatusBadge>QUALITY GATE &gt;= 9.5 / 10</StatusBadge>
             </div>
 
             <h1
               style={{
-                fontSize: 'clamp(32px, 4.2vw, 46px)',
-                lineHeight: 1.09,
-                letterSpacing: '-0.03em',
+                fontSize: 'clamp(33px, 4.3vw, 48px)',
+                lineHeight: 1.07,
+                letterSpacing: '-0.032em',
                 fontWeight: 700,
                 margin: '0 0 16px 0',
               }}
             >
-              See what ChatGPT, Gemini, and Perplexity tell buyers about you.{' '}
+              Control how AI search recommends your brand.{' '}
               <span
                 className="vs-display-serif"
                 style={{ fontSize: '1.08em', fontWeight: 400 }}
               >
-                Fix wrong claims in 60 seconds.
+                And ship the fixes agents read.
               </span>
             </h1>
 
@@ -62,21 +74,21 @@ export default function HomePage(): React.ReactElement {
                 fontSize: '16px',
                 lineHeight: 1.62,
                 color: 'var(--vs-ink-secondary)',
-                margin: '0 0 22px 0',
-                maxWidth: '580px',
+                margin: '0 0 24px 0',
+                maxWidth: '590px',
               }}
             >
-              40%–58% of buyer discovery now happens inside AI engines, where
-              referred visitors convert at{' '}
-              <strong className="vs-mono">14.2%–15.9%</strong> compared to
-              Google organic&rsquo;s{' '}
-              <strong className="vs-mono">1.76%–2.8%</strong>. Most trackers
-              charge $245–$579/mo just to show passive charts. Verisource flags
-              invented prices, checks whether AI bots can read your pages, and
-              writes ready-to-paste fix code (
-              <code className="vs-mono">JSON-LD</code> and{' '}
-              <code className="vs-mono">/agents.md</code>) for non-technical
-              owners and engineering teams alike.
+              40%–58% of B2B and commerce discovery now happens inside AI answer
+              engines, where referred buyers convert at{' '}
+              <strong className="vs-mono">14.2%–15.9%</strong> vs. Google
+              organic&rsquo;s <strong className="vs-mono">1.76%–2.8%</strong>.
+              Passive GEO trackers charge $245–$499+/mo just to show charts.
+              Verisource measures your Share-of-Voice, flags hallucinated
+              pricing, and generates Critic-verified{' '}
+              <code className="vs-mono">JSON-LD</code>,{' '}
+              <code className="vs-mono">/llms.txt</code>, and{' '}
+              <code className="vs-mono">/agents.md</code> fixes inside your
+              private Admin Console.
             </p>
 
             <div
@@ -89,22 +101,21 @@ export default function HomePage(): React.ReactElement {
               }}
             >
               <a href="#grader" className="vs-btn">
-                Scan Your Website Free ↓
+                Audit Your Website Free ↓
+              </a>
+              <a href="#platform" className="vs-btn vs-btn-secondary">
+                Explore Platform Modules
               </a>
               <Link href="/dashboard" className="vs-btn vs-btn-secondary">
-                Explore Guided Console →
-              </Link>
-              <Link href="/sample-audit" className="vs-btn vs-btn-secondary">
-                View Sample Audits
+                Subscriber Sign In →
               </Link>
             </div>
 
-            {/* Plain-English 3-Step Strip */}
             <div
               style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: '16px',
+                gap: '18px',
                 paddingTop: '14px',
                 borderTop: '1px solid var(--vs-border)',
                 fontSize: '12.5px',
@@ -115,19 +126,19 @@ export default function HomePage(): React.ReactElement {
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   01
                 </strong>{' '}
-                Enter your URL below
+                Test your site free below
               </span>
               <span>
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   02
                 </strong>{' '}
-                Spot wrong claims &amp; blocked bots
+                Activate your private Console
               </span>
               <span>
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   03
                 </strong>{' '}
-                Paste your verified site fix
+                Deploy &amp; verify live AI fixes
               </span>
             </div>
           </div>
@@ -137,128 +148,26 @@ export default function HomePage(): React.ReactElement {
       </section>
 
       <div className="vs-container">
-        {/* Live Interactive Domain Grader */}
+        {/* Customer Tests Their Own Domain — Limited Free Preview */}
         <PublicGraderClient />
 
-        {/* 2x2 Architectural Module Specification Matrix */}
-        <section style={{ marginTop: '68px' }}>
+        {/* Interactive 5-Pillar Platform Showcase (Inspired by Category Leaders, Powered by Action Tools) */}
+        <PlatformModulesShowcase />
+
+        {/* Passive GEO Trackers vs. Verisource Read-Write Action Engine */}
+        <section style={{ marginTop: '72px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            PLAIN ENGLISH FOR OWNERS · FULL PROTOCOL DEPTH FOR ENGINEERS
+            READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION
           </div>
           <h2
             style={{
-              fontSize: '27px',
-              fontWeight: 700,
-              letterSpacing: '-0.025em',
-              margin: '0 0 20px 0',
-            }}
-          >
-            Four practical tools inside one calm 3-Tab workspace.
-          </h2>
-
-          <div className="vs-card vs-arch-matrix">
-            <div className="vs-arch-cell">
-              <div className="vs-eyebrow">MODULE 01 · STEP 1</div>
-              <h3 style={{ margin: '6px 0 8px 0', fontSize: '17px' }}>
-                Catch Wrong Prices &amp; Invented Policies
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '13.5px',
-                  color: 'var(--vs-ink-secondary)',
-                }}
-              >
-                AI engines routinely invent expired discounts, K-Cup SKUs you do
-                not sell, or wrong delivery zones. Verisource drafts a simple
-                Brand Truth Sheet from your real site and alerts you the moment
-                ChatGPT, Gemini, or Perplexity states a false fact.
-              </p>
-            </div>
-
-            <div className="vs-arch-cell">
-              <div className="vs-eyebrow">MODULE 02 · STEP 1</div>
-              <h3 style={{ margin: '6px 0 8px 0', fontSize: '17px' }}>
-                AI Bot Access Check &amp; 10-Line Revenue Pixel
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '13.5px',
-                  color: 'var(--vs-ink-secondary)',
-                }}
-              >
-                Firewall rules often block{' '}
-                <code className="vs-mono">GPTBot</code> and{' '}
-                <code className="vs-mono">PerplexityBot</code> with silent HTTP
-                403 errors even when <code className="vs-mono">robots.txt</code>{' '}
-                looks fine. We test live crawler headers and give you a 10-line
-                script to measure orders coming from{' '}
-                <code className="vs-mono">chatgpt.com</code>,{' '}
-                <code className="vs-mono">perplexity.ai</code>,{' '}
-                <code className="vs-mono">gemini.google.com</code>, and{' '}
-                <code className="vs-mono">claude.ai</code>.
-              </p>
-            </div>
-
-            <div className="vs-arch-cell">
-              <div className="vs-eyebrow">MODULE 03 · STEP 2 &amp; STEP 3</div>
-              <h3 style={{ margin: '6px 0 8px 0', fontSize: '17px' }}>
-                Copy-Paste Website Fixes &amp; Competitor Sources
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '13.5px',
-                  color: 'var(--vs-ink-secondary)',
-                }}
-              >
-                See the exact Reddit threads, directories, and comparison blogs
-                feeding competitor recommendations via Gemini{' '}
-                <code className="vs-mono">webSearchQueries</code> and OpenAI{' '}
-                <code className="vs-mono">web_search_call</code>. Then copy
-                ready-to-publish <code className="vs-mono">JSON-LD</code>{' '}
-                fact-sheets, <code className="vs-mono">/llms.txt</code>, and
-                Shopify <code className="vs-mono">agents.md.liquid</code> files.
-              </p>
-            </div>
-
-            <div className="vs-arch-cell">
-              <div className="vs-eyebrow">MODULE 04 · STEP 3</div>
-              <h3 style={{ margin: '6px 0 8px 0', fontSize: '17px' }}>
-                60-Second Client Pitch Links &amp; Paid /mcp Sync
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: '13.5px',
-                  color: 'var(--vs-ink-secondary)',
-                }}
-              >
-                Agencies generate clean, branded client audit links (
-                <code className="vs-mono">verisource.dev/audit/[slug]</code>)
-                with their own logo and calendar button in one click. Technical
-                teams connect Cursor, Claude Desktop, or Antigravity directly to{' '}
-                <code className="vs-mono">https://mcp.verisource.dev/mcp</code>.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Patient Zero Empirical Before -> After Case Ledger */}
-        <section id="case-ledger" style={{ marginTop: '68px' }}>
-          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            LIVE CASE STUDIES · BEFORE &rarr; AFTER PROOF
-          </div>
-          <h2
-            style={{
-              fontSize: '27px',
+              fontSize: 'clamp(24px, 2.8vw, 29px)',
               fontWeight: 700,
               letterSpacing: '-0.025em',
               margin: '0 0 8px 0',
             }}
           >
-            Verified score jumps on real specialty Shopify stores.
+            Why founders and agencies switch from passive $499/mo trackers.
           </h2>
           <p
             style={{
@@ -266,143 +175,101 @@ export default function HomePage(): React.ReactElement {
               lineHeight: 1.58,
               color: 'var(--vs-ink-secondary)',
               margin: '0 0 18px 0',
-              maxWidth: '780px',
+              maxWidth: '760px',
             }}
           >
-            Both storefronts below run Verisource fixes in live production right
-            now. Click either preset inside the free grader above to inspect
-            their live <code className="vs-mono">JSON-LD</code> fact graphs,{' '}
-            <code className="vs-mono">/api/ucp/mcp</code> catalog endpoints, and
-            verified Markdown truth sheets.
+            Knowing ChatGPT omitted your brand is only half the job. Verisource
+            combines multi-engine visibility analytics with ready-to-paste site
+            remediation and a Streamable HTTP{' '}
+            <code className="vs-mono">/mcp</code> server.
           </p>
 
           <div className="vs-card vs-table-wrap">
             <table className="vs-table">
               <thead>
                 <tr>
-                  <th>Storefront</th>
-                  <th>AI Readiness Uplift</th>
-                  <th>Live Protocol &amp; Schema State</th>
-                  <th>False AI Claim Corrected</th>
-                  <th>Client Report</th>
+                  <th>Capability</th>
+                  <th>Passive Enterprise Trackers ($245–$499+/mo)</th>
+                  <th>Verisource Action Console ($49–$249/mo)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>
-                    <strong>Aurea Coffee Roasters</strong>
-                    <div
-                      className="vs-mono"
-                      style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}
-                    >
-                      aurearoasters.com
-                    </div>
+                    <strong>Mention vs. Citation Rate &amp; Sentiment</strong>
                   </td>
-                  <td
-                    className="vs-mono"
-                    style={{ fontSize: '13.5px', whiteSpace: 'nowrap' }}
-                  >
-                    <span style={{ color: 'var(--vs-ink-muted)' }}>41</span>{' '}
-                    &rarr;{' '}
-                    <strong style={{ color: 'var(--vs-pass-fg)' }}>
-                      92 / 100
-                    </strong>
-                    <div
-                      style={{ fontSize: '11px', color: 'var(--vs-pass-fg)' }}
-                    >
-                      +51 pts live
-                    </div>
+                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                    Included on mid-to-enterprise tiers
                   </td>
                   <td>
-                    <div
-                      style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}
-                    >
-                      <StatusBadge tone="pass">
-                        UCP /api/ucp/mcp Active
-                      </StatusBadge>
-                      <StatusBadge tone="pass">Custom Truth Linked</StatusBadge>
-                      <StatusBadge>7 JSON-LD Nodes</StatusBadge>
-                    </div>
-                  </td>
-                  <td style={{ fontSize: '13px', maxWidth: '320px' }}>
-                    Replaced invented <strong>$15 K-Cup pod</strong> claims with
-                    an 8-SKU <code className="vs-mono">OfferCatalog</code>{' '}
-                    ($21.95–$109.95), <code className="vs-mono">FAQPage</code>,
-                    and canonical Markdown truth file via Shopify Admin API.
-                  </td>
-                  <td
-                    className="vs-mono"
-                    style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
-                  >
-                    <a
-                      href="/audit/aurearoasters-com-vf9w"
-                      style={{
-                        color: 'var(--vs-ink)',
-                        textDecoration: 'underline',
-                        textUnderlineOffset: '3px',
-                      }}
-                    >
-                      View Report &rarr;
-                    </a>
+                    <StatusBadge tone="pass">INCLUDED ALL PLANS</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      ChatGPT, Perplexity &amp; Gemini + Rival SoV %
+                    </span>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <strong>Mosaic Coffee Roasters</strong>
-                    <div
-                      className="vs-mono"
-                      style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}
-                    >
-                      mosaicroasters.com
-                    </div>
+                    <strong>Suggested Funnel Prompts &amp; Source Types</strong>
                   </td>
-                  <td
-                    className="vs-mono"
-                    style={{ fontSize: '13.5px', whiteSpace: 'nowrap' }}
-                  >
-                    <span style={{ color: 'var(--vs-ink-muted)' }}>52</span>{' '}
-                    &rarr;{' '}
-                    <strong style={{ color: 'var(--vs-pass-fg)' }}>
-                      84 / 100
-                    </strong>
-                    <div
-                      style={{ fontSize: '11px', color: 'var(--vs-pass-fg)' }}
-                    >
-                      +32 pts live
-                    </div>
+                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                    Manual setup or enterprise add-on
                   </td>
                   <td>
-                    <div
-                      style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}
-                    >
-                      <StatusBadge tone="pass">
-                        UCP /api/ucp/mcp Active
-                      </StatusBadge>
-                      <StatusBadge tone="pass">/pages/ai-facts Live</StatusBadge>
-                      <StatusBadge>5 JSON-LD Nodes</StatusBadge>
-                    </div>
+                    <StatusBadge tone="pass">1-CLICK ACTIVATION</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      Discovery, Comparison, Pricing + Reddit/G2/Editorial tags
+                    </span>
                   </td>
-                  <td style={{ fontSize: '13px', maxWidth: '320px' }}>
-                    Replaced wrong{' '}
-                    <strong>$25 nationwide free shipping</strong> claims with a{' '}
-                    <code className="vs-mono">40.2km GeoCircle</code> schema
-                    specifying <strong>$45+ local delivery</strong> within 25
-                    miles of Springfield, MO.
+                </tr>
+                <tr>
+                  <td>
+                    <strong>JS Readability + Server Bot Crawl Logs</strong>
                   </td>
-                  <td
-                    className="vs-mono"
-                    style={{ fontSize: '12px', whiteSpace: 'nowrap' }}
-                  >
-                    <a
-                      href="/audit/mosaic-springfield-audit"
-                      style={{
-                        color: 'var(--vs-ink)',
-                        textDecoration: 'underline',
-                        textUnderlineOffset: '3px',
-                      }}
-                    >
-                      View Report &rarr;
-                    </a>
+                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                    Enterprise contracts only
+                  </td>
+                  <td>
+                    <StatusBadge tone="pass">BUILT IN</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      SSR token density check + Edge{' '}
+                      <code className="vs-mono">ai_bot_crawl</code> logger +
+                      checkout pixel
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>
+                      On-Site Remediation (<code className="vs-mono">JSON-LD</code>
+                      , <code className="vs-mono">/llms.txt</code>,{' '}
+                      <code className="vs-mono">/agents.md</code>)
+                    </strong>
+                  </td>
+                  <td style={{ color: 'var(--vs-crit-fg)' }}>
+                    Not included — charts only
+                  </td>
+                  <td>
+                    <StatusBadge tone="pass">&gt;= 9.5/10 GENERATED</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      Copy-paste code + Shopify{' '}
+                      <code className="vs-mono">/api/ucp/mcp</code> adapter +
+                      live HTTP verifier
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Autonomous Coding Agent (/mcp) Access</strong>
+                  </td>
+                  <td style={{ color: 'var(--vs-crit-fg)' }}>
+                    Closed web UI or custom enterprise API
+                  </td>
+                  <td>
+                    <StatusBadge tone="pass">OFFICIAL MCP REGISTRY</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      Connect Claude, Cursor, Windsurf &amp; Antigravity in 30s
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -410,42 +277,52 @@ export default function HomePage(): React.ReactElement {
           </div>
         </section>
 
-        {/* 10-Line Zero-Code AI Referral Pixel Preview */}
-        <section style={{ marginTop: '68px' }}>
+        {/* Agent Analytics: Browser Revenue Pixel + Edge AI Bot Crawler Log */}
+        <section id="agent-analytics" style={{ marginTop: '72px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            SIMPLE REVENUE ATTRIBUTION
+            AGENT ANALYTICS · CRAWLER LOGS + BUYER CONVERSIONS
           </div>
           <h2
             style={{
-              fontSize: '25px',
+              fontSize: 'clamp(24px, 2.8vw, 29px)',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               margin: '0 0 8px 0',
             }}
           >
-            Know when a ChatGPT or Perplexity visitor buys from you.
+            See every AI bot crawl and every AI-referred customer purchase.
           </h2>
           <p
             style={{
-              fontSize: '14px',
+              fontSize: '14.5px',
+              lineHeight: 1.58,
               color: 'var(--vs-ink-secondary)',
-              margin: '0 0 14px 0',
-              maxWidth: '700px',
+              margin: '0 0 18px 0',
+              maxWidth: '740px',
             }}
           >
-            Paste 10 lines once into your site header. No cookies, zero page
-            slowdown, and automatic source matching across{' '}
-            <code className="vs-mono">chatgpt.com</code>,{' '}
-            <code className="vs-mono">perplexity.ai</code>,{' '}
-            <code className="vs-mono">gemini.google.com</code>, and{' '}
-            <code className="vs-mono">claude.ai</code>.
+            Standard analytics tools never execute when{' '}
+            <code className="vs-mono">GPTBot</code> or{' '}
+            <code className="vs-mono">PerplexityBot</code> fetches your pricing
+            page. Subscribers get two lightweight drop-in snippets inside the
+            Console: a 10-line browser checkout pixel and a non-blocking edge
+            middleware logger.
           </p>
-          <CodeArtifactCard
-            title="Origin-Verified AI Visit & Checkout Pixel"
-            plainSummary="Tracks visits and completed purchases referred by AI answer engines."
-            fileHint="Paste before </head> on any site or Shopify theme"
-            code={samplePixel}
-          />
+
+          <div className="vs-grid-2">
+            <CodeArtifactCard
+              title="1. Browser AI Visit & Checkout Revenue Pixel"
+              plainSummary="Attributes human visits and completed orders from chatgpt.com, perplexity.ai, gemini.google.com, and claude.ai."
+              fileHint="Paste before </head> on any site or Shopify Custom Pixel"
+              code={samplePixel}
+            />
+            <CodeArtifactCard
+              title="2. Edge / Middleware AI Bot Crawl Logger"
+              plainSummary="Logs server-side hits from GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, and Google-Extended."
+              fileHint="Drop into Next.js middleware.ts or Cloudflare Worker"
+              code={sampleEdgeCrawlerSnippet}
+            />
+          </div>
         </section>
 
         {/* Transparent Pricing Ladder */}

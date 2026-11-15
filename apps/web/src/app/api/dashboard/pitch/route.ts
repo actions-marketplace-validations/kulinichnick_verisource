@@ -8,17 +8,11 @@ import {
 } from '@verisource/core-geo';
 import {
   getLocalMockStore,
-  getPitchIpMap,
   getServiceSupabaseClient,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export const maxDuration = 60;
-
-const PROTECTED_SHOWCASE_SLUGS = new Set([
-  'aurearoasters-com-vf9w',
-  'mosaic-springfield-audit',
-]);
 
 function isServiceRoleAdminBearer(request: Request): boolean {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ?? '';
@@ -78,6 +72,32 @@ async function mapWithConcurrency<T, R>(
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    const isServiceAdmin = isServiceRoleAdminBearer(request);
+    const access = isServiceAdmin
+      ? null
+      : await resolveConsoleRequestAccess(request);
+
+    if (!isServiceAdmin && access?.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message:
+            'Sign in to your Verisource Console to generate white-label client briefs.',
+        },
+        { status: 401 }
+      );
+    }
+    if (!isServiceAdmin && access?.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a Console plan to mint white-label /audit/[slug] client briefs.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json()) as {
       prospect_domain?: string;
       prospect_domains?: string[] | string;
@@ -130,43 +150,21 @@ export async function POST(request: Request): Promise<NextResponse> {
       }
     }
 
-    const auth = await resolveAuthenticatedProfile(request);
-    const serviceSupabase = auth?.supabase ?? getServiceSupabaseClient();
+    const activeProfile =
+      access && access.status !== 'unauthenticated'
+        ? access.profile
+        : null;
+    const serviceSupabase =
+      (access && access.status !== 'unauthenticated' ? access.supabase : null) ??
+      getServiceSupabaseClient();
     const store = getLocalMockStore();
 
-    const maxBatch = !auth && serviceSupabase ? 3 : 10;
-    const normalizedDomains = parseBatchProspectDomains(
-      rawDomainsInput,
-      maxBatch
-    );
-
-    // Rate-limit unauthenticated demo pitch generation in production to 5 domains/IP/hour
-    if (!auth && serviceSupabase) {
-      const ip =
-        request.headers.get('cf-connecting-ip') ??
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-        '127.0.0.1';
-      const hourBucket = new Date().toISOString().slice(0, 13);
-      const ipMap = getPitchIpMap();
-      const entry = ipMap.get(ip);
-      const used = entry && entry.hourBucket === hourBucket ? entry.count : 0;
-      if (used + normalizedDomains.length > 5) {
-        return NextResponse.json(
-          {
-            error: 'PITCH_RATE_LIMIT',
-            message:
-              'Demo pitch preview limit reached (5 domains/hour). Sign in at /login for Agency White-Label batch prospecting.',
-          },
-          { status: 429 }
-        );
-      }
-      ipMap.set(ip, { hourBucket, count: used + normalizedDomains.length });
-    }
+    const normalizedDomains = parseBatchProspectDomains(rawDomainsInput, 10);
 
     const brandNameSnapshot =
       body.agency_brand_name !== undefined
         ? body.agency_brand_name.trim().slice(0, 80) || 'Partner GEO Practice'
-        : (auth?.profile.agency_brand_name ??
+        : (activeProfile?.agency_brand_name ??
           store.profile.agency_brand_name ??
           'Partner GEO Practice');
 
@@ -174,7 +172,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       body.agency_primary_color !== undefined
         ? sanitizeHexColor(body.agency_primary_color)
         : sanitizeHexColor(
-            auth?.profile.agency_primary_color ??
+            activeProfile?.agency_primary_color ??
               store.profile.agency_primary_color
           );
 
@@ -182,18 +180,18 @@ export async function POST(request: Request): Promise<NextResponse> {
       cleanedCta !== undefined
         ? cleanedCta
         : sanitizeHttpUrl(
-            auth?.profile.agency_cta_url ?? store.profile.agency_cta_url
+            activeProfile?.agency_cta_url ?? store.profile.agency_cta_url
           );
 
     const logoSnapshot =
       cleanedLogo !== undefined
         ? cleanedLogo
         : sanitizeHttpUrl(
-            auth?.profile.agency_logo_url ?? store.profile.agency_logo_url
+            activeProfile?.agency_logo_url ?? store.profile.agency_logo_url
           );
 
-    if (auth) {
-      await auth.supabase
+    if (access?.status === 'authenticated' && access.supabase) {
+      await access.supabase
         .from('profiles')
         .update({
           agency_brand_name: brandNameSnapshot,
@@ -201,20 +199,20 @@ export async function POST(request: Request): Promise<NextResponse> {
           agency_primary_color: colorSnapshot,
           agency_cta_url: ctaSnapshot,
         })
-        .eq('id', auth.profile.id);
-    } else {
+        .eq('id', access.profile.id);
+    } else if (!serviceSupabase) {
       store.profile.agency_brand_name = brandNameSnapshot;
       store.profile.agency_logo_url = logoSnapshot;
       store.profile.agency_primary_color = colorSnapshot;
       store.profile.agency_cta_url = ctaSnapshot;
     }
 
-    const ttlDays = auth ? 30 : 1;
+    const ttlDays = 30;
     const expiresIso = new Date(
       Date.now() + ttlDays * 86400 * 1000
     ).toISOString();
     const createdIso = new Date().toISOString();
-    const ownerUserId = auth ? auth.profile.id : DEMO_PROFILE.id;
+    const ownerUserId = activeProfile ? activeProfile.id : DEMO_PROFILE.id;
 
     const createdReports = await mapWithConcurrency(
       normalizedDomains,
@@ -281,6 +279,30 @@ export async function POST(request: Request): Promise<NextResponse> {
 
 export async function PATCH(request: Request): Promise<NextResponse> {
   try {
+    const isServiceAdmin = isServiceRoleAdminBearer(request);
+    const access = isServiceAdmin
+      ? null
+      : await resolveConsoleRequestAccess(request);
+
+    if (!isServiceAdmin && access?.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to refresh client briefs.',
+        },
+        { status: 401 }
+      );
+    }
+    if (!isServiceAdmin && access?.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message: 'Activate a Console plan to refresh client briefs.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json()) as {
       share_slug?: string;
       preserve_permanent_expiry?: boolean;
@@ -297,11 +319,11 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    const isServiceAdmin = isServiceRoleAdminBearer(request);
-    const auth = isServiceAdmin
-      ? null
-      : await resolveAuthenticatedProfile(request);
-    const serviceSupabase = auth?.supabase ?? getServiceSupabaseClient();
+    const activeProfile =
+      access && access.status !== 'unauthenticated' ? access.profile : null;
+    const serviceSupabase =
+      (access && access.status !== 'unauthenticated' ? access.supabase : null) ??
+      getServiceSupabaseClient();
     const store = getLocalMockStore();
 
     let existing: AgencyPitchReportRow | null = null;
@@ -330,66 +352,15 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       );
     }
 
-    if (!isServiceAdmin) {
-      if (auth) {
-        if (existing.agency_user_id !== auth.profile.id) {
-          return NextResponse.json(
-            {
-              error: 'PITCH_REPORT_NOT_FOUND',
-              message: 'Pitch report slug not found in this workspace.',
-            },
-            { status: 404 }
-          );
-        }
-      } else {
-        if (existing.agency_user_id !== DEMO_PROFILE.id) {
-          return NextResponse.json(
-            {
-              error: 'PITCH_REPORT_NOT_FOUND',
-              message: 'Pitch report slug not found in this workspace.',
-            },
-            { status: 404 }
-          );
-        }
-
-        if (
-          serviceSupabase &&
-          (existing.expires_at === null ||
-            existing.agency_brand_name_snapshot === 'Verisource GEO Advisory' ||
-            PROTECTED_SHOWCASE_SLUGS.has(existing.share_slug))
-        ) {
-          return NextResponse.json(
-            {
-              error: 'PROTECTED_SHOWCASE_REPORT',
-              message:
-                'Benchmark showcase briefs are read-only in guest mode. Mint your own client slug above or sign in to refresh reports in-place.',
-            },
-            { status: 403 }
-          );
-        }
-
-        if (serviceSupabase) {
-          const ip =
-            request.headers.get('cf-connecting-ip') ??
-            request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-            '127.0.0.1';
-          const hourBucket = new Date().toISOString().slice(0, 13);
-          const ipMap = getPitchIpMap();
-          const entry = ipMap.get(ip);
-          const used =
-            entry && entry.hourBucket === hourBucket ? entry.count : 0;
-          if (used + 1 > 5) {
-            return NextResponse.json(
-              {
-                error: 'PITCH_RATE_LIMIT',
-                message:
-                  'Demo pitch preview limit reached (5 domains/hour). Sign in at /login for Agency White-Label batch prospecting.',
-              },
-              { status: 429 }
-            );
-          }
-          ipMap.set(ip, { hourBucket, count: used + 1 });
-        }
+    if (!isServiceAdmin && activeProfile) {
+      if (existing.agency_user_id !== activeProfile.id) {
+        return NextResponse.json(
+          {
+            error: 'PITCH_REPORT_NOT_FOUND',
+            message: 'Pitch report slug not found in this workspace.',
+          },
+          { status: 404 }
+        );
       }
     }
 
@@ -397,7 +368,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       domainInput: existing.prospect_domain,
     });
 
-    const ttlDays = auth || isServiceAdmin ? 30 : 1;
+    const ttlDays = 30;
     const nextExpiresAt =
       (isServiceAdmin && body.preserve_permanent_expiry) ||
       existing.expires_at === null

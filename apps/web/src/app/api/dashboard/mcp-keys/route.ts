@@ -2,19 +2,38 @@ import { NextResponse } from 'next/server';
 import { generateMcpApiKey, type McpApiKeyRow } from '@verisource/core-geo';
 import {
   getLocalMockStore,
-  getServiceSupabaseClient,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const access = await resolveConsoleRequestAccess(request);
+  if (access.status === 'unauthenticated') {
+    return NextResponse.json(
+      {
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Sign in to your Verisource Console to mint an MCP API key.',
+      },
+      { status: 401 }
+    );
+  }
+  if (access.status === 'plan_activation_required') {
+    return NextResponse.json(
+      {
+        error: 'PLAN_ACTIVATION_REQUIRED',
+        message:
+          'Activate a Console plan to mint live Bearer keys for mcp.verisource.dev.',
+      },
+      { status: 402 }
+    );
+  }
+
   const body = (await request.json().catch(() => ({}))) as { label?: string };
-  const auth = await resolveAuthenticatedProfile(request);
   const store = getLocalMockStore();
   const minted = await generateMcpApiKey();
 
   const row: McpApiKeyRow = {
     id: crypto.randomUUID(),
-    user_id: auth ? auth.profile.id : store.profile.id,
+    user_id: access.profile.id,
     key_hash: minted.keyHash,
     key_prefix: minted.keyPrefix,
     label: body.label?.trim().slice(0, 80) || 'Agent Key',
@@ -23,8 +42,8 @@ export async function POST(request: Request): Promise<NextResponse> {
     created_at: new Date().toISOString(),
   };
 
-  if (auth) {
-    const { error } = await auth.supabase.from('mcp_api_keys').insert(row);
+  if (access.supabase) {
+    const { error } = await access.supabase.from('mcp_api_keys').insert(row);
     if (error) {
       return NextResponse.json(
         {
@@ -42,15 +61,31 @@ export async function POST(request: Request): Promise<NextResponse> {
   return NextResponse.json({
     keyRow: row,
     rawKeyOnce: minted.rawKey,
-    persistedToLiveMcp: Boolean(auth),
-    sandboxNotice:
-      !auth && getServiceSupabaseClient()
-        ? 'Demo preview key minted locally. Sign in at /login to bind a live key to mcp.verisource.dev.'
-        : undefined,
+    persistedToLiveMcp: Boolean(access.supabase),
   });
 }
 
 export async function DELETE(request: Request): Promise<NextResponse> {
+  const access = await resolveConsoleRequestAccess(request);
+  if (access.status === 'unauthenticated') {
+    return NextResponse.json(
+      {
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Sign in to your Verisource Console to revoke an MCP API key.',
+      },
+      { status: 401 }
+    );
+  }
+  if (access.status === 'plan_activation_required') {
+    return NextResponse.json(
+      {
+        error: 'PLAN_ACTIVATION_REQUIRED',
+        message: 'Activate a Console plan to manage MCP API keys.',
+      },
+      { status: 402 }
+    );
+  }
+
   const url = new URL(request.url);
   const body = (await request.json().catch(() => ({}))) as { id?: string };
   const keyId = (body.id ?? url.searchParams.get('id') ?? '').trim();
@@ -62,13 +97,12 @@ export async function DELETE(request: Request): Promise<NextResponse> {
     );
   }
 
-  const auth = await resolveAuthenticatedProfile(request);
-  if (auth) {
-    const { data, error } = await auth.supabase
+  if (access.supabase) {
+    const { data, error } = await access.supabase
       .from('mcp_api_keys')
       .update({ is_active: false })
       .eq('id', keyId)
-      .eq('user_id', auth.profile.id)
+      .eq('user_id', access.profile.id)
       .select('*')
       .maybeSingle();
 

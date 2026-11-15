@@ -24,7 +24,7 @@ const READY_TO_ASK_PROMPTS = [
     persona: 'FOR STORE OWNERS & FOUNDERS',
     title: 'Catch invented prices & missing /agents.md facts',
     prompt:
-      'Use Verisource to check mosaicroasters.com for AI pricing hallucinations and summarize what we should fix first in plain English.',
+      'Use Verisource to check our company domain for AI pricing hallucinations and summarize what we should fix first in plain English.',
   },
   {
     persona: 'FOR DEVELOPERS & B2B SAAS TEAMS',

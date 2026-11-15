@@ -11,12 +11,32 @@ import {
 import {
   getGraderCacheMap,
   getLocalMockStore,
-  getVerifyFixesIpMap,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to verify live fixes.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a $19 Audit Pass or monthly Console plan to verify live fix deployment.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json().catch(() => ({}))) as {
       domain_id?: string;
     };
@@ -31,51 +51,28 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const auth = await resolveAuthenticatedProfile(request);
     const store = getLocalMockStore();
-
-    if (!auth) {
-      const ip =
-        request.headers.get('cf-connecting-ip') ??
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-        '127.0.0.1';
-      const hourBucket = new Date().toISOString().slice(0, 13);
-      const ipMap = getVerifyFixesIpMap();
-      const entry = ipMap.get(ip);
-      const used = entry && entry.hourBucket === hourBucket ? entry.count : 0;
-      if (used >= 15) {
-        return NextResponse.json(
-          {
-            error: 'VERIFY_RATE_LIMITED',
-            message:
-              'Hourly demo verification limit reached. Sign in to run unlimited live fix checks.',
-          },
-          { status: 429 }
-        );
-      }
-      ipMap.set(ip, { hourBucket, count: used + 1 });
-    }
 
     let domain: DomainRow | undefined;
     let existingSnapshots: CitationSnapshotRow[] = [];
     let existingFixes: GeneratedFixRow[] = [];
 
-    if (auth) {
-      const { data: domData } = await auth.supabase
+    if (access.supabase) {
+      const { data: domData } = await access.supabase
         .from('domains')
         .select('*')
         .eq('id', body.domain_id)
-        .eq('user_id', auth.profile.id)
+        .eq('user_id', access.profile.id)
         .maybeSingle();
       domain = domData ?? undefined;
 
       if (domain) {
         const [{ data: snapData }, { data: fixData }] = await Promise.all([
-          auth.supabase
+          access.supabase
             .from('citation_snapshots')
             .select('*')
             .eq('domain_id', domain.id),
-          auth.supabase
+          access.supabase
             .from('generated_fixes')
             .select('*')
             .eq('domain_id', domain.id),
@@ -145,8 +142,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       .filter((f) => appliedSet.has(f.fix_type))
       .map((f) => f.id);
 
-    if (auth) {
-      await auth.supabase
+    if (access.supabase) {
+      await access.supabase
         .from('domains')
         .update({
           is_shopify: updatedDomain.is_shopify,
@@ -158,12 +155,12 @@ export async function POST(request: Request): Promise<NextResponse> {
           last_scanned_at: updatedDomain.last_scanned_at,
         })
         .eq('id', domain.id)
-        .eq('user_id', auth.profile.id);
+        .eq('user_id', access.profile.id);
 
       for (const fix of existingFixes) {
         const nextApplied = appliedSet.has(fix.fix_type);
         if (fix.is_applied !== nextApplied) {
-          await auth.supabase
+          await access.supabase
             .from('generated_fixes')
             .update({ is_applied: nextApplied })
             .eq('id', fix.id)

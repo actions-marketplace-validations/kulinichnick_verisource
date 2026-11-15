@@ -9,6 +9,7 @@ import {
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_PROMPTS,
   PATIENT_ZERO_SNAPSHOTS,
+  classifyPromptIntent,
   isFixTypeLiveOnDomain,
   normalizePublicDomain,
   resolveCoreGeoEnv,
@@ -16,6 +17,7 @@ import {
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type CitationSnapshotRow,
+  type CrawlerReadabilityReport,
   type Database,
   type DomainRow,
   type GeneratedFixRow,
@@ -227,8 +229,97 @@ export function checkAndConsumeDemoScanQuota(
   return { allowed: true, used: used + 1, limit: limitPerHour };
 }
 
+export const MOCK_OWNER_SESSION_TOKEN = 'vs_mock_owner_session';
+
+export function extractCookieValue(
+  cookieHeader: string | null,
+  cookieName: string
+): string {
+  if (!cookieHeader) return '';
+  const pairs = cookieHeader.split(';');
+  for (const rawPair of pairs) {
+    const eqIdx = rawPair.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = rawPair.slice(0, eqIdx).trim();
+    if (key === cookieName) {
+      try {
+        return decodeURIComponent(rawPair.slice(eqIdx + 1).trim());
+      } catch {
+        return rawPair.slice(eqIdx + 1).trim();
+      }
+    }
+  }
+  return '';
+}
+
+export function isFounderOwnerEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  const configuredOwner = (
+    process.env.CONSOLE_OWNER_EMAIL ||
+    process.env.ALERT_FALLBACK_EMAIL ||
+    'nick@mosaicroasters.com'
+  )
+    .trim()
+    .toLowerCase();
+  return Boolean(configuredOwner && normalized === configuredOwner);
+}
+
+export function hasActiveConsolePlan(
+  planTier: ProfileRow['plan_tier']
+): boolean {
+  return planTier !== 'free';
+}
+
+export function createLockedPlaceholderProfile(): ProfileRow {
+  const nowIso = '2026-01-01T00:00:00.000Z';
+  return {
+    id: '00000000-0000-4000-8000-000000000000',
+    email: '',
+    plan_tier: 'free',
+    billing_cycle: 'monthly',
+    stripe_customer_id: null,
+    stripe_subscription_id: null,
+    tripwire_paid_at: null,
+    mcp_calls_used_this_month: 0,
+    mcp_calls_limit: 5,
+    agency_brand_name: null,
+    agency_logo_url: null,
+    agency_primary_color: '#0A0E17',
+    agency_cta_url: null,
+    created_at: nowIso,
+    updated_at: nowIso,
+  };
+}
+
+export function isMockOwnerRequest(
+  request: Request,
+  explicitToken?: string | null
+): boolean {
+  // Strictly disabled whenever live Supabase service role credentials are present
+  if (getServiceSupabaseClient()) return false;
+
+  const candidate = explicitToken?.trim() ?? '';
+  if (candidate === MOCK_OWNER_SESSION_TOKEN) return true;
+
+  const authHeader = request.headers.get('authorization') ?? '';
+  if (authHeader.toLowerCase().startsWith('bearer ')) {
+    const bearer = authHeader.slice(7).trim();
+    if (bearer === MOCK_OWNER_SESSION_TOKEN) return true;
+  }
+
+  const mockCookie = extractCookieValue(
+    request.headers.get('cookie'),
+    'vs_mock_session'
+  );
+  return mockCookie === 'owner';
+}
+
 export function getServiceSupabaseClient(): SupabaseClient<Database> | null {
   const env = resolveCoreGeoEnv();
+  if (env.providerMode === 'mock') {
+    return null;
+  }
   if (!env.supabaseUrl || !env.supabaseServiceRoleKey) {
     return null;
   }
@@ -254,7 +345,10 @@ export async function resolveAuthenticatedProfile(
       token = authHeader.slice(7).trim();
     }
   }
-  if (!token) return null;
+  if (!token) {
+    token = extractCookieValue(request.headers.get('cookie'), 'vs_access_token');
+  }
+  if (!token || token === MOCK_OWNER_SESSION_TOKEN) return null;
 
   const { data: userRes, error: authErr } = await supabase.auth.getUser(token);
   if (authErr || !userRes?.user) {
@@ -262,6 +356,8 @@ export async function resolveAuthenticatedProfile(
   }
 
   const user = userRes.user;
+  const isOwner = isFounderOwnerEmail(user.email);
+
   const { data: existingProfile } = await supabase
     .from('profiles')
     .select('*')
@@ -269,22 +365,49 @@ export async function resolveAuthenticatedProfile(
     .maybeSingle();
 
   if (existingProfile) {
+    if (isOwner && existingProfile.plan_tier !== 'agency_249') {
+      const upgradedLimit = Math.max(existingProfile.mcp_calls_limit, 5000);
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .update({
+          plan_tier: 'agency_249',
+          mcp_calls_limit: upgradedLimit,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+        .select('*')
+        .maybeSingle();
+      if (ownerProfile) {
+        return { supabase, profile: ownerProfile };
+      }
+      return {
+        supabase,
+        profile: {
+          ...existingProfile,
+          plan_tier: 'agency_249',
+          mcp_calls_limit: upgradedLimit,
+        },
+      };
+    }
     return { supabase, profile: existingProfile };
   }
 
   // Auto-provision profile row if missing
   const nowIso = new Date().toISOString();
   const fallbackEmail = user.email ?? `${user.id}@verisource.dev`;
+  const initialPlan: ProfileRow['plan_tier'] = isOwner ? 'agency_249' : 'free';
+  const initialMcpLimit = isOwner ? 5000 : 5;
+
   const { data: createdProfile } = await supabase
     .from('profiles')
     .upsert(
       {
         id: user.id,
         email: fallbackEmail,
-        plan_tier: 'free',
+        plan_tier: initialPlan,
         billing_cycle: 'monthly',
         mcp_calls_used_this_month: 0,
-        mcp_calls_limit: 5,
+        mcp_calls_limit: initialMcpLimit,
         agency_primary_color: '#0A0E17',
         created_at: nowIso,
         updated_at: nowIso,
@@ -296,6 +419,67 @@ export async function resolveAuthenticatedProfile(
 
   if (!createdProfile) return null;
   return { supabase, profile: createdProfile };
+}
+
+export type ConsoleRequestAccess =
+  | {
+      status: 'authenticated';
+      supabase: SupabaseClient<Database>;
+      profile: ProfileRow;
+    }
+  | {
+      status: 'plan_activation_required';
+      supabase: SupabaseClient<Database>;
+      profile: ProfileRow;
+    }
+  | {
+      status: 'mock_owner';
+      supabase: null;
+      profile: ProfileRow;
+    }
+  | {
+      status: 'unauthenticated';
+      supabase: null;
+      profile: null;
+    };
+
+export async function resolveConsoleRequestAccess(
+  request: Request,
+  explicitToken?: string | null
+): Promise<ConsoleRequestAccess> {
+  const auth = await resolveAuthenticatedProfile(request, explicitToken);
+  if (auth) {
+    if (
+      hasActiveConsolePlan(auth.profile.plan_tier) ||
+      isFounderOwnerEmail(auth.profile.email)
+    ) {
+      return {
+        status: 'authenticated',
+        supabase: auth.supabase,
+        profile: auth.profile,
+      };
+    }
+    return {
+      status: 'plan_activation_required',
+      supabase: auth.supabase,
+      profile: auth.profile,
+    };
+  }
+
+  if (isMockOwnerRequest(request, explicitToken)) {
+    const store = getLocalMockStore();
+    return {
+      status: 'mock_owner',
+      supabase: null,
+      profile: store.profile,
+    };
+  }
+
+  return {
+    status: 'unauthenticated',
+    supabase: null,
+    profile: null,
+  };
 }
 
 export async function lookupDomainByPixelToken(
@@ -477,6 +661,7 @@ export async function provisionDomainAuditForWorkspace(input: {
   prompts: TrackedPromptRow[];
   snapshots: CitationSnapshotRow[];
   fixes: GeneratedFixRow[];
+  crawlerReadability?: CrawlerReadabilityReport;
   alreadyExists: boolean;
   capReached: boolean;
 }> {
@@ -579,7 +764,7 @@ export async function provisionDomainAuditForWorkspace(input: {
     id: crypto.randomUUID(),
     domain_id: domainId,
     prompt_text: pText,
-    intent_category: 'commercial_comparison',
+    intent_category: classifyPromptIntent(pText, audit.brandName).intentCategory,
     decompiled_fanout_queries: Array.from(
       new Set(
         audit.scanResults
@@ -648,6 +833,7 @@ export async function provisionDomainAuditForWorkspace(input: {
     prompts: newPrompts,
     snapshots: newSnapshots,
     fixes: newFixes,
+    crawlerReadability: audit.probe.crawlerReadability,
     alreadyExists: false,
     capReached: false,
   };

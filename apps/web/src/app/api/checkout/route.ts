@@ -235,5 +235,14 @@ export async function GET(request: Request): Promise<NextResponse> {
     dest.searchParams.set('tab', 'tab2_fixes');
   }
 
-  return NextResponse.redirect(dest.toString(), { status: 303 });
+  if ( dest.searchParams.get('upgraded') ) {
+    // No-op marker
+  }
+  const response = NextResponse.redirect(dest.toString(), { status: 303 });
+  response.cookies.set('vs_mock_session', 'owner', {
+    path: '/',
+    sameSite: 'lax',
+    httpOnly: false,
+  });
+  return response;
 }

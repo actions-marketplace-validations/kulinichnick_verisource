@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
 import {
-  PATIENT_ZERO_PITCH_REPORT,
   buildAgencyColdOutreachNote,
+  type AgencyPitchReportRow,
 } from '@verisource/core-geo';
 import {
   CodeArtifactCard,
@@ -50,10 +50,42 @@ const AGENCY_WORKFLOW_STEPS = [
 ];
 
 export default function AgenciesPartnerPage(): React.ReactElement {
-  const sampleClientBrief = {
-    ...PATIENT_ZERO_PITCH_REPORT,
+  const sampleClientBrief: AgencyPitchReportRow = {
+    id: '00000000-0000-4000-8000-000000000099',
+    agency_user_id: '00000000-0000-4000-8000-000000000001',
+    share_slug: 'vanguard-freightops-audit',
+    prospect_domain: 'https://vanguardfreight.io',
+    prospect_brand_name: 'Vanguard FreightOps',
+    visibility_score: 38,
+    hallucination_count: 2,
     agency_brand_name_snapshot: 'Northstar Search Studio',
+    agency_logo_url_snapshot: null,
+    agency_primary_color_snapshot: '#0A0E17',
     agency_cta_url_snapshot: 'https://cal.com/northstar/ai-audit',
+    summary_payload: {
+      top_gaps: [
+        'AI retrieval crawlers (PerplexityBot) encounter edge WAF HTTP 403 restrictions.',
+        'Missing /llms.txt machine-readable entity and pricing summary.',
+      ],
+      competitors_winning: ['Flexport', 'Freightos'],
+      hallucination_examples: [
+        {
+          category: 'pricing',
+          claim_text:
+            'Vanguard FreightOps requires a $2,500 monthly minimum retainer.',
+          verified_truth:
+            'Self-Serve LTL plans start at $390/month with zero setup fees.',
+          severity: 'high',
+        },
+      ],
+      recommended_fixes: [
+        'Publish 9.5+/10 graded Organization + FAQPage JSON-LD schema.',
+        'Publish canonical /agents.md and /llms.txt truth files at domain root.',
+      ],
+    },
+    views_count: 3,
+    expires_at: null,
+    created_at: '2026-11-01T12:00:00.000Z',
   };
   const outreachSample = buildAgencyColdOutreachNote(
     sampleClientBrief,
@@ -137,10 +169,10 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                   Annual Plan ($199/mo · Save 20%)
                 </a>
                 <Link
-                  href="/dashboard?tab=tab3_offsite"
+                  href="/#audit"
                   className="vs-btn vs-btn-secondary"
                 >
-                  Try Batch Pitch Mode Free →
+                  Test Free Website Audit →
                 </Link>
               </div>
             </div>

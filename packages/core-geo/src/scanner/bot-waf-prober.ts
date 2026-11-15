@@ -11,6 +11,23 @@ export interface NormalizedDomain {
   inferredBrandName: string;
 }
 
+export type CrawlerReadabilityStatus =
+  | 'ssr_clean'
+  | 'low_signal_bloat'
+  | 'csr_js_trap';
+
+export interface CrawlerReadabilityReport {
+  status: CrawlerReadabilityStatus;
+  rawHtmlBytes: number;
+  visibleTextChars: number;
+  visibleWordCount: number;
+  signalToHtmlPct: number;
+  estimatedTokens: number;
+  hasSemanticLandmarks: boolean;
+  detectedCsrShell: boolean;
+  summary: string;
+}
+
 export interface DomainHttpProbeResult {
   domain: NormalizedDomain;
   reachable: boolean;
@@ -26,6 +43,7 @@ export interface DomainHttpProbeResult {
   htmlSignalsShopify: boolean;
   extractedPriceMentions: string[];
   extractedShippingMentions: string[];
+  crawlerReadability?: CrawlerReadabilityReport;
 }
 
 const PRIVATE_OR_BLOCKED_HOST_REGEX =
@@ -247,6 +265,94 @@ export function extractVerifiableTruthFromAlternateBody(
     .trim();
 
   return cleaned.length >= 40 ? cleaned : null;
+}
+
+export function analyzeCrawlerHtmlReadability(
+  rawHtml: string
+): CrawlerReadabilityReport {
+  const html = rawHtml ?? '';
+  const rawHtmlBytes = new TextEncoder().encode(html).length;
+
+  const hasSemanticLandmarks =
+    /<(?:main|article|h1)\b/i.test(html) ||
+    /<script[^>]+type=["']application\/ld\+json["']/i.test(html);
+
+  const detectedCsrShell =
+    /<div[^>]+id=["'](?:root|app|__next)["'][^>]*>\s*<\/div>/i.test(html) ||
+    /enable javascript to run this app|you need to enable javascript/i.test(
+      html
+    );
+
+  const visibleText = html
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<svg[\s\S]*?<\/svg>/gi, ' ')
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const visibleTextChars = visibleText.length;
+  const visibleWordCount = visibleText
+    ? visibleText.split(/\s+/).filter(Boolean).length
+    : 0;
+  const estimatedTokens = Math.max(0, Math.round(visibleTextChars / 4));
+  const signalToHtmlPct =
+    rawHtmlBytes > 0
+      ? Math.min(
+          100,
+          Math.max(0, Math.round((visibleTextChars / rawHtmlBytes) * 100))
+        )
+      : 0;
+
+  if (
+    rawHtmlBytes === 0 ||
+    visibleWordCount < 35 ||
+    (detectedCsrShell && visibleWordCount < 75)
+  ) {
+    return {
+      status: 'csr_js_trap',
+      rawHtmlBytes,
+      visibleTextChars,
+      visibleWordCount,
+      signalToHtmlPct,
+      estimatedTokens,
+      hasSemanticLandmarks,
+      detectedCsrShell,
+      summary:
+        detectedCsrShell || rawHtmlBytes > 0
+          ? `Client-side JS trap: initial HTML exposes only ${visibleWordCount} words (~${estimatedTokens} tokens) to non-JS AI crawlers.`
+          : 'Unreachable or empty initial HTML response returned to AI crawlers.',
+    };
+  }
+
+  if (signalToHtmlPct < 3 && rawHtmlBytes > 55_000 && visibleWordCount < 220) {
+    return {
+      status: 'low_signal_bloat',
+      rawHtmlBytes,
+      visibleTextChars,
+      visibleWordCount,
+      signalToHtmlPct,
+      estimatedTokens,
+      hasSemanticLandmarks,
+      detectedCsrShell,
+      summary: `Heavy HTML bloat (${signalToHtmlPct}% text-to-markup signal across ${Math.round(rawHtmlBytes / 1024)} KB) — publish /llms.txt and /agents.md for clean retrieval.`,
+    };
+  }
+
+  return {
+    status: 'ssr_clean',
+    rawHtmlBytes,
+    visibleTextChars,
+    visibleWordCount,
+    signalToHtmlPct,
+    estimatedTokens,
+    hasSemanticLandmarks,
+    detectedCsrShell,
+    summary: `Server-rendered HTML exposes ${visibleWordCount.toLocaleString('en-US')} words (~${estimatedTokens.toLocaleString('en-US')} tokens, ${signalToHtmlPct}% signal density) without JavaScript.`,
+  };
 }
 
 function extractHtmlMetadata(html: string): {
@@ -561,6 +667,10 @@ export async function probeDomainHttpReadiness(
     }
   }
 
+  const initialCrawlerHtml =
+    homeRes.body.length > 0 ? homeRes.body : htmlBody;
+  const crawlerReadability = analyzeCrawlerHtmlReadability(initialCrawlerHtml);
+
   return {
     domain,
     reachable: homeRes.ok || htmlBody.length > 0,
@@ -576,5 +686,6 @@ export async function probeDomainHttpReadiness(
     htmlSignalsShopify: htmlMeta.htmlSignalsShopify || shopifyHeaderDetected,
     extractedPriceMentions: htmlMeta.extractedPriceMentions,
     extractedShippingMentions: htmlMeta.extractedShippingMentions,
+    crawlerReadability,
   };
 }

@@ -10,17 +10,37 @@ import {
 } from '@verisource/core-geo';
 import {
   PROTECTED_PATIENT_ZERO_IDS,
-  checkAndConsumeDemoScanQuota,
   domainCapForPlan,
   getLocalMockStore,
   provisionDomainAuditForWorkspace,
-  resolveAuthenticatedProfile,
+  resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
 export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to add a domain.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a $19 Audit Pass or monthly Console plan to add domains and generate fixes.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json()) as {
       domain_url?: string;
       brand_name?: string;
@@ -32,22 +52,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const auth = await resolveAuthenticatedProfile(request);
-    if (!auth) {
-      const demoQuota = checkAndConsumeDemoScanQuota(request, 6);
-      if (!demoQuota.allowed) {
-        return NextResponse.json(
-          {
-            error: 'DEMO_SCAN_LIMIT_REACHED',
-            message:
-              'Hourly guest workspace scan limit reached (6/hr). Activate a permanent domain audit + all 1-click fixes for $19 (credited toward any monthly plan within 7 days) or sign in.',
-          },
-          { status: 429 }
-        );
-      }
-    }
-    const store = getLocalMockStore();
-    const activeProfile = auth ? auth.profile : store.profile;
+    const activeProfile = access.profile;
     const maxDomains = domainCapForPlan(activeProfile.plan_tier);
 
     const provisioned = await provisionDomainAuditForWorkspace({
@@ -55,7 +60,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       customBrandName: body.brand_name,
       userId: activeProfile.id,
       planTier: activeProfile.plan_tier,
-      supabase: auth?.supabase ?? null,
+      supabase: access.supabase,
     });
 
     if (provisioned.alreadyExists && provisioned.domain) {
@@ -80,6 +85,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       prompts: provisioned.prompts,
       snapshots: provisioned.snapshots,
       fixes: provisioned.fixes,
+      crawlerReadability: provisioned.crawlerReadability,
     });
   } catch (err) {
     return NextResponse.json(
@@ -94,6 +100,27 @@ export async function POST(request: Request): Promise<NextResponse> {
 
 export async function PUT(request: Request): Promise<NextResponse> {
   try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to your Verisource Console to re-scan a domain.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message:
+            'Activate a $19 Audit Pass or monthly Console plan to run live workspace scans.',
+        },
+        { status: 402 }
+      );
+    }
+
     const body = (await request.json().catch(() => ({}))) as {
       domain_id?: string;
     };
@@ -104,36 +131,21 @@ export async function PUT(request: Request): Promise<NextResponse> {
       );
     }
 
-    const auth = await resolveAuthenticatedProfile(request);
-    if (!auth) {
-      const demoQuota = checkAndConsumeDemoScanQuota(request, 6);
-      if (!demoQuota.allowed) {
-        return NextResponse.json(
-          {
-            error: 'DEMO_SCAN_LIMIT_REACHED',
-            message:
-              'Hourly guest workspace scan limit reached (6/hr). Activate a permanent domain audit + all 1-click fixes for $19 (credited toward any monthly plan within 7 days) or sign in.',
-          },
-          { status: 429 }
-        );
-      }
-    }
     const store = getLocalMockStore();
-
     let domain: DomainRow | undefined;
     let trackedPrompts: TrackedPromptRow[] = [];
 
-    if (auth) {
-      const { data: domData } = await auth.supabase
+    if (access.supabase) {
+      const { data: domData } = await access.supabase
         .from('domains')
         .select('*')
         .eq('id', body.domain_id)
-        .eq('user_id', auth.profile.id)
+        .eq('user_id', access.profile.id)
         .maybeSingle();
       domain = domData ?? undefined;
 
       if (domain) {
-        const { data: promptData } = await auth.supabase
+        const { data: promptData } = await access.supabase
           .from('tracked_prompts')
           .select('*')
           .eq('domain_id', domain.id)
@@ -216,8 +228,8 @@ export async function PUT(request: Request): Promise<NextResponse> {
       created_at: nowIso,
     }));
 
-    if (auth) {
-      await auth.supabase
+    if (access.supabase) {
+      await access.supabase
         .from('domains')
         .update({
           is_shopify: updatedDomain.is_shopify,
@@ -230,24 +242,24 @@ export async function PUT(request: Request): Promise<NextResponse> {
           last_scanned_at: nowIso,
         })
         .eq('id', domain.id)
-        .eq('user_id', auth.profile.id);
+        .eq('user_id', access.profile.id);
 
-      await auth.supabase
+      await access.supabase
         .from('citation_snapshots')
         .delete()
         .eq('domain_id', domain.id);
       if (refreshedSnapshots.length > 0) {
-        await auth.supabase
+        await access.supabase
           .from('citation_snapshots')
           .insert(refreshedSnapshots);
       }
 
-      await auth.supabase
+      await access.supabase
         .from('generated_fixes')
         .delete()
         .eq('domain_id', domain.id);
       if (refreshedFixes.length > 0) {
-        await auth.supabase.from('generated_fixes').insert(refreshedFixes);
+        await access.supabase.from('generated_fixes').insert(refreshedFixes);
       }
     } else {
       Object.assign(domain, updatedDomain);
@@ -275,6 +287,7 @@ export async function PUT(request: Request): Promise<NextResponse> {
       snapshots: refreshedSnapshots,
       fixes: refreshedFixes,
       scoreDelta,
+      crawlerReadability: audit.probe.crawlerReadability,
     });
   } catch (err) {
     return NextResponse.json(
@@ -288,6 +301,26 @@ export async function PUT(request: Request): Promise<NextResponse> {
 }
 
 export async function DELETE(request: Request): Promise<NextResponse> {
+  const access = await resolveConsoleRequestAccess(request);
+  if (access.status === 'unauthenticated') {
+    return NextResponse.json(
+      {
+        error: 'AUTHENTICATION_REQUIRED',
+        message: 'Sign in to your Verisource Console to remove a domain.',
+      },
+      { status: 401 }
+    );
+  }
+  if (access.status === 'plan_activation_required') {
+    return NextResponse.json(
+      {
+        error: 'PLAN_ACTIVATION_REQUIRED',
+        message: 'Activate a Console plan to manage workspace domains.',
+      },
+      { status: 402 }
+    );
+  }
+
   const url = new URL(request.url);
   const body = (await request.json().catch(() => ({}))) as {
     domain_id?: string;
@@ -307,13 +340,12 @@ export async function DELETE(request: Request): Promise<NextResponse> {
     );
   }
 
-  const auth = await resolveAuthenticatedProfile(request);
-  if (auth) {
-    const { data, error } = await auth.supabase
+  if (access.supabase) {
+    const { data, error } = await access.supabase
       .from('domains')
       .delete()
       .eq('id', domainId)
-      .eq('user_id', auth.profile.id)
+      .eq('user_id', access.profile.id)
       .select('id')
       .maybeSingle();
 
@@ -331,7 +363,7 @@ export async function DELETE(request: Request): Promise<NextResponse> {
       {
         error: 'PROTECTED_DEMO_DOMAIN',
         message:
-          'Patient Zero benchmark stores cannot be removed from the public demo workspace.',
+          'Protected local fixture domains cannot be deleted in mock mode.',
       },
       { status: 403 }
     );
