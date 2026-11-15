@@ -10,6 +10,7 @@ import {
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildEdgeBotCrawlerSnippet,
+  buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
@@ -189,6 +190,10 @@ export function DashboardConsoleClient(props: {
   const [scanningSuggestedPrompt, setScanningSuggestedPrompt] = useState<
     string | null
   >(null);
+  const [rescanningPromptId, setRescanningPromptId] = useState<string | null>(
+    null
+  );
+  const [deletingPromptId, setDeletingPromptId] = useState<string | null>(null);
   const [attributionTab, setAttributionTab] = useState<
     'browser_pixel' | 'edge_crawler'
   >('browser_pixel');
@@ -924,6 +929,111 @@ export function DashboardConsoleClient(props: {
     } finally {
       setScanningSuggestedPrompt(null);
     }
+  }
+
+  async function handleRescanPrompt(promptId: string) {
+    setRescanningPromptId(promptId);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/prompts', {
+        method: 'PUT',
+        headers: authHeaders,
+        body: JSON.stringify({ prompt_id: promptId }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        prompt?: TrackedPromptRow;
+        snapshots?: CitationSnapshotRow[];
+      };
+      if (!res.ok || json.error || !json.prompt) {
+        setBannerError(json.message ?? 'Unable to re-scan buyer prompt.');
+      } else {
+        setData((prev) => ({
+          ...prev,
+          prompts: prev.prompts.map((p) =>
+            p.id === json.prompt!.id ? json.prompt! : p
+          ),
+          snapshots: [
+            ...(json.snapshots ?? []),
+            ...prev.snapshots.filter((s) => s.prompt_id !== json.prompt!.id),
+          ],
+        }));
+        setBannerSuccess(
+          `Re-scanned "${json.prompt.prompt_text}" across ChatGPT, Gemini, and Perplexity.`
+        );
+      }
+    } catch {
+      setBannerError('Network error while re-scanning buyer prompt.');
+    } finally {
+      setRescanningPromptId(null);
+    }
+  }
+
+  async function handleDeletePrompt(promptId: string, promptText: string) {
+    setDeletingPromptId(promptId);
+    setBannerError(null);
+    try {
+      const res = await fetch(
+        `/api/dashboard/prompts?id=${encodeURIComponent(promptId)}`,
+        {
+          method: 'DELETE',
+          headers: authHeaders,
+        }
+      );
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        deleted?: boolean;
+      };
+      if (!res.ok || json.error || !json.deleted) {
+        setBannerError(json.message ?? 'Unable to remove tracked prompt.');
+      } else {
+        setData((prev) => ({
+          ...prev,
+          prompts: prev.prompts.filter((p) => p.id !== promptId),
+          snapshots: prev.snapshots.filter((s) => s.prompt_id !== promptId),
+        }));
+        setBannerSuccess(
+          `Removed "${promptText}" from your tracked prompt quota.`
+        );
+      }
+    } catch {
+      setBannerError('Network error while removing tracked prompt.');
+    } finally {
+      setDeletingPromptId(null);
+    }
+  }
+
+  function handleExportExecutiveAuditReport() {
+    if (!activeDomain) return;
+    const artifact = buildExecutiveAuditReportMarkdown({
+      domain: activeDomain,
+      snapshots: domainSnapshots,
+      fixes: domainFixes,
+      trackedPrompts: domainPrompts.map((p) => p.prompt_text),
+      crawlerReadability: activeCrawlerReadability,
+      aiReferralVisits: totalAiVisits,
+      aiReferralRevenueUsd: totalAiRevenueUsd,
+      aiBotCrawls: totalBotCrawls,
+      suggestedPrompts: suggestedBuyerPrompts,
+    });
+    const hostSlug =
+      activeDomainHostname.replace(/[^a-z0-9.-]/g, '') || 'domain';
+    const blob = new Blob([artifact.content], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${hostSlug}-ai-search-audit.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setBannerSuccess(
+      `Exported Executive AI Search Report (${artifact.score}/10 Quality Score) as ${hostSlug}-ai-search-audit.md.`
+    );
   }
 
   async function handleVerifyTruthSheet(e: React.FormEvent) {
@@ -1992,7 +2102,7 @@ export function DashboardConsoleClient(props: {
           </select>
 
           {activeDomain ? (
-            <div style={{ display: 'inline-flex', gap: '6px' }}>
+            <div style={{ display: 'inline-flex', gap: '6px', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 disabled={rescanningDomain || deletingDomain}
@@ -2002,6 +2112,15 @@ export function DashboardConsoleClient(props: {
                 title="Run live HTTP & multi-engine re-scan on active domain"
               >
                 {rescanningDomain ? 'Re-Scanning...' : '↻ Re-Scan'}
+              </button>
+              <button
+                type="button"
+                onClick={handleExportExecutiveAuditReport}
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '7px 11px', fontSize: '12px' }}
+                title="Download full Critic-verified Executive AI Search Report (.md)"
+              >
+                ↓ Export Audit (.md)
               </button>
               {!isProtectedDemoSeedDomain ? (
                 <button
@@ -2243,7 +2362,13 @@ export function DashboardConsoleClient(props: {
       {/* Strict 3-Tab Layout */}
       <ThreeTabShell activeTab={activeTab} onSelectTab={setActiveTab} mode={uxMode}>
         {!activeDomain ? (
-          <div className="vs-card" style={{ padding: '32px' }}>
+          <div
+            className="vs-card"
+            style={{
+              padding: '32px',
+              marginBottom: activeTab === 'tab3_offsite' ? '24px' : undefined,
+            }}
+          >
             <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
               PRIVATE WORKSPACE READY · 0 DOMAINS TRACKED
             </div>
@@ -3812,13 +3937,13 @@ export function DashboardConsoleClient(props: {
           </div>
         ) : null}
 
-        {activeTab === 'tab3_offsite' && activeDomain ? (
+        {activeTab === 'tab3_offsite' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {isGuided ? (
               <GuidedExplainerBanner
                 stepLabel="STEP 03 OF 03 · COMPETITORS & CLIENT REPORTS"
                 title="See where competitors get recommended & share client links"
-                description="Add real questions buyers ask to uncover which blogs and Reddit threads AI reads, or create a clean branded audit page to send to a prospect."
+                description="Add real questions buyers ask to uncover which blogs and Reddit threads AI trusts, or create a clean branded audit page to send to a prospect."
                 glossary={[
                   {
                     term: 'Competitor Sources',
@@ -3832,6 +3957,8 @@ export function DashboardConsoleClient(props: {
               />
             ) : null}
 
+            {activeDomain ? (
+              <>
             {/* Citation Gap Source Leaderboard */}
             <div className="vs-card vs-table-wrap">
               <div
@@ -4319,6 +4446,7 @@ export function DashboardConsoleClient(props: {
                               display: 'inline-flex',
                               gap: '5px',
                               flexWrap: 'wrap',
+                              alignItems: 'center',
                             }}
                           >
                             <StatusBadge
@@ -4329,6 +4457,45 @@ export function DashboardConsoleClient(props: {
                             <StatusBadge>
                               {intentMeta.isBranded ? 'BRANDED' : 'UNBRANDED'}
                             </StatusBadge>
+                            <button
+                              type="button"
+                              disabled={
+                                rescanningPromptId !== null ||
+                                deletingPromptId !== null
+                              }
+                              onClick={() => void handleRescanPrompt(p.id)}
+                              className="vs-btn vs-btn-secondary"
+                              style={{ padding: '2px 7px', fontSize: '10.5px' }}
+                              title="Re-scan this prompt across ChatGPT, Gemini & Perplexity"
+                            >
+                              {rescanningPromptId === p.id
+                                ? 'Scanning...'
+                                : '↻ Re-Scan'}
+                            </button>
+                            {!isProtectedDemoSeedDomain ||
+                            domainPrompts.length > 1 ? (
+                              <button
+                                type="button"
+                                disabled={
+                                  deletingPromptId !== null ||
+                                  rescanningPromptId !== null
+                                }
+                                onClick={() =>
+                                  void handleDeletePrompt(p.id, p.prompt_text)
+                                }
+                                className="vs-btn vs-btn-secondary"
+                                style={{
+                                  padding: '2px 7px',
+                                  fontSize: '10.5px',
+                                  color: 'var(--vs-crit-fg)',
+                                }}
+                                title="Remove prompt to free up plan quota"
+                              >
+                                {deletingPromptId === p.id
+                                  ? 'Removing...'
+                                  : 'Remove'}
+                              </button>
+                            ) : null}
                           </div>
                         </td>
                         <td>
@@ -4366,6 +4533,8 @@ export function DashboardConsoleClient(props: {
                 </tbody>
               </table>
             </div>
+              </>
+            ) : null}
 
             {/* Module 4: Agency 60-Second White-Label Pitch Mode (Single + Batch Prospecting) */}
             <div className="vs-grid-2">

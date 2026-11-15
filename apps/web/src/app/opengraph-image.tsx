@@ -86,8 +86,8 @@ export default function OpenGraphImage(): ImageResponse {
               maxWidth: '1020px',
             }}
           >
-            Audit AI Citations, Stop Pricing Hallucinations &amp; Ship Verified
-            Schema Fixes.
+            Control How AI Search Recommends Your Brand &amp; Ship the Fixes
+            Agents Read.
           </div>
           <div
             style={{
@@ -97,8 +97,9 @@ export default function OpenGraphImage(): ImageResponse {
               maxWidth: '960px',
             }}
           >
-            Read-write GEO engine for ChatGPT, Gemini, and Perplexity — with
-            Shopify /api/ucp/mcp detection and stateless Streamable HTTP tools.
+            Answer Engine Insights, Rival Share of Voice, Edge AI Bot Logs &amp;
+            9.5+/10 JSON-LD + /agents.md fixes for ChatGPT, Gemini &amp;
+            Perplexity.
           </div>
         </div>
 

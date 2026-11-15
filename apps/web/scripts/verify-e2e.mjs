@@ -1594,7 +1594,70 @@ async function run() {
           m42Tab3Html.includes('Review Directory')),
       'Expected Auto-Suggested Buyer Prompts, Funnel/Branded badges, and Source-Type Categorization on Tab 3'
     );
-    console.log('✔ [38/38] M42 Profound-caliber funnel, coffee-store scrub, route-aware nav, HMAC ai_bot_crawl logger & all 5 Competitor Intelligence Tools verified!');
+    console.log('✔ [38/39] M42 Profound-caliber funnel, coffee-store scrub, route-aware nav, HMAC ai_bot_crawl logger & all 5 Competitor Intelligence Tools verified');
+
+    // 37. M43 Sitemap + Hero SVG Coffee-Echo Scrub, Executive Audit Export Button & Full Prompt Lifecycle (POST + PUT Re-Scan + DELETE + 404)
+    const m43SitemapXml = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    assert.ok(
+      !/mosaic-springfield-audit|aurearoasters|mosaicroasters/i.test(
+        m43SitemapXml
+      ),
+      'Expected zero personal coffee-store audit URLs inside /sitemap.xml'
+    );
+    assert.ok(
+      !/K-Cup|Whole-bean|coffee gift/i.test(v1HomeHtml),
+      'Expected zero specialty coffee echoes inside HeroSignalSchematic on /'
+    );
+    assert.ok(
+      m42Tab1Html.includes('Export Audit (.md)'),
+      'Expected 1-click Export Audit (.md) button in Console Top Control Bar'
+    );
+
+    const m43AddPromptRes = await fetch(`${BASE}/api/dashboard/prompts`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        prompt_text: 'Best enterprise email infrastructure with SOC2 compliance',
+      }),
+    });
+    assert.equal(m43AddPromptRes.status, 200);
+    const m43AddPromptJson = await m43AddPromptRes.json();
+    assert.ok(m43AddPromptJson.prompt?.id);
+
+    const m43RescanPromptRes = await fetch(`${BASE}/api/dashboard/prompts`, {
+      method: 'PUT',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ prompt_id: m43AddPromptJson.prompt.id }),
+    });
+    assert.equal(m43RescanPromptRes.status, 200);
+    const m43RescanPromptJson = await m43RescanPromptRes.json();
+    assert.equal(m43RescanPromptJson.snapshots.length, 3);
+
+    const m43DeletePromptRes = await fetch(
+      `${BASE}/api/dashboard/prompts?id=${encodeURIComponent(
+        m43AddPromptJson.prompt.id
+      )}`,
+      {
+        method: 'DELETE',
+        headers: OWNER_HEADERS,
+      }
+    );
+    assert.equal(m43DeletePromptRes.status, 200);
+    const m43DeletePromptJson = await m43DeletePromptRes.json();
+    assert.equal(m43DeletePromptJson.deleted, true);
+
+    const m43DeletePromptAgainRes = await fetch(
+      `${BASE}/api/dashboard/prompts?id=${encodeURIComponent(
+        m43AddPromptJson.prompt.id
+      )}`,
+      {
+        method: 'DELETE',
+        headers: OWNER_HEADERS,
+      }
+    );
+    assert.equal(m43DeletePromptAgainRes.status, 404);
+    console.log('✔ [39/39] M43 Sitemap + Hero SVG coffee-echo scrub, Executive Audit Export & full Prompt CRUD (POST + PUT + DELETE + 404) verified!');
   } finally {
     server.kill();
   }

@@ -19,6 +19,7 @@ import {
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildEdgeBotCrawlerSnippet,
+  buildExecutiveAuditReportMarkdown,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildLocalServiceBatchCsv,
@@ -1633,4 +1634,77 @@ test('M42 5 Competitor Intelligence Upgrades (Suggested Prompts, Mention/Citatio
   });
   assert.equal(fullCommerce.passedCount, 5);
   assert.equal(fullCommerce.readinessPct, 100);
+});
+
+test('M43 Executive AI Search Audit Report exporter passes >= 9.5/10 Critic with all 5 Competitor Intelligence sections', () => {
+  const execReport = buildExecutiveAuditReportMarkdown({
+    domain: {
+      brand_name: 'Resend',
+      domain_url: 'https://resend.com',
+      is_shopify: false,
+      shopify_mcp_status: 'unavailable',
+      agents_md_status: 'custom_enriched',
+      llms_txt_status: 'present',
+      robots_ai_bot_status: {
+        GPTBot: true,
+        'OAI-SearchBot': true,
+        PerplexityBot: true,
+        ClaudeBot: true,
+        'Google-Extended': true,
+        waf_blocked: false,
+      },
+      brand_truth_sheet: {
+        is_user_verified: true,
+        core_offering: 'Developer transactional email API and React Email platform.',
+        verified_pricing_summary: 'Free up to 3,000 emails/mo; Pro starts at $20/mo for 50,000 emails.',
+        shipping_or_service_area: 'Global cloud API with US and EU regions.',
+        key_differentiators: ['React Email SDK', 'REST & SMTP delivery'],
+        discontinued_or_false_claims_to_flag: ['Does NOT offer $10/mo unlimited sending'],
+      },
+      visibility_score: 74,
+      accuracy_score: 92,
+    },
+    snapshots: [
+      {
+        id: 'exec-s1',
+        domain_id: 'exec-d1',
+        prompt_id: 'exec-p1',
+        ai_engine: 'perplexity',
+        brand_mentioned: true,
+        citation_rank: 1,
+        competitors_mentioned: ['Postmark', 'SendGrid'],
+        cited_source_urls: [
+          'https://resend.com/pricing',
+          'https://reddit.com/r/nextjs/comments/email_providers',
+        ],
+        fanout_telemetry_type: 'observed_query',
+        hallucination_detected: false,
+        hallucination_details: null,
+        raw_answer_excerpt: 'Resend is a top pick for React developers.',
+        scanned_at: '2026-11-15T12:00:00Z',
+      },
+    ],
+    fixes: [
+      {
+        fix_type: 'json_ld_schema',
+        title: 'SoftwareApplication + FAQPage JSON-LD',
+        content_payload: '{"@context":"https://schema.org","@type":"SoftwareApplication"}',
+        is_applied: true,
+        natural_quality_score: 9.8,
+      },
+    ],
+    aiReferralVisits: 14,
+    aiReferralRevenueUsd: 240,
+    aiBotCrawls: 9,
+  });
+
+  assert.ok(
+    execReport.score >= 9.5,
+    `Expected Executive Audit Report quality score >= 9.5, got ${execReport.score}`
+  );
+  assert.ok(execReport.content.includes('## 2. Engine-by-Engine Mention vs. Citation Rate'));
+  assert.ok(execReport.content.includes('## 3. Brand Sentiment & Head-to-Head Rival Share of Voice'));
+  assert.ok(execReport.content.includes('## 6. AI Shopping & Offer Attribute Matrix'));
+  assert.ok(execReport.content.includes('## 7. Categorized Citation Gap Sources'));
+  assert.ok(execReport.content.includes('## 8. Priority Funnel Prompts to Track Next'));
 });

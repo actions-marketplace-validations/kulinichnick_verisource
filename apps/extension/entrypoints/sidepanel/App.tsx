@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   buildAiAttributionSnippet,
+  buildEdgeBotCrawlerSnippet,
+  buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
+  evaluateCommerceAttributeReadiness,
   generateGeoFixBundle,
-  PATIENT_ZERO_DOMAINS,
-  PATIENT_ZERO_FIXES,
-  PATIENT_ZERO_PROMPTS,
-  PATIENT_ZERO_SNAPSHOTS,
+  generateSuggestedBuyerPrompts,
   rankCitationGapSources,
   runFullGeoAudit,
+  summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   type FullGeoAuditResult,
   type ReadinessScanSummary,
@@ -44,94 +45,6 @@ function describeFixPlainly(fixType: string): string {
   }
 }
 
-function buildInitialAureaAudit(): FullGeoAuditResult {
-  const domain = PATIENT_ZERO_DOMAINS[0]!;
-  const fix = PATIENT_ZERO_FIXES[0]!;
-  const snaps = PATIENT_ZERO_SNAPSHOTS.filter((s) => s.domain_id === domain.id);
-  const prompt = PATIENT_ZERO_PROMPTS.find((p) => p.domain_id === domain.id);
-
-  return {
-    domainUrl: domain.domain_url,
-    hostname: 'aurearoasters.com',
-    brandName: domain.brand_name,
-    industryVertical: 'shopify_commerce',
-    visibilityScore: domain.visibility_score,
-    accuracyScore: domain.accuracy_score,
-    probe: {
-      domain: {
-        origin: domain.domain_url,
-        hostname: 'aurearoasters.com',
-        inferredBrandName: domain.brand_name,
-      },
-      reachable: true,
-      httpStatus: 200,
-      title: domain.brand_name,
-      metaDescription: domain.brand_truth_sheet.core_offering,
-      jsonLdBlocks: [],
-      robotsAiBotStatus: domain.robots_ai_bot_status,
-      llmsTxtStatus: domain.llms_txt_status,
-      llmsTxtExcerpt: null,
-      agentsMdRaw: null,
-      agentsMdInitialStatus: domain.agents_md_status,
-      htmlSignalsShopify: domain.is_shopify,
-      extractedPriceMentions: ['$22.00', '$28.00', '$50.00'],
-      extractedShippingMentions: [
-        domain.brand_truth_sheet.shipping_or_service_area,
-      ],
-    },
-    shopify: {
-      isShopify: domain.is_shopify,
-      shopifyMcpStatus: domain.shopify_mcp_status,
-      activeMcpEndpoint: 'https://aurearoasters.com/api/ucp/mcp',
-      exposedMcpTools: ['search_shop_catalog', 'get_shop_policies'],
-      agentsMdStatus: domain.agents_md_status,
-      catalogSkus: [],
-      priceRangeSummary: domain.brand_truth_sheet.verified_pricing_summary,
-    },
-    brandTruthSheet: domain.brand_truth_sheet,
-    trackedPrompts: prompt ? [prompt.prompt_text] : [],
-    scanResults: snaps.map((s) => ({
-      promptText:
-        prompt?.prompt_text ??
-        'Best luxury Catholic or saint-inspired specialty coffee gifts online',
-      aiEngine: s.ai_engine,
-      brandMentioned: s.brand_mentioned,
-      citationRank: s.citation_rank,
-      competitorsMentioned: s.competitors_mentioned,
-      citedSourceUrls: s.cited_source_urls,
-      decompiledFanoutQueries: prompt?.decompiled_fanout_queries ?? [],
-      fanoutTelemetryType: s.fanout_telemetry_type,
-      hallucinationDetected: s.hallucination_detected,
-      hallucinationDetails: s.hallucination_details ?? [],
-      rawAnswerExcerpt: s.raw_answer_excerpt ?? '',
-    })),
-    allHallucinations: snaps.flatMap((s) => s.hallucination_details ?? []),
-    fixes: [
-      {
-        fixType: fix.fix_type,
-        title: fix.title,
-        contentPayload: fix.content_payload,
-        naturalQualityScore: fix.natural_quality_score,
-        qualityRubricBreakdown: fix.quality_rubric_breakdown,
-      },
-    ],
-    pitchSummaryPayload: {
-      top_gaps: [
-        'Missing /llms.txt machine-readable catalog and shipping summary.',
-        'Storefront serves generic Shopify boilerplate /agents.md without excluded K-Cup guardrails.',
-      ],
-      competitors_winning: ['Mystic Monk Coffee', 'Catholic Coffee'],
-      hallucination_examples: snaps.flatMap(
-        (s) => s.hallucination_details ?? []
-      ),
-      recommended_fixes: [
-        'Publish custom templates/agents.md.liquid referencing /api/ucp/mcp.',
-        'Inject 9.5+/10 Organization and FAQPage JSON-LD schema.',
-      ],
-    },
-  };
-}
-
 function extractPublicHostname(rawUrl?: string): string | null {
   if (!rawUrl) return null;
   try {
@@ -150,17 +63,20 @@ function extractPublicHostname(rawUrl?: string): string | null {
 }
 
 export default function App(): React.ReactElement {
-  const [domainInput, setDomainInput] = useState('aurearoasters.com');
+  const [domainInput, setDomainInput] = useState('');
   const [activeTabUrl, setActiveTabUrl] = useState<string | null>(null);
-  const [workspaceOrigin, setWorkspaceOrigin] = useState('https://verisource.dev');
+  const [workspaceOrigin, setWorkspaceOrigin] = useState(
+    'https://verisource.dev'
+  );
   const [activeTab, setActiveTab] = useState<ThreeTabId>('tab1_visibility');
   const [uxMode, setUxMode] = useState<UxMode>('guided');
+  const [attributionMode, setAttributionMode] = useState<
+    'browser_pixel' | 'edge_crawler'
+  >('browser_pixel');
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [audit, setAudit] = useState<FullGeoAuditResult>(() =>
-    buildInitialAureaAudit()
-  );
+  const [audit, setAudit] = useState<FullGeoAuditResult | null>(null);
 
   useEffect(() => {
     try {
@@ -197,7 +113,10 @@ export default function App(): React.ReactElement {
           skipDirectHttpProbe: true,
         });
 
-        const originToQuery = (preferredOrigin ?? workspaceOrigin).replace(/\/$/, '');
+        const originToQuery = (preferredOrigin ?? workspaceOrigin).replace(
+          /\/$/,
+          ''
+        );
         try {
           const apiRes = await fetch(`${originToQuery}/api/grader`, {
             method: 'POST',
@@ -213,6 +132,10 @@ export default function App(): React.ReactElement {
             fullAudit.probe.reachable = true;
             fullAudit.probe.robotsAiBotStatus = liveSummary.robotsAiBotStatus;
             fullAudit.probe.llmsTxtStatus = liveSummary.llmsTxtStatus;
+            if (liveSummary.crawlerReadability) {
+              fullAudit.probe.crawlerReadability =
+                liveSummary.crawlerReadability;
+            }
             fullAudit.shopify.isShopify = liveSummary.isShopify;
             fullAudit.shopify.shopifyMcpStatus = liveSummary.shopifyMcpStatus;
             fullAudit.shopify.agentsMdStatus = liveSummary.agentsMdStatus;
@@ -273,12 +196,19 @@ export default function App(): React.ReactElement {
   const readActiveTabAndScan = useCallback(async () => {
     if (typeof browser === 'undefined' || !browser.tabs?.query) return;
     try {
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tabs = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
       const current = tabs[0];
       const host = extractPublicHostname(current?.url);
       if (host) {
         setActiveTabUrl(host);
         await inspectDomain(host);
+      } else {
+        setStatusMessage(
+          'Navigate to a public http(s) webpage or type a domain above to scan.'
+        );
       }
     } catch {
       // Ignore if activeTab host was not yet granted
@@ -286,8 +216,6 @@ export default function App(): React.ReactElement {
   }, [inspectDomain]);
 
   useEffect(() => {
-    void inspectDomain('aurearoasters.com');
-
     if (typeof browser !== 'undefined' && browser.tabs?.query) {
       void browser.tabs
         .query({ active: true, currentWindow: true })
@@ -304,14 +232,63 @@ export default function App(): React.ReactElement {
     }
   }, [inspectDomain]);
 
-  const uniqueFanoutQueries = Array.from(
-    new Set(audit.scanResults.flatMap((s) => s.decompiledFanoutQueries))
-  );
-  const engineShare = summarizeEngineCitationShare(audit.scanResults);
-  const rankedSources = rankCitationGapSources({
-    targetHostname: audit.hostname,
-    snapshots: audit.scanResults,
-  });
+  const cleanOrigin = workspaceOrigin.replace(/\/$/, '');
+  const isGuided = uxMode === 'guided';
+
+  const engineShare = audit
+    ? summarizeEngineCitationShare(audit.scanResults, audit.hostname)
+    : [];
+  const sentimentAndSov = audit
+    ? summarizeBrandSentimentAndSov({
+        brandName: audit.brandName,
+        snapshots: audit.scanResults,
+      })
+    : null;
+  const commerceReadiness = audit
+    ? evaluateCommerceAttributeReadiness({
+        domain: {
+          brand_name: audit.brandName,
+          domain_url: audit.domainUrl,
+          is_shopify: audit.shopify.isShopify,
+          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+          agents_md_status: audit.shopify.agentsMdStatus,
+          llms_txt_status: audit.probe.llmsTxtStatus,
+          brand_truth_sheet: audit.brandTruthSheet,
+        },
+        fixes: audit.fixes.map((f) => ({
+          fix_type: f.fixType,
+          content_payload: f.contentPayload,
+          is_applied: false,
+        })),
+      })
+    : null;
+  const rankedSources = audit
+    ? rankCitationGapSources({
+        targetHostname: audit.hostname,
+        snapshots: audit.scanResults,
+      })
+    : [];
+  const suggestedPrompts =
+    audit && sentimentAndSov
+      ? generateSuggestedBuyerPrompts({
+          hostname: audit.hostname,
+          brandName: audit.brandName,
+          coreOffering: audit.brandTruthSheet.core_offering,
+          pricingSummary: audit.brandTruthSheet.verified_pricing_summary,
+          shippingOrServiceArea:
+            audit.brandTruthSheet.shipping_or_service_area,
+          isShopify: audit.shopify.isShopify,
+          topRivals: sentimentAndSov.headToHeadSov
+            .filter((r) => !r.isTargetBrand)
+            .map((r) => r.entityName),
+          existingPrompts: audit.trackedPrompts,
+        })
+      : [];
+  const uniqueFanoutQueries = audit
+    ? Array.from(
+        new Set(audit.scanResults.flatMap((s) => s.decompiledFanoutQueries))
+      )
+    : [];
 
   const mcpSnippet = JSON.stringify(
     {
@@ -328,19 +305,65 @@ export default function App(): React.ReactElement {
     2
   );
 
-  const cleanOrigin = workspaceOrigin.replace(/\/$/, '');
   const pixelPreview = buildAiAttributionSnippet({
-    trackingPixelToken:
-      audit.hostname === 'mosaicroasters.com'
-        ? 'bbbbbbbb-1111-4000-8000-000000000002'
-        : 'aaaaaaaa-1111-4000-8000-000000000001',
+    trackingPixelToken: '00000000-0000-4000-8000-000000000001',
     ingestionUrl: `${cleanOrigin}/api/pixel`,
   });
 
-  const isGuided = uxMode === 'guided';
+  const edgeCrawlerPreview = buildEdgeBotCrawlerSnippet({
+    trackingPixelToken: '00000000-0000-4000-8000-000000000001',
+    checkoutKey: 'replace_with_console_hmac',
+    ingestionUrl: `${cleanOrigin}/api/pixel`,
+  });
+
+  const handleExportAuditMarkdown = () => {
+    if (!audit) return;
+    const report = buildExecutiveAuditReportMarkdown({
+      domain: {
+        brand_name: audit.brandName,
+        domain_url: audit.domainUrl,
+        is_shopify: audit.shopify.isShopify,
+        shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+        agents_md_status: audit.shopify.agentsMdStatus,
+        llms_txt_status: audit.probe.llmsTxtStatus,
+        robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+        brand_truth_sheet: audit.brandTruthSheet,
+        visibility_score: audit.visibilityScore,
+        accuracy_score: audit.accuracyScore,
+      },
+      snapshots: audit.scanResults,
+      fixes: audit.fixes.map((f) => ({
+        fix_type: f.fixType,
+        title: f.title,
+        content_payload: f.contentPayload,
+        is_applied: false,
+        natural_quality_score: f.naturalQualityScore,
+      })),
+      trackedPrompts: audit.trackedPrompts,
+      crawlerReadability: audit.probe.crawlerReadability ?? null,
+      suggestedPrompts,
+    });
+    const blob = new Blob([report.content], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${audit.hostname}-ai-search-audit.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div style={{ padding: '12px', minHeight: '100vh', background: 'var(--vs-canvas)' }}>
+    <div
+      style={{
+        padding: '12px',
+        minHeight: '100vh',
+        background: 'var(--vs-canvas)',
+      }}
+    >
       <VerisourceStyleTag />
 
       {/* Top Brand Header + Guided/Pro Toggle */}
@@ -359,7 +382,11 @@ export default function App(): React.ReactElement {
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
           <span
             className="vs-mono"
-            style={{ fontWeight: 700, fontSize: '13px', letterSpacing: '-0.02em' }}
+            style={{
+              fontWeight: 700,
+              fontSize: '13px',
+              letterSpacing: '-0.02em',
+            }}
           >
             VERISOURCE
           </span>
@@ -367,13 +394,19 @@ export default function App(): React.ReactElement {
         </div>
 
         <a
-          href={`${cleanOrigin}/dashboard?domain=${encodeURIComponent(audit.hostname)}`}
+          href={
+            audit
+              ? `${cleanOrigin}/dashboard?domain=${encodeURIComponent(
+                  audit.hostname
+                )}`
+              : `${cleanOrigin}/dashboard`
+          }
           target="_blank"
           rel="noopener noreferrer"
           className="vs-mono"
           style={{ fontSize: '11.5px', color: 'var(--vs-ink)', fontWeight: 600 }}
         >
-          Full Console →
+          Private Console →
         </a>
       </div>
 
@@ -390,7 +423,7 @@ export default function App(): React.ReactElement {
             type="text"
             value={domainInput}
             onChange={(e) => setDomainInput(e.target.value)}
-            placeholder="yourwebsite.com"
+            placeholder="Enter website (e.g. yourcompany.com)"
             className="vs-input"
             style={{ padding: '7px 9px', fontSize: '12.5px' }}
             aria-label="Inspect target domain"
@@ -399,37 +432,46 @@ export default function App(): React.ReactElement {
             type="submit"
             disabled={loading}
             className="vs-btn"
-            style={{ padding: '7px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
+            style={{
+              padding: '7px 12px',
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+            }}
           >
-            {loading ? 'Scanning...' : 'Scan Site'}
+            {loading ? 'Scanning...' : 'Audit Site'}
           </button>
         </form>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '6px',
+          }}
+        >
           <button
             type="button"
             className="vs-btn vs-btn-secondary"
-            style={{ padding: '4px 8px', fontSize: '11px' }}
+            style={{ padding: '4px 9px', fontSize: '11px' }}
             onClick={() => void readActiveTabAndScan()}
           >
-            {activeTabUrl ? `Current Tab (${activeTabUrl})` : 'Scan Current Tab'}
+            {activeTabUrl
+              ? `↻ Scan Active Tab (${activeTabUrl})`
+              : 'Scan Active Browser Tab'}
           </button>
-          <button
-            type="button"
-            className="vs-btn vs-btn-secondary"
-            style={{ padding: '4px 8px', fontSize: '11px' }}
-            onClick={() => void inspectDomain('aurearoasters.com')}
-          >
-            aurearoasters.com
-          </button>
-          <button
-            type="button"
-            className="vs-btn vs-btn-secondary"
-            style={{ padding: '4px 8px', fontSize: '11px' }}
-            onClick={() => void inspectDomain('mosaicroasters.com')}
-          >
-            mosaicroasters.com
-          </button>
+
+          {audit ? (
+            <button
+              type="button"
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '4px 9px', fontSize: '11px' }}
+              onClick={handleExportAuditMarkdown}
+            >
+              ↓ Export Audit (.md)
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -465,389 +507,641 @@ export default function App(): React.ReactElement {
         </div>
       ) : null}
 
-      {/* Strict 3-Tab Shared Shell */}
-      <ThreeTabShell
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        compact
-        mode={uxMode}
-      >
-        {activeTab === 'tab1_visibility' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {isGuided ? (
-              <GuidedExplainerBanner
-                stepLabel="STEP 1 · QUICK HEALTH CHECK"
-                title="See how AI describes this website"
-                description="Higher scores mean AI engines can read your pages and state your real prices accurately."
-              />
-            ) : null}
-
-            <div
-              className="vs-card"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                overflow: 'hidden',
-              }}
-            >
-              <div style={{ borderRight: '1px solid var(--vs-border)' }}>
-                <MetricLedgerCell
-                  label={isGuided ? 'AI Visibility' : 'AI Share of Voice'}
-                  value={audit.visibilityScore}
-                  suffix="/ 100"
-                  tone={audit.visibilityScore < 50 ? 'warn' : 'pass'}
-                  sublabel={audit.hostname}
-                />
-              </div>
-              <div>
-                <MetricLedgerCell
-                  label={isGuided ? 'Fact Accuracy' : 'Truth Accuracy'}
-                  value={`${audit.accuracyScore}%`}
-                  tone={audit.accuracyScore < 80 ? 'critical' : 'pass'}
-                  sublabel={`${audit.allHallucinations.length} issue(s)`}
-                />
-              </div>
-            </div>
-
-            {/* Compact 3-Engine Citation Share Strip */}
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <div className="vs-eyebrow" style={{ marginBottom: '6px', fontSize: '10px' }}>
-                ENGINE CITATION SHARE
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '6px',
-                }}
-              >
-                {engineShare.map((item) => {
-                  const statusText =
-                    item.totalSnapshots === 0
-                      ? 'Pending'
-                      : item.mentionedCount > 0
-                        ? `Rank #${item.bestRank ?? 1}`
-                        : 'Omitted';
-                  return (
-                    <div
-                      key={item.aiEngine}
-                      style={{
-                        padding: '7px 8px',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '5px',
-                        background: 'var(--vs-surface-subtle)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: '10.5px',
-                          fontWeight: 700,
-                          color: 'var(--vs-ink-secondary)',
-                        }}
-                      >
-                        {item.shortLabel}
-                      </div>
-                      <div
-                        className="vs-mono"
-                        style={{ fontSize: '13px', fontWeight: 700, marginTop: '2px' }}
-                      >
-                        {item.mentionedCount}/{item.totalSnapshots}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '10.5px',
-                          color:
-                            item.totalSnapshots > 0 && item.mentionedCount === 0
-                              ? 'var(--vs-crit-fg)'
-                              : 'var(--vs-ink-muted)',
-                          marginTop: '1px',
-                        }}
-                      >
-                        {statusText}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Protocol & Crawler Readout */}
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <div className="vs-eyebrow" style={{ marginBottom: '6px', fontSize: '10px' }}>
-                {isGuided ? 'CAN AI BOTS READ THIS SITE?' : 'CRAWLER & PROTOCOL STATUS'}
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                <StatusBadge
-                  tone={audit.probe.robotsAiBotStatus.GPTBot ? 'pass' : 'critical'}
-                >
-                  GPTBot: {audit.probe.robotsAiBotStatus.GPTBot ? 'ALLOWED' : 'BLOCKED'}
-                </StatusBadge>
-                <StatusBadge
-                  tone={
-                    audit.probe.robotsAiBotStatus.PerplexityBot ? 'pass' : 'critical'
-                  }
-                >
-                  PerplexityBot:{' '}
-                  {audit.probe.robotsAiBotStatus.PerplexityBot ? 'ALLOWED' : 'BLOCKED'}
-                </StatusBadge>
-                <StatusBadge
-                  tone={
-                    audit.shopify.agentsMdStatus === 'custom_enriched'
-                      ? 'pass'
-                      : audit.shopify.agentsMdStatus === 'default_boilerplate'
-                        ? 'warn'
-                        : 'critical'
-                  }
-                >
-                  {isGuided
-                    ? `AI Rulebook: ${
-                        audit.shopify.agentsMdStatus === 'custom_enriched'
-                          ? 'Verified'
-                          : audit.shopify.agentsMdStatus === 'default_boilerplate'
-                            ? 'Generic'
-                            : 'Missing'
-                      }`
-                    : `/agents.md: ${audit.shopify.agentsMdStatus}`}
-                </StatusBadge>
-                {audit.shopify.isShopify ? (
-                  <StatusBadge
-                    tone={
-                      audit.shopify.shopifyMcpStatus === 'ucp_active'
-                        ? 'pass'
-                        : 'warn'
-                    }
-                  >
-                    Shopify:{' '}
-                    {audit.shopify.shopifyMcpStatus === 'ucp_active'
-                      ? '/api/ucp/mcp'
-                      : '/api/mcp'}
-                  </StatusBadge>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Flagged Hallucinations */}
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '8px',
-                }}
-              >
-                <strong style={{ fontSize: '12.5px' }}>
-                  {isGuided ? 'Wrong AI Claims Caught' : 'Hallucination Watchdog'}
-                </strong>
-                <StatusBadge
-                  tone={audit.allHallucinations.length > 0 ? 'critical' : 'pass'}
-                >
-                  {audit.allHallucinations.length > 0
-                    ? `${audit.allHallucinations.length} FLAGGED`
-                    : 'CLEAN'}
-                </StatusBadge>
-              </div>
-
-              {audit.allHallucinations.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {audit.allHallucinations.map((h, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: '8px 10px',
-                        background: 'var(--vs-crit-bg)',
-                        border: '1px solid var(--vs-crit-border)',
-                        borderRadius: '5px',
-                        fontSize: '12px',
-                      }}
-                    >
-                      <div style={{ color: 'var(--vs-crit-fg)', fontWeight: 600 }}>
-                        AI Says: &ldquo;{h.claim_text}&rdquo;
-                      </div>
-                      <div style={{ color: 'var(--vs-ink)', marginTop: '4px' }}>
-                        <strong>Real Fact:</strong> {h.verified_truth}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>
-                  No pricing or policy mismatches found against{' '}
-                  {audit.brandTruthSheet.verified_pricing_summary}.
-                </div>
-              )}
-            </div>
-
-            {/* Brand Truth Snapshot */}
-            <div className="vs-card" style={{ padding: '10px 12px', fontSize: '12px' }}>
-              <strong style={{ display: 'block', marginBottom: '4px' }}>
-                {isGuided ? 'Real Website Facts' : 'Verified Storefront Ground Truth'}
-              </strong>
-              <div style={{ color: 'var(--vs-ink-secondary)', marginBottom: '4px' }}>
-                <strong>Pricing:</strong>{' '}
-                {audit.brandTruthSheet.verified_pricing_summary}
-              </div>
-              <div style={{ color: 'var(--vs-ink-secondary)' }}>
-                <strong>Shipping:</strong>{' '}
-                {audit.brandTruthSheet.shipping_or_service_area}
-              </div>
-            </div>
+      {!audit ? (
+        <div className="vs-card" style={{ padding: '18px 14px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '5px' }}>
+            AI SEARCH &amp; AGENT INSPECTOR
           </div>
-        ) : null}
-
-        {activeTab === 'tab2_fixes' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {isGuided ? (
-              <GuidedExplainerBanner
-                stepLabel="STEP 2 · COPY-PASTE FIXES"
-                title="Download or copy your website fix code"
-                description="Send the single .md bundle to your web designer, or copy individual blocks below."
-              />
-            ) : null}
-
+          <strong
+            style={{
+              display: 'block',
+              fontSize: '14.5px',
+              marginBottom: '6px',
+            }}
+          >
+            Audit the site in your active tab or enter any domain above.
+          </strong>
+          <p
+            style={{
+              margin: '0 0 12px 0',
+              fontSize: '12.5px',
+              lineHeight: 1.55,
+              color: 'var(--vs-ink-secondary)',
+            }}
+          >
+            Checks <code className="vs-mono">GPTBot</code>,{' '}
+            <code className="vs-mono">OAI-SearchBot</code>,{' '}
+            <code className="vs-mono">PerplexityBot</code>,{' '}
+            <code className="vs-mono">ClaudeBot</code>,{' '}
+            <code className="vs-mono">Google-Extended</code>, raw HTML crawler
+            readability, brand sentiment, rival Share of Voice, and{' '}
+            <code className="vs-mono">&gt;=9.5/10</code> schema fixes.
+          </p>
+          <button
+            type="button"
+            onClick={() => void readActiveTabAndScan()}
+            className="vs-btn"
+            style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
+          >
+            Scan Active Browser Tab →
+          </button>
+        </div>
+      ) : (
+        <ThreeTabShell
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          compact
+          mode={uxMode}
+        >
+          {activeTab === 'tab1_visibility' ? (
             <div
-              className="vs-card"
-              style={{
-                padding: '9px 12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '8px',
-              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
             >
-              <span style={{ fontSize: '12px', fontWeight: 600 }}>
-                {audit.fixes.length} Ready-to-Paste Fix{audit.fixes.length === 1 ? '' : 'es'}
-              </span>
-              <button
-                type="button"
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '5px 10px', fontSize: '11.5px' }}
-                onClick={() => {
-                  const md = buildImplementationBundleMarkdown({
-                    domain: {
-                      brand_name: audit.brandName,
-                      domain_url: audit.domainUrl,
-                      is_shopify: audit.shopify.isShopify,
-                      shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-                      visibility_score: audit.visibilityScore,
-                      accuracy_score: audit.accuracyScore,
-                    },
-                    fixes: audit.fixes.map((f) => ({
-                      title: f.title,
-                      fix_type: f.fixType,
-                      content_payload: f.contentPayload,
-                      natural_quality_score: f.naturalQualityScore,
-                    })),
-                  });
-                  const blob = new Blob([md], {
-                    type: 'text/markdown;charset=utf-8',
-                  });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `${audit.hostname}-verisource-geo-bundle.md`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  URL.revokeObjectURL(url);
-                }}
-              >
-                ↓ Download All (.md)
-              </button>
-            </div>
+              {isGuided ? (
+                <GuidedExplainerBanner
+                  stepLabel="STEP 1 · QUICK HEALTH CHECK"
+                  title="See how AI describes this website"
+                  description="Higher scores mean AI engines can read your pages and state your real prices accurately."
+                />
+              ) : null}
 
-            {audit.shopify.isShopify ? (
               <div
                 className="vs-card"
                 style={{
-                  padding: '10px 12px',
-                  background: 'var(--vs-surface-warm)',
-                  fontSize: '12px',
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  overflow: 'hidden',
                 }}
               >
-                <strong>Shopify Tip:</strong> Save{' '}
-                <code className="vs-mono">templates/agents.md.liquid</code> inside
-                your theme and paste <code className="vs-mono">JSON-LD</code> into{' '}
-                <code className="vs-mono">layout/theme.liquid</code> before{' '}
-                <code className="vs-mono">&lt;/head&gt;</code>.
-              </div>
-            ) : null}
-
-            {audit.fixes.map((fix, idx) => (
-              <CodeArtifactCard
-                key={`${fix.fixType}-${idx}`}
-                title={fix.title}
-                plainSummary={isGuided ? describeFixPlainly(fix.fixType) : undefined}
-                fileHint={isGuided ? undefined : `Artifact Type: ${fix.fixType}`}
-                code={fix.contentPayload}
-                qualityScore={fix.naturalQualityScore}
-                qualityBreakdown={fix.qualityRubricBreakdown}
-              />
-            ))}
-
-            <CodeArtifactCard
-              title="10-Line AI Visit & Order Tracker"
-              plainSummary={
-                isGuided
-                  ? 'Tracks visitors and purchases referred by ChatGPT, Perplexity, Gemini, and Claude.'
-                  : undefined
-              }
-              fileHint="Paste before </head> on your site"
-              code={pixelPreview}
-            />
-          </div>
-        ) : null}
-
-        {activeTab === 'tab3_offsite' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {isGuided ? (
-              <GuidedExplainerBanner
-                stepLabel="STEP 3 · COMPETITORS & CLIENT LINKS"
-                title="See where competitors get mentioned"
-                description="Review the external articles AI trusts in your category, or create a shareable client audit page."
-              />
-            ) : null}
-
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '6px' }}>
-                {isGuided
-                  ? 'What AI Searches Behind the Scenes'
-                  : 'Decompiled Engine Search Fanouts'}
-              </strong>
-              {uniqueFanoutQueries.length > 0 ? (
-                uniqueFanoutQueries.map((q) => (
-                  <div
-                    key={q}
-                    className="vs-mono"
-                    style={{
-                      fontSize: '11.5px',
-                      color: 'var(--vs-ink-secondary)',
-                      marginBottom: '4px',
-                    }}
-                  >
-                    → {q}
-                  </div>
-                ))
-              ) : (
-                <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
-                  Open Full Console to run multi-engine search tracking.
+                <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+                  <MetricLedgerCell
+                    label={isGuided ? 'AI Visibility' : 'AI Share of Voice'}
+                    value={audit.visibilityScore}
+                    suffix="/ 100"
+                    tone={audit.visibilityScore < 50 ? 'warn' : 'pass'}
+                    sublabel={audit.hostname}
+                  />
                 </div>
-              )}
-            </div>
+                <div>
+                  <MetricLedgerCell
+                    label={isGuided ? 'Fact Accuracy' : 'Truth Accuracy'}
+                    value={`${audit.accuracyScore}%`}
+                    tone={audit.accuracyScore < 80 ? 'critical' : 'pass'}
+                    sublabel={`${audit.allHallucinations.length} issue(s)`}
+                  />
+                </div>
+              </div>
 
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '6px' }}>
-                {isGuided
-                  ? 'Ranked Citation Gap & Source Domains'
-                  : 'Citation Gap Source Leaderboard'}
-              </strong>
-              {rankedSources.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
-                  {rankedSources.map((src) => {
-                    const primaryUrl = src.urls[0] ?? `https://${src.sourceHost}`;
+              {/* Compact 3-Engine Mention vs. Citation Share Strip */}
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <div
+                  className="vs-eyebrow"
+                  style={{ marginBottom: '6px', fontSize: '10px' }}
+                >
+                  MENTION VS. CITATION SHARE
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '6px',
+                  }}
+                >
+                  {engineShare.map((item) => {
+                    const statusText =
+                      item.totalSnapshots === 0
+                        ? 'Pending'
+                        : item.mentionedCount > 0
+                          ? `Cited ${item.citationRatePct}% · #${item.bestRank ?? 1}`
+                          : 'Omitted';
                     return (
                       <div
-                        key={src.sourceHost}
+                        key={item.aiEngine}
+                        style={{
+                          padding: '7px 8px',
+                          border: '1px solid var(--vs-border)',
+                          borderRadius: '5px',
+                          background: 'var(--vs-surface-subtle)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: '10.5px',
+                            fontWeight: 700,
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {item.shortLabel}
+                        </div>
+                        <div
+                          className="vs-mono"
+                          style={{
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            marginTop: '2px',
+                          }}
+                        >
+                          {item.mentionRatePct}%
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '10px',
+                            color:
+                              item.totalSnapshots > 0 &&
+                              item.mentionedCount === 0
+                                ? 'var(--vs-crit-fg)'
+                                : 'var(--vs-ink-muted)',
+                            marginTop: '1px',
+                          }}
+                        >
+                          {statusText}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Compact Brand Sentiment & Rival Share of Voice */}
+              {sentimentAndSov ? (
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <span
+                      className="vs-eyebrow"
+                      style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
+                    >
+                      SENTIMENT &amp; RIVAL SOV
+                    </span>
+                    <StatusBadge
+                      tone={
+                        sentimentAndSov.dominantFraming === 'recommended'
+                          ? 'pass'
+                          : sentimentAndSov.dominantFraming === 'cautionary' ||
+                              sentimentAndSov.dominantFraming === 'invisible'
+                            ? 'critical'
+                            : 'warn'
+                      }
+                    >
+                      {`${sentimentAndSov.dominantFraming.toUpperCase()} · ${sentimentAndSov.sentimentScore}/100`}
+                    </StatusBadge>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '5px',
+                    }}
+                  >
+                    {sentimentAndSov.headToHeadSov.map((row) => (
+                      <div
+                        key={row.entityName}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          fontSize: '11.5px',
+                        }}
+                      >
+                        <span
+                          style={{ fontWeight: row.isTargetBrand ? 700 : 500 }}
+                        >
+                          {row.entityName}
+                          {row.isTargetBrand ? ' (You)' : ''}
+                        </span>
+                        <span className="vs-mono">{row.shareOfVoicePct}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Protocol, Bots & JS Crawler Readability */}
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <div
+                  className="vs-eyebrow"
+                  style={{ marginBottom: '6px', fontSize: '10px' }}
+                >
+                  {isGuided
+                    ? 'BOT ACCESS & HTML READABILITY'
+                    : 'CRAWLER, JS READABILITY & PROTOCOLS'}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  <StatusBadge
+                    tone={
+                      audit.probe.robotsAiBotStatus.GPTBot ? 'pass' : 'critical'
+                    }
+                  >
+                    {`GPTBot: ${audit.probe.robotsAiBotStatus.GPTBot ? 'ALLOWED' : 'BLOCKED'}`}
+                  </StatusBadge>
+                  <StatusBadge
+                    tone={
+                      audit.probe.robotsAiBotStatus.PerplexityBot
+                        ? 'pass'
+                        : 'critical'
+                    }
+                  >
+                    {`PerplexityBot: ${audit.probe.robotsAiBotStatus.PerplexityBot ? 'ALLOWED' : 'BLOCKED'}`}
+                  </StatusBadge>
+                  <StatusBadge
+                    tone={
+                      audit.probe.robotsAiBotStatus['Google-Extended']
+                        ? 'pass'
+                        : 'critical'
+                    }
+                  >
+                    {`Google-Extended: ${audit.probe.robotsAiBotStatus['Google-Extended'] ? 'ALLOWED' : 'BLOCKED'}`}
+                  </StatusBadge>
+                  {audit.probe.crawlerReadability ? (
+                    <StatusBadge
+                      tone={
+                        audit.probe.crawlerReadability.status === 'ssr_clean'
+                          ? 'pass'
+                          : audit.probe.crawlerReadability.status ===
+                              'csr_js_trap'
+                            ? 'critical'
+                            : 'warn'
+                      }
+                    >
+                      {`HTML: ${audit.probe.crawlerReadability.status.replace(/_/g, ' ').toUpperCase()}`}
+                    </StatusBadge>
+                  ) : null}
+                  <StatusBadge
+                    tone={
+                      audit.shopify.agentsMdStatus === 'custom_enriched'
+                        ? 'pass'
+                        : audit.shopify.agentsMdStatus === 'default_boilerplate'
+                          ? 'warn'
+                          : 'critical'
+                    }
+                  >
+                    {isGuided
+                      ? `AI Rulebook: ${
+                          audit.shopify.agentsMdStatus === 'custom_enriched'
+                            ? 'Verified'
+                            : audit.shopify.agentsMdStatus ===
+                                'default_boilerplate'
+                              ? 'Generic'
+                              : 'Missing'
+                        }`
+                      : `/agents.md: ${audit.shopify.agentsMdStatus}`}
+                  </StatusBadge>
+                  {audit.shopify.isShopify ? (
+                    <StatusBadge
+                      tone={
+                        audit.shopify.shopifyMcpStatus === 'ucp_active'
+                          ? 'pass'
+                          : 'warn'
+                      }
+                    >
+                      {`Shopify: ${
+                        audit.shopify.shopifyMcpStatus === 'ucp_active'
+                          ? '/api/ucp/mcp'
+                          : '/api/mcp'
+                      }`}
+                    </StatusBadge>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Flagged Hallucinations */}
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '8px',
+                  }}
+                >
+                  <strong style={{ fontSize: '12.5px' }}>
+                    {isGuided
+                      ? 'Wrong AI Claims Caught'
+                      : 'Hallucination Watchdog'}
+                  </strong>
+                  <StatusBadge
+                    tone={
+                      audit.allHallucinations.length > 0 ? 'critical' : 'pass'
+                    }
+                  >
+                    {audit.allHallucinations.length > 0
+                      ? `${audit.allHallucinations.length} FLAGGED`
+                      : 'CLEAN'}
+                  </StatusBadge>
+                </div>
+
+                {audit.allHallucinations.length > 0 ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                  >
+                    {audit.allHallucinations.map((h, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          padding: '8px 10px',
+                          background: 'var(--vs-crit-bg)',
+                          border: '1px solid var(--vs-crit-border)',
+                          borderRadius: '5px',
+                          fontSize: '12px',
+                        }}
+                      >
+                        <div
+                          style={{ color: 'var(--vs-crit-fg)', fontWeight: 600 }}
+                        >
+                          AI Says: &ldquo;{h.claim_text}&rdquo;
+                        </div>
+                        <div
+                          style={{ color: 'var(--vs-ink)', marginTop: '4px' }}
+                        >
+                          <strong>Real Fact:</strong> {h.verified_truth}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    No pricing or policy mismatches found against{' '}
+                    {audit.brandTruthSheet.verified_pricing_summary ||
+                      'verified site claims'}
+                    .
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {activeTab === 'tab2_fixes' ? (
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
+              {isGuided ? (
+                <GuidedExplainerBanner
+                  stepLabel="STEP 2 · COPY-PASTE FIXES"
+                  title="Download or copy your website fix code"
+                  description="Send the single .md bundle to your web developer, or copy individual blocks below."
+                />
+              ) : null}
+
+              {commerceReadiness ? (
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <span
+                      className="vs-eyebrow"
+                      style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
+                    >
+                      AI SHOPPING READINESS
+                    </span>
+                    <StatusBadge
+                      tone={
+                        commerceReadiness.passedCount >= 4 ? 'pass' : 'warn'
+                      }
+                    >
+                      {`${commerceReadiness.passedCount}/${commerceReadiness.totalCount} LIVE`}
+                    </StatusBadge>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    {commerceReadiness.attributes.map((attr) => (
+                      <div
+                        key={attr.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '11.5px',
+                          gap: '6px',
+                        }}
+                      >
+                        <span>{attr.label}</span>
+                        <StatusBadge
+                          tone={attr.liveOnSite ? 'pass' : 'neutral'}
+                        >
+                          {attr.liveOnSite ? 'LIVE' : 'IN BUNDLE'}
+                        </StatusBadge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div
+                className="vs-card"
+                style={{
+                  padding: '9px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                }}
+              >
+                <span style={{ fontSize: '12px', fontWeight: 600 }}>
+                  {audit.fixes.length} Ready-to-Paste Fix
+                  {audit.fixes.length === 1 ? '' : 'es'}
+                </span>
+                <button
+                  type="button"
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                  onClick={() => {
+                    const md = buildImplementationBundleMarkdown({
+                      domain: {
+                        brand_name: audit.brandName,
+                        domain_url: audit.domainUrl,
+                        is_shopify: audit.shopify.isShopify,
+                        shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                        visibility_score: audit.visibilityScore,
+                        accuracy_score: audit.accuracyScore,
+                      },
+                      fixes: audit.fixes.map((f) => ({
+                        title: f.title,
+                        fix_type: f.fixType,
+                        content_payload: f.contentPayload,
+                        natural_quality_score: f.naturalQualityScore,
+                      })),
+                    });
+                    const blob = new Blob([md], {
+                      type: 'text/markdown;charset=utf-8',
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${audit.hostname}-verisource-geo-bundle.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  ↓ Download All (.md)
+                </button>
+              </div>
+
+              {audit.fixes.map((fix, idx) => (
+                <CodeArtifactCard
+                  key={`${fix.fixType}-${idx}`}
+                  title={fix.title}
+                  plainSummary={
+                    isGuided ? describeFixPlainly(fix.fixType) : undefined
+                  }
+                  fileHint={
+                    isGuided ? undefined : `Artifact Type: ${fix.fixType}`
+                  }
+                  code={fix.contentPayload}
+                  qualityScore={fix.naturalQualityScore}
+                  qualityBreakdown={fix.qualityRubricBreakdown}
+                />
+              ))}
+
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginBottom: '8px',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <strong style={{ fontSize: '12px' }}>
+                    Dual AI Attribution
+                  </strong>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      border: '1px solid var(--vs-border)',
+                      borderRadius: '5px',
+                      padding: '2px',
+                      background: 'var(--vs-surface-subtle)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setAttributionMode('browser_pixel')}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '3px 7px',
+                        borderRadius: '4px',
+                        fontSize: '10.5px',
+                        fontWeight: 600,
+                        background:
+                          attributionMode === 'browser_pixel'
+                            ? 'var(--vs-ink)'
+                            : 'transparent',
+                        color:
+                          attributionMode === 'browser_pixel'
+                            ? '#FFFFFF'
+                            : 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Browser Pixel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAttributionMode('edge_crawler')}
+                      style={{
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '3px 7px',
+                        borderRadius: '4px',
+                        fontSize: '10.5px',
+                        fontWeight: 600,
+                        background:
+                          attributionMode === 'edge_crawler'
+                            ? 'var(--vs-ink)'
+                            : 'transparent',
+                        color:
+                          attributionMode === 'edge_crawler'
+                            ? '#FFFFFF'
+                            : 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Edge Bot Logger
+                    </button>
+                  </div>
+                </div>
+                <CodeArtifactCard
+                  title={
+                    attributionMode === 'browser_pixel'
+                      ? '10-Line AI Referral Pixel'
+                      : 'Edge AI Bot Crawl Logger'
+                  }
+                  fileHint={
+                    attributionMode === 'browser_pixel'
+                      ? 'Paste before </head> using your Console token'
+                      : 'Next.js middleware.ts / Cloudflare Worker'
+                  }
+                  code={
+                    attributionMode === 'browser_pixel'
+                      ? pixelPreview
+                      : edgeCrawlerPreview
+                  }
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {activeTab === 'tab3_offsite' ? (
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
+              {isGuided ? (
+                <GuidedExplainerBanner
+                  stepLabel="STEP 3 · COMPETITORS & CLIENT LINKS"
+                  title="See where competitors get mentioned"
+                  description="Review suggested buyer prompts, external articles AI trusts, or create a shareable client audit page."
+                />
+              ) : null}
+
+              {suggestedPrompts.length > 0 ? (
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <strong
+                    style={{
+                      fontSize: '12.5px',
+                      display: 'block',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    Suggested Buyer Prompts
+                  </strong>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                    }}
+                  >
+                    {suggestedPrompts.slice(0, 3).map((sug) => (
+                      <div
+                        key={sug.promptText}
                         style={{
                           padding: '7px 9px',
                           border: '1px solid var(--vs-border)',
@@ -858,140 +1152,260 @@ export default function App(): React.ReactElement {
                         <div
                           style={{
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '6px',
+                            gap: '4px',
                             marginBottom: '3px',
                             flexWrap: 'wrap',
                           }}
                         >
-                          <strong style={{ fontSize: '12px' }}>{src.sourceHost}</strong>
-                          <div style={{ display: 'inline-flex', gap: '4px', flexWrap: 'wrap' }}>
-                            <StatusBadge
-                              tone={
-                                src.ownership === 'citation_gap' ? 'critical' : 'pass'
-                              }
-                            >
-                              {src.ownership === 'citation_gap'
-                                ? 'GAP'
-                                : src.ownership === 'co_cited'
-                                  ? 'CO-CITED'
-                                  : 'OWNED'}
-                            </StatusBadge>
-                            {src.enginesCiting.map((e) => (
-                              <StatusBadge key={e}>{e.toUpperCase()}</StatusBadge>
-                            ))}
-                          </div>
-                        </div>
-                        <div
-                          className="vs-mono"
-                          style={{ fontSize: '11px', wordBreak: 'break-all' }}
-                        >
-                          <a
-                            href={primaryUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ color: 'var(--vs-ink-secondary)' }}
+                          <StatusBadge
+                            tone={sug.isBranded ? 'neutral' : 'pass'}
                           >
-                            {primaryUrl}
-                          </a>
+                            {sug.shortBadge}
+                          </StatusBadge>
+                          <StatusBadge>
+                            {sug.isBranded ? 'BRANDED' : 'UNBRANDED'}
+                          </StatusBadge>
+                        </div>
+                        <div style={{ fontSize: '11.5px', fontWeight: 600 }}>
+                          &ldquo;{sug.promptText}&rdquo;
                         </div>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
-                  No external articles cited for this sample prompt.
-                </div>
-              )}
-            </div>
+              ) : null}
 
-            {/* White-Label Pitch Handoff */}
-            <div className="vs-card" style={{ padding: '10px 12px' }}>
-              <strong style={{ fontSize: '12.5px', display: 'block', marginBottom: '4px' }}>
-                60-Second Branded Client Link
-              </strong>
-              <p
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--vs-ink-secondary)',
-                  margin: '0 0 8px 0',
-                }}
-              >
-                Send a clean executive audit page with your agency logo and booking button.
-              </p>
-              <a
-                href={
-                  audit.hostname === 'mosaicroasters.com'
-                    ? `${cleanOrigin}/audit/mosaic-springfield-audit`
-                    : `${cleanOrigin}/dashboard?domain=${encodeURIComponent(audit.hostname)}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="vs-btn"
-                style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
-              >
-                {audit.hostname === 'mosaicroasters.com'
-                  ? 'Open Mosaic Client Report →'
-                  : 'Create Branded Client Link →'}
-              </a>
-            </div>
-
-            {/* Developer /mcp Config: collapsed in Guided Mode, expanded in Pro Mode */}
-            {isGuided ? (
-              <div
-                className="vs-card"
-                style={{
-                  padding: '10px 12px',
-                  background: 'var(--vs-surface-warm)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                }}
-              >
-                <span style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>
-                  Using Cursor or Claude Desktop?
-                </span>
-                <button
-                  type="button"
-                  className="vs-btn vs-btn-secondary"
-                  style={{ padding: '5px 9px', fontSize: '11px' }}
-                  onClick={() => handleChangeUxMode('pro')}
-                >
-                  Open Pro /mcp →
-                </button>
-              </div>
-            ) : (
               <div className="vs-card" style={{ padding: '10px 12px' }}>
-                <label
+                <strong
                   style={{
-                    fontSize: '11.5px',
-                    fontWeight: 600,
+                    fontSize: '12.5px',
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
+                  {isGuided
+                    ? 'What AI Searches Behind the Scenes'
+                    : 'Decompiled Engine Search Fanouts'}
+                </strong>
+                {uniqueFanoutQueries.length > 0 ? (
+                  uniqueFanoutQueries.map((q) => (
+                    <div
+                      key={q}
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-secondary)',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      → {q}
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
+                    Open Private Console to run multi-engine search tracking.
+                  </div>
+                )}
+              </div>
+
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <strong
+                  style={{
+                    fontSize: '12.5px',
+                    display: 'block',
+                    marginBottom: '6px',
+                  }}
+                >
+                  {isGuided
+                    ? 'Categorized Citation Gap Domains'
+                    : 'Citation Gap Source Leaderboard'}
+                </strong>
+                {rankedSources.length > 0 ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '7px',
+                    }}
+                  >
+                    {rankedSources.map((src) => {
+                      const primaryUrl =
+                        src.urls[0] ?? `https://${src.sourceHost}`;
+                      return (
+                        <div
+                          key={src.sourceHost}
+                          style={{
+                            padding: '7px 9px',
+                            border: '1px solid var(--vs-border)',
+                            borderRadius: '5px',
+                            background: 'var(--vs-surface-subtle)',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '6px',
+                              marginBottom: '3px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <strong style={{ fontSize: '12px' }}>
+                              {src.sourceHost}
+                            </strong>
+                            <div
+                              style={{
+                                display: 'inline-flex',
+                                gap: '4px',
+                                flexWrap: 'wrap',
+                              }}
+                            >
+                              <StatusBadge>
+                                {src.sourceCategoryLabel}
+                              </StatusBadge>
+                              <StatusBadge
+                                tone={
+                                  src.ownership === 'citation_gap'
+                                    ? 'critical'
+                                    : 'pass'
+                                }
+                              >
+                                {src.ownership === 'citation_gap'
+                                  ? 'GAP'
+                                  : src.ownership === 'co_cited'
+                                    ? 'CO-CITED'
+                                    : 'OWNED'}
+                              </StatusBadge>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--vs-ink-secondary)',
+                              marginBottom: '3px',
+                            }}
+                          >
+                            {src.recommendedAction}
+                          </div>
+                          <div
+                            className="vs-mono"
+                            style={{ fontSize: '11px', wordBreak: 'break-all' }}
+                          >
+                            <a
+                              href={primaryUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: 'var(--vs-ink-secondary)' }}
+                            >
+                              {primaryUrl}
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
+                    No external articles cited for this sample prompt.
+                  </div>
+                )}
+              </div>
+
+              {/* White-Label Pitch Handoff */}
+              <div className="vs-card" style={{ padding: '10px 12px' }}>
+                <strong
+                  style={{
+                    fontSize: '12.5px',
                     display: 'block',
                     marginBottom: '4px',
                   }}
                 >
-                  Verisource API Base URL
-                </label>
-                <input
-                  type="url"
-                  value={workspaceOrigin}
-                  onChange={(e) => setWorkspaceOrigin(e.target.value)}
-                  className="vs-input"
-                  style={{ padding: '6px 8px', fontSize: '12px', marginBottom: '8px' }}
-                />
-                <CodeArtifactCard
-                  title="Streamable HTTP /mcp Config"
-                  fileHint="Endpoint: https://mcp.verisource.dev/mcp"
-                  code={mcpSnippet}
-                />
+                  60-Second Branded Client Link
+                </strong>
+                <p
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--vs-ink-secondary)',
+                    margin: '0 0 8px 0',
+                  }}
+                >
+                  Send a clean executive audit page with your agency logo and
+                  booking button.
+                </p>
+                <a
+                  href={`${cleanOrigin}/dashboard?tab=tab3_offsite&domain=${encodeURIComponent(
+                    audit.hostname
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="vs-btn"
+                  style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
+                >
+                  Create Branded Client Link →
+                </a>
               </div>
-            )}
-          </div>
-        ) : null}
-      </ThreeTabShell>
+
+              {isGuided ? (
+                <div
+                  className="vs-card"
+                  style={{
+                    padding: '10px 12px',
+                    background: 'var(--vs-surface-warm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                  }}
+                >
+                  <span
+                    style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}
+                  >
+                    Using Cursor or Claude Desktop?
+                  </span>
+                  <button
+                    type="button"
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '5px 9px', fontSize: '11px' }}
+                    onClick={() => handleChangeUxMode('pro')}
+                  >
+                    Open Pro /mcp →
+                  </button>
+                </div>
+              ) : (
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <label
+                    style={{
+                      fontSize: '11.5px',
+                      fontWeight: 600,
+                      display: 'block',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Verisource API Base URL
+                  </label>
+                  <input
+                    type="url"
+                    value={workspaceOrigin}
+                    onChange={(e) => setWorkspaceOrigin(e.target.value)}
+                    className="vs-input"
+                    style={{
+                      padding: '6px 8px',
+                      fontSize: '12px',
+                      marginBottom: '8px',
+                    }}
+                  />
+                  <CodeArtifactCard
+                    title="Streamable HTTP /mcp Config"
+                    fileHint="Endpoint: https://mcp.verisource.dev/mcp"
+                    code={mcpSnippet}
+                  />
+                </div>
+              )}
+            </div>
+          ) : null}
+        </ThreeTabShell>
+      )}
     </div>
   );
 }

@@ -189,7 +189,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               fontSize="9.5"
               fontFamily="var(--vs-mono)"
             >
-              “Best coffee gift?”
+              “Best vendor for X?”
             </text>
           </g>
 
@@ -221,7 +221,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               fontSize="9.5"
               fontFamily="var(--vs-mono)"
             >
-              “Free delivery?”
+              “Enterprise SLA?”
             </text>
           </g>
 
@@ -328,12 +328,12 @@ export function HeroSignalSchematic(): React.ReactElement {
               x="11"
               y="36"
               fill="#0A0E17"
-              fontSize="11"
+              fontSize="10.5"
               fontFamily="var(--vs-sans)"
               fontWeight="600"
               textDecoration="line-through"
             >
-              “Sells $15 K-Cup pods”
+              “$19/mo unlimited seats”
             </text>
             <text
               x="11"
@@ -371,11 +371,11 @@ export function HeroSignalSchematic(): React.ReactElement {
               x="11"
               y="36"
               fill="#0A0E17"
-              fontSize="11.5"
+              fontSize="11"
               fontFamily="var(--vs-sans)"
               fontWeight="700"
             >
-              Whole-bean $21.95+
+              Verified $49/mo+ Tiers
             </text>
             <text
               x="11"
@@ -393,7 +393,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               fontSize="9"
               fontFamily="var(--vs-mono)"
             >
-              41 → 92 / 100 readiness
+              48 → 91 / 100 readiness
             </text>
           </g>
         </svg>
