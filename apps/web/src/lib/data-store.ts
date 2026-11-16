@@ -252,17 +252,22 @@ export function extractCookieValue(
   return '';
 }
 
+const DEFAULT_FOUNDER_OWNER_EMAILS = [
+  'nick@mosaicroasters.com',
+  'info@aurearoasters.com',
+];
+
 export function isFounderOwnerEmail(email?: string | null): boolean {
   if (!email) return false;
   const normalized = email.trim().toLowerCase();
-  const configuredOwner = (
-    process.env.CONSOLE_OWNER_EMAIL ||
-    process.env.ALERT_FALLBACK_EMAIL ||
-    'nick@mosaicroasters.com'
-  )
-    .trim()
-    .toLowerCase();
-  return Boolean(configuredOwner && normalized === configuredOwner);
+  const configuredList = [
+    ...(process.env.CONSOLE_OWNER_EMAIL ?? '').split(','),
+    process.env.ALERT_FALLBACK_EMAIL ?? '',
+    ...DEFAULT_FOUNDER_OWNER_EMAILS,
+  ]
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean);
+  return configuredList.includes(normalized);
 }
 
 export function hasActiveConsolePlan(
