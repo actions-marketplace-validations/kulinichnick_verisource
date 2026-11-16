@@ -8,6 +8,7 @@ Canonical Web Console: https://verisource.dev
 Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial
 Platform Comparisons (vs. Profound, Otterly.ai, Peec AI, AthenaHQ, Scrunch AI): https://verisource.dev/compare
 Shopify UCP & 7-CMS Protocol Guides: https://verisource.dev/guides
+7-Platform /agents.md, /llms.txt & JSON-LD Starter Templates: https://verisource.dev/templates
 Free Zero-Signup Diagnostic Tools (/llms.txt Validator, GPTBot WAF Checker, Shopify UCP Checker): https://verisource.dev/tools
 Pricing & Plans: https://verisource.dev/pricing
 Sample White-Label Client Audits: https://verisource.dev/sample-audit

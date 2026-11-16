@@ -62,6 +62,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.85,
     },
+    {
+      url: 'https://verisource.dev/templates',
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.88,
+    },
     ...PROTOCOL_GUIDES.map((item) => ({
       url: `https://verisource.dev/guides/${item.slug}`,
       lastModified: now,

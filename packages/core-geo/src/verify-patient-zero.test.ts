@@ -87,6 +87,8 @@ import {
   generateDefaultPromptsForDomain,
   generateMcpApiKey,
   generateSuggestedBuyerPrompts,
+  getAllCmsStarterTemplates,
+  getCmsStarterTemplate,
   getWebsitePlatformMeta,
   gradeArtifactQuality,
   isAutomatedPreviewBot,
@@ -3481,4 +3483,41 @@ test('M69 buildProspectCtaClickAlert, dispatchProspectCtaClickEmail & cta_clicke
   assert.equal(clickedOnly.length, 2);
   assert.equal(clickedOnly[0]?.share_slug, 'clicked-twice');
   assert.equal(clickedOnly[1]?.share_slug, 'clicked-once');
+});
+
+test('M70 (Sprint GTM-3) 7-CMS Starter Templates & smithery.yaml pass >= 9.5/10 Critic with valid JSON-LD and Streamable HTTP', () => {
+  const templates = getAllCmsStarterTemplates();
+  assert.equal(templates.length, 7);
+  assert.equal(getCmsStarterTemplate('webflow').platformId, 'webflow');
+
+  for (const tpl of templates) {
+    assert.ok(
+      tpl.primaryArtifact.score >= 9.5,
+      `Expected ${tpl.platformId} primaryArtifact >= 9.5, got ${tpl.primaryArtifact.score}`
+    );
+    assert.ok(
+      tpl.llmsArtifact.score >= 9.5,
+      `Expected ${tpl.platformId} llmsArtifact >= 9.5, got ${tpl.llmsArtifact.score}`
+    );
+
+    const jsonLdMatch = tpl.headSnippetCode.match(
+      /<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/
+    );
+    assert.ok(jsonLdMatch?.[1], `Expected JSON-LD inside ${tpl.platformId} headSnippetCode`);
+    const parsedLd = JSON.parse(jsonLdMatch[1]!) as { '@context'?: string; '@type'?: string };
+    assert.equal(parsedLd['@context'], 'https://schema.org');
+    assert.ok(parsedLd['@type']);
+
+    const combined = `${tpl.whereToPublish}\n${tpl.primaryArtifact.content}\n${tpl.llmsArtifact.content}`;
+    assert.ok(!/example\.com|\bTODO\b|\[Insert /i.test(combined));
+    assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+    assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+    assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
+  }
+
+  const smitheryPath = path.resolve(process.cwd(), '../../smithery.yaml');
+  const smitheryRaw = fs.readFileSync(smitheryPath, 'utf8');
+  assert.ok(smitheryRaw.includes('url: https://mcp.verisource.dev/mcp'));
+  assert.ok(smitheryRaw.includes('name: dev.verisource/mcp'));
+  assert.ok(!smitheryRaw.includes('url: https://mcp.verisource.dev/sse'));
 });

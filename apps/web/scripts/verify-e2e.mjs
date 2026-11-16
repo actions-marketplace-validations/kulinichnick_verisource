@@ -3383,7 +3383,59 @@ async function run() {
         m69Step3AfterClickHtml.includes('CTA CLICKED'),
       'Expected Step 03 Pitch Ledger to display CTA Clicked (1) filter pill and CTA CLICKED badge after booking click'
     );
-    console.log('✔ [66/66] M69 White-Label /audit/[slug] CTA Click Telemetry, Deal Alert (>= 9.5/10), Dedup & Step 03 CTA CLICKED Badge verified!');
+    console.log('✔ [66/67] M69 White-Label /audit/[slug] CTA Click Telemetry, Deal Alert (>= 9.5/10), Dedup & Step 03 CTA CLICKED Badge verified!');
+
+    // 65. M70 (Sprint GTM-3) Public /templates 7-CMS Starter Hub + Sitemap/llms.txt/agents.md/IndexNow Parity
+    const templatesRes = await fetch(`${BASE}/templates`);
+    assert.equal(templatesRes.status, 200);
+    const templatesHtml = await templatesRes.text();
+    assert.ok(
+      templatesHtml.includes('OPEN STARTER TEMPLATES') &&
+        templatesHtml.includes('7-Platform Deployment Matrix') &&
+        templatesHtml.includes('"@type":"CollectionPage"') &&
+        templatesHtml.includes('"@type":"FAQPage"') &&
+        templatesHtml.includes('vs-pill-btn'),
+      'Expected /templates to render 7-Platform Deployment Matrix, CollectionPage + FAQPage JSON-LD, and tactile .vs-pill-btn selector'
+    );
+    assert.ok(
+      !templatesHtml.includes('aurearoasters') &&
+        !templatesHtml.includes('mosaicroasters'),
+      'Expected zero coffee-store echoes on /templates'
+    );
+    const strippedTemplates = templatesHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedTemplates.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /templates'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(strippedTemplates) &&
+        !PLAIN_ENGLISH_JARGON.test(strippedTemplates) &&
+        !/\bbeta\b/i.test(strippedTemplates),
+      'Found /10, plain-English, or Beta jargon on /templates'
+    );
+
+    const [m70Sitemap, m70Llms, m70Agents, m70IndexNow] = await Promise.all([
+      fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+      fetch(`${BASE}/llms.txt`).then((r) => r.text()),
+      fetch(`${BASE}/agents.md`).then((r) => r.text()),
+      fetch(`${BASE}/api/indexnow`, {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({ dryRun: true }),
+      }).then((r) => r.json()),
+    ]);
+    assert.ok(
+      m70Sitemap.includes('https://verisource.dev/templates') &&
+        m70Llms.includes('https://verisource.dev/templates') &&
+        m70Agents.includes('https://verisource.dev/templates') &&
+        m70IndexNow.urls.includes('https://verisource.dev/templates'),
+      'Expected /sitemap.xml, /llms.txt, /agents.md, and /api/indexnow to include https://verisource.dev/templates'
+    );
+    console.log('✔ [67/67] M70 (Sprint GTM-3) Public /templates 7-CMS Starter Hub, smithery.yaml & 22-URL IndexNow Parity verified!');
   } finally {
     server.kill();
   }

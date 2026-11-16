@@ -26,6 +26,7 @@ export function getAllIndexableVerisourceUrls(): string[] {
     ...PROTOCOL_GUIDES.map(
       (item) => `${VERISOURCE_ORIGIN}/guides/${item.slug}`
     ),
+    `${VERISOURCE_ORIGIN}/templates`,
     `${VERISOURCE_ORIGIN}/tools`,
     ...FREE_SEO_TOOLS.map((item) => `${VERISOURCE_ORIGIN}/tools/${item.slug}`),
     `${VERISOURCE_ORIGIN}/llms.txt`,

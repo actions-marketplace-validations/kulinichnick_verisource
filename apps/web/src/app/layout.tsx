@@ -257,6 +257,12 @@ export default function RootLayout({
                 /guides
               </Link>
               <Link
+                href="/templates"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /templates
+              </Link>
+              <Link
                 href="/tools"
                 style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
               >

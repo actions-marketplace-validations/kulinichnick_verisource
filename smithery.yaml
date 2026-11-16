@@ -1,0 +1,20 @@
+# Smithery Remote Streamable HTTP MCP Configuration — Verisource (dev.verisource/mcp@1.0.0)
+# Official MCP TypeScript SDK v2 Stateless Streamable HTTP (No deprecated /sse)
+name: dev.verisource/mcp
+displayName: Verisource — B2B GEO & AI Citation Intelligence
+description: Audit ChatGPT, Gemini, and Perplexity citations, flag pricing or SKU hallucinations, and generate syntax-validated JSON-LD, /llms.txt, and /agents.md fixes across 7 CMS platforms.
+homepage: https://verisource.dev
+documentation: https://verisource.dev/mcp-guide
+startCommand:
+  type: http
+  url: https://mcp.verisource.dev/mcp
+  configSchema:
+    type: object
+    properties:
+      apiKey:
+        type: string
+        title: Verisource Bearer API Key (Optional for Free Preview)
+        description: Optional vs_live_<48-hex> key from https://verisource.dev/dashboard. Omit to run the free scan_domain_ai_readiness tool at 0 credit cost; provide a Pro ($99/mo) or Agency ($249/mo) key for citation gap, hallucination, and fix-bundle tools.
+    required: []
+  headers:
+    Authorization: "Bearer {{config.apiKey}}"
