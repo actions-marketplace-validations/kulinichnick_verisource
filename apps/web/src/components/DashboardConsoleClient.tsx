@@ -17,6 +17,7 @@ import {
   buildExecutiveAuditReportMarkdown,
   buildFollowUpVerificationAiPrompt,
   buildImplementationBundleMarkdown,
+  buildMcpClientSetupBundle,
   buildPlainEnglishSiteDiagnosis,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
@@ -26,6 +27,7 @@ import {
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
   getWebsitePlatformMeta,
+  MCP_CLIENT_APP_OPTIONS,
   normalizePublicDomain,
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
@@ -42,6 +44,7 @@ import {
   type GeneratedFixRow,
   type LiveFixVerificationReport,
   type McpApiKeyRow,
+  type McpClientAppId,
   type PlainDiagnosisActionTarget,
   type ProfileRow,
   type QualityRubricBreakdown,
@@ -360,13 +363,43 @@ export function DashboardConsoleClient(props: {
     recipientEmail: string;
   } | null>(null);
 
-  // Tab 3 MCP Key Minting & Revocation state
+  // Tab 3 MCP Key Minting, 5-Client Config Switcher & Live Connection Verifier state
   const [keyLabel, setKeyLabel] = useState('Cursor & Antigravity Agent Key');
   const [newlyMintedRawKey, setNewlyMintedRawKey] = useState<string | null>(
     null
   );
   const [mintingKey, setMintingKey] = useState(false);
   const [revokingKeyId, setRevokingKeyId] = useState<string | null>(null);
+  const [selectedMcpClient, setSelectedMcpClient] =
+    useState<McpClientAppId>('claude');
+  const [copiedMcpRawKey, setCopiedMcpRawKey] = useState(false);
+  const [copiedMcpStarterPrompt, setCopiedMcpStarterPrompt] = useState(false);
+  const [mcpTestKeyInput, setMcpTestKeyInput] = useState('');
+  const [verifyingMcpConnection, setVerifyingMcpConnection] = useState(false);
+  const [mcpVerifyResult, setMcpVerifyResult] = useState<{
+    ok: boolean;
+    endpoint: string;
+    endpointReachable: boolean;
+    httpStatus: number;
+    latencyMs: number;
+    paidToolsEligible: boolean;
+    upgradeRequired: boolean;
+    upgradeHref: string | null;
+    creditsUsed: number;
+    creditsLimit: number;
+    creditsRemaining: number;
+    activeKeyCount: number;
+    keyStatus:
+      | 'verified_raw_key'
+      | 'verified_workspace_ledger'
+      | 'no_active_key'
+      | 'invalid_or_revoked_key';
+    matchedKeyPrefix: string | null;
+    matchedKeyLabel: string | null;
+    exposedTools: string[];
+    readyForPaidTools: boolean;
+    summaryMessage: string;
+  } | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState<string | null>(null);
 
@@ -1803,6 +1836,7 @@ export function DashboardConsoleClient(props: {
     e.preventDefault();
     setMintingKey(true);
     setBannerError(null);
+    setCopiedMcpRawKey(false);
     try {
       const res = await fetch('/api/dashboard/mcp-keys', {
         method: 'POST',
@@ -1820,16 +1854,121 @@ export function DashboardConsoleClient(props: {
         setBannerError(json.message ?? 'Unable to mint MCP key.');
       } else {
         setNewlyMintedRawKey(json.rawKeyOnce);
+        setMcpTestKeyInput(json.rawKeyOnce);
+        setMcpVerifyResult(null);
         setData((prev) => ({
           ...prev,
           mcpApiKeys: [json.keyRow!, ...prev.mcpApiKeys],
         }));
         if (json.sandboxNotice) {
           setBannerSuccess(json.sandboxNotice);
+        } else {
+          setBannerSuccess(
+            `Minted SHA-256 Bearer key (${json.keyRow.key_prefix}••••••••). Copy your secret key below and click "⚡ Test Live /mcp Connection" to verify.`
+          );
         }
       }
     } finally {
       setMintingKey(false);
+    }
+  }
+
+  async function handleVerifyMcpConnection(explicitRawKey?: string) {
+    setVerifyingMcpConnection(true);
+    setBannerError(null);
+    try {
+      const candidateKey = (
+        explicitRawKey ??
+        mcpTestKeyInput ??
+        newlyMintedRawKey ??
+        ''
+      ).trim();
+      const res = await fetch('/api/dashboard/mcp-keys/verify', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify(candidateKey ? { raw_key: candidateKey } : {}),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        ok?: boolean;
+        endpoint?: string;
+        endpointReachable?: boolean;
+        httpStatus?: number;
+        latencyMs?: number;
+        paidToolsEligible?: boolean;
+        upgradeRequired?: boolean;
+        upgradeHref?: string | null;
+        creditsUsed?: number;
+        creditsLimit?: number;
+        creditsRemaining?: number;
+        activeKeyCount?: number;
+        keyStatus?:
+          | 'verified_raw_key'
+          | 'verified_workspace_ledger'
+          | 'no_active_key'
+          | 'invalid_or_revoked_key';
+        matchedKeyPrefix?: string | null;
+        matchedKeyLabel?: string | null;
+        exposedTools?: string[];
+        readyForPaidTools?: boolean;
+        summaryMessage?: string;
+      };
+      if (!res.ok || json.error || !json.endpoint || !json.keyStatus) {
+        setBannerError(
+          json.message ?? 'Unable to verify /mcp connection right now.'
+        );
+      } else {
+        setMcpVerifyResult({
+          ok: Boolean(json.ok),
+          endpoint: json.endpoint,
+          endpointReachable: Boolean(json.endpointReachable),
+          httpStatus: json.httpStatus ?? 200,
+          latencyMs: json.latencyMs ?? 1,
+          paidToolsEligible: Boolean(json.paidToolsEligible),
+          upgradeRequired: Boolean(json.upgradeRequired),
+          upgradeHref: json.upgradeHref ?? null,
+          creditsUsed: json.creditsUsed ?? 0,
+          creditsLimit: json.creditsLimit ?? 0,
+          creditsRemaining: json.creditsRemaining ?? 0,
+          activeKeyCount: json.activeKeyCount ?? 0,
+          keyStatus: json.keyStatus,
+          matchedKeyPrefix: json.matchedKeyPrefix ?? null,
+          matchedKeyLabel: json.matchedKeyLabel ?? null,
+          exposedTools: json.exposedTools ?? [],
+          readyForPaidTools: Boolean(json.readyForPaidTools),
+          summaryMessage: json.summaryMessage ?? '',
+        });
+      }
+    } catch {
+      setBannerError('Network error while testing /mcp endpoint.');
+    } finally {
+      setVerifyingMcpConnection(false);
+    }
+  }
+
+  async function handleCopyRawMcpKey() {
+    if (!newlyMintedRawKey) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(newlyMintedRawKey);
+      }
+      setCopiedMcpRawKey(true);
+      setTimeout(() => setCopiedMcpRawKey(false), 2600);
+    } catch {
+      // Ignore clipboard permission errors
+    }
+  }
+
+  async function handleCopyMcpStarterPrompt(promptText: string) {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(promptText);
+      }
+      setCopiedMcpStarterPrompt(true);
+      setTimeout(() => setCopiedMcpStarterPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission errors
     }
   }
 
@@ -2344,22 +2483,23 @@ export function DashboardConsoleClient(props: {
     }
   }
 
-  const mcpClientConfigJson = JSON.stringify(
-    {
-      mcpServers: {
-        verisource: {
-          url: 'https://mcp.verisource.dev/mcp',
-          headers: {
-            Authorization: `Bearer ${
-              newlyMintedRawKey ?? 'vs_demo_pro_key'
-            }`,
-          },
-        },
-      },
-    },
-    null,
-    2
+  const activeMcpKeyRow = data.mcpApiKeys.find((k) => k.is_active) ?? null;
+  const hasPaidMcpEntitlement =
+    data.profile.plan_tier === 'pro_99' ||
+    data.profile.plan_tier === 'agency_249';
+  const mcpCreditsLimit = Math.max(0, data.profile.mcp_calls_limit ?? 0);
+  const mcpCreditsUsed = Math.max(
+    0,
+    data.profile.mcp_calls_used_this_month ?? 0
   );
+  const mcpCreditsRemaining = Math.max(0, mcpCreditsLimit - mcpCreditsUsed);
+
+  const activeMcpSetup = buildMcpClientSetupBundle({
+    clientId: selectedMcpClient,
+    rawBearerKey: newlyMintedRawKey || mcpTestKeyInput.trim() || null,
+    activeKeyPrefix: activeMcpKeyRow?.key_prefix ?? null,
+    targetDomain: activeDomainHostname || 'yourcompany.com',
+  });
 
   const gateDomainParam = extractSafeHandoffHostname(props.initialDomainQuery);
   const buildGateCheckoutHref = (
@@ -8023,171 +8163,608 @@ export function DashboardConsoleClient(props: {
               </div>
             ) : null}
 
-            {/* Paid MCP Server Connection Hub: Calm optional handoff in Guided Mode, full developer hub in Pro Mode */}
-            {isGuided ? (
-              <div
-                className="vs-card"
-                style={{
-                  padding: '16px 20px',
-                  background: 'var(--vs-surface-warm)',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: '13.5px' }}>
-                    Optional Developer &amp; AI Assistant Sync (MCP)
-                  </strong>
-                  <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    Want to connect Claude Desktop, Cursor, or Antigravity directly to your workspace? Switch to Pro Mode to manage API keys.
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  className="vs-btn vs-btn-secondary"
-                  onClick={() => handleChangeUxMode('pro')}
-                >
-                  Switch to Pro Mode for API Keys →
-                </button>
-              </div>
-            ) : (
-            <div className="vs-card" style={{ padding: '18px' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  marginBottom: '14px',
-                }}
-              >
-                <div>
-                  <strong style={{ fontSize: '14px' }}>
-                    Paid Streamable HTTP /mcp Connection Hub
-                  </strong>
-                  <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-muted)' }}>
-                    Connect Claude Desktop, Cursor, Windsurf, or Antigravity via
-                    SHA-256 Bearer key (1 credit cached read / 10 credits live scan).
-                  </div>
-                </div>
-
-                <form
-                  onSubmit={handleMintMcpKey}
-                  style={{ display: 'flex', gap: '8px' }}
-                >
-                  <input
-                    type="text"
-                    value={keyLabel}
-                    onChange={(e) => setKeyLabel(e.target.value)}
-                    className="vs-input"
-                    style={{
-                      width: '220px',
-                      fontFamily: 'var(--vs-sans)',
-                      padding: '8px 10px',
-                    }}
-                  />
-                  <button
-                    type="submit"
-                    disabled={mintingKey}
-                    className="vs-btn"
-                  >
-                    {mintingKey ? 'Minting...' : '+ Mint vs_live_ Key'}
-                  </button>
-                </form>
-              </div>
-
-              {newlyMintedRawKey ? (
+            {/* Paid MCP Server Connection Hub: Plan-aware + Guided/Pro progressive disclosure */}
+            <div id="vs-mcp-connection-hub">
+              {!hasPaidMcpEntitlement ? (
                 <div
+                  className="vs-card"
                   style={{
-                    padding: '10px 14px',
-                    marginBottom: '14px',
-                    background: 'var(--vs-warn-bg)',
-                    border: '1px solid var(--vs-warn-border)',
-                    color: 'var(--vs-warn-fg)',
-                    borderRadius: '5px',
-                    fontSize: '12.5px',
+                    padding: '18px 20px',
+                    background: 'var(--vs-surface-warm)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '14px',
                   }}
                 >
-                  <strong>Copy your secret key now (shown once):</strong>{' '}
-                  <code className="vs-mono">{newlyMintedRawKey}</code>
+                  <div style={{ maxWidth: '640px' }}>
+                    <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+                      PAID /MCP ENGINE · PRO &amp; AGENCY TIERS
+                    </div>
+                    <strong style={{ fontSize: '14px' }}>
+                      Connect Claude Desktop, Cursor, Windsurf, or Antigravity Directly to Your Workspace
+                    </strong>
+                    <div
+                      style={{
+                        fontSize: '12.5px',
+                        color: 'var(--vs-ink-secondary)',
+                        marginTop: '4px',
+                        lineHeight: 1.55,
+                      }}
+                    >
+                      Your current plan includes Console Step 01–03 audits, 1-click AI fix prompts, and the free{' '}
+                      <code className="vs-mono">scan_domain_ai_readiness</code> /mcp preview tool. Upgrade to{' '}
+                      <strong>Pro + MCP Engine ($99/mo · 1,000 monthly credits)</strong> so your local AI agents can query citation gaps, check pricing accuracy, and pull validated{' '}
+                      <code className="vs-mono">JSON-LD</code> and{' '}
+                      <code className="vs-mono">/agents.md</code> fixes directly.
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    <Link href="/pricing?plan=pro_99" className="vs-btn">
+                      Upgrade to Pro + MCP Engine →
+                    </Link>
+                    <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
+                      View /mcp Guide
+                    </Link>
+                  </div>
                 </div>
-              ) : null}
-
-              <CodeArtifactCard
-                title="mcp_config.json (Streamable HTTP — No Deprecated /sse)"
-                fileHint="Endpoint: https://mcp.verisource.dev/mcp"
-                code={mcpClientConfigJson}
-              />
-
-              {data.mcpApiKeys.length > 0 ? (
-                <div
-                  className="vs-table-wrap"
-                  style={{
-                    marginTop: '16px',
-                    border: '1px solid var(--vs-border)',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <table className="vs-table">
-                    <thead>
-                      <tr>
-                        <th>Key Prefix (SHA-256)</th>
-                        <th>Agent Label</th>
-                        <th>Status</th>
-                        <th style={{ textAlign: 'right' }}>Access Control</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.mcpApiKeys.map((k) => (
-                        <tr key={k.id}>
-                          <td className="vs-mono" style={{ fontSize: '12px' }}>
-                            {k.key_prefix}••••••••
-                          </td>
-                          <td style={{ fontSize: '13px' }}>{k.label}</td>
-                          <td>
-                            <StatusBadge tone={k.is_active ? 'pass' : 'critical'}>
-                              {k.is_active ? 'ACTIVE' : 'REVOKED'}
+              ) : (
+                (() => {
+                  const mcpHubInner = (
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '12px',
+                          marginBottom: '14px',
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <strong style={{ fontSize: '14px' }}>
+                              Paid Streamable HTTP /mcp Connection Hub
+                            </strong>
+                            <StatusBadge
+                              tone={mcpCreditsRemaining > 0 ? 'pass' : 'warn'}
+                            >
+                              {mcpCreditsRemaining.toLocaleString()} /{' '}
+                              {mcpCreditsLimit.toLocaleString()} CREDITS LEFT
                             </StatusBadge>
-                          </td>
-                          <td style={{ textAlign: 'right' }}>
-                            {k.is_active ? (
-                              <button
-                                type="button"
-                                disabled={revokingKeyId === k.id}
-                                onClick={() => void handleRevokeMcpKey(k.id)}
-                                className="vs-btn vs-btn-secondary"
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '12.5px',
+                              color: 'var(--vs-ink-muted)',
+                              marginTop: '3px',
+                            }}
+                          >
+                            Connect Claude Desktop, Cursor IDE, Antigravity, Windsurf, or HTTP scripts via SHA-256 Bearer key (1 credit cached read / 10 credits live scan · 0 credits to test connection).
+                          </div>
+                        </div>
+
+                        <form
+                          onSubmit={handleMintMcpKey}
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '8px',
+                          }}
+                        >
+                          <input
+                            type="text"
+                            value={keyLabel}
+                            onChange={(e) => setKeyLabel(e.target.value)}
+                            placeholder="Agent Key Label"
+                            className="vs-input"
+                            style={{
+                              width: '220px',
+                              fontFamily: 'var(--vs-sans)',
+                              padding: '8px 10px',
+                            }}
+                          />
+                          <button
+                            type="submit"
+                            disabled={mintingKey}
+                            className="vs-btn"
+                          >
+                            {mintingKey ? 'Minting...' : '+ Mint vs_live_ Key'}
+                          </button>
+                        </form>
+                      </div>
+
+                      {newlyMintedRawKey ? (
+                        <div
+                          style={{
+                            padding: '10px 14px',
+                            marginBottom: '14px',
+                            background: 'var(--vs-warn-bg)',
+                            border: '1px solid var(--vs-warn-border)',
+                            color: 'var(--vs-warn-fg)',
+                            borderRadius: '6px',
+                            fontSize: '12.5px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                          }}
+                        >
+                          <div>
+                            <strong>Copy your secret key now (shown once):</strong>{' '}
+                            <code
+                              className="vs-mono"
+                              style={{ wordBreak: 'break-all' }}
+                            >
+                              {newlyMintedRawKey}
+                            </code>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void handleCopyRawMcpKey()}
+                            className="vs-btn vs-btn-secondary"
+                            style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                          >
+                            {copiedMcpRawKey ? '✓ Key Copied' : 'Copy Secret Key'}
+                          </button>
+                        </div>
+                      ) : null}
+
+                      {/* 1-Click Live /mcp Connection Verifier */}
+                      <div
+                        style={{
+                          padding: '12px 14px',
+                          marginBottom: '14px',
+                          background: 'var(--vs-surface-muted)',
+                          border: '1px solid var(--vs-border)',
+                          borderRadius: '6px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                          }}
+                        >
+                          <div>
+                            <div
+                              className="vs-eyebrow"
+                              style={{
+                                marginBottom: '2px',
+                                color: 'var(--vs-ink-secondary)',
+                              }}
+                            >
+                              LIVE EDGE HANDSHAKE VERIFIER · 0 CREDITS CHARGED
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '12.5px',
+                                color: 'var(--vs-ink-secondary)',
+                              }}
+                            >
+                              Verify <code className="vs-mono">https://mcp.verisource.dev/mcp</code> tool discovery, active SHA-256 key status, and remaining monthly credits.
+                            </div>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <input
+                              type="password"
+                              value={mcpTestKeyInput}
+                              onChange={(e) =>
+                                setMcpTestKeyInput(e.target.value)
+                              }
+                              placeholder="Optional: paste vs_live_ key to verify"
+                              className="vs-input vs-mono"
+                              style={{
+                                width: '240px',
+                                fontSize: '11.5px',
+                                padding: '7px 10px',
+                              }}
+                            />
+                            <button
+                              type="button"
+                              disabled={verifyingMcpConnection}
+                              onClick={() => void handleVerifyMcpConnection()}
+                              className="vs-btn vs-btn-secondary"
+                              style={{ padding: '7px 12px', fontSize: '12px' }}
+                            >
+                              {verifyingMcpConnection
+                                ? 'Testing /mcp...'
+                                : '⚡ Test Live /mcp Connection'}
+                            </button>
+                          </div>
+                        </div>
+
+                        {mcpVerifyResult ? (
+                          <div
+                            id="vs-mcp-verify-result"
+                            style={{
+                              marginTop: '12px',
+                              padding: '12px 14px',
+                              borderRadius: '6px',
+                              background: mcpVerifyResult.readyForPaidTools
+                                ? 'var(--vs-pass-bg)'
+                                : 'var(--vs-surface)',
+                              border: `1px solid ${
+                                mcpVerifyResult.readyForPaidTools
+                                  ? 'var(--vs-pass-border)'
+                                  : 'var(--vs-border-strong)'
+                              }`,
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                marginBottom: '6px',
+                              }}
+                            >
+                              <div
                                 style={{
-                                  padding: '4px 10px',
-                                  fontSize: '11.5px',
-                                  color: 'var(--vs-crit-fg)',
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  alignItems: 'center',
+                                  gap: '8px',
                                 }}
                               >
-                                {revokingKeyId === k.id ? 'Revoking...' : 'Revoke'}
-                              </button>
-                            ) : (
+                                <StatusBadge
+                                  tone={
+                                    mcpVerifyResult.readyForPaidTools
+                                      ? 'pass'
+                                      : mcpVerifyResult.endpointReachable
+                                        ? 'warn'
+                                        : 'critical'
+                                  }
+                                >
+                                  {mcpVerifyResult.readyForPaidTools
+                                    ? 'PAID /MCP READY'
+                                    : mcpVerifyResult.keyStatus ===
+                                        'no_active_key'
+                                      ? 'MINT KEY ABOVE'
+                                      : 'CHECK KEY STATUS'}
+                                </StatusBadge>
+                                <span
+                                  className="vs-mono"
+                                  style={{
+                                    fontSize: '11.5px',
+                                    color: 'var(--vs-ink-secondary)',
+                                  }}
+                                >
+                                  HTTP {mcpVerifyResult.httpStatus} ·{' '}
+                                  {mcpVerifyResult.latencyMs}ms ·{' '}
+                                  {mcpVerifyResult.creditsRemaining.toLocaleString()}{' '}
+                                  / {mcpVerifyResult.creditsLimit.toLocaleString()}{' '}
+                                  credits left
+                                </span>
+                              </div>
                               <span
                                 className="vs-mono"
                                 style={{
-                                  fontSize: '11.5px',
+                                  fontSize: '11px',
                                   color: 'var(--vs-ink-muted)',
                                 }}
                               >
-                                Revoked
+                                0 credits charged
                               </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : null}
+                            </div>
+
+                            <div
+                              style={{
+                                fontSize: '12.5px',
+                                color: 'var(--vs-ink)',
+                                lineHeight: 1.5,
+                              }}
+                            >
+                              {mcpVerifyResult.summaryMessage}
+                            </div>
+
+                            {mcpVerifyResult.exposedTools.length > 0 ? (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: '6px',
+                                  marginTop: '8px',
+                                }}
+                              >
+                                {mcpVerifyResult.exposedTools.map((toolName) => (
+                                  <span
+                                    key={toolName}
+                                    className="vs-mono"
+                                    style={{
+                                      fontSize: '11px',
+                                      padding: '2px 8px',
+                                      borderRadius: '999px',
+                                      background: 'var(--vs-surface)',
+                                      border: '1px solid var(--vs-border)',
+                                      color: 'var(--vs-ink-secondary)',
+                                    }}
+                                  >
+                                    ✓ {toolName}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* 5-Client Tactile Pill Selector */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <span
+                          className="vs-eyebrow"
+                          style={{ color: 'var(--vs-ink-secondary)' }}
+                        >
+                          SELECT YOUR AI CLIENT / IDE:
+                        </span>
+                        <div
+                          role="group"
+                          aria-label="MCP client configuration target"
+                          className="vs-pill-group"
+                        >
+                          {MCP_CLIENT_APP_OPTIONS.map((opt) => {
+                            const active = selectedMcpClient === opt.id;
+                            return (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                className="vs-pill-btn vs-pill-btn-sm"
+                                data-active={active ? 'true' : 'false'}
+                                onClick={() => {
+                                  setSelectedMcpClient(opt.id);
+                                  setCopiedMcpStarterPrompt(false);
+                                }}
+                              >
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '9px 12px',
+                          marginBottom: '10px',
+                          background: 'var(--vs-surface-warm)',
+                          border: '1px solid var(--vs-border)',
+                          borderRadius: '6px',
+                          fontSize: '12.5px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          Setup ({activeMcpSetup.configFilePath}):
+                        </strong>{' '}
+                        {activeMcpSetup.setupStepsText}
+                        {activeMcpSetup.keyState ===
+                        'active_prefix_placeholder' ? (
+                          <span>
+                            {' '}
+                            Replace{' '}
+                            <code className="vs-mono">
+                              {activeMcpKeyRow?.key_prefix}...PASTE_YOUR_SECRET_KEY
+                            </code>{' '}
+                            with your saved secret token, or click{' '}
+                            <strong>+ Mint vs_live_ Key</strong> above to generate a fresh pre-filled key.
+                          </span>
+                        ) : activeMcpSetup.keyState ===
+                          'unminted_placeholder' ? (
+                          <span>
+                            {' '}
+                            Click <strong>+ Mint vs_live_ Key</strong> above first to auto-fill your live{' '}
+                            <code className="vs-mono">vs_live_</code> Bearer key into this snippet.
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <CodeArtifactCard
+                        title={`${activeMcpSetup.label} — ${activeMcpSetup.configFilePath} (Streamable HTTP — No Deprecated /sse)`}
+                        fileHint="Endpoint: https://mcp.verisource.dev/mcp"
+                        code={activeMcpSetup.configSnippet}
+                      />
+
+                      {/* Domain-Tailored Starter Agent Prompt */}
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          padding: '11px 14px',
+                          background: 'var(--vs-surface-muted)',
+                          border: '1px solid var(--vs-border)',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '10px',
+                        }}
+                      >
+                        <div style={{ flex: '1 1 420px' }}>
+                          <div
+                            className="vs-eyebrow"
+                            style={{
+                              marginBottom: '3px',
+                              color: 'var(--vs-ink-secondary)',
+                            }}
+                          >
+                            FIRST AGENT PROMPT FOR {activeMcpSetup.label.toUpperCase()}
+                          </div>
+                          <div
+                            className="vs-mono"
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--vs-ink)',
+                              lineHeight: 1.5,
+                              wordBreak: 'break-word',
+                            }}
+                          >
+                            {activeMcpSetup.starterAgentPrompt}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void handleCopyMcpStarterPrompt(
+                              activeMcpSetup.starterAgentPrompt
+                            )
+                          }
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '12px' }}
+                        >
+                          {copiedMcpStarterPrompt
+                            ? '✓ Starter Prompt Copied'
+                            : 'Copy Starter Agent Prompt'}
+                        </button>
+                      </div>
+
+                      {data.mcpApiKeys.length > 0 ? (
+                        <div
+                          className="vs-table-wrap"
+                          style={{
+                            marginTop: '16px',
+                            border: '1px solid var(--vs-border)',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          <table className="vs-table">
+                            <thead>
+                              <tr>
+                                <th>Key Prefix (SHA-256)</th>
+                                <th>Agent Label</th>
+                                <th>Status</th>
+                                <th style={{ textAlign: 'right' }}>
+                                  Access Control
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {data.mcpApiKeys.map((k) => (
+                                <tr key={k.id}>
+                                  <td
+                                    className="vs-mono"
+                                    style={{ fontSize: '12px' }}
+                                  >
+                                    {k.key_prefix}••••••••
+                                  </td>
+                                  <td style={{ fontSize: '13px' }}>{k.label}</td>
+                                  <td>
+                                    <StatusBadge
+                                      tone={k.is_active ? 'pass' : 'critical'}
+                                    >
+                                      {k.is_active ? 'ACTIVE' : 'REVOKED'}
+                                    </StatusBadge>
+                                  </td>
+                                  <td style={{ textAlign: 'right' }}>
+                                    {k.is_active ? (
+                                      <button
+                                        type="button"
+                                        disabled={revokingKeyId === k.id}
+                                        onClick={() =>
+                                          void handleRevokeMcpKey(k.id)
+                                        }
+                                        className="vs-btn vs-btn-secondary"
+                                        style={{
+                                          padding: '4px 10px',
+                                          fontSize: '11.5px',
+                                          color: 'var(--vs-crit-fg)',
+                                        }}
+                                      >
+                                        {revokingKeyId === k.id
+                                          ? 'Revoking...'
+                                          : 'Revoke'}
+                                      </button>
+                                    ) : (
+                                      <span
+                                        className="vs-mono"
+                                        style={{
+                                          fontSize: '11.5px',
+                                          color: 'var(--vs-ink-muted)',
+                                        }}
+                                      >
+                                        Revoked
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+
+                  if (isGuided) {
+                    return (
+                      <details
+                        className="vs-disclosure"
+                        open={Boolean(newlyMintedRawKey || mcpVerifyResult)}
+                      >
+                        <summary>
+                          <div>
+                            <strong style={{ fontSize: '13.5px' }}>
+                              Connect Claude Desktop, Cursor, or Antigravity Directly to Your Workspace (MCP)
+                            </strong>
+                            <div
+                              style={{
+                                fontSize: '12px',
+                                color: 'var(--vs-ink-secondary)',
+                                marginTop: '2px',
+                              }}
+                            >
+                              Included in your plan ({mcpCreditsRemaining.toLocaleString()} / {mcpCreditsLimit.toLocaleString()} monthly credits left) — click to mint a key or copy your 1-minute client setup.
+                            </div>
+                          </div>
+                          <span className="vs-disclosure-meta">
+                            Open /mcp Setup
+                          </span>
+                        </summary>
+                        <div className="vs-disclosure-body">{mcpHubInner}</div>
+                      </details>
+                    );
+                  }
+
+                  return (
+                    <div className="vs-card" style={{ padding: '18px' }}>
+                      {mcpHubInner}
+                    </div>
+                  );
+                })()
+              )}
             </div>
-            )}
           </div>
         ) : null}
       </ThreeTabShell>

@@ -2820,7 +2820,102 @@ async function run() {
       ),
       'Found /10 or Critic jargon in M62 studioVerification.promptContent'
     );
-    console.log('✔ [59/59] M62 Closed-Loop Comparison Page Live Verifier (/api/dashboard/inspect-url studioVerification >= 9.5/10 + Step 02 Verify Page Live) verified!');
+    console.log('✔ [59/60] M62 Closed-Loop Comparison Page Live Verifier (/api/dashboard/inspect-url studioVerification >= 9.5/10 + Step 02 Verify Page Live) verified!');
+
+    // 58. M63 Step 03 5-Client MCP Connection Hub + Live /api/dashboard/mcp-keys/verify Handshake (401/400/200)
+    assert.ok(
+      m42Tab3Html.includes(
+        'Connect Claude Desktop, Cursor, or Antigravity Directly to Your Workspace (MCP)'
+      ) &&
+        m42Tab3Html.includes('Claude Desktop') &&
+        m42Tab3Html.includes('Cursor IDE') &&
+        m42Tab3Html.includes('Antigravity') &&
+        m42Tab3Html.includes('Windsurf') &&
+        m42Tab3Html.includes('cURL / HTTP') &&
+        m42Tab3Html.includes('⚡ Test Live /mcp Connection') &&
+        m42Tab3Html.includes('Copy Starter Agent Prompt'),
+      'Expected Step 03 Guided MCP Hub disclosure, 5 tactile client pills, Test Live /mcp Connection button, and Starter Agent Prompt'
+    );
+
+    const unauthMcpVerifyRes = await fetch(
+      `${BASE}/api/dashboard/mcp-keys/verify`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      }
+    );
+    assert.equal(unauthMcpVerifyRes.status, 401);
+
+    const malformedMcpVerifyRes = await fetch(
+      `${BASE}/api/dashboard/mcp-keys/verify`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({ raw_key: 'vs_live_not_hex_short' }),
+      }
+    );
+    assert.equal(malformedMcpVerifyRes.status, 400);
+
+    const m63FreshKeyRes = await fetch(`${BASE}/api/dashboard/mcp-keys`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ label: 'M63 Live Verify Agent Key' }),
+    });
+    assert.equal(m63FreshKeyRes.status, 200);
+    const m63FreshKeyJson = await m63FreshKeyRes.json();
+
+    const validMintedVerifyRes = await fetch(
+      `${BASE}/api/dashboard/mcp-keys/verify`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({ raw_key: m63FreshKeyJson.rawKeyOnce }),
+      }
+    );
+    assert.equal(validMintedVerifyRes.status, 200);
+    const validMintedVerifyJson = await validMintedVerifyRes.json();
+    assert.equal(validMintedVerifyJson.ok, true);
+    assert.equal(validMintedVerifyJson.keyStatus, 'verified_raw_key');
+    assert.equal(validMintedVerifyJson.readyForPaidTools, true);
+    assert.equal(validMintedVerifyJson.creditsChargedForCheck, 0);
+    assert.equal(validMintedVerifyJson.exposedTools.length, 4);
+    assert.equal(
+      (validMintedVerifyJson.summaryMessage.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in M63 mcp-keys/verify summaryMessage'
+    );
+
+    // Verify the earlier M12 revoked key (keyJson.rawKeyOnce) is rejected as invalid_or_revoked_key
+    const revokedVerifyRes = await fetch(
+      `${BASE}/api/dashboard/mcp-keys/verify`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({ raw_key: keyJson.rawKeyOnce }),
+      }
+    );
+    assert.equal(revokedVerifyRes.status, 200);
+    const revokedVerifyJson = await revokedVerifyRes.json();
+    assert.equal(revokedVerifyJson.keyStatus, 'invalid_or_revoked_key');
+    assert.equal(revokedVerifyJson.readyForPaidTools, false);
+
+    const workspaceLedgerVerifyRes = await fetch(
+      `${BASE}/api/dashboard/mcp-keys/verify`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({}),
+      }
+    );
+    assert.equal(workspaceLedgerVerifyRes.status, 200);
+    const workspaceLedgerVerifyJson = await workspaceLedgerVerifyRes.json();
+    assert.equal(
+      workspaceLedgerVerifyJson.keyStatus,
+      'verified_workspace_ledger'
+    );
+    assert.equal(workspaceLedgerVerifyJson.readyForPaidTools, true);
+    console.log('✔ [60/60] M63 Step 03 5-Client MCP Connection Hub & /api/dashboard/mcp-keys/verify (401/400/200 raw + ledger + revoked) verified!');
   } finally {
     server.kill();
   }

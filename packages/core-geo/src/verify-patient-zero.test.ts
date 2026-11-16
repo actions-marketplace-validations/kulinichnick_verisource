@@ -37,7 +37,9 @@ import {
   buildLocalServiceOutreachSequence,
   buildLocalServicePlaybookMarkdown,
   buildMagicLinkSignInAlert,
+  buildMcpClientSetupBundle,
   buildMcpDiscoveryManifest,
+  MCP_CLIENT_APP_OPTIONS,
   buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
@@ -3040,4 +3042,65 @@ test('M62 evaluatePublishedCitationPage handles 404 missing routes, partial rout
     assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
     assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
   }
+});
+
+test('M63 buildMcpClientSetupBundle supports all 5 MCP clients, 3 key states, valid JSON configs, and zero-slop starter prompts', () => {
+  assert.equal(MCP_CLIENT_APP_OPTIONS.length, 5);
+  const rawSampleKey = `vs_live_${'a1b2c3d4'.repeat(6)}`;
+
+  for (const opt of MCP_CLIENT_APP_OPTIONS) {
+    const liveBundle = buildMcpClientSetupBundle({
+      clientId: opt.id,
+      rawBearerKey: rawSampleKey,
+      activeKeyPrefix: 'vs_live_a1b2c3',
+      targetDomain: 'https://www.SummitDental.com/pricing?utm=test',
+    });
+    assert.equal(liveBundle.clientId, opt.id);
+    assert.equal(liveBundle.keyState, 'live_raw_key');
+    assert.ok(liveBundle.configSnippet.includes('https://mcp.verisource.dev/mcp'));
+    assert.ok(!liveBundle.configSnippet.includes('/sse'));
+    assert.ok(liveBundle.configSnippet.includes(rawSampleKey));
+    if (opt.id !== 'curl_rpc') {
+      const parsed = JSON.parse(liveBundle.configSnippet) as {
+        mcpServers?: {
+          verisource?: { url?: string; headers?: { Authorization?: string } };
+        };
+      };
+      assert.equal(
+        parsed.mcpServers?.verisource?.url,
+        'https://mcp.verisource.dev/mcp'
+      );
+      assert.equal(
+        parsed.mcpServers?.verisource?.headers?.Authorization,
+        `Bearer ${rawSampleKey}`
+      );
+      assert.ok(liveBundle.starterAgentPrompt.includes('summitdental.com'));
+    } else {
+      assert.ok(liveBundle.configSnippet.includes('summitdental.com'));
+      assert.ok(liveBundle.starterAgentPrompt.includes('tools/list'));
+    }
+
+    const combined = `${liveBundle.label} ${liveBundle.setupStepsText}\n${liveBundle.starterAgentPrompt}`;
+    assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+    assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+    assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
+  }
+
+  const prefixBundle = buildMcpClientSetupBundle({
+    clientId: 'cursor',
+    activeKeyPrefix: 'vs_live_9f8e7d',
+    targetDomain: 'acmecloud.io',
+  });
+  assert.equal(prefixBundle.keyState, 'active_prefix_placeholder');
+  assert.ok(
+    prefixBundle.configSnippet.includes('vs_live_9f8e7d...PASTE_YOUR_SECRET_KEY')
+  );
+
+  const unmintedBundle = buildMcpClientSetupBundle({
+    clientId: 'antigravity',
+    targetDomain: '',
+  });
+  assert.equal(unmintedBundle.keyState, 'unminted_placeholder');
+  assert.ok(unmintedBundle.configSnippet.includes('vs_live_MINT_KEY_ABOVE'));
+  assert.ok(unmintedBundle.starterAgentPrompt.includes('yourcompany.com'));
 });

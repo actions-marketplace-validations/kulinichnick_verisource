@@ -124,3 +124,165 @@ export function buildMcpDiscoveryManifest(options?: {
     ],
   };
 }
+
+export type McpClientAppId =
+  | 'claude'
+  | 'cursor'
+  | 'antigravity'
+  | 'windsurf'
+  | 'curl_rpc';
+
+export interface McpClientSetupBundle {
+  clientId: McpClientAppId;
+  label: string;
+  configFilePath: string;
+  setupStepsText: string;
+  configSnippet: string;
+  starterAgentPrompt: string;
+  keyState:
+    | 'live_raw_key'
+    | 'active_prefix_placeholder'
+    | 'unminted_placeholder';
+}
+
+export const MCP_CLIENT_APP_OPTIONS: ReadonlyArray<{
+  id: McpClientAppId;
+  label: string;
+}> = [
+  { id: 'claude', label: 'Claude Desktop' },
+  { id: 'cursor', label: 'Cursor IDE' },
+  { id: 'antigravity', label: 'Antigravity' },
+  { id: 'windsurf', label: 'Windsurf' },
+  { id: 'curl_rpc', label: 'cURL / HTTP' },
+];
+
+function sanitizeSetupDomain(raw?: string | null): string {
+  const trimmed = (raw ?? '').trim().toLowerCase();
+  if (!trimmed) return 'yourcompany.com';
+  const withoutProtocol = trimmed
+    .replace(/^https?:\/\//i, '')
+    .split(/[/?#]/)[0]
+    ?.replace(/^www\./i, '')
+    .replace(/[^a-z0-9.-]/g, '');
+  return withoutProtocol && withoutProtocol.includes('.')
+    ? withoutProtocol
+    : 'yourcompany.com';
+}
+
+export function buildMcpClientSetupBundle(options: {
+  clientId: McpClientAppId;
+  rawBearerKey?: string | null;
+  activeKeyPrefix?: string | null;
+  targetDomain?: string | null;
+  mcpEndpointUrl?: string;
+}): McpClientSetupBundle {
+  const endpointUrl = (
+    options.mcpEndpointUrl ?? 'https://mcp.verisource.dev/mcp'
+  ).trim();
+  const domain = sanitizeSetupDomain(options.targetDomain);
+
+  const rawKey = (options.rawBearerKey ?? '').trim();
+  const activePrefix = (options.activeKeyPrefix ?? '').trim();
+
+  let bearerValue: string;
+  let keyState: McpClientSetupBundle['keyState'];
+  if (rawKey) {
+    bearerValue = rawKey;
+    keyState = 'live_raw_key';
+  } else if (activePrefix) {
+    bearerValue = `${activePrefix}...PASTE_YOUR_SECRET_KEY`;
+    keyState = 'active_prefix_placeholder';
+  } else {
+    bearerValue = 'vs_live_MINT_KEY_ABOVE';
+    keyState = 'unminted_placeholder';
+  }
+
+  const jsonServerBlock = JSON.stringify(
+    {
+      mcpServers: {
+        verisource: {
+          url: endpointUrl,
+          headers: {
+            Authorization: `Bearer ${bearerValue}`,
+          },
+        },
+      },
+    },
+    null,
+    2
+  );
+
+  switch (options.clientId) {
+    case 'claude':
+      return {
+        clientId: 'claude',
+        label: 'Claude Desktop',
+        configFilePath: 'claude_desktop_config.json',
+        setupStepsText:
+          'Open Claude Desktop → Settings → Developer → Edit Config, paste the JSON block below, save, and restart Claude once.',
+        configSnippet: jsonServerBlock,
+        starterAgentPrompt: `Use the Verisource MCP tools on ${domain} to run check_brand_hallucinations and get_citation_gaps_and_fanouts, then list any wrong pricing or policy claims alongside our top 3 missing third-party citation sources.`,
+        keyState,
+      };
+
+    case 'cursor':
+      return {
+        clientId: 'cursor',
+        label: 'Cursor IDE',
+        configFilePath: '.cursor/mcp.json',
+        setupStepsText:
+          'Create or open .cursor/mcp.json in your project root (or Cursor Settings → MCP → Add new global MCP server) and paste the JSON block below.',
+        configSnippet: jsonServerBlock,
+        starterAgentPrompt: `Call Verisource generate_geo_fix_bundle for ${domain}, inspect our project routing, and write the syntax-validated JSON-LD schema, /llms.txt, and /agents.md files without altering visual layout or styles.`,
+        keyState,
+      };
+
+    case 'antigravity':
+      return {
+        clientId: 'antigravity',
+        label: 'Antigravity',
+        configFilePath: 'mcp_config.json',
+        setupStepsText:
+          'Add the verisource server entry to your Antigravity mcp_config.json file so workspace agents can query live citations and apply verified fixes.',
+        configSnippet: jsonServerBlock,
+        starterAgentPrompt: `Run Verisource check_brand_hallucinations and generate_geo_fix_bundle for ${domain}, verify GPTBot and PerplexityBot access in robots.txt, and stage the validated JSON-LD, /llms.txt, and /agents.md updates.`,
+        keyState,
+      };
+
+    case 'windsurf':
+      return {
+        clientId: 'windsurf',
+        label: 'Windsurf',
+        configFilePath: '~/.codeium/windsurf/mcp_config.json',
+        setupStepsText:
+          'Open Windsurf → Cascade → Configure MCP (mcp_config.json), paste the server block below, and click Refresh.',
+        configSnippet: jsonServerBlock,
+        starterAgentPrompt: `Use Verisource get_citation_gaps_and_fanouts and generate_geo_fix_bundle on ${domain} to list which rival URLs ChatGPT and Perplexity cite ahead of us and write our /llms.txt and JSON-LD fixes.`,
+        keyState,
+      };
+
+    case 'curl_rpc':
+      return {
+        clientId: 'curl_rpc',
+        label: 'cURL / HTTP',
+        configFilePath: `POST ${endpointUrl} (JSON-RPC 2.0)`,
+        setupStepsText:
+          'Run this stateless HTTP POST from any terminal, CI workflow, or backend job—no persistent WebSocket or deprecated /sse transport required.',
+        configSnippet: `curl -X POST ${endpointUrl} \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json, text/event-stream" \\
+  -H "Authorization: Bearer ${bearerValue}" \\
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "generate_geo_fix_bundle",
+      "arguments": { "domain": "${domain}" }
+    }
+  }'`,
+        starterAgentPrompt: `curl -sS -X POST ${endpointUrl} -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'`,
+        keyState,
+      };
+  }
+}
