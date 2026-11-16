@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import {
+  AFFILIATE_COOKIE_NAME,
+  isSelfReferralAttempt,
   normalizePublicDomain,
   resolveCoreGeoEnv,
+  sanitizeAffiliateCode,
   type AiRemediationTargetEnv,
   type BillingCycle,
   type PlanTier,
@@ -68,10 +71,41 @@ export async function GET(request: Request): Promise<NextResponse> {
   const rawDomainParam = (url.searchParams.get('domain') ?? '').trim();
   const rawEnvParam = (url.searchParams.get('env') ?? '').trim();
   const rawSlugParam = (url.searchParams.get('slug') ?? '').trim();
+  const rawRefParam = url.searchParams.get('ref');
   const queryToken = url.searchParams.get('access_token');
 
   if (!VALID_PLANS.has(rawPlan)) {
     return NextResponse.json({ error: 'INVALID_PLAN' }, { status: 400 });
+  }
+
+  let candidateAffiliateRef: string | null = null;
+  if (rawRefParam !== null && rawRefParam.trim() !== '') {
+    const parsedQueryRef = sanitizeAffiliateCode(rawRefParam);
+    if (!parsedQueryRef) {
+      return NextResponse.json(
+        {
+          error: 'INVALID_REFERRAL_CODE',
+          message:
+            'Referral code must be 3-40 alphanumeric, hyphen, or underscore characters.',
+        },
+        { status: 400 }
+      );
+    }
+    candidateAffiliateRef = parsedQueryRef;
+  } else {
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const refCookieMatch = cookieHeader.match(
+      new RegExp(`(?:^|;\\s*)${AFFILIATE_COOKIE_NAME}=([^;]+)`)
+    );
+    if (refCookieMatch?.[1]) {
+      try {
+        candidateAffiliateRef = sanitizeAffiliateCode(
+          decodeURIComponent(refCookieMatch[1])
+        );
+      } catch {
+        candidateAffiliateRef = null;
+      }
+    }
   }
 
   let safePromptEnv: AiRemediationTargetEnv | null = null;
@@ -112,6 +146,20 @@ export async function GET(request: Request): Promise<NextResponse> {
   const store = getLocalMockStore();
   const isAuthenticatedMockOwner =
     !env.hasStripe && isMockOwnerRequest(request, queryToken);
+
+  const buyerEmailForSelfRefGuard = auth
+    ? auth.profile.email
+    : isAuthenticatedMockOwner
+      ? store.profile.email
+      : null;
+  const effectiveAffiliateRef =
+    candidateAffiliateRef &&
+    !isSelfReferralAttempt({
+      affiliateCode: candidateAffiliateRef,
+      buyerEmail: buyerEmailForSelfRefGuard,
+    })
+      ? candidateAffiliateRef
+      : null;
 
   const tripwirePaidAt = auth
     ? auth.profile.tripwire_paid_at
@@ -203,20 +251,25 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const baseSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: isOneTime ? 'payment' : 'subscription',
-      ...(isEligibleFor7DayTrial
-        ? {
-            payment_method_collection: 'always',
+      ...(isOneTime
+        ? {}
+        : {
+            ...(isEligibleFor7DayTrial
+              ? { payment_method_collection: 'always' as const }
+              : {}),
             subscription_data: {
-              trial_period_days: 7,
+              ...(isEligibleFor7DayTrial ? { trial_period_days: 7 } : {}),
               metadata: {
                 ...(auth ? { user_id: auth.profile.id } : {}),
                 plan_tier: rawPlan,
                 billing_cycle: cycle,
-                trial_days: '7',
+                trial_days: isEligibleFor7DayTrial ? '7' : '0',
+                ...(effectiveAffiliateRef
+                  ? { affiliate_ref: effectiveAffiliateRef }
+                  : {}),
               },
             },
-          }
-        : {}),
+          }),
       line_items: [
         {
           quantity: 1,
@@ -242,6 +295,9 @@ export async function GET(request: Request): Promise<NextResponse> {
         domain: safeHostname ?? '',
         audit_slug: safeSlug,
         trial_days: isEligibleFor7DayTrial ? '7' : '0',
+        ...(effectiveAffiliateRef
+          ? { affiliate_ref: effectiveAffiliateRef }
+          : {}),
       },
       success_url: successDest.toString(),
       cancel_url: cancelDest.toString(),
@@ -315,6 +371,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
   if (safePromptEnv) {
     dest.searchParams.set('env', safePromptEnv);
+  }
+  if (effectiveAffiliateRef) {
+    dest.searchParams.set('ref', effectiveAffiliateRef);
   }
 
   if ( dest.searchParams.get('upgraded') ) {

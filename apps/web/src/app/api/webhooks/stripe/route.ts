@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import {
+  buildAffiliateConversionAlert,
   dispatchPostPurchaseWelcomeEmail,
   normalizePublicDomain,
   resolveCoreGeoEnv,
+  sanitizeAffiliateCode,
   type BillingCycle,
   type PlanTier,
 } from '@verisource/core-geo';
@@ -217,6 +219,45 @@ export async function POST(request: Request): Promise<NextResponse> {
         });
       } catch {
         // Never fail Stripe webhook acknowledgement on transient email error
+      }
+    }
+
+    const sessionAffiliateRef = sanitizeAffiliateCode(
+      session.metadata?.affiliate_ref
+    );
+    if (
+      sessionAffiliateRef &&
+      process.env.RESEND_API_KEY &&
+      process.env.ALERT_FALLBACK_EMAIL
+    ) {
+      try {
+        const partnerLedger = buildAffiliateConversionAlert({
+          partnerSlug: sessionAffiliateRef,
+          planTier,
+          billingCycle,
+          grossAmountCents:
+            typeof session.amount_total === 'number' ? session.amount_total : 0,
+          isTrialStart,
+          targetDomain: targetHostname,
+        });
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from:
+              process.env.ALERT_FROM_EMAIL?.trim() ||
+              'Verisource Partners <alerts@verisource.dev>',
+            to: [process.env.ALERT_FALLBACK_EMAIL.trim()],
+            subject: partnerLedger.subject,
+            text: partnerLedger.text,
+            html: partnerLedger.html,
+          }),
+        });
+      } catch {
+        // Non-blocking partner attribution ledger notification
       }
     }
   } else if (event.type === 'customer.subscription.deleted') {

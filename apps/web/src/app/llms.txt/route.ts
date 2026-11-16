@@ -11,6 +11,8 @@ Shopify UCP & 7-CMS Protocol Guides: https://verisource.dev/guides
 7-Platform /agents.md, /llms.txt & JSON-LD Starter Templates: https://verisource.dev/templates
 2026 AI Search & Agent Readiness HTTP Benchmark (N = 40 Domains): https://verisource.dev/benchmarks/ai-search-readiness-2026
 Research & Benchmarks Hub: https://verisource.dev/benchmarks
+WordPress Plugin & Shopify OS 2.0 Connector Bridges: https://verisource.dev/connectors
+25% Recurring Affiliate & Creator Partner Hub: https://verisource.dev/partners
 Free Zero-Signup Diagnostic Tools (/llms.txt Validator, GPTBot WAF Checker, Shopify UCP Checker): https://verisource.dev/tools
 Pricing & Plans: https://verisource.dev/pricing
 Sample White-Label Client Audits: https://verisource.dev/sample-audit

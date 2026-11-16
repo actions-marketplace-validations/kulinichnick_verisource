@@ -31,3 +31,4 @@ export * from './orchestrator/audit-domain.js';
 export * from './orchestrator/plain-diagnosis.js';
 export * from './auth/api-key.js';
 export * from './pixel/snippet.js';
+export * from './partners/affiliate-connectors.js';

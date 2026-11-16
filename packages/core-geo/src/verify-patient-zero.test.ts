@@ -42,6 +42,14 @@ import {
   buildMcpClientSetupBundle,
   buildMcpDiscoveryManifest,
   MCP_CLIENT_APP_OPTIONS,
+  buildAffiliateConversionAlert,
+  buildPartnerOnboardingAlert,
+  buildShopifyThemeExtensionBundle,
+  buildWordPressConnectorPluginPhp,
+  computePartnerCommissionBreakdown,
+  dispatchPartnerOnboardingEmail,
+  isSelfReferralAttempt,
+  sanitizeAffiliateCode,
   buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
   buildProspectCtaClickAlert,
@@ -3567,4 +3575,107 @@ test('M71 (Sprint GTM-5) COMMUNITY_LAUNCH_KIT.md & 2026 40-Domain Benchmark Stud
   assert.ok(
     !/plain[- ]english|\bin english\b|everyday english/i.test(benchmarkSrc)
   );
+});
+
+test('M72 (Sprint GTM-6) 25% Recurring Partner Engine, Self-Referral Guard & WordPress/Shopify Connector Bridges pass >= 9.5/10 Critic', async () => {
+  assert.equal(sanitizeAffiliateCode('Alex-SEO_2026'), 'alex-seo_2026');
+  assert.equal(sanitizeAffiliateCode('ab'), null);
+  assert.equal(sanitizeAffiliateCode('bad<script>'), null);
+  assert.equal(sanitizeAffiliateCode('-leadinghyphen'), null);
+
+  assert.equal(
+    isSelfReferralAttempt({
+      affiliateCode: 'alex-rivera',
+      buyerEmail: 'alex.rivera@agency.io',
+    }),
+    true
+  );
+  assert.equal(
+    isSelfReferralAttempt({
+      affiliateCode: 'alex-rivera',
+      buyerEmail: 'client@otherbrand.com',
+    }),
+    false
+  );
+
+  // 4 Agency referrals ($249/mo) = $249.00/mo ($2,988.00/yr) at 25%
+  const fourAgencyMonthly = computePartnerCommissionBreakdown({
+    starterCount: 0,
+    proCount: 0,
+    agencyCount: 4,
+    cycle: 'monthly',
+  });
+  assert.equal(fourAgencyMonthly.grossMrrUsd, 996);
+  assert.equal(fourAgencyMonthly.partnerMonthlyCommissionUsd, 249);
+  assert.equal(fourAgencyMonthly.partnerAnnualizedCommissionUsd, 2988);
+
+  const annualMix = computePartnerCommissionBreakdown({
+    starterCount: 1,
+    proCount: 1,
+    agencyCount: 1,
+    cycle: 'annual',
+  });
+  // ($39 + $79 + $199) = $317/mo * 0.25 = $79.25/mo * 12 = $951.00 upfront
+  assert.equal(annualMix.partnerMonthlyCommissionUsd, 79.25);
+  assert.equal(annualMix.upfrontAnnualPayoutUsd, 951);
+
+  const onboardDry = await dispatchPartnerOnboardingEmail({
+    partnerName: 'Northstar Search <Studio>',
+    partnerEmail: 'partners@northstarseo.io',
+    partnerSlug: 'northstar-seo',
+    channelUrl: 'https://northstarseo.io/newsletter',
+  });
+  assert.equal(onboardDry.mode, 'preview_dry_run');
+  assert.ok(onboardDry.qualityScore >= 9.5);
+  assert.ok(onboardDry.alert.html.includes('Northstar Search &lt;Studio&gt;'));
+  assert.equal(
+    onboardDry.alert.referralShortUrl,
+    'https://verisource.dev/r/northstar-seo'
+  );
+  assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(onboardDry.alert.text));
+
+  const paidLedger = buildAffiliateConversionAlert({
+    partnerSlug: 'northstar-seo',
+    planTier: 'agency_249',
+    billingCycle: 'monthly',
+    grossAmountCents: 24900,
+    isTrialStart: false,
+    targetDomain: 'summitdental.com',
+  });
+  assert.equal(paidLedger.commissionUsd, 62.25);
+  assert.ok(paidLedger.quality.score >= 9.5);
+
+  const tripwireLedger = buildAffiliateConversionAlert({
+    partnerSlug: 'northstar-seo',
+    planTier: 'tripwire_19',
+    billingCycle: 'one_time',
+    grossAmountCents: 1900,
+    isTrialStart: false,
+  });
+  assert.equal(tripwireLedger.commissionUsd, 0);
+  assert.ok(tripwireLedger.quality.score >= 9.5);
+
+  const wpConnector = buildWordPressConnectorPluginPhp({
+    defaultBrandName: 'Summit Dental',
+    defaultHostname: 'summitdental.com',
+  });
+  assert.equal(wpConnector.filename, 'verisource-geo-connector.php');
+  assert.ok(wpConnector.phpSource.includes("if ( ! defined( 'ABSPATH' ) )"));
+  assert.ok(wpConnector.phpSource.includes("'/llms.txt' === $request_path"));
+  assert.ok(wpConnector.phpSource.includes("'/agents.md' === $request_path"));
+  assert.ok(wpConnector.readmeNotes.score >= 9.5);
+
+  const shopifyConnector = buildShopifyThemeExtensionBundle();
+  assert.equal(
+    shopifyConnector.liquidBlockFilename,
+    'blocks/verisource-ai-truth.liquid'
+  );
+  assert.ok(shopifyConnector.extensionToml.includes('type = "theme"'));
+  const schemaMatch = shopifyConnector.liquidBlockSource.match(
+    /\{%\s*schema\s*%\}\s*([\s\S]*?)\s*\{%\s*endschema\s*%\}/
+  );
+  assert.ok(schemaMatch?.[1], 'Expected valid {% schema %} block in Liquid connector');
+  const parsedSchema = JSON.parse(schemaMatch[1]!) as { target?: string };
+  assert.equal(parsedSchema.target, 'head');
+  assert.ok(shopifyConnector.setupGuide.score >= 9.5);
 });

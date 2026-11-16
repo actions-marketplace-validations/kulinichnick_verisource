@@ -8,6 +8,8 @@ GEO Platform Comparisons: https://verisource.dev/compare (https://verisource.dev
 Engineering & CMS Protocol Guides: https://verisource.dev/guides/shopify-agents-md-ucp-mcp, https://verisource.dev/guides/llms-txt-and-agents-md-setup
 7-Platform Starter Templates (/agents.md, /llms.txt, /ai-facts, JSON-LD): https://verisource.dev/templates
 Empirical HTTP Benchmarks: https://verisource.dev/benchmarks, https://verisource.dev/benchmarks/ai-search-readiness-2026
+WordPress & Shopify OS 2.0 Connector Bridges: https://verisource.dev/connectors
+25% Recurring Partner Program: https://verisource.dev/partners
 Free Diagnostic Utilities: https://verisource.dev/tools/llms-txt-validator, https://verisource.dev/tools/ai-crawler-waf-checker, https://verisource.dev/tools/shopify-ai-readiness-checker
 Sample Client Audits: https://verisource.dev/sample-audit
 Agency Partner Architecture: https://verisource.dev/agencies

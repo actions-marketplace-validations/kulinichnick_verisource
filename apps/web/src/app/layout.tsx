@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import Link from 'next/link';
 import React from 'react';
 import { VerisourceStyleTag } from '@verisource/ui';
+import { AffiliateRefTrackerClient } from '../components/AffiliateRefTrackerClient';
 import { SiteHeaderClient } from '../components/SiteHeaderClient';
 
 const fontSans = localFont({
@@ -198,6 +199,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <AffiliateRefTrackerClient />
         <SiteHeaderClient />
 
         <main>{children}</main>
@@ -267,6 +269,18 @@ export default function RootLayout({
                 style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
               >
                 /benchmarks
+              </Link>
+              <Link
+                href="/connectors"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /connectors
+              </Link>
+              <Link
+                href="/partners"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /partners
               </Link>
               <Link
                 href="/tools"

@@ -3506,7 +3506,224 @@ async function run() {
         m70IndexNow.submittedCount >= 24,
       'Expected /sitemap.xml, /llms.txt, /agents.md, and 24-URL /api/indexnow to include /benchmarks and /benchmarks/ai-search-readiness-2026'
     );
-    console.log('✔ [68/68] M71 (Sprint GTM-5) 2026 40-Domain AI Search & Agent Readiness Benchmark (/benchmarks/*) & 24-URL IndexNow Parity verified!');
+    console.log('✔ [68/69] M71 (Sprint GTM-5) 2026 40-Domain AI Search & Agent Readiness Benchmark (/benchmarks/*) & IndexNow Parity verified!');
+
+    // 67. M72 (Sprint GTM-6) 25% Recurring Partner Hub (/partners + /r/[code] + /api/partners/apply + /api/checkout ?ref=/vs_ref) & WordPress/Shopify Connectors (/connectors + /api/connectors/wordpress)
+    const badShortRefRes = await fetch(`${BASE}/r/a!bad`, { redirect: 'manual' });
+    assert.equal(badShortRefRes.status, 400);
+
+    const openRedirectShortRefRes = await fetch(
+      `${BASE}/r/alex-seo?to=//evil.com/phish`,
+      { redirect: 'manual' }
+    );
+    assert.equal(openRedirectShortRefRes.status, 400);
+
+    const validShortRefRes = await fetch(
+      `${BASE}/r/alex-seo?to=/tutorial&domain=stripe.com`,
+      { redirect: 'manual' }
+    );
+    assert.equal(validShortRefRes.status, 302);
+    const shortRefLocation = validShortRefRes.headers.get('location') ?? '';
+    const shortRefSetCookie = validShortRefRes.headers.get('set-cookie') ?? '';
+    assert.ok(
+      shortRefLocation.includes('/tutorial?') &&
+        shortRefLocation.includes('domain=stripe.com') &&
+        shortRefLocation.includes('ref=alex-seo') &&
+        shortRefSetCookie.includes('vs_ref=alex-seo'),
+      'Expected /r/alex-seo to set 90-day vs_ref cookie and 302-redirect with ref=alex-seo'
+    );
+
+    // Checkout referral carryover & validation
+    const invalidRefCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=monthly&ref=bad<script>`,
+      { redirect: 'manual' }
+    );
+    assert.equal(invalidRefCheckoutRes.status, 400);
+
+    const cookieRefCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=monthly`,
+      {
+        headers: { Cookie: 'vs_ref=alex-seo' },
+        redirect: 'manual',
+      }
+    );
+    assert.equal(cookieRefCheckoutRes.status, 303);
+    assert.ok(
+      (cookieRefCheckoutRes.headers.get('location') ?? '').includes(
+        'ref=alex-seo'
+      ),
+      'Expected /api/checkout with vs_ref=alex-seo cookie to carry ref=alex-seo'
+    );
+
+    // Partner onboarding endpoint (/api/partners/apply: 403 Origin, 400 SSRF/CRLF, 200 >= 9.5/10, 429 Rate Limit)
+    const noOriginPartnerRes = await fetch(`${BASE}/api/partners/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Alex Rivera',
+        email: 'alex@agency.io',
+        slug: 'alex-seo',
+        channel_url: 'https://agency.io',
+      }),
+    });
+    assert.equal(noOriginPartnerRes.status, 403);
+
+    const ssrfPartnerRes = await fetch(`${BASE}/api/partners/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: BASE },
+      body: JSON.stringify({
+        name: 'Alex Rivera',
+        email: 'alex@agency.io',
+        slug: 'alex-seo',
+        channel_url: 'http://169.254.169.254/latest/meta-data/',
+      }),
+    });
+    assert.equal(ssrfPartnerRes.status, 400);
+
+    const crlfPartnerRes = await fetch(`${BASE}/api/partners/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: BASE },
+      body: JSON.stringify({
+        name: 'Alex Rivera',
+        email: 'alex@agency.io\r\nBcc:victim@test.com',
+        slug: 'alex-seo',
+        channel_url: 'https://agency.io',
+      }),
+    });
+    assert.equal(crlfPartnerRes.status, 400);
+
+    for (let i = 0; i < 5; i += 1) {
+      const okPartnerRes = await fetch(`${BASE}/api/partners/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: BASE,
+          'x-forwarded-for': '198.51.100.199',
+        },
+        body: JSON.stringify({
+          name: 'Alex Rivera',
+          email: 'alex@agency.io',
+          slug: `alex-seo-${i}`,
+          channel_url: 'https://agency.io/youtube',
+        }),
+      });
+      assert.equal(okPartnerRes.status, 200);
+      const okPartnerJson = await okPartnerRes.json();
+      assert.equal(okPartnerJson.ok, true);
+      assert.ok(okPartnerJson.qualityScore >= 9.5);
+      assert.ok(okPartnerJson.referralShortUrl.includes(`/r/alex-seo-${i}`));
+    }
+
+    const sixthPartnerRes = await fetch(`${BASE}/api/partners/apply`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.199',
+      },
+      body: JSON.stringify({
+        name: 'Alex Rivera',
+        email: 'alex@agency.io',
+        slug: 'alex-seo-6',
+        channel_url: 'https://agency.io/youtube',
+      }),
+    });
+    assert.equal(sixthPartnerRes.status, 429);
+
+    // WordPress connector download (/api/connectors/wordpress: 400 SSRF, 200 PHP download)
+    const ssrfWpRes = await fetch(
+      `${BASE}/api/connectors/wordpress?domain=127.0.0.1`
+    );
+    assert.equal(ssrfWpRes.status, 400);
+
+    const validWpRes = await fetch(
+      `${BASE}/api/connectors/wordpress?domain=stripe.com`
+    );
+    assert.equal(validWpRes.status, 200);
+    assert.ok(
+      (validWpRes.headers.get('content-disposition') ?? '').includes(
+        'verisource-geo-connector.php'
+      )
+    );
+    const validWpPhp = await validWpRes.text();
+    assert.ok(
+      validWpPhp.includes('Plugin Name:       Verisource AI Facts & GEO Connector') &&
+        validWpPhp.includes("if ( ! defined( 'ABSPATH' ) )"),
+      'Expected downloadable WordPress connector plugin PHP source'
+    );
+
+    // Public /partners and /connectors SSR + Quality Gate + 26-URL IndexNow checks
+    const [partnersRes, connectorsRes, m72Sitemap, m72Llms, m72Agents, m72IndexNow] =
+      await Promise.all([
+        fetch(`${BASE}/partners`),
+        fetch(`${BASE}/connectors`),
+        fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+        fetch(`${BASE}/llms.txt`).then((r) => r.text()),
+        fetch(`${BASE}/agents.md`).then((r) => r.text()),
+        fetch(`${BASE}/api/indexnow`, {
+          method: 'POST',
+          headers: OWNER_JSON_HEADERS,
+          body: JSON.stringify({ dryRun: true }),
+        }).then((r) => r.json()),
+      ]);
+    assert.equal(partnersRes.status, 200);
+    assert.equal(connectorsRes.status, 200);
+    const partnersHtml = await partnersRes.text();
+    const connectorsHtml = await connectorsRes.text();
+
+    assert.ok(
+      partnersHtml.includes('25% LIFETIME RECURRING COMMISSION') &&
+        partnersHtml.includes('"@type":"WebPage"') &&
+        partnersHtml.includes('"@type":"FAQPage"') &&
+        partnersHtml.includes('vs-pill-btn'),
+      'Expected /partners to render 25% recurring commission model, WebPage + FAQPage JSON-LD, and .vs-pill-btn'
+    );
+    assert.ok(
+      connectorsHtml.includes('verisource-geo-connector.php') &&
+        connectorsHtml.includes('"@type":"SoftwareSourceCode"') &&
+        connectorsHtml.includes('"@type":"FAQPage"') &&
+        connectorsHtml.includes('vs-pill-btn'),
+      'Expected /connectors to render WordPress + Shopify bridges, SoftwareSourceCode + FAQPage JSON-LD, and .vs-pill-btn'
+    );
+
+    for (const [pLabel, pHtml] of [
+      ['/partners', partnersHtml],
+      ['/connectors', connectorsHtml],
+    ]) {
+      assert.ok(
+        !pHtml.includes('aurearoasters') && !pHtml.includes('mosaicroasters'),
+        `Expected zero coffee-store echoes on ${pLabel}`
+      );
+      const pVisible = pHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (pVisible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${pLabel}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(pVisible) &&
+          !PLAIN_ENGLISH_JARGON.test(pVisible) &&
+          !/\bbeta\b/i.test(pVisible),
+        `Found /10, plain-English, or Beta jargon on ${pLabel}`
+      );
+    }
+
+    assert.ok(
+      m72Sitemap.includes('https://verisource.dev/partners') &&
+        m72Sitemap.includes('https://verisource.dev/connectors') &&
+        m72Llms.includes('https://verisource.dev/partners') &&
+        m72Llms.includes('https://verisource.dev/connectors') &&
+        m72Agents.includes('https://verisource.dev/partners') &&
+        m72Agents.includes('https://verisource.dev/connectors') &&
+        m72IndexNow.urls.includes('https://verisource.dev/partners') &&
+        m72IndexNow.urls.includes('https://verisource.dev/connectors') &&
+        m72IndexNow.submittedCount >= 26,
+      'Expected /sitemap.xml, /llms.txt, /agents.md, and 26-URL /api/indexnow to include /partners and /connectors'
+    );
+    console.log('✔ [69/69] M72 (Sprint GTM-6) 25% Recurring Partner Engine (/partners + /r/[code] + /api/partners/apply) & WordPress/Shopify Connectors (/connectors) verified!');
   } finally {
     server.kill();
   }
