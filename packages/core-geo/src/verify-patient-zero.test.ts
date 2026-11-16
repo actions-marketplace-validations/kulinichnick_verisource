@@ -28,6 +28,7 @@ import {
   buildCitationGapActionPlaybookMarkdown,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
+  buildFreeAuditSummaryAlert,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
   buildLocalServiceBatchCsv,
@@ -50,6 +51,7 @@ import {
   computeScoreDeltaSummary,
   computeShopifyCheckoutKey,
   detectWebsitePlatform,
+  dispatchFreeAuditSummaryEmail,
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
   dispatchProspectOpenEmail,
@@ -2630,4 +2632,30 @@ test('M58 buildPublicAiPromptTeaser generates >= 9.5/10 tailored headers and non
     assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
     assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
   }
+});
+
+test('M60 buildFreeAuditSummaryAlert & dispatchFreeAuditSummaryEmail generate >= 9.5/10 mobile-to-desktop action plans', async () => {
+  const sampleSummary = await runDomainReadinessScan('https://mosaicroasters.com', {
+    PROVIDER_MODE: 'mock',
+  });
+  const built = buildFreeAuditSummaryAlert({
+    summary: sampleSummary,
+    targetEnv: 'shopify_liquid',
+    appOrigin: 'https://verisource.dev',
+  });
+  assert.ok(built.quality.score >= 9.5);
+  assert.ok(built.trialUrl.includes('domain=mosaicroasters.com'));
+  assert.ok(built.trialUrl.includes('env=shopify_liquid'));
+  assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(built.text));
+  assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(built.text));
+  assert.equal(gradeArtifactQuality(built.text).breakdown.lexicon_filter, 2.0);
+
+  const dryRun = await dispatchFreeAuditSummaryEmail({
+    summary: sampleSummary,
+    targetEnv: 'shopify_liquid',
+    recipientEmail: 'founder@mosaicroasters.com',
+  });
+  assert.equal(dryRun.mode, 'preview_dry_run');
+  assert.equal(dryRun.delivered, false);
+  assert.ok(dryRun.qualityScore >= 9.5);
 });

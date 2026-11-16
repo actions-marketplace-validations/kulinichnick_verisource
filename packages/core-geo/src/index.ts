@@ -21,6 +21,7 @@ export * from './alerts/drift-alert.js';
 export * from './alerts/prospect-open-alert.js';
 export * from './alerts/post-purchase-alert.js';
 export * from './alerts/trial-activation-alert.js';
+export * from './alerts/free-audit-summary-alert.js';
 export * from './alerts/weekly-digest-alert.js';
 export * from './mcp/discovery-manifest.js';
 export * from './orchestrator/audit-domain.js';

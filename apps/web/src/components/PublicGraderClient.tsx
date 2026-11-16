@@ -40,6 +40,13 @@ export function PublicGraderClient(): React.ReactElement {
     useState<RecommendedRemediationEnv>('coding_agent');
   const [cached24h, setCached24h] = useState<boolean | null>(null);
   const [copiedScanLink, setCopiedScanLink] = useState(false);
+  const [showEmailSummaryForm, setShowEmailSummaryForm] = useState(false);
+  const [summaryEmailInput, setSummaryEmailInput] = useState('');
+  const [sendingSummaryEmail, setSendingSummaryEmail] = useState(false);
+  const [summaryEmailStatus, setSummaryEmailStatus] = useState<{
+    tone: 'pass' | 'error';
+    message: string;
+  } | null>(null);
   const autoScannedRef = useRef(false);
   const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -69,6 +76,7 @@ export function PublicGraderClient(): React.ReactElement {
           data.detectedPlatform ?? (data.isShopify ? 'shopify' : 'nextjs_custom')
         );
         setSelectedPromptEnv(meta.recommendedAiEnv);
+        setSummaryEmailStatus(null);
         setResult(data);
         setCached24h(Boolean(data.cached24h));
       }
@@ -123,6 +131,58 @@ export function PublicGraderClient(): React.ReactElement {
       }, 2200);
     } catch {
       // Ignore clipboard permission denial
+    }
+  }
+
+  async function handleSendEmailSummary(e: React.FormEvent) {
+    e.preventDefault();
+    if (!result) return;
+    const cleanEmail = summaryEmailInput.trim();
+    if (!cleanEmail) {
+      setSummaryEmailStatus({
+        tone: 'error',
+        message: 'Enter your email address to receive this audit summary.',
+      });
+      return;
+    }
+    setSendingSummaryEmail(true);
+    setSummaryEmailStatus(null);
+    try {
+      const res = await fetch('/api/grader/email-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: result.hostname,
+          recipient_email: cleanEmail,
+          env: selectedPromptEnv,
+        }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        mode?: string;
+        message?: string;
+      };
+      if (!res.ok || !data.ok) {
+        setSummaryEmailStatus({
+          tone: 'error',
+          message: data.message ?? 'Unable to send audit summary right now.',
+        });
+      } else {
+        setSummaryEmailStatus({
+          tone: 'pass',
+          message:
+            data.mode === 'live_resend'
+              ? `Sent your ${result.hostname} action plan & 1-Click AI Fix Prompt link to ${cleanEmail}.`
+              : `Prepared your ${result.hostname} action plan & 1-Click AI Fix Prompt link for ${cleanEmail} (local preview mode).`,
+        });
+      }
+    } catch {
+      setSummaryEmailStatus({
+        tone: 'error',
+        message: 'Network error while sending email summary.',
+      });
+    } finally {
+      setSendingSummaryEmail(false);
     }
   }
 
@@ -424,8 +484,91 @@ export function PublicGraderClient(): React.ReactElement {
                     >
                       {copiedScanLink ? '✓ Link Copied' : 'Share Audit Link'}
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEmailSummaryForm((prev) => !prev);
+                        setSummaryEmailStatus(null);
+                      }}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      {showEmailSummaryForm
+                        ? '− Hide Email Form'
+                        : '✉ Email Plan to My Laptop'}
+                    </button>
                   </div>
                 </div>
+
+                {showEmailSummaryForm ? (
+                  <div
+                    style={{
+                      padding: '11px 16px',
+                      borderBottom: '1px solid var(--vs-border)',
+                      background: 'var(--vs-surface-subtle)',
+                    }}
+                  >
+                    <form
+                      onSubmit={(e) => void handleSendEmailSummary(e)}
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '12.5px',
+                          color: 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        On your phone? Send this diagnosis &amp; 1-Click AI
+                        Prompt link to your inbox:
+                      </span>
+                      <input
+                        type="email"
+                        value={summaryEmailInput}
+                        onChange={(e) => setSummaryEmailInput(e.target.value)}
+                        placeholder="you@yourcompany.com"
+                        aria-label="Email address to receive free audit action plan"
+                        className="vs-input"
+                        style={{
+                          flex: '1 1 200px',
+                          maxWidth: '280px',
+                          minWidth: 0,
+                          padding: '6px 10px',
+                          fontSize: '12.5px',
+                          fontFamily: 'var(--vs-sans)',
+                        }}
+                      />
+                      <button
+                        type="submit"
+                        disabled={sendingSummaryEmail}
+                        className="vs-btn"
+                        style={{ padding: '7px 14px', fontSize: '12px' }}
+                      >
+                        {sendingSummaryEmail
+                          ? 'Sending...'
+                          : 'Send to My Inbox →'}
+                      </button>
+                    </form>
+                    {summaryEmailStatus ? (
+                      <div
+                        style={{
+                          marginTop: '6px',
+                          fontSize: '12px',
+                          color:
+                            summaryEmailStatus.tone === 'pass'
+                              ? 'var(--vs-pass-fg)'
+                              : 'var(--vs-crit-fg)',
+                        }}
+                      >
+                        {summaryEmailStatus.message}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div style={{ padding: '14px 16px' }}>
                   <div

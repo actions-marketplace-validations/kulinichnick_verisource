@@ -2480,7 +2480,127 @@ async function run() {
         envPreselectedDashHtml.includes('Custom Code'),
       'Expected Step 02 on /dashboard?tab=tab2_fixes&env=webflow_cms to pre-select Webflow prompt instructions on load'
     );
-    console.log('✔ [55/55] M59 End-to-End ?env= CMS Prompt Mode Carryover (/pricing -> 400/303 /api/checkout -> Step 02 pre-selection) verified!');
+    console.log('✔ [55/56] M59 End-to-End ?env= CMS Prompt Mode Carryover (/pricing -> 400/303 /api/checkout -> Step 02 pre-selection) verified!');
+
+    // 54. M60 Mobile-to-Desktop Free Audit Email Summary (/api/grader/email-summary: 403 Origin, 400 Email/SSRF/Env, 200 >= 9.5/10, 429 Recipient Cap)
+    const noOriginSummaryRes = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'founder@company.com',
+      }),
+    });
+    assert.equal(noOriginSummaryRes.status, 403);
+
+    const evilOriginSummaryRes = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://evil-spoofer.com',
+      },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'founder@company.com',
+      }),
+    });
+    assert.equal(evilOriginSummaryRes.status, 403);
+
+    const badEmailSummaryRes = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+      },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'bad@email\r\nBcc:victim@test.com',
+      }),
+    });
+    assert.equal(badEmailSummaryRes.status, 400);
+
+    const ssrfSummaryRes = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+      },
+      body: JSON.stringify({
+        domain: 'http://169.254.169.254/latest/meta-data/',
+        recipient_email: 'founder@company.com',
+      }),
+    });
+    assert.equal(ssrfSummaryRes.status, 400);
+
+    const badEnvSummaryRes = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+      },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'founder@company.com',
+        env: 'invalid_xss',
+      }),
+    });
+    assert.equal(badEnvSummaryRes.status, 400);
+
+    const validSummary1 = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.77',
+      },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'mobile-founder@company.com',
+        env: 'wordpress_cms',
+      }),
+    });
+    assert.equal(validSummary1.status, 200);
+    const validSummaryJson = await validSummary1.json();
+    assert.equal(validSummaryJson.ok, true);
+    assert.equal(validSummaryJson.mode, 'preview_dry_run');
+    assert.ok(validSummaryJson.qualityScore >= 9.5);
+    assert.ok(validSummaryJson.trialUrl.includes('env=wordpress_cms'));
+    assert.equal(
+      (validSummaryJson.text.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Expected zero banned lexicon in free audit email summary'
+    );
+
+    const validSummary2 = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.77',
+      },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'mobile-founder@company.com',
+        env: 'wordpress_cms',
+      }),
+    });
+    assert.equal(validSummary2.status, 200);
+
+    const rateLimitedSummary3 = await fetch(`${BASE}/api/grader/email-summary`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.77',
+      },
+      body: JSON.stringify({
+        domain: 'aurearoasters.com',
+        recipient_email: 'mobile-founder@company.com',
+        env: 'wordpress_cms',
+      }),
+    });
+    assert.equal(rateLimitedSummary3.status, 429);
+    console.log('✔ [56/56] M60 Mobile-to-Desktop Free Audit Email Summary (403 Origin, 400 CRLF/SSRF/Env, 200 >= 9.5/10, 429 Recipient Cap) verified!');
   } finally {
     server.kill();
   }
