@@ -3795,7 +3795,53 @@ async function run() {
       400,
       'Expected /api/indexnow to reject off-origin URLs with HTTP 400'
     );
-    console.log('✔ [71/71] M74 Adversarial Security Hardening (Security Headers, DNS-Rebinding/Port SSRF, Substring Guard & IndexNow Origin Lock) verified!');
+    console.log('✔ [71/72] M74 Adversarial Security Hardening (Security Headers, DNS-Rebinding/Port SSRF, Substring Guard & IndexNow Origin Lock) verified!');
+
+    // 70. M75 Step 03 1-Click Subscriber 25% Partner Referral Hub (#vs-subscriber-partner-hub + POST /api/dashboard/partner-link 401/400/200)
+    const unauthSubPartnerRes = await fetch(
+      `${BASE}/api/dashboard/partner-link`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug: 'workspace-partner' }),
+      }
+    );
+    assert.equal(unauthSubPartnerRes.status, 401);
+
+    const badSubPartnerRes = await fetch(`${BASE}/api/dashboard/partner-link`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ slug: 'bad<script>' }),
+    });
+    assert.equal(badSubPartnerRes.status, 400);
+
+    const validSubPartnerRes = await fetch(
+      `${BASE}/api/dashboard/partner-link`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({ slug: 'mosaic-partner-25' }),
+      }
+    );
+    assert.equal(validSubPartnerRes.status, 200);
+    const validSubPartnerJson = await validSubPartnerRes.json();
+    assert.equal(validSubPartnerJson.ok, true);
+    assert.equal(validSubPartnerJson.partnerSlug, 'mosaic-partner-25');
+    assert.ok(validSubPartnerJson.qualityScore >= 9.5);
+    assert.ok(
+      validSubPartnerJson.referralShortUrl.includes('/r/mosaic-partner-25')
+    );
+
+    assert.ok(
+      m69Step3AfterClickHtml.includes('id="vs-subscriber-partner-hub"') &&
+        m69Step3AfterClickHtml.includes(
+          'Earn 25% Recurring Commission — Cover Your Monthly Plan in 2–4 Peer Referrals'
+        ) &&
+        m69Step3AfterClickHtml.includes('2026 40-Domain Study') &&
+        m69Step3AfterClickHtml.includes('Copy Peer Share Note'),
+      'Expected Step 03 Guided Mode to render #vs-subscriber-partner-hub disclosure and tactile share destination pills'
+    );
+    console.log('✔ [72/72] M75 Step 03 1-Click Subscriber 25% Partner Referral Hub (#vs-subscriber-partner-hub + /api/dashboard/partner-link 401/400/200) verified!');
   } finally {
     server.kill();
   }

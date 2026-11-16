@@ -47,9 +47,12 @@ import {
   buildShopifyThemeExtensionBundle,
   buildWordPressConnectorPluginPhp,
   computePartnerCommissionBreakdown,
+  deriveWorkspacePartnerSlug,
   dispatchPartnerOnboardingEmail,
   isSelfReferralAttempt,
   sanitizeAffiliateCode,
+  SUBSCRIBER_REFERRAL_DESTINATIONS,
+  buildSubscriberReferralBundle,
   buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
   buildProspectCtaClickAlert,
@@ -3749,5 +3752,48 @@ test('M74 Adversarial SSRF Hardening: blocks 0.x.x.x, CGNAT, DNS-rebinding suffi
     );
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test('M75 deriveWorkspacePartnerSlug & buildSubscriberReferralBundle generate >= 9.5/10 peer share notes across all 4 destinations & 3 plan tiers', () => {
+  assert.equal(
+    deriveWorkspacePartnerSlug({
+      agencyBrandName: 'Northstar Search Studio',
+      email: 'alex@gmail.com',
+    }),
+    'northstar-search-studio'
+  );
+  assert.equal(
+    deriveWorkspacePartnerSlug({
+      primaryDomainUrl: 'https://summitdental.com',
+      email: 'dr@gmail.com',
+    }),
+    'summitdental-partner'
+  );
+  assert.equal(
+    deriveWorkspacePartnerSlug({
+      email: 'founder@acmerobotics.io',
+    }),
+    'acmerobotics-partner'
+  );
+
+  for (const planTier of ['starter_49', 'pro_99', 'agency_249'] as const) {
+    for (const dest of SUBSCRIBER_REFERRAL_DESTINATIONS) {
+      const bundle = buildSubscriberReferralBundle({
+        partnerSlug: 'northstar-seo',
+        planTier,
+        destinationId: dest.id,
+      });
+      assert.ok(bundle.referralUrl.startsWith('https://verisource.dev/r/northstar-seo'));
+      assert.ok(
+        bundle.peerShareNote.score >= 9.5,
+        `Expected peerShareNote >= 9.5 for ${dest.id}, got ${bundle.peerShareNote.score}`
+      );
+      assert.equal(bundle.peerShareNote.breakdown.lexicon_filter, 2.0);
+      const combined = `${bundle.offsetBillSummary}\n${bundle.peerShareNote.content}`;
+      assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+      assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+      assert.ok(!/\bbeta\b/i.test(combined));
+    }
   }
 });

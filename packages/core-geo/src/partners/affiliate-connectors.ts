@@ -578,3 +578,152 @@ ${JSON.stringify(blockSchemaObj, null, 2)}
     setupGuide: enforceQualityGate95(rawGuide, 'agents_md'),
   };
 }
+
+export type SubscriberReferralDestinationId =
+  | 'grader'
+  | 'benchmark_2026'
+  | 'free_validators'
+  | 'cms_templates';
+
+export const SUBSCRIBER_REFERRAL_DESTINATIONS: ReadonlyArray<{
+  id: SubscriberReferralDestinationId;
+  label: string;
+  toPath: string;
+}> = [
+  {
+    id: 'grader',
+    label: 'Free 60s Grader',
+    toPath: '/',
+  },
+  {
+    id: 'benchmark_2026',
+    label: '2026 40-Domain Study',
+    toPath: '/benchmarks/ai-search-readiness-2026',
+  },
+  {
+    id: 'free_validators',
+    label: 'Free WAF & /llms.txt Tools',
+    toPath: '/tools',
+  },
+  {
+    id: 'cms_templates',
+    label: '7-CMS Starter Templates',
+    toPath: '/templates',
+  },
+];
+
+export interface SubscriberReferralBundle {
+  partnerSlug: string;
+  destinationId: SubscriberReferralDestinationId;
+  destinationLabel: string;
+  referralUrl: string;
+  offsetBillSummary: string;
+  peerShareNote: EnforcedQualityArtifact;
+}
+
+export function deriveWorkspacePartnerSlug(input: {
+  agencyBrandName?: string | null;
+  primaryBrandName?: string | null;
+  primaryDomainUrl?: string | null;
+  email?: string | null;
+}): string {
+  const candidates: string[] = [];
+  if (input.agencyBrandName?.trim()) {
+    candidates.push(input.agencyBrandName.trim());
+  }
+  if (input.primaryBrandName?.trim()) {
+    candidates.push(input.primaryBrandName.trim());
+  }
+  if (input.primaryDomainUrl?.trim()) {
+    const cleanedHost = input.primaryDomainUrl
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .split('/')[0]
+      ?.split('.')[0];
+    if (cleanedHost) {
+      candidates.push(`${cleanedHost}-partner`);
+    }
+  }
+  if (input.email?.includes('@')) {
+    const emailDomain = input.email
+      .split('@')[1]
+      ?.toLowerCase()
+      .split('.')[0];
+    if (
+      emailDomain &&
+      !['gmail', 'yahoo', 'outlook', 'hotmail', 'icloud', 'proton'].includes(
+        emailDomain
+      )
+    ) {
+      candidates.push(`${emailDomain}-partner`);
+    }
+  }
+
+  for (const raw of candidates) {
+    const slugified = raw
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 32)
+      .replace(/-+$/g, '');
+    const padded = slugified.length === 2 ? `${slugified}-geo` : slugified;
+    const valid = sanitizeAffiliateCode(padded);
+    if (valid) {
+      return valid;
+    }
+  }
+
+  return 'workspace-partner';
+}
+
+export function buildSubscriberReferralBundle(input: {
+  partnerSlug: string;
+  planTier: PlanTier;
+  destinationId?: SubscriberReferralDestinationId;
+  appOrigin?: string;
+}): SubscriberReferralBundle {
+  const safeSlug =
+    sanitizeAffiliateCode(input.partnerSlug) ?? 'workspace-partner';
+  const origin = (input.appOrigin ?? 'https://verisource.dev').replace(
+    /\/+$/,
+    ''
+  );
+  const destMeta =
+    SUBSCRIBER_REFERRAL_DESTINATIONS.find(
+      (d) => d.id === (input.destinationId ?? 'benchmark_2026')
+    ) ?? SUBSCRIBER_REFERRAL_DESTINATIONS[1]!;
+
+  const referralUrl =
+    destMeta.toPath === '/'
+      ? `${origin}/r/${safeSlug}`
+      : `${origin}/r/${safeSlug}?to=${encodeURIComponent(destMeta.toPath)}`;
+
+  const offsetBillSummary =
+    input.planTier === 'agency_249'
+      ? '4 active Agency referrals ($62.25/mo each) cover 100% of your $249/mo White-Label plan ($2,988/yr).'
+      : input.planTier === 'pro_99'
+        ? '4 active Pro referrals ($24.75/mo each) or 2 Agency referrals ($62.25/mo each) cover 100%+ of your $99/mo Pro + MCP plan.'
+        : '4 active Starter referrals ($12.25/mo each) or 2 Pro referrals ($24.75/mo each) cover 100%+ of a $49/mo Starter plan.';
+
+  let rawShareText: string;
+  if (destMeta.id === 'benchmark_2026') {
+    rawShareText = `Worth checking against your stack: a live HTTPS study across 40 SaaS, Shopify, and service domains found 50.0% ship custom /llms.txt, only 5.0% serve custom /agents.md, and 5.0% silently block GPTBot via CDN HTTP 403 rules despite an open /robots.txt. Full dataset + 60-second domain check: ${referralUrl}`;
+  } else if (destMeta.id === 'free_validators') {
+    rawShareText = `Useful zero-signup diagnostic if you sell via AI search: tests whether Cloudflare or Akamai returns HTTP 403 to GPTBot and PerplexityBot, validates /llms.txt and /agents.md against HTML soft-404s, and checks Shopify /api/ucp/mcp + JSON-LD in 10 seconds ($0): ${referralUrl}`;
+  } else if (destMeta.id === 'cms_templates') {
+    rawShareText = `Sharing a clean copy-paste starter pack for /llms.txt, /agents.md, /ai-facts, Shopify templates/agents.md.liquid, and schema.org FAQPage JSON-LD across Next.js, Shopify, WordPress, Webflow, Wix, Squarespace, and Framer (HTTP 200 verified for GPTBot and PerplexityBot): ${referralUrl}`;
+  } else {
+    rawShareText = `We have been using Verisource to audit ChatGPT, Gemini, and Perplexity citations, catch wrong pricing claims, and ship validated JSON-LD, /llms.txt, and /agents.md fixes without manual guesswork ($49–$99/mo vs. $250+/mo trackers). Free 60-second URL scan here: ${referralUrl}`;
+  }
+
+  return {
+    partnerSlug: safeSlug,
+    destinationId: destMeta.id,
+    destinationLabel: destMeta.label,
+    referralUrl,
+    offsetBillSummary,
+    peerShareNote: enforceQualityGate95(rawShareText),
+  };
+}

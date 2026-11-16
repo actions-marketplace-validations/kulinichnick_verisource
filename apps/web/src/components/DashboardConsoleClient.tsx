@@ -20,8 +20,10 @@ import {
   buildMcpClientSetupBundle,
   buildPlainEnglishSiteDiagnosis,
   buildShopifyCustomerEventsPixel,
+  buildSubscriberReferralBundle,
   buildTargetedCitationOutreachDraft,
   computeShopifyCheckoutKey,
+  deriveWorkspacePartnerSlug,
   evaluateCommerceAttributeReadiness,
   evaluatePublishedCitationPage,
   filterAndRankPitchReports,
@@ -32,6 +34,7 @@ import {
   normalizePublicDomain,
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
+  SUBSCRIBER_REFERRAL_DESTINATIONS,
   summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   summarizePitchEngagementCounts,
@@ -53,6 +56,7 @@ import {
   type QualityRubricBreakdown,
   type ScoreDeltaSummary,
   type SubPageBotInspectionReport,
+  type SubscriberReferralDestinationId,
   type TrackedPromptRow,
   type WebsitePlatformId,
 } from '@verisource/core-geo';
@@ -284,6 +288,24 @@ export function DashboardConsoleClient(props: {
   const [selectedPitchSlug, setSelectedPitchSlug] = useState<string>(
     () => props.initialData.pitchReports[0]?.share_slug ?? ''
   );
+
+  // Tab 3 Subscriber 25% Partner Referral Hub state (M75)
+  const [partnerSlugInput, setPartnerSlugInput] = useState<string>(() =>
+    deriveWorkspacePartnerSlug({
+      agencyBrandName: props.initialData.profile.agency_brand_name,
+      primaryBrandName: props.initialData.domains[0]?.brand_name,
+      primaryDomainUrl: props.initialData.domains[0]?.domain_url,
+      email: props.initialData.profile.email,
+    })
+  );
+  const [partnerDestId, setPartnerDestId] =
+    useState<SubscriberReferralDestinationId>('benchmark_2026');
+  const [activatingPartnerLink, setActivatingPartnerLink] = useState(false);
+  const [partnerActivatedEmail, setPartnerActivatedEmail] = useState<
+    string | null
+  >(null);
+  const [copiedPartnerUrl, setCopiedPartnerUrl] = useState(false);
+  const [copiedPartnerShareNote, setCopiedPartnerShareNote] = useState(false);
 
   // Tab 1 Hallucination Drift Alert, Weekly Executive Digest & Shopify Checkout Pixel state
   const [sendingAlert, setSendingAlert] = useState(false);
@@ -2025,6 +2047,60 @@ export function DashboardConsoleClient(props: {
       }
       setCopiedMcpStarterPrompt(true);
       setTimeout(() => setCopiedMcpStarterPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission errors
+    }
+  }
+
+  async function handleActivateSubscriberPartnerLink() {
+    setActivatingPartnerLink(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/partner-link', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ slug: partnerSlugInput.trim() }),
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        message?: string;
+        partnerSlug?: string;
+        payoutEmail?: string;
+      };
+      if (!res.ok || !json.ok || !json.partnerSlug) {
+        setBannerError(
+          json.message ?? 'Unable to register workspace partner link.'
+        );
+      } else {
+        setPartnerSlugInput(json.partnerSlug);
+        setPartnerActivatedEmail(json.payoutEmail ?? data.profile.email);
+        setBannerSuccess(
+          `Activated 25% recurring partner code /r/${json.partnerSlug} for ${json.payoutEmail ?? data.profile.email}.`
+        );
+      }
+    } catch {
+      setBannerError('Network error while activating partner link.');
+    } finally {
+      setActivatingPartnerLink(false);
+    }
+  }
+
+  async function handleCopyPartnerText(
+    text: string,
+    kind: 'url' | 'note'
+  ): Promise<void> {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+      if (kind === 'url') {
+        setCopiedPartnerUrl(true);
+        setTimeout(() => setCopiedPartnerUrl(false), 2400);
+      } else {
+        setCopiedPartnerShareNote(true);
+        setTimeout(() => setCopiedPartnerShareNote(false), 2400);
+      }
     } catch {
       // Ignore clipboard permission errors
     }
@@ -9507,6 +9583,267 @@ export function DashboardConsoleClient(props: {
                   );
                 })()
               )}
+            </div>
+
+            {/* M75: 1-Click Subscriber 25% Recurring Partner & Peer Share Hub */}
+            <div id="vs-subscriber-partner-hub" style={{ marginTop: '16px' }}>
+              {(() => {
+                const referralBundle = buildSubscriberReferralBundle({
+                  partnerSlug: partnerSlugInput,
+                  planTier: data.profile.plan_tier,
+                  destinationId: partnerDestId,
+                });
+
+                const partnerHubInner = (
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <div style={{ maxWidth: '640px' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          <strong style={{ fontSize: '14px' }}>
+                            25% Recurring Subscriber Referral Link
+                          </strong>
+                          <StatusBadge tone="pass">
+                            90-DAY VS_REF · STRIPE SYNCED
+                          </StatusBadge>
+                          {partnerActivatedEmail ? (
+                            <StatusBadge tone="pass">
+                              {`PAYOUT ACTIVE · ${partnerActivatedEmail}`}
+                            </StatusBadge>
+                          ) : null}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink-secondary)',
+                            marginTop: '3px',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {referralBundle.offsetBillSummary}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <input
+                          type="text"
+                          value={partnerSlugInput}
+                          onChange={(e) => setPartnerSlugInput(e.target.value)}
+                          placeholder="Partner code"
+                          aria-label="Workspace partner referral slug"
+                          className="vs-input vs-mono"
+                          style={{
+                            width: '190px',
+                            fontSize: '12px',
+                            padding: '7px 10px',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          disabled={activatingPartnerLink}
+                          onClick={() =>
+                            void handleActivateSubscriberPartnerLink()
+                          }
+                          className="vs-btn"
+                          style={{ padding: '7px 12px', fontSize: '12px' }}
+                        >
+                          {activatingPartnerLink
+                            ? 'Activating...'
+                            : partnerActivatedEmail
+                              ? '✓ Partner Kit Sent'
+                              : `✓ Activate Payout (${data.profile.email})`}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <span
+                        className="vs-eyebrow"
+                        style={{ color: 'var(--vs-ink-secondary)' }}
+                      >
+                        SHARE DESTINATION:
+                      </span>
+                      <div
+                        role="group"
+                        aria-label="Subscriber referral share destination"
+                        className="vs-pill-group"
+                      >
+                        {SUBSCRIBER_REFERRAL_DESTINATIONS.map((dest) => (
+                          <button
+                            key={dest.id}
+                            type="button"
+                            className="vs-pill-btn vs-pill-btn-sm"
+                            data-active={
+                              partnerDestId === dest.id ? 'true' : 'false'
+                            }
+                            onClick={() => {
+                              setPartnerDestId(dest.id);
+                              setCopiedPartnerUrl(false);
+                              setCopiedPartnerShareNote(false);
+                            }}
+                          >
+                            {dest.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background: 'var(--vs-surface-warm)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <code
+                        className="vs-mono"
+                        style={{ fontSize: '12px', wordBreak: 'break-all' }}
+                      >
+                        {referralBundle.referralUrl}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void handleCopyPartnerText(
+                            referralBundle.referralUrl,
+                            'url'
+                          )
+                        }
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '5px 11px', fontSize: '12px' }}
+                      >
+                        {copiedPartnerUrl
+                          ? '✓ Referral URL Copied'
+                          : 'Copy Referral URL'}
+                      </button>
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '11px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background: 'var(--vs-surface)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                      }}
+                    >
+                      <div style={{ flex: '1 1 420px' }}>
+                        <div
+                          className="vs-eyebrow"
+                          style={{
+                            marginBottom: '3px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {`PEER FOUNDER / SLACK NOTE (${referralBundle.destinationLabel.toUpperCase()})`}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink)',
+                            lineHeight: 1.55,
+                          }}
+                        >
+                          {referralBundle.peerShareNote.content}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void handleCopyPartnerText(
+                            referralBundle.peerShareNote.content,
+                            'note'
+                          )
+                        }
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        {copiedPartnerShareNote
+                          ? '✓ Peer Note Copied'
+                          : 'Copy Peer Share Note'}
+                      </button>
+                    </div>
+                  </div>
+                );
+
+                if (isGuided) {
+                  return (
+                    <details
+                      className="vs-disclosure"
+                      open={Boolean(partnerActivatedEmail)}
+                    >
+                      <summary className="vs-disclosure-summary">
+                        <div>
+                          <strong style={{ fontSize: '13.5px' }}>
+                            Earn 25% Recurring Commission — Cover Your Monthly Plan in 2–4 Peer Referrals
+                          </strong>
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: 'var(--vs-ink-secondary)',
+                              marginTop: '2px',
+                            }}
+                          >
+                            {referralBundle.offsetBillSummary}
+                          </div>
+                        </div>
+                        <span className="vs-disclosure-pill">Partner Link</span>
+                      </summary>
+                      <div className="vs-disclosure-body">
+                        {partnerHubInner}
+                      </div>
+                    </details>
+                  );
+                }
+
+                return (
+                  <div className="vs-card" style={{ padding: '18px' }}>
+                    {partnerHubInner}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         ) : null}
