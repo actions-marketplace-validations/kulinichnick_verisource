@@ -162,7 +162,7 @@ export function MetricLedgerCell(props: {
   );
 }
 
-export function QualityRubricBadge(props: {
+export function QualityRubricBadge(_props: {
   score: number;
   breakdown?: {
     lexicon_filter: number;
@@ -172,13 +172,12 @@ export function QualityRubricBadge(props: {
     technical_integrity: number;
   };
 }): React.ReactElement {
-  const titleText = props.breakdown
-    ? `Lexicon ${props.breakdown.lexicon_filter.toFixed(1)} | Cadence ${props.breakdown.human_cadence.toFixed(1)} | Specificity ${props.breakdown.specificity_density.toFixed(1)} | Craft ${props.breakdown.visual_or_structural_craft.toFixed(1)} | Integrity ${props.breakdown.technical_integrity.toFixed(1)}`
-    : 'Verified >= 9.5/10 Natural Quality Rubric';
-
   return (
-    <span className="vs-badge vs-badge-pass" title={titleText}>
-      QUALITY GATE {props.score.toFixed(1)} / 10.0
+    <span
+      className="vs-badge vs-badge-pass"
+      title="Syntax-validated and verified against your Brand Truth Sheet"
+    >
+      SYNTAX &amp; TRUTH VERIFIED
     </span>
   );
 }
@@ -310,7 +309,7 @@ export function ThreeTabShell(props: {
           : 'One-Click On-Site Fixes',
       sub: isGuided
         ? 'Ready-to-paste code for your site or Shopify'
-        : '9.5+/10 JSON-LD, /llms.txt & Shopify UCP',
+        : 'Validated JSON-LD, /llms.txt & Shopify UCP',
     },
     {
       id: 'tab3_offsite',

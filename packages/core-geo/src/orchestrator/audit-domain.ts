@@ -420,7 +420,7 @@ export function buildAgencyPitchPayload(params: {
   }
 
   const recommendedFixes: string[] = [
-    'Publish 9.5+/10 graded Organization + FAQPage JSON-LD schema.',
+    'Publish syntax-validated Organization + FAQPage JSON-LD schema.',
     params.isShopify
       ? 'Deploy custom Shopify agents.md.liquid referencing /api/ucp/mcp.'
       : 'Publish canonical /agents.md and /llms.txt truth files at domain root.',

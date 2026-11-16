@@ -563,8 +563,8 @@ export function PublicGraderClient(): React.ReactElement {
                 <div style={{ fontSize: '12.5px' }}>
                   <strong>3. Unredacted Reddit, G2 &amp; Editorial URLs</strong>
                   <div style={{ color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    Every exact competitor-feeding article + Critic-verified
-                    (&gt;= 9.5/10) outreach notes.
+                    Every exact competitor-feeding article + fact-verified
+                    editorial outreach notes.
                   </div>
                 </div>
                 <div style={{ fontSize: '12.5px' }}>

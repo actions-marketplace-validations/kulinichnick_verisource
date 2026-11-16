@@ -50,7 +50,7 @@ export function McpStreamSchematic(): React.ReactElement {
           viewBox="0 0 500 302"
           width="100%"
           role="img"
-          aria-label="Animated architectural diagram showing Claude Desktop, Cursor, Windsurf, and Antigravity calling https://mcp.verisource.dev/mcp over stateless Streamable HTTP for free readiness checks and paid >= 9.5/10 GEO fix bundles."
+          aria-label="Animated architectural diagram showing Claude Desktop, Cursor, Windsurf, and Antigravity calling https://mcp.verisource.dev/mcp over stateless Streamable HTTP for free readiness checks and paid syntax-validated GEO fix bundles."
           style={{ display: 'block', height: 'auto' }}
         >
           {/* Architectural Corner Registration Crosshairs */}
@@ -397,7 +397,7 @@ export function McpStreamSchematic(): React.ReactElement {
               fontWeight="700"
               fontFamily="var(--vs-mono)"
             >
-              &gt;= 9.5/10 Fix Pack
+              Validated Fix Pack
             </text>
             <text
               x="344"

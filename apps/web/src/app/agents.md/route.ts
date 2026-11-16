@@ -36,9 +36,9 @@ Paid tools accept either a SHA-256 \`vs_live_\` Bearer API key minted at https:/
 | Tool Name | Tier | Credit Cost | Purpose |
 | :--- | :--- | :--- | :--- |
 | \`scan_domain_ai_readiness\` | Free Preview | 0 credits | Returns AI Visibility Score (0-100), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF & robots.txt access, Shopify \`/api/ucp/mcp\` + \`/agents.md\` status, and 1 sample citation check. |
-| \`get_citation_gaps_and_fanouts\` | Paid (Pro / Agency) | 1 cached / 10 live | Returns 3-engine citation share, ranked citation gap domains, Critic-verified (\`>= 9.5/10\`) editorial outreach drafts, observed search fanout sub-queries, and unblurred third-party citation URLs. |
+| \`get_citation_gaps_and_fanouts\` | Paid (Pro / Agency) | 1 cached / 10 live | Returns 3-engine citation share, ranked citation gap domains, fact-verified editorial outreach drafts, observed search fanout sub-queries, and unblurred third-party citation URLs. |
 | \`check_brand_hallucinations\` | Paid (Pro / Agency) | 1 cached / 10 live | Diffs live ChatGPT, Gemini, and Perplexity claims against a domain's verified Brand Truth Sheet and flags pricing, shipping, or SKU hallucinations. |
-| \`generate_geo_fix_bundle\` | Paid (Pro / Agency) | 1 cached / 10 live | Generates Critic-verified (>= 9.5/10 Natural Quality Score) \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, Shopify \`templates/agents.md.liquid\`, and citation outreach briefs. |
+| \`generate_geo_fix_bundle\` | Paid (Pro / Agency) | 1 cached / 10 live | Generates syntax-validated \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, Shopify \`templates/agents.md.liquid\`, 1-click AI remediation prompt, and citation outreach briefs. |
 
 ## 3. Public HTTP Endpoints for Web & Extension Clients
 

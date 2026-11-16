@@ -58,7 +58,7 @@ export function buildMcpDiscoveryManifest(options?: {
     slug: 'verisource',
     title: 'Verisource — B2B GEO & AI Citation Intelligence',
     description:
-      'B2B GEO MCP: audit AI citations, flag SKU hallucinations, and ship >=9.5/10 JSON-LD & /agents.md.',
+      'B2B GEO MCP: audit AI citations, flag SKU hallucinations, and ship JSON-LD & /agents.md fixes.',
     version,
     websiteUrl: appOrigin,
     documentationUrl: `${appOrigin}/mcp-guide`,
@@ -103,7 +103,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Returns 3-engine Mention vs Citation share, Source-Type categorized citation gap domains (UGC/Reddit, Review Directory, Editorial, Competitor), suggested funnel prompts, >=9.5/10 outreach drafts, and observed search sub-queries.',
+          'Returns 3-engine Mention vs Citation share, Source-Type categorized citation gap domains (UGC/Reddit, Review Directory, Editorial, Competitor), suggested funnel prompts, editorial outreach drafts, and observed search sub-queries.',
       },
       {
         name: 'check_brand_hallucinations',
@@ -115,11 +115,11 @@ export function buildMcpDiscoveryManifest(options?: {
       },
       {
         name: 'generate_geo_fix_bundle',
-        title: 'Generate 9.5+/10 Graded GEO Fix Bundle',
+        title: 'Generate Syntax-Validated GEO Fix Bundle',
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Generates Critic-verified (>= 9.5/10) schema.org JSON-LD, /llms.txt, /agents.md, Shopify templates/agents.md.liquid overrides, and citation outreach briefs.',
+          'Generates syntax-validated schema.org JSON-LD, /llms.txt, /agents.md, Shopify templates/agents.md.liquid overrides, and citation outreach briefs.',
       },
     ],
   };

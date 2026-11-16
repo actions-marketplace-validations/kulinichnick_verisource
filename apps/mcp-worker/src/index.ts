@@ -182,7 +182,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
       {
         title: 'Get Citation Gaps & Decompiled Query Fanouts',
         description:
-          'Paid Tool (Pro/Agency): Returns 3-engine citation share, ranked citation gap domains, >=9.5/10 editorial outreach drafts, unblurred competitor citation URLs, and observed AI engine sub-queries (Gemini webSearchQueries, ChatGPT web_search_call, Perplexity Agent citations). Costs 1 credit cached or 10 credits with live_refresh=true.',
+          'Paid Tool (Pro/Agency): Returns 3-engine citation share, ranked citation gap domains, verified editorial outreach drafts, unblurred competitor citation URLs, and observed AI engine sub-queries (Gemini webSearchQueries, ChatGPT web_search_call, Perplexity Agent citations). Costs 1 credit cached or 10 credits with live_refresh=true.',
         inputSchema: z.object({
           domain: z.string().min(3).describe('Target domain or URL'),
           custom_prompts: z
@@ -416,9 +416,9 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
     server.registerTool(
       'generate_geo_fix_bundle',
       {
-        title: 'Generate 9.5+/10 Graded GEO Fix Bundle',
+        title: 'Generate Syntax-Validated GEO Fix Bundle',
         description:
-          'Paid Tool (Pro/Agency): Generates ready-to-publish JSON-LD entity/FAQ schemas, /llms.txt, custom /agents.md or Shopify agents.md.liquid override, Answer-First FAQs, and third-party outreach briefs—all verified >= 9.5/10 by the Quality Critic.',
+          'Paid Tool (Pro/Agency): Generates ready-to-publish JSON-LD entity/FAQ schemas, /llms.txt, custom /agents.md or Shopify agents.md.liquid override, Answer-First FAQs, 1-click AI remediation prompt, and third-party outreach briefs—all syntax-validated against your Brand Truth Sheet.',
         inputSchema: z.object({
           domain: z.string().min(3).describe('Target domain or URL'),
           brand_name: z.string().optional(),

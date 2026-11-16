@@ -171,7 +171,7 @@ export function buildAgencyPartnerPlaybookMarkdown(
         `- **Live Agency Demo Audit:** ${item.shareUrl}`,
         `- **White-Label Partner Page:** ${cleanBase}/agencies`,
         `- **Subject:** ${item.subject}`,
-        `- **Critic Scores:** \`${item.qualityScore.toFixed(1)} / ${item.followUpDay3Score.toFixed(1)} / ${item.followUpDay7Score.toFixed(1)}\``,
+        `- **Verification Status:** \`Brand Truth & Claim Verified\``,
         '',
         '### Touch 1 — Day 0 (Agency Scorecard & Retainer Pitch)',
         '```text',

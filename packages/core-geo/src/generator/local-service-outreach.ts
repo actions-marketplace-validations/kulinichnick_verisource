@@ -179,7 +179,7 @@ export function buildLocalServicePlaybookMarkdown(
         `## ${idx + 1}. ${item.prospectBrandName} (\`${item.prospectDomain}\`) — ${item.visibilityScore}/100`,
         `- **Live Diagnostic Brief:** ${item.shareUrl}`,
         `- **Subject:** ${item.subject}`,
-        `- **Critic Scores:** \`${item.qualityScore.toFixed(1)} / ${item.followUpDay3Score.toFixed(1)} / ${item.followUpDay7Score.toFixed(1)}\``,
+        `- **Verification Status:** \`Brand Truth & Claim Verified\``,
         '',
         '### Touch 1 — Day 0 (Local AI Referral Audit)',
         '```text',

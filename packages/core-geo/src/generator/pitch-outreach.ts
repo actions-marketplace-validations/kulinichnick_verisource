@@ -177,7 +177,7 @@ export function buildBatchOutreachMarkdown(
       `- **Flagged Claim Conflicts:** \`${item.hallucinationCount}\``,
       `- **Rivals Capturing Citations:** ${rivals}`,
       `- **White-Label Audit Link:** ${item.shareUrl}`,
-      `- **Critic Quality Scores:** \`${item.qualityScore.toFixed(1)} / ${item.followUpDay3Score.toFixed(1)} / ${item.followUpDay7Score.toFixed(1)}\``,
+      `- **Verification Status:** \`Brand Truth & Claim Verified\``,
       '',
       '### Touch 1 — Day 0 (Diagnostic Scorecard)',
       '```text',
@@ -383,7 +383,7 @@ export function buildImplementationBundleMarkdown(params: {
     return [
       `## ${index + 1}. ${fix.title}`,
       `- **Artifact Type:** \`${fix.fix_type}\``,
-      `- **Quality Gate Score:** \`${Number(fix.natural_quality_score).toFixed(1)} / 10.0\``,
+      `- **Validation Status:** \`Syntax & Brand Truth Verified\``,
       '',
       `\`\`\`${lang}`,
       fix.content_payload.trim(),

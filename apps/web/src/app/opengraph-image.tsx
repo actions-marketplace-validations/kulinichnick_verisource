@@ -98,8 +98,8 @@ export default function OpenGraphImage(): ImageResponse {
             }}
           >
             Answer Engine Insights, Rival Share of Voice, Edge AI Bot Logs &amp;
-            9.5+/10 JSON-LD + /agents.md fixes for ChatGPT, Gemini &amp;
-            Perplexity.
+            Syntax-Validated JSON-LD + /agents.md fixes for ChatGPT, Gemini
+            &amp; Perplexity.
           </div>
         </div>
 
@@ -160,7 +160,7 @@ export default function OpenGraphImage(): ImageResponse {
                 letterSpacing: '0.05em',
               }}
             >
-              02 · &gt;= 9.5/10 QUALITY CRITIC
+              02 · SCHEMA &amp; FACT VERIFIED
             </span>
             <span style={{ fontSize: '20px', fontWeight: 700 }}>
               JSON-LD · /llms.txt · /agents.md

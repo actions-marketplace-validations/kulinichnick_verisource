@@ -80,7 +80,7 @@ export function PricingLadderSection(props: {
         '1 Website + Weekly Automated Scans',
         '35 Weekly Buyer Questions (3 AI Engines)',
         'Wrong-Price & Policy Alert Watchdog',
-        '9.5+/10 JSON-LD, /llms.txt & /agents.md Fixes',
+        'Validated JSON-LD, /llms.txt & /agents.md Fixes',
       ],
       cta: 'Start Starter Plan',
       href: `/api/checkout?plan=starter_49&cycle=${

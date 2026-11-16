@@ -48,7 +48,7 @@ const FALLBACK_COHORT_REPORTS: AgencyPitchReportRow[] = [
         },
       ],
       recommended_fixes: [
-        'Publish >= 9.5/10 SoftwareApplication + FAQPage JSON-LD graph.',
+        'Publish syntax-validated SoftwareApplication + FAQPage JSON-LD graph.',
         'Deploy /agents.md and /llms.txt at domain root.',
       ],
     },
@@ -243,10 +243,10 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
           <SampleAuditCohortClient reports={liveCohortReports} />
         </section>
 
-        {/* Critic-Verified 4-Sentence Cold Outreach Preview */}
+        {/* Fact-Verified 4-Sentence Cold Outreach Preview */}
         <section style={{ marginBottom: '40px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            ZERO AI-SLOP OUTREACH EXPORT
+            FACT-ANCHORED OUTREACH EXPORT
           </div>
           <h2
             style={{
@@ -256,7 +256,7 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
               margin: '0 0 8px 0',
             }}
           >
-            Every batch exports a Critic-verified 4-sentence founder note.
+            Every batch exports a fact-verified 4-sentence founder note.
           </h2>
           <p
             style={{

@@ -54,7 +54,7 @@ const CLIENT_GUIDES: Record<
     label: 'Antigravity',
     fileHint: 'mcp_config.json',
     plainWhereToPaste:
-      'Add the verisource server entry to your Antigravity MCP configuration so agents can audit citations and commit >= 9.5/10 fixes directly.',
+      'Add the verisource server entry to your Antigravity MCP configuration so agents can audit citations and commit syntax-validated fixes directly.',
     firstPromptExample:
       'Call Verisource check_brand_hallucinations on our production domain and list any wrong pricing claims.',
   },

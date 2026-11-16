@@ -28,7 +28,7 @@ const READY_TO_ASK_PROMPTS = [
   },
   {
     persona: 'FOR DEVELOPERS & B2B SAAS TEAMS',
-    title: 'Generate & commit >= 9.5/10 schema.org JSON-LD + /llms.txt',
+    title: 'Generate & commit syntax-validated schema.org JSON-LD + /llms.txt',
     prompt:
       'Call Verisource generate_geo_fix_bundle for our production domain, validate the JSON-LD, and write /public/llms.txt and /public/agents.md.',
   },

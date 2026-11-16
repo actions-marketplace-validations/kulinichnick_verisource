@@ -42,14 +42,14 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://verisource.dev'),
   title: 'Verisource — B2B Generative Engine Optimization & Paid MCP Engine',
   description:
-    'Audit AI citations across ChatGPT, Gemini, and Perplexity. Flag brand hallucinations and ship >=9.5/10 JSON-LD, /llms.txt, and Shopify /api/ucp/mcp fixes.',
+    'Audit AI citations across ChatGPT, Gemini, and Perplexity. Flag brand hallucinations and ship syntax-validated JSON-LD, /llms.txt, and Shopify /api/ucp/mcp fixes.',
   alternates: {
     canonical: 'https://verisource.dev',
   },
   openGraph: {
     title: 'Verisource — B2B GEO & Streamable HTTP MCP Platform',
     description:
-      'Audit AI Share-of-Voice, catch pricing hallucinations, and deploy >=9.5/10 JSON-LD, /llms.txt, and Shopify /api/ucp/mcp fixes.',
+      'Audit AI Share-of-Voice, catch pricing hallucinations, and deploy syntax-validated JSON-LD, /llms.txt, and Shopify /api/ucp/mcp fixes.',
     url: 'https://verisource.dev',
     siteName: 'Verisource',
     type: 'website',
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Verisource — B2B GEO & Streamable HTTP MCP Platform',
     description:
-      'Audit AI citations across ChatGPT, Gemini, and Perplexity and deploy >=9.5/10 JSON-LD, /llms.txt, and /agents.md fixes.',
+      'Audit AI citations across ChatGPT, Gemini, and Perplexity and deploy syntax-validated JSON-LD, /llms.txt, and /agents.md fixes.',
   },
   verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
     ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
@@ -72,7 +72,7 @@ const ORGANIZATION_JSON_LD = {
   url: 'https://verisource.dev',
   logo: 'https://verisource.dev/icon.png',
   description:
-    'B2B Generative Engine Optimization (GEO) platform and Streamable HTTP MCP server (https://mcp.verisource.dev/mcp) for AI search citation auditing, brand claim verification, and >=9.5/10 JSON-LD, /llms.txt, and /agents.md remediation.',
+    'B2B Generative Engine Optimization (GEO) platform and Streamable HTTP MCP server (https://mcp.verisource.dev/mcp) for AI search citation auditing, brand claim verification, and syntax-validated JSON-LD, /llms.txt, and /agents.md remediation.',
   sameAs: [
     'https://github.com/kulinichnick/verisource',
     'https://registry.modelcontextprotocol.io/?q=verisource',
@@ -152,7 +152,7 @@ const FAQ_JSON_LD = {
       name: 'How does the $19 One-Time Audit Pass 7-day credit work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Purchasing the $19 Audit Pass activates a complete 3-engine audit and >=9.5/10 fix bundle for one domain inside the Console. Upgrading to Starter ($49/mo), Pro + MCP ($99/mo), or Agency ($249/mo) within 7 days automatically deducts $19.00 from your first recurring invoice.',
+        text: 'Purchasing the $19 Audit Pass activates a complete 3-engine audit and syntax-validated fix bundle for one domain inside the Console. Upgrading to Starter ($49/mo), Pro + MCP ($99/mo), or Agency ($249/mo) within 7 days automatically deducts $19.00 from your first recurring invoice.',
       },
     },
   ],

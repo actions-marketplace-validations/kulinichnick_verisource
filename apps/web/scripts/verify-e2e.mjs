@@ -1707,7 +1707,34 @@ async function run() {
       0,
       'Found banned lexicon on Tab 2 1-Click AI Fix Prompt view'
     );
-    console.log('✔ [41/41] M45 1-Click AI Remediation Prompt Generator (Claude · ChatGPT · Antigravity · Cursor) verified!');
+    console.log('✔ [41/42] M45 1-Click AI Remediation Prompt Generator (Claude · ChatGPT · Antigravity · Cursor) verified');
+
+    // 40. M46 Customer-Facing /10 & Critic Score Scrub -> Concrete SCHEMA & FACT VERIFIED / SYNTAX & TRUTH VERIFIED Badges
+    assert.ok(
+      v1HomeHtml.includes('SCHEMA &amp; FACT VERIFIED') &&
+        m42Tab2Html.includes('SYNTAX &amp; TRUTH VERIFIED'),
+      'Expected SCHEMA & FACT VERIFIED on / and SYNTAX & TRUTH VERIFIED on Tab 2'
+    );
+    const SELF_SCORE_JARGON =
+      /QUALITY GATE|9\.5\s*\/\s*10|9\.5\+\/10|Critic-verified|Critic-graded/i;
+    for (const [label, body] of [
+      ['/', v1HomeHtml.replace(/fontSize="9\.5"/g, '')],
+      ['/pricing', pricingHtml],
+      ['/agencies', agenciesHtml.replace(/fontSize="9\.5"/g, '')],
+      ['/mcp-guide', mcpGuideHtml.replace(/fontSize="9\.5"/g, '')],
+      ['/sample-audit', m37SampleHtml],
+      ['/llms.txt', llmsText],
+      ['/agents.md', agentsText],
+      ['/dashboard Tab 1', m42Tab1Html],
+      ['/dashboard Tab 2', m42Tab2Html],
+      ['/dashboard Tab 3', m42Tab3Html],
+    ]) {
+      assert.ok(
+        !SELF_SCORE_JARGON.test(body),
+        `Expected zero customer-facing /10 Quality Gate or Critic jargon on ${label}`
+      );
+    }
+    console.log('✔ [42/42] M46 Zero customer-facing /10 or Critic jargon across 10 routes + SCHEMA & FACT VERIFIED badges verified!');
   } finally {
     server.kill();
   }

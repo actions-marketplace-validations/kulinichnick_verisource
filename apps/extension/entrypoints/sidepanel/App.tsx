@@ -536,8 +536,8 @@ export default function App(): React.ReactElement {
             <code className="vs-mono">PerplexityBot</code>,{' '}
             <code className="vs-mono">ClaudeBot</code>,{' '}
             <code className="vs-mono">Google-Extended</code>, raw HTML crawler
-            readability, brand sentiment, rival Share of Voice, and{' '}
-            <code className="vs-mono">&gt;=9.5/10</code> schema fixes.
+            readability, brand sentiment, rival Share of Voice, and
+            syntax-validated schema fixes.
           </p>
           <button
             type="button"

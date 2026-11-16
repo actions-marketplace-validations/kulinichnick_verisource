@@ -43,7 +43,7 @@ const AGENCY_WORKFLOW_STEPS = [
   },
   {
     step: '04',
-    title: 'Ship >= 9.5/10 client fixes in one click',
+    title: 'Ship syntax-validated client fixes in one click',
     detail:
       'Export ready-to-paste schema.org JSON-LD, /llms.txt, /agents.md, and Shopify templates/agents.md.liquid overrides—or connect Claude Desktop, Cursor, and Antigravity via 5,000 monthly /mcp credits.',
   },
@@ -79,7 +79,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
         },
       ],
       recommended_fixes: [
-        'Publish 9.5+/10 graded Organization + FAQPage JSON-LD schema.',
+        'Publish syntax-validated Organization + FAQPage JSON-LD schema.',
         'Publish canonical /agents.md and /llms.txt truth files at domain root.',
       ],
     },
@@ -312,8 +312,8 @@ export default function AgenciesPartnerPage(): React.ReactElement {
             }}
           >
             Export single notes or download a bulk RFC 4180 CSV ready for
-            Instantly, Smartlead, Apollo, or Gmail—graded automatically above
-            9.5/10 with zero generic marketing filler.
+            Instantly, Smartlead, Apollo, or Gmail—anchored strictly to verified
+            crawl facts with zero generic marketing filler.
           </p>
 
           <CodeArtifactCard

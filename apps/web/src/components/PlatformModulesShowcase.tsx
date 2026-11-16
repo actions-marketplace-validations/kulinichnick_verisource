@@ -51,10 +51,10 @@ const PILLARS: PillarSpec[] = [
   {
     id: 'shopping_fixes',
     stepTag: '04 · AI SHOPPING & VERIFIED FIXES',
-    title: 'Shopping Attribute Checklist + >= 9.5/10 Site Code',
+    title: 'Shopping Attribute Checklist + Validated Site Code',
     subtitle: 'Where passive $499/mo trackers stop, Verisource writes the fix.',
     description:
-      'Audit all 5 structured Offer, Fulfillment, Guardrail, Entity, and Protocol attributes required by ChatGPT Shopping and Perplexity. Copy Critic-verified (>= 9.5/10) JSON-LD entity graphs, /llms.txt, /agents.md, or Shopify agents.md.liquid files—then verify live HTTP deployment in one click.',
+      'Audit all 5 structured Offer, Fulfillment, Guardrail, Entity, and Protocol attributes required by ChatGPT Shopping and Perplexity. Copy syntax-validated JSON-LD entity graphs, /llms.txt, /agents.md, Shopify agents.md.liquid files, or a 1-click AI Fix Prompt—then verify live HTTP deployment in one click.',
     consoleLocation: 'Console Step 2 · Copy-Paste Website Fixes',
   },
   {
@@ -418,7 +418,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                     <tr>
                       <th>Commerce &amp; Offer Attribute</th>
                       <th>Generated Artifact</th>
-                      <th>Quality Critic</th>
+                      <th>Validation</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -428,7 +428,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                         application/ld+json
                       </td>
                       <td>
-                        <StatusBadge tone="pass">9.8 / 10 VERIFIED</StatusBadge>
+                        <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>
                       </td>
                     </tr>
                     <tr>
@@ -437,7 +437,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                         /agents.md + agents.md.liquid
                       </td>
                       <td>
-                        <StatusBadge tone="pass">9.7 / 10 VERIFIED</StatusBadge>
+                        <StatusBadge tone="pass">TRUTH LOCKED</StatusBadge>
                       </td>
                     </tr>
                     <tr>
@@ -446,7 +446,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                         /llms.txt + FAQPage Graph
                       </td>
                       <td>
-                        <StatusBadge tone="pass">9.8 / 10 VERIFIED</StatusBadge>
+                        <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>
                       </td>
                     </tr>
                     <tr>
@@ -457,7 +457,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                         Master Remediation Prompt
                       </td>
                       <td>
-                        <StatusBadge tone="pass">9.9 / 10 VERIFIED</StatusBadge>
+                        <StatusBadge tone="pass">READY TO PASTE</StatusBadge>
                       </td>
                     </tr>
                   </tbody>
@@ -499,8 +499,8 @@ export function PlatformModulesShowcase(): React.ReactElement {
                   <div>POST https://mcp.verisource.dev/mcp</div>
                   <div>tool: &quot;get_citation_gaps_and_fanouts&quot;</div>
                   <div style={{ color: 'var(--vs-ink-muted)' }}>
-                    → returns Mention vs. Citation %, Source Types &amp; &gt;=9.5/10
-                    outreach drafts
+                    → returns Mention vs. Citation %, Source Types &amp;
+                    verified outreach drafts
                   </div>
                 </div>
               </div>

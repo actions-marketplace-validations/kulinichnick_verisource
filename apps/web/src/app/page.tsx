@@ -48,7 +48,7 @@ export default function HomePage(): React.ReactElement {
                 CHATGPT · PERPLEXITY · GEMINI · CLAUDE
               </StatusBadge>
               <StatusBadge>ACTION CONSOLE + /MCP SERVER</StatusBadge>
-              <StatusBadge>QUALITY GATE &gt;= 9.5 / 10</StatusBadge>
+              <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
             </div>
 
             <h1
@@ -84,7 +84,7 @@ export default function HomePage(): React.ReactElement {
               organic&rsquo;s <strong className="vs-mono">1.76%–2.8%</strong>.
               Passive GEO trackers charge $245–$499+/mo just to show charts.
               Verisource measures your Share-of-Voice, flags hallucinated
-              pricing, and generates Critic-verified{' '}
+              pricing, and generates syntax-validated{' '}
               <code className="vs-mono">JSON-LD</code>,{' '}
               <code className="vs-mono">/llms.txt</code>, and{' '}
               <code className="vs-mono">/agents.md</code> fixes inside your
@@ -250,7 +250,7 @@ export default function HomePage(): React.ReactElement {
                     Not included — charts only
                   </td>
                   <td>
-                    <StatusBadge tone="pass">&gt;= 9.5/10 GENERATED</StatusBadge>{' '}
+                    <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>{' '}
                     <span style={{ fontSize: '13px', marginLeft: '6px' }}>
                       Copy-paste code + Shopify{' '}
                       <code className="vs-mono">/api/ucp/mcp</code> adapter +

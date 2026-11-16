@@ -752,7 +752,7 @@ export function DashboardConsoleClient(props: {
         setSelectedDomainId(json.domain.id);
         setNewDomainUrl('');
         setBannerSuccess(
-          `Scanned ${json.domain.brand_name} and generated >=9.5/10 fixes.`
+          `Scanned ${json.domain.brand_name} and generated syntax-validated site fixes.`
         );
       }
     } catch {
@@ -1057,7 +1057,7 @@ export function DashboardConsoleClient(props: {
     a.remove();
     URL.revokeObjectURL(url);
     setBannerSuccess(
-      `Exported Executive AI Search Report (${artifact.score}/10 Quality Score) as ${hostSlug}-ai-search-audit.md.`
+      `Exported Executive AI Search Report as ${hostSlug}-ai-search-audit.md.`
     );
   }
 
@@ -1195,7 +1195,7 @@ export function DashboardConsoleClient(props: {
           ],
         }));
         setBannerSuccess(
-          `Verified Brand Truth Sheet for ${json.domain.brand_name} and regenerated 9.5+/10 schema & /agents.md fixes.`
+          `Verified Brand Truth Sheet for ${json.domain.brand_name} and regenerated syntax-validated schema & /agents.md fixes.`
         );
       }
     } catch {
@@ -1255,7 +1255,7 @@ export function DashboardConsoleClient(props: {
         setSelectedPitchSlug(minted[0]!.share_slug);
         setBannerSuccess(
           minted.length > 1
-            ? `Minted ${minted.length} white-label /audit/[slug] reports with Critic-verified outreach notes. Use Export CSV or Playbook (.md) to download.`
+            ? `Minted ${minted.length} white-label /audit/[slug] reports with fact-verified outreach notes. Use Export CSV or Playbook (.md) to download.`
             : `60-Second White-Label Pitch Link & cold outreach note ready: ${json.share_url}`
         );
       }
@@ -1445,8 +1445,8 @@ export function DashboardConsoleClient(props: {
         });
         setBannerSuccess(
           mode === 'live_resend'
-            ? `Dispatched hallucination drift alert to ${recipient} via Resend (${json.qualityScore}/10 Critic score).`
-            : `Generated drift-alert preview for ${recipient} (${json.qualityScore}/10 Critic score). Set RESEND_API_KEY for automated weekly delivery.`
+            ? `Dispatched hallucination drift alert to ${recipient} via Resend.`
+            : `Generated drift-alert preview for ${recipient}. Set RESEND_API_KEY for automated weekly delivery.`
         );
       }
     } catch {
@@ -1506,8 +1506,8 @@ export function DashboardConsoleClient(props: {
         });
         setBannerSuccess(
           mode === 'live_resend'
-            ? `Dispatched weekly executive digest to ${recipient} via Resend (${json.qualityScore}/10 Critic score).`
-            : `Generated forward-ready weekly executive digest for ${recipient} (${json.qualityScore}/10 Critic score).`
+            ? `Dispatched weekly executive digest to ${recipient} via Resend.`
+            : `Generated forward-ready weekly executive digest for ${recipient}.`
         );
       }
     } catch {
@@ -2043,7 +2043,7 @@ export function DashboardConsoleClient(props: {
                 >
                   What is inside your Console: Prompt Discovery, Mention vs.
                   Citation Rate split, Brand Sentiment &amp; Rival Share of
-                  Voice, 9.5+/10 <code className="vs-mono">JSON-LD</code> +{' '}
+                  Voice, syntax-validated <code className="vs-mono">JSON-LD</code> +{' '}
                   <code className="vs-mono">/agents.md</code> +{' '}
                   <code className="vs-mono">/llms.txt</code> bundles, Dual
                   Attribution, and Streamable HTTP{' '}
@@ -2229,7 +2229,7 @@ export function DashboardConsoleClient(props: {
                 onClick={handleExportExecutiveAuditReport}
                 className="vs-btn vs-btn-secondary"
                 style={{ padding: '7px 11px', fontSize: '12px' }}
-                title="Download full Critic-verified Executive AI Search Report (.md)"
+                title="Download full Executive AI Search Report (.md)"
               >
                 ↓ Export Audit (.md)
               </button>
@@ -2350,8 +2350,8 @@ export function DashboardConsoleClient(props: {
               ) : null}
               Run a live 3-engine audit on{' '}
               <span className="vs-mono">{handoffHostname}</span> to inspect its AI
-              Share of Voice, claim accuracy, and &gt;=9.5/10 code fixes across all
-              3 tabs.
+              Share of Voice, claim accuracy, and syntax-validated code fixes
+              across all 3 tabs.
             </div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
@@ -2502,7 +2502,7 @@ export function DashboardConsoleClient(props: {
               <code className="vs-mono">ClaudeBot</code>, and{' '}
               <code className="vs-mono">Google-Extended</code>, checks ChatGPT,
               Gemini, and Perplexity buyer prompts, and generates your
-              Critic-verified <code className="vs-mono">JSON-LD</code>,{' '}
+              syntax-validated <code className="vs-mono">JSON-LD</code>,{' '}
               <code className="vs-mono">/agents.md</code>, and{' '}
               <code className="vs-mono">/llms.txt</code> Fix Bundle.
             </p>
@@ -3945,7 +3945,7 @@ export function DashboardConsoleClient(props: {
                           1-CLICK AI FIX PROMPT · CLAUDE · CHATGPT · ANTIGRAVITY · CURSOR
                         </span>
                         <StatusBadge tone="pass">
-                          {`${aiRemediationMasterPrompt.score} / 10 CRITIC VERIFIED`}
+                          SYNTAX &amp; TRUTH VERIFIED
                         </StatusBadge>
                       </div>
                       <strong
@@ -3969,7 +3969,7 @@ export function DashboardConsoleClient(props: {
                         Bundles every issue Verisource found on{' '}
                         <code className="vs-mono">{activeDomainHostname}</code>{' '}
                         (crawler access, JS readability, hallucinated claims,
-                        and Critic-verified <code className="vs-mono">JSON-LD</code> +{' '}
+                        and syntax-validated <code className="vs-mono">JSON-LD</code> +{' '}
                         <code className="vs-mono">/agents.md</code> +{' '}
                         <code className="vs-mono">/llms.txt</code> code) into a
                         single zero-hallucination prompt for whatever AI tool you
@@ -4305,7 +4305,7 @@ export function DashboardConsoleClient(props: {
                   }}
                 >
                   <strong style={{ fontSize: '13.5px' }}>
-                    Critic-Verified Implementation Bundle ({domainFixes.length}{' '}
+                    Syntax-Validated Implementation Bundle ({domainFixes.length}{' '}
                     artifacts)
                   </strong>
                   {activeScoreDelta && activeScoreDelta.visibilityDelta > 0 ? (
@@ -5333,7 +5333,7 @@ export function DashboardConsoleClient(props: {
                         onClick={handleExportOutreachPlaybook}
                         className="vs-btn vs-btn-secondary"
                         style={{ padding: '4px 10px', fontSize: '11.5px' }}
-                        title="Download Critic-verified (>= 9.5/10) Markdown Cold-Outreach Playbook"
+                        title="Download Fact-Verified Markdown Cold-Outreach Playbook"
                       >
                         ↓ Playbook (.md)
                       </button>
@@ -5488,7 +5488,7 @@ export function DashboardConsoleClient(props: {
                   >
                     {isGuided
                       ? '3-STEP EMAIL FOLLOW-UP SEQUENCE'
-                      : 'CRITIC-VERIFIED 3-TOUCH SEQUENCE (INSTANTLY / SMARTLEAD / GMAIL)'}
+                      : 'FACT-VERIFIED 3-TOUCH SEQUENCE (INSTANTLY / SMARTLEAD / GMAIL)'}
                   </span>
                   <div
                     style={{
