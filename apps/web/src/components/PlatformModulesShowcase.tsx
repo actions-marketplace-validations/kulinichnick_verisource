@@ -41,12 +41,12 @@ const PILLARS: PillarSpec[] = [
   },
   {
     id: 'agent_analytics',
-    stepTag: '03 · AGENT ANALYTICS',
-    title: 'JS Readability Audit, Bot Crawl Logs & AI Revenue',
-    subtitle: 'Google Analytics misses server-side AI bots. Verisource tracks both.',
+    stepTag: '03 · AGENT ANALYTICS & BOT INSPECTOR',
+    title: 'Sub-Page Bot View, JS Readability & AI Revenue',
+    subtitle: 'See the exact non-JS DOM stream GPTBot and PerplexityBot extract on any URL.',
     description:
-      'Verify HTTP 200 vs. silent WAF 403 responses for GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot. Catch empty client-side React/JS shells before crawlers skip your pages, log incoming server-side bot crawls at the edge, and attribute real checkout revenue from chatgpt.com and perplexity.ai.',
-    consoleLocation: 'Console Step 1 · Agent Analytics & Attribution',
+      'Inspect any route (/pricing, /compare/..., /products/...) through GPTBot and PerplexityBot headers to check HTTP 200 status, non-JS token density, <table> matrices, and route JSON-LD—plus log live edge bot crawls and attribute checkout revenue from chatgpt.com and perplexity.ai.',
+    consoleLocation: 'Console Step 1 · Agent Analytics & Sub-Page Inspector',
   },
   {
     id: 'shopping_fixes',

@@ -7,8 +7,10 @@ import {
   PATIENT_ZERO_FIXES,
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
+  SubPageInspectionError,
   VERISOURCE_VERSION,
   analyzeCrawlerHtmlReadability,
+  analyzeHtmlForBotExtraction,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAgencyPartnerBatchCsv,
@@ -66,6 +68,7 @@ import {
   parseRobotsAiBotRules,
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
+  resolveSafeSameDomainTargetUrl,
   runDomainReadinessScan,
   runFullGeoAudit,
   runPerplexityAgentQuery,
@@ -1959,4 +1962,89 @@ test('M48 AI Citation & Rival Comparison Page Studio passes >= 9.5/10 gate acros
   assert.ok(shopifyPricing.markdownPage.score >= 9.5);
   assert.ok(shopifyPricing.aiBuildPrompt.score >= 9.5);
   assert.ok(shopifyPricing.aiBuildPrompt.content.includes('Online Store 2.0'));
+});
+
+test('M49 Sub-Page AI Bot Extraction Inspector enforces same-domain + SSRF guards & grades SSR vs CSR pages (>= 9.5/10 prompt)', () => {
+  const samePath = resolveSafeSameDomainTargetUrl('https://resend.com', '/pricing');
+  assert.equal(samePath.targetUrl, 'https://resend.com/pricing');
+  assert.equal(samePath.pathname, '/pricing');
+
+  const subDomain = resolveSafeSameDomainTargetUrl(
+    'https://resend.com',
+    'https://docs.resend.com/api-reference'
+  );
+  assert.equal(subDomain.targetUrl, 'https://docs.resend.com/api-reference');
+
+  assert.throws(
+    () =>
+      resolveSafeSameDomainTargetUrl(
+        'https://resend.com',
+        'https://stripe.com/pricing'
+      ),
+    (err: unknown) =>
+      err instanceof SubPageInspectionError &&
+      err.code === 'CROSS_DOMAIN_BLOCKED'
+  );
+
+  for (const badInput of [
+    'http://169.254.169.254/latest/meta-data/',
+    'http://127.0.0.1:3000/admin',
+    '//evil.com/phish',
+    'javascript:alert(1)',
+    'https://admin:secret@resend.com/pricing',
+  ]) {
+    assert.throws(
+      () => resolveSafeSameDomainTargetUrl('https://resend.com', badInput),
+      (err: unknown) =>
+        err instanceof SubPageInspectionError &&
+        err.code === 'INVALID_TARGET_URL'
+    );
+  }
+
+  const truth = {
+    is_user_verified: true,
+    core_offering: 'Transactional email API for developers.',
+    verified_pricing_summary: 'Pro starts at $20/mo for 50,000 emails.',
+    shipping_or_service_area: 'Global multi-region AWS delivery.',
+    key_differentiators: ['React Email support'],
+    discontinued_or_false_claims_to_flag: ['$10/mo unlimited emails'],
+  };
+
+  const csrShellReport = analyzeHtmlForBotExtraction({
+    targetUrl: 'https://resend.com/pricing',
+    pathname: '/pricing',
+    hostname: 'resend.com',
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 403,
+    rawHtml: '<!doctype html><html><body><div id="root"></div></body></html>',
+    brandName: 'Resend',
+    brandTruthSheet: truth,
+  });
+  assert.equal(csrShellReport.pageReadinessScore, 0);
+  assert.equal(csrShellReport.readability.status, 'csr_js_trap');
+  assert.ok(csrShellReport.aiPageOptimizationPrompt.score >= 9.5);
+  assert.ok(
+    !/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(
+      csrShellReport.aiPageOptimizationPrompt.content
+    )
+  );
+
+  const richSsrWords = Array.from({ length: 95 }, () => 'verified').join(' ');
+  const richSsrReport = analyzeHtmlForBotExtraction({
+    targetUrl: 'https://resend.com/pricing',
+    pathname: '/pricing',
+    hostname: 'resend.com',
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml: `<!doctype html><html><head><title>Resend Pricing</title><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage"}</script></head><body><main><h1>Transparent Pricing</h1><p>Plans start at $20/mo. ${richSsrWords}</p><h2>Plan Comparison</h2><table><tr><th>Tier</th><th>Price</th></tr><tr><td>Pro</td><td>$20/mo</td></tr></table><h2>Enterprise SLA</h2></main></body></html>`,
+    brandName: 'Resend',
+    brandTruthSheet: truth,
+  });
+  assert.equal(richSsrReport.pageReadinessScore, 100);
+  assert.equal(richSsrReport.tableCount, 1);
+  assert.deepEqual(richSsrReport.jsonLdTypes, ['FAQPage']);
+  assert.ok(richSsrReport.botExtractedPreview.includes('[HTML TABLE START]'));
+  assert.ok(richSsrReport.aiPageOptimizationPrompt.score >= 9.5);
 });

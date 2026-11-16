@@ -5,6 +5,7 @@ export * from './fixtures/patient-zero.js';
 export * from './config/env.js';
 export * from './critic/quality-gate.js';
 export * from './scanner/bot-waf-prober.js';
+export * from './scanner/subpage-inspector.js';
 export * from './shopify/shopify-adapter.js';
 export * from './watchdog/hallucination-watchdog.js';
 export * from './scanner/fanout-scanner.js';

@@ -190,7 +190,7 @@ export default function HomePage(): React.ReactElement {
                 <tr>
                   <th>Capability</th>
                   <th>Passive Enterprise Trackers ($245–$499+/mo)</th>
-                  <th>Verisource Action Console ($49–$249/mo)</th>
+                  <th>Verisource Action Console ($0 7-Day Trial · $49–$249/mo)</th>
                 </tr>
               </thead>
               <tbody>
@@ -255,6 +255,22 @@ export default function HomePage(): React.ReactElement {
                       Copy-paste code + Shopify{' '}
                       <code className="vs-mono">/api/ucp/mcp</code> adapter +
                       live HTTP verifier
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>1-Click AI Fix Prompt &amp; vs. Rival Page Studio</strong>
+                  </td>
+                  <td style={{ color: 'var(--vs-crit-fg)' }}>
+                    Not included — manual copywriting
+                  </td>
+                  <td>
+                    <StatusBadge tone="pass">READY TO PASTE</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      Master AI prompt + truth-locked{' '}
+                      <code className="vs-mono">/compare/you-vs-rival</code>{' '}
+                      pages
                     </span>
                   </td>
                 </tr>

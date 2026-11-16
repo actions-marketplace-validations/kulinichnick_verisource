@@ -529,6 +529,14 @@ export default async function AgencyPitchReportPage({
           {isVerisourceDirect ? (
             <>
               <a
+                href={`/api/checkout?plan=pro_99&cycle=monthly&domain=${encodeURIComponent(
+                  report.prospect_domain
+                )}&slug=${encodeURIComponent(slug)}`}
+                className="vs-btn vs-btn-secondary"
+              >
+                Start 7-Day Free Trial ($0 Today) →
+              </a>
+              <a
                 href={`/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
                   report.prospect_domain
                 )}&slug=${encodeURIComponent(slug)}`}

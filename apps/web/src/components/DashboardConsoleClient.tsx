@@ -38,6 +38,7 @@ import {
   type ProfileRow,
   type QualityRubricBreakdown,
   type ScoreDeltaSummary,
+  type SubPageBotInspectionReport,
   type TrackedPromptRow,
 } from '@verisource/core-geo';
 import {
@@ -276,6 +277,14 @@ export function DashboardConsoleClient(props: {
   const [copiedCitationPageMd, setCopiedCitationPageMd] = useState(false);
   const [expandedCitationPageStudio, setExpandedCitationPageStudio] =
     useState(false);
+  const [subPageInput, setSubPageInput] = useState(
+    activeDomain?.is_shopify ? '/collections/all' : '/pricing'
+  );
+  const [inspectingSubPage, setInspectingSubPage] = useState(false);
+  const [subPageReport, setSubPageReport] =
+    useState<SubPageBotInspectionReport | null>(null);
+  const [copiedSubPagePrompt, setCopiedSubPagePrompt] = useState(false);
+  const [showSubPageRawStream, setShowSubPageRawStream] = useState(false);
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
     subject: string;
@@ -469,6 +478,10 @@ export function DashboardConsoleClient(props: {
     setCopiedCitationPagePrompt(false);
     setCopiedCitationPageMd(false);
     setExpandedCitationPageStudio(false);
+    setSubPageReport(null);
+    setCopiedSubPagePrompt(false);
+    setShowSubPageRawStream(false);
+    setSubPageInput(activeDomain?.is_shopify ? '/collections/all' : '/pricing');
     setAiPromptTargetEnv(
       activeDomain?.is_shopify ? 'shopify_liquid' : 'coding_agent'
     );
@@ -1251,6 +1264,59 @@ export function DashboardConsoleClient(props: {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function handleInspectSubPage(targetOverride?: string) {
+    if (!activeDomain) return;
+    const rawTarget = (targetOverride ?? subPageInput).trim();
+    if (!rawTarget) return;
+    if (targetOverride) {
+      setSubPageInput(targetOverride);
+    }
+    setInspectingSubPage(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/inspect-url', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          target_path_or_url: rawTarget,
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        inspection?: SubPageBotInspectionReport;
+      };
+      if (!res.ok || json.error || !json.inspection) {
+        setBannerError(
+          json.message ?? 'Unable to inspect sub-page bot extraction.'
+        );
+      } else {
+        setSubPageReport(json.inspection);
+        setShowSubPageRawStream(false);
+      }
+    } catch {
+      setBannerError('Network error while inspecting sub-page URL.');
+    } finally {
+      setInspectingSubPage(false);
+    }
+  }
+
+  async function handleCopySubPageAiPrompt() {
+    if (!subPageReport) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(
+          subPageReport.aiPageOptimizationPrompt.content
+        );
+      }
+      setCopiedSubPagePrompt(true);
+      setTimeout(() => setCopiedSubPagePrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
   }
 
   async function handleVerifyTruthSheet(e: React.FormEvent) {
@@ -3802,6 +3868,250 @@ export function DashboardConsoleClient(props: {
                   </div>
                 </div>
               ) : null}
+
+              {/* M49: Live Sub-Page AI Bot Extraction Inspector (GPTBot & PerplexityBot View) */}
+              <div
+                style={{
+                  marginBottom: '16px',
+                  border: '1px solid var(--vs-border)',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  background: '#FFFFFF',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '11px 14px',
+                    background: 'var(--vs-surface-warm)',
+                    borderBottom: subPageReport
+                      ? '1px solid var(--vs-border)'
+                      : undefined,
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '7px',
+                        flexWrap: 'wrap',
+                        marginBottom: '2px',
+                      }}
+                    >
+                      <span
+                        className="vs-eyebrow"
+                        style={{ color: 'var(--vs-ink)' }}
+                      >
+                        SUB-PAGE AI BOT EXTRACTION INSPECTOR
+                      </span>
+                      <StatusBadge>GPTBOT &amp; PERPLEXITYBOT VIEW</StatusBadge>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Test any route on{' '}
+                      <code className="vs-mono">{activeDomainHostname}</code>{' '}
+                      (e.g. <code className="vs-mono">/pricing</code>,{' '}
+                      <code className="vs-mono">/compare/...</code>) to see the
+                      exact non-JS HTML text, <code className="vs-mono">&lt;table&gt;</code>{' '}
+                      matrices, and <code className="vs-mono">JSON-LD</code> AI
+                      crawlers extract.
+                    </div>
+                  </div>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void handleInspectSubPage();
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    {(activeDomain.is_shopify
+                      ? ['/collections/all', '/pages/ai-facts', '/agents.md']
+                      : ['/pricing', '/about', '/agents.md']
+                    ).map((quickPath) => (
+                      <button
+                        key={quickPath}
+                        type="button"
+                        disabled={inspectingSubPage}
+                        onClick={() => void handleInspectSubPage(quickPath)}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 8px', fontSize: '11px' }}
+                      >
+                        {quickPath}
+                      </button>
+                    ))}
+                    <input
+                      type="text"
+                      value={subPageInput}
+                      onChange={(e) => setSubPageInput(e.target.value)}
+                      placeholder="/pricing or /compare/..."
+                      aria-label="Target path on tracked domain"
+                      className="vs-input"
+                      style={{
+                        width: '185px',
+                        padding: '5px 9px',
+                        fontSize: '12px',
+                        background: '#FFFFFF',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={inspectingSubPage}
+                      className="vs-btn"
+                      style={{ padding: '5px 12px', fontSize: '12px' }}
+                    >
+                      {inspectingSubPage
+                        ? 'Probing Route...'
+                        : 'Inspect Bot View →'}
+                    </button>
+                  </form>
+                </div>
+
+                {subPageReport ? (
+                  <div style={{ padding: '12px 14px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        marginBottom: '10px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <strong className="vs-mono" style={{ fontSize: '12.5px' }}>
+                          {subPageReport.targetUrl}
+                        </strong>
+                        <StatusBadge
+                          tone={
+                            subPageReport.pageReadinessScore >= 80
+                              ? 'pass'
+                              : subPageReport.pageReadinessScore >= 60
+                                ? 'warn'
+                                : 'critical'
+                          }
+                        >
+                          {`READINESS: ${subPageReport.pageReadinessScore}/100`}
+                        </StatusBadge>
+                        <StatusBadge
+                          tone={subPageReport.gptBotAllowed ? 'pass' : 'critical'}
+                        >
+                          {`GPTBot: ${subPageReport.gptBotStatus ?? 'ERR'}`}
+                        </StatusBadge>
+                        <StatusBadge
+                          tone={
+                            subPageReport.perplexityBotAllowed
+                              ? 'pass'
+                              : 'critical'
+                          }
+                        >
+                          {`PerplexityBot: ${subPageReport.perplexityBotStatus ?? 'ERR'}`}
+                        </StatusBadge>
+                        <StatusBadge>
+                          {`TABLES: ${subPageReport.tableCount} · WORDS: ${subPageReport.readability.visibleWordCount}`}
+                        </StatusBadge>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => void handleCopySubPageAiPrompt()}
+                          className="vs-btn"
+                          style={{ padding: '5px 11px', fontSize: '11.5px' }}
+                        >
+                          {copiedSubPagePrompt
+                            ? '✓ Route Prompt Copied!'
+                            : 'Copy AI Prompt to Fix Route'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowSubPageRawStream((prev) => !prev)
+                          }
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                        >
+                          {showSubPageRawStream
+                            ? 'Hide Bot Text Stream'
+                            : 'View Bot Text Stream'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns:
+                          'repeat(auto-fit, minmax(180px, 1fr))',
+                        gap: '8px',
+                      }}
+                    >
+                      {subPageReport.checks.map((chk) => (
+                        <div
+                          key={chk.id}
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: '5px',
+                            border: '1px solid var(--vs-border)',
+                            background: 'var(--vs-surface-subtle)',
+                            fontSize: '11.5px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '4px',
+                              marginBottom: '3px',
+                            }}
+                          >
+                            <strong>{chk.label}</strong>
+                            <StatusBadge tone={chk.passed ? 'pass' : 'warn'}>
+                              {chk.passed ? 'PASS' : 'FIX'}
+                            </StatusBadge>
+                          </div>
+                          <div style={{ color: 'var(--vs-ink-secondary)' }}>
+                            {chk.detail}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {showSubPageRawStream ? (
+                      <div style={{ marginTop: '12px' }}>
+                        <CodeArtifactCard
+                          title={`Non-JS Bot Extracted Stream (${subPageReport.pathname})`}
+                          fileHint={`Literal DOM text extracted by GPTBot & PerplexityBot from ${subPageReport.targetUrl}`}
+                          code={subPageReport.botExtractedPreview}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
 
               <div
                 style={{

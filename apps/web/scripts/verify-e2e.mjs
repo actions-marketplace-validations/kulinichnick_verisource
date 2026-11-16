@@ -2015,7 +2015,84 @@ async function run() {
         !mcpGuideHtml.includes('Critic pass'),
       'Expected /mcp-guide hero 7-Day Free Trial CTA and zero Critic pass copy'
     );
-    console.log('✔ [44/44] M48 AI Citation & Rival Comparison Page Studio across Steps 1-3 + /mcp-guide 7-Day Trial CTA verified!');
+    console.log('✔ [44/45] M48 AI Citation & Rival Comparison Page Studio across Steps 1-3 + /mcp-guide 7-Day Trial CTA verified!');
+
+    // 43. M49 Live Sub-Page AI Bot Extraction Inspector (/api/dashboard/inspect-url: 401 unauth, 402 post-cancel, 400 SSRF, 403 cross-domain & 200 valid route)
+    const unauthInspectRes = await fetch(`${BASE}/api/dashboard/inspect-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        target_path_or_url: '/pricing',
+      }),
+    });
+    assert.equal(unauthInspectRes.status, 401);
+
+    // Note: M47 canceled the mock owner subscription to 'free' at the end of check 43; verify 402 first, then re-activate Pro so we test 400, 403, and 200!
+    const freePlanInspectRes = await fetch(`${BASE}/api/dashboard/inspect-url`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        target_path_or_url: '/pricing',
+      }),
+    });
+    assert.equal(freePlanInspectRes.status, 402);
+
+    // Re-activate workspace via checkout so authenticated owner tests 400 SSRF, 403 cross-domain & 200 sub-page inspection
+    await fetch(`${BASE}/api/checkout?plan=pro_99&cycle=monthly`, {
+      headers: OWNER_HEADERS,
+      redirect: 'manual',
+    });
+
+    const ssrfInspectRes = await fetch(`${BASE}/api/dashboard/inspect-url`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        target_path_or_url: 'http://169.254.169.254/latest/meta-data/',
+      }),
+    });
+    assert.equal(ssrfInspectRes.status, 400);
+
+    const crossDomainInspectRes = await fetch(
+      `${BASE}/api/dashboard/inspect-url`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({
+          domain_id: '11111111-1111-4000-8000-000000000001',
+          target_path_or_url: 'https://stripe.com/pricing',
+        }),
+      }
+    );
+    assert.equal(crossDomainInspectRes.status, 403);
+
+    const validInspectRes = await fetch(`${BASE}/api/dashboard/inspect-url`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        target_path_or_url: '/collections/all',
+      }),
+    });
+    assert.equal(validInspectRes.status, 200);
+    const validInspectJson = await validInspectRes.json();
+    assert.equal(
+      validInspectJson.inspection.targetUrl,
+      'https://aurearoasters.com/collections/all'
+    );
+    assert.equal(validInspectJson.inspection.checks.length, 5);
+    assert.ok(
+      validInspectJson.inspection.aiPageOptimizationPrompt.score >= 9.5,
+      'Expected sub-page optimization prompt score >= 9.5'
+    );
+    assert.ok(
+      m42Tab1Html.includes('SUB-PAGE AI BOT EXTRACTION INSPECTOR') &&
+        m42Tab1Html.includes('Inspect Bot View'),
+      'Expected Sub-Page AI Bot Extraction Inspector inside Step 01 Module 2'
+    );
+    console.log('✔ [45/45] M49 Sub-Page AI Bot Extraction Inspector (401/402/400 SSRF/403 Cross-Domain/200 Valid) verified!');
   } finally {
     server.kill();
   }
