@@ -269,6 +269,9 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
             <Link href="/#grader" className="vs-btn">
               Audit Any Website Free →
             </Link>
+            <Link href="/agencies#sandbox" className="vs-btn vs-btn-secondary">
+              Test Your Agency Brand Live →
+            </Link>
             <Link href="/agencies" className="vs-btn vs-btn-secondary">
               Agency Partner Architecture →
             </Link>

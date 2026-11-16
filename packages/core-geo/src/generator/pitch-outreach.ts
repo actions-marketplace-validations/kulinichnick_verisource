@@ -9,6 +9,7 @@ import type {
   PitchSummaryPayload,
   QualityRubricBreakdown,
 } from '../db/types.js';
+import type { ReadinessScanSummary } from '../orchestrator/audit-domain.js';
 import { normalizePublicDomain } from '../scanner/bot-waf-prober.js';
 
 export interface ColdOutreachSequence {
@@ -699,4 +700,198 @@ export function filterAndRankPitchReports(
     );
   }
   return reports;
+}
+
+export const AGENCY_SANDBOX_COLOR_SWATCHES = [
+  { id: 'ink', label: 'Ink', hex: '#0A0E17' },
+  { id: 'navy', label: 'Navy', hex: '#1E3A8A' },
+  { id: 'forest', label: 'Forest', hex: '#065F46' },
+  { id: 'copper', label: 'Copper', hex: '#9A3412' },
+  { id: 'slate', label: 'Slate', hex: '#334155' },
+] as const;
+
+export interface AgencySandboxPreviewInput {
+  summary: ReadinessScanSummary;
+  agencyBrandName?: string | null;
+  agencyPrimaryColor?: string | null;
+  agencyCtaUrl?: string | null;
+}
+
+export interface AgencySandboxImpactItem {
+  badgeLabel: string;
+  severity: 'fix_first' | 'high_impact' | 'healthy';
+  whatIsWrong: string;
+  whyItMatters: string;
+  howToFix: string;
+}
+
+export interface AgencySandboxPreviewResult {
+  agencyName: string;
+  brandColor: string;
+  bookingUrl: string;
+  slugPreview: string;
+  detectedPlatformLabel: string;
+  whiteLabelImpactItems: AgencySandboxImpactItem[];
+  outreachPreview: EnforcedQualityArtifact;
+}
+
+export function buildAgencySandboxPreview(
+  input: AgencySandboxPreviewInput
+): AgencySandboxPreviewResult {
+  const { summary } = input;
+  const rawAgency = (input.agencyBrandName ?? '')
+    .replace(/verisource/gi, '')
+    .trim()
+    .slice(0, 70);
+  const agencyName = rawAgency || 'Northstar Search Studio';
+
+  const rawHex = (input.agencyPrimaryColor ?? '').trim();
+  const brandColor = /^#[0-9A-Fa-f]{6}$/.test(rawHex) ? rawHex : '#0A0E17';
+
+  const rawCta = (input.agencyCtaUrl ?? '').trim();
+  let bookingUrl = 'https://cal.com/northstar/ai-audit';
+  if (rawCta) {
+    try {
+      const parsed = new URL(rawCta);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        bookingUrl = parsed.toString();
+      }
+    } catch {
+      // Keep safe default calendar URL
+    }
+  }
+
+  const host = summary.hostname.trim().toLowerCase();
+  const brand = summary.brandName.trim() || host;
+  const slugBase =
+    host
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'client-site';
+  const slugPreview = `${slugBase}-brief`;
+  const detectedPlatformLabel =
+    summary.detectedPlatformLabel ||
+    (summary.isShopify ? 'Shopify' : 'Custom / Next.js');
+
+  const items: AgencySandboxImpactItem[] = [];
+
+  const blockedBots: string[] = [];
+  if (!summary.robotsAiBotStatus.GPTBot) blockedBots.push('GPTBot');
+  if (!summary.robotsAiBotStatus['OAI-SearchBot']) {
+    blockedBots.push('OAI-SearchBot');
+  }
+  if (!summary.robotsAiBotStatus.PerplexityBot) {
+    blockedBots.push('PerplexityBot');
+  }
+  if (!summary.robotsAiBotStatus.ClaudeBot) blockedBots.push('ClaudeBot');
+
+  if (blockedBots.length > 0 || summary.robotsAiBotStatus.waf_blocked) {
+    items.push({
+      badgeLabel: 'FIX FIRST · AI BOTS BLOCKED',
+      severity: 'fix_first',
+      whatIsWrong: `${host} restricts ${
+        blockedBots.length > 0
+          ? blockedBots.join(', ')
+          : 'AI search crawlers via edge firewall rules'
+      }.`,
+      whyItMatters:
+        'When ChatGPT or Perplexity cannot fetch your pages with HTTP 200, they omit your brand or pull stale pricing from third-party directories.',
+      howToFix: `${agencyName} updates /robots.txt and edge WAF rules so GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot read public routes cleanly.`,
+    });
+  }
+
+  if (summary.samplePromptResult.hallucinationDetected) {
+    items.push({
+      badgeLabel: 'FIX FIRST · WRONG AI CLAIM',
+      severity: 'fix_first',
+      whatIsWrong: `AI engines quote unverified pricing or policy details for ${brand} (${summary.accuracyScore}% fact accuracy).`,
+      whyItMatters:
+        'AI-referred visitors convert at 14.2%–15.9% vs. 1.76%–2.8% for traditional organic search, yet buyers bounce when AI states outdated pricing.',
+      howToFix: `${agencyName} publishes verified pricing and policy guardrails via schema.org JSON-LD and /agents.md on ${host}.`,
+    });
+  }
+
+  const missingFiles: string[] = [];
+  if (summary.jsonLdCount < 2) missingFiles.push('FAQ & Organization JSON-LD');
+  if (summary.llmsTxtStatus !== 'present') missingFiles.push('/llms.txt');
+  if (summary.agentsMdStatus !== 'custom_enriched') {
+    missingFiles.push(
+      summary.agentsMdStatus === 'default_boilerplate'
+        ? 'custom /agents.md rules (currently generic boilerplate)'
+        : '/agents.md'
+    );
+  }
+
+  if (missingFiles.length > 0) {
+    items.push({
+      badgeLabel:
+        items.length === 0
+          ? 'FIX FIRST · MISSING AI FILES'
+          : 'HIGH-IMPACT SITE FIX',
+      severity: items.length === 0 ? 'fix_first' : 'high_impact',
+      whatIsWrong: `${host} is missing ${missingFiles.join(', ')}.`,
+      whyItMatters:
+        'AI-referred buyers convert at 14.2%–15.9% compared to 1.76%–2.8% for standard search, and answer engines favor domains exposing verified machine facts.',
+      howToFix: `${agencyName} has prepared the syntax-validated schema.org JSON-LD, /llms.txt, and /agents.md deployment package for your ${detectedPlatformLabel} stack.`,
+    });
+  }
+
+  const rivals = summary.samplePromptResult.competitorsMentioned
+    .map((r) => r.trim())
+    .filter((r) => r.length > 0 && r.toLowerCase() !== brand.toLowerCase());
+
+  if (items.length < 3 && (rivals.length > 0 || !summary.samplePromptResult.brandMentioned)) {
+    const rivalLabel =
+      rivals.slice(0, 3).join(', ') || 'competing category directories';
+    items.push({
+      badgeLabel: 'HIGH IMPACT · RIVAL CITATIONS',
+      severity: 'high_impact',
+      whatIsWrong: `${rivalLabel} capture AI shortlist citations on buyer comparison queries (${summary.visibilityScore}/100 AI Visibility).`,
+      whyItMatters:
+        'ChatGPT Search, Google Gemini, and Perplexity typically cite only 2–3 vendors per commercial buyer question.',
+      howToFix: `${agencyName} deploys structured buyer comparison tables and FAQPage JSON-LD so answer engines cite ${host} directly.`,
+    });
+  }
+
+  if (items.length === 0) {
+    items.push({
+      badgeLabel: 'CORE FILES ACTIVE · EXPAND SOV',
+      severity: 'healthy',
+      whatIsWrong: `Core crawler access, JSON-LD, /llms.txt, and /agents.md checks pass on ${host} (${summary.visibilityScore}/100 AI Visibility).`,
+      whyItMatters:
+        'With technical readiness live, publishing side-by-side competitor comparison tables and earning review directory citations drives incremental AI share of voice.',
+      howToFix: `${agencyName} builds structured comparison pages and off-site citation playbooks tailored to ${brand}.`,
+    });
+  }
+
+  const primaryGapText =
+    missingFiles.length > 0
+      ? `missing ${missingFiles.slice(0, 2).join(' and ')}`
+      : blockedBots.length > 0
+        ? `HTTP 403/robots restrictions on ${blockedBots.join(', ')}`
+        : 'unstructured commercial comparison coverage';
+
+  const rivalClause =
+    rivals.slice(0, 2).join(' and ') || 'competing category vendors';
+
+  const draftNote = [
+    `Subject: ${brand} — AI search & claim audit (${summary.visibilityScore}/100 visibility)`,
+    '',
+    `Ran a 3-engine retrieval check on ${host}.`,
+    `${brand} currently scores ${summary.visibilityScore}/100 across ChatGPT, Google Gemini, and Perplexity buyer prompts while ${rivalClause} capture category citations due to ${primaryGapText}.`,
+    `Private diagnostic scorecard: https://verisource.dev/audit/${slugPreview} [activates on Agency plan]`,
+    `Our team already prepared the validated schema.org JSON-LD, /llms.txt, and /agents.md fixes for your ${detectedPlatformLabel} site—book 15 minutes if useful: ${bookingUrl}`,
+    '',
+    `— ${agencyName}`,
+  ].join('\n');
+
+  return {
+    agencyName,
+    brandColor,
+    bookingUrl,
+    slugPreview,
+    detectedPlatformLabel,
+    whiteLabelImpactItems: items.slice(0, 3),
+    outreachPreview: enforceQualityGate95(draftNote, 'citation_outreach_brief'),
+  };
 }

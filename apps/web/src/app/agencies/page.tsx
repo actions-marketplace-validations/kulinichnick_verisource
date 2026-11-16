@@ -10,6 +10,7 @@ import {
   MetricLedgerCell,
   StatusBadge,
 } from '@verisource/ui';
+import { AgencyLiveSandboxClient } from '../../components/AgencyLiveSandboxClient';
 import { AgencyPipelineSchematic } from '../../components/AgencyPipelineSchematic';
 import { AgencyRoiCalculator } from '../../components/AgencyRoiCalculator';
 
@@ -37,9 +38,9 @@ const AGENCY_WORKFLOW_STEPS = [
   },
   {
     step: '03',
-    title: 'Follow up on verified human open alerts',
+    title: 'Follow up on human open, CTA click & PDF save alerts',
     detail:
-      'Slackbot, LinkedInBot, and email preview crawlers are filtered out. When a real prospect opens their brief (1x) or forwards it internally (3x), an instant alert hits your agency inbox.',
+      'Slackbot, LinkedInBot, and email preview crawlers are filtered out. When a real prospect opens their brief (OPENED), clicks your calendar link (CTA CLICKED), or exports the executive scorecard (PDF SAVED), an instant alert hits your agency inbox.',
   },
   {
     step: '04',
@@ -48,6 +49,33 @@ const AGENCY_WORKFLOW_STEPS = [
       'Copy a platform-tailored 1-Click AI Fix Prompt (WordPress WPCode, Webflow Custom Code, Wix/Squarespace/Framer /ai-facts, Shopify Liquid, or Coding Agent)—or automate across repos with 5,000 monthly /mcp credits.',
   },
 ];
+
+const AGENCY_FAQS = [
+  {
+    question:
+      'Does a client ever see Verisource branding on /audit/[slug], social link previews, or saved PDFs?',
+    answer:
+      'No. Third-party agency /audit/[slug] reports strip all Verisource navigation chrome, stamp your agency logo and hex accent bar on the 1200x630 OpenGraph preview card, include your plain-text booking URL on the printed PDF handoff footer, and export <domain>-ai-audit-brief.md files signed exclusively by your agency.',
+  },
+  {
+    question:
+      'Why is Agency White-Label ($249/mo) direct activation instead of a free trial?',
+    answer:
+      'Direct activation protects 10-domain parallel batch auditing, 3-touch CSV outreach sequences, and 5,000 monthly /mcp agent credits from automated $0 scraping. You can test your own agency name, accent color, and booking URL on any real client domain right inside the live sandbox above before activating.',
+  },
+  {
+    question:
+      'How does our team fulfill fixes when a client runs Wix, Squarespace, Webflow, WordPress, or Shopify?',
+    answer:
+      'Every audit fingerprints the client platform automatically. Step 02 generates a platform-tailored 1-Click AI Fix Prompt (including /ai-facts + 301 redirect rules for builders without root file uploads, plus drop-in WordPress PHP and Shopify OS 2.0 Theme App Embed connectors) and verifies deployment via live HTTP checks.',
+  },
+  {
+    question:
+      'How do prospect engagement badges and Resend deal alerts work?',
+    answer:
+      'Unfurl bots (Slackbot, LinkedInBot, Twitterbot, Discordbot) are excluded automatically. Console Step 03 logs verified human opens (OPENED / HOT), calendar clicks (CTA CLICKED), and stakeholder exports (PDF SAVED) while dispatching instant email alerts so your account executive follows up at peak buying intent.',
+  },
+] as const;
 
 export default function AgenciesPartnerPage(): React.ReactElement {
   const sampleClientBrief: AgencyPitchReportRow = {
@@ -94,8 +122,49 @@ export default function AgenciesPartnerPage(): React.ReactElement {
     'https://verisource.dev'
   );
 
+  const serviceJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Verisource Agency White-Label GEO & AI Search Audit Platform',
+    serviceType: 'White-Label Generative Engine Optimization & AI Search Auditing',
+    url: 'https://verisource.dev/agencies',
+    provider: {
+      '@type': 'Organization',
+      name: 'Verisource',
+      url: 'https://verisource.dev',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: '249.00',
+      priceCurrency: 'USD',
+      description:
+        '15 client domains, 400 weekly tracked buyer prompts, pure white-label /audit/[slug] client briefs, 10-domain batch CSV outreach, and 5,000 monthly Streamable HTTP /mcp credits.',
+    },
+  };
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: AGENCY_FAQS.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       {/* Hero Section with Zero-Lag Animated SVG Retainer Schematic */}
       <section
         className="vs-arch-backdrop"
@@ -169,6 +238,12 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                 >
                   Annual Plan ($199/mo · Save 20%)
                 </a>
+                <a
+                  href="#sandbox"
+                  className="vs-btn vs-btn-secondary"
+                >
+                  Test Live Client Sandbox ↓
+                </a>
                 <Link
                   href="/tutorial"
                   className="vs-btn vs-btn-secondary"
@@ -224,6 +299,40 @@ export default function AgenciesPartnerPage(): React.ReactElement {
           </div>
           <StatusBadge tone="pass">FOUNDING PARTNER RATE ACTIVE</StatusBadge>
         </div>
+
+        {/* Interactive White-Label Client Pitch Sandbox */}
+        <section id="sandbox" style={{ marginBottom: '54px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            INTERACTIVE WHITE-LABEL CLIENT SANDBOX
+          </div>
+          <h2
+            style={{
+              fontSize: '25px',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+              margin: '0 0 8px 0',
+            }}
+          >
+            Preview your agency brand on a real client domain in 15 seconds.
+          </h2>
+          <p
+            style={{
+              margin: '0 0 18px 0',
+              fontSize: '14px',
+              color: 'var(--vs-ink-secondary)',
+              maxWidth: '720px',
+              lineHeight: 1.58,
+            }}
+          >
+            Enter any prospect or client website below alongside your agency
+            name, booking URL, and hex accent color to inspect the exact
+            white-label scorecard and diagnostic outreach note your client will
+            see.
+          </p>
+
+          <AgencyLiveSandboxClient />
+        </section>
+
         {/* Retainer Margin & Unit Economics Ledger */}
         <section style={{ marginBottom: '54px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
@@ -414,6 +523,54 @@ export default function AgenciesPartnerPage(): React.ReactElement {
             qualityScore={outreachSample.score}
             qualityBreakdown={outreachSample.breakdown}
           />
+        </section>
+
+        {/* Agency White-Label & Retainer Fulfillment FAQ */}
+        <section style={{ marginBottom: '54px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            AGENCY PARTNER FAQ
+          </div>
+          <h2
+            style={{
+              fontSize: '25px',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+              margin: '0 0 16px 0',
+            }}
+          >
+            White-label isolation, client CMS delivery, and engagement alerts.
+          </h2>
+          <div className="vs-grid-2">
+            {AGENCY_FAQS.map((faq) => (
+              <div
+                key={faq.question}
+                className="vs-card"
+                style={{ padding: '20px 22px' }}
+              >
+                <h3
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    margin: '0 0 8px 0',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {faq.question}
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '13.5px',
+                    lineHeight: 1.6,
+                    color: 'var(--vs-ink-secondary)',
+                  }}
+                >
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Bottom Agency Callout */}

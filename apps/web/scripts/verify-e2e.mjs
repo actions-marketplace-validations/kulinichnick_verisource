@@ -3948,7 +3948,62 @@ async function run() {
         m76Step3Html.includes('↓ Client Brief (.md)'),
       'Expected Step 03 Agency Pitch Ledger to display PDF SAVED · 1x badge and ↓ Client Brief (.md) button'
     );
-    console.log('✔ [73/73] M76 Board-Ready /audit/[slug] Print Handoff Footer, White-Label Brief (.md), Bot-Filtered pdf_export Telemetry & Step 03 PDF SAVED Badge verified!');
+    console.log('✔ [73/74] M76 Board-Ready /audit/[slug] Print Handoff Footer, White-Label Brief (.md), Bot-Filtered pdf_export Telemetry & Step 03 PDF SAVED Badge verified!');
+
+    // 72. M77 Interactive White-Label Agency Client Sandbox (/agencies#sandbox + Service/FAQPage JSON-LD + /sample-audit Handoff)
+    const [m77AgenciesHtml, m77SampleAuditHtml] = await Promise.all([
+      fetch(`${BASE}/agencies`).then((r) => r.text()),
+      fetch(`${BASE}/sample-audit`).then((r) => r.text()),
+    ]);
+
+    assert.ok(
+      m77AgenciesHtml.includes('id="sandbox"') &&
+        m77AgenciesHtml.includes('LIVE WHITE-LABEL CLIENT SANDBOX') &&
+        m77AgenciesHtml.includes('Preview White-Label Brief →') &&
+        m77AgenciesHtml.includes('AGENCY PARTNER FAQ') &&
+        m77AgenciesHtml.includes('"@type":"Service"') &&
+        m77AgenciesHtml.includes('"@type":"FAQPage"') &&
+        m77AgenciesHtml.includes('vs-pill-btn'),
+      'Expected /agencies to render #sandbox live client previewer, tactile .vs-pill-btn swatches, Agency Partner FAQ, and Service + FAQPage JSON-LD'
+    );
+    const agencyJsonLdMatches = [
+      ...m77AgenciesHtml.matchAll(
+        /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g
+      ),
+    ];
+    assert.ok(
+      agencyJsonLdMatches.length >= 2,
+      'Expected at least 2 application/ld+json blocks on /agencies'
+    );
+    for (const match of agencyJsonLdMatches) {
+      const parsed = JSON.parse(match[1]);
+      assert.equal(parsed['@context'], 'https://schema.org');
+    }
+    assert.ok(
+      !m77AgenciesHtml.includes('aurearoasters') &&
+        !m77AgenciesHtml.includes('mosaicroasters'),
+      'Expected zero coffee-store echoes on /agencies'
+    );
+    const m77AgenciesVisible = m77AgenciesHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (m77AgenciesVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      `Found banned lexicon on /agencies: ${(m77AgenciesVisible.match(BANNED_LEXICON) ?? []).join(', ')}`
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(m77AgenciesVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(m77AgenciesVisible) &&
+        !/\bbeta\b/i.test(m77AgenciesVisible),
+      'Found /10, plain-English, or Beta jargon on /agencies'
+    );
+    assert.ok(
+      m77SampleAuditHtml.includes('href="/agencies#sandbox"'),
+      'Expected /sample-audit hero to link to /agencies#sandbox'
+    );
+    console.log('✔ [74/74] M77 Interactive White-Label Agency Client Sandbox (/agencies#sandbox), Service + FAQPage JSON-LD & /sample-audit Handoff verified!');
   } finally {
     server.kill();
   }

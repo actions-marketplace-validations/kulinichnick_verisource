@@ -14,6 +14,7 @@ import {
   analyzeCrawlerHtmlReadability,
   analyzeHtmlForBotExtraction,
   autoDraftBrandTruthSheet,
+  AGENCY_SANDBOX_COLOR_SWATCHES,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAgencyPartnerBatchCsv,
@@ -21,6 +22,7 @@ import {
   buildAgencyPartnerOutreachSequence,
   buildAgencyPartnerPlaybookMarkdown,
   buildAgencyPitchPayload,
+  buildAgencySandboxPreview,
   buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
   buildAnalyticsInstallAiPrompt,
@@ -3916,4 +3918,93 @@ test('M76 buildWhiteLabelExecutiveBriefMarkdown, buildProspectPdfExportAlert & p
   assert.equal(counts.hotCount, 2);
   const rankedHot = filterAndRankPitchReports(engagementSample, 'opened_hot');
   assert.equal(rankedHot[0]?.share_slug, 'pdf-saved');
+});
+
+test('M77 buildAgencySandboxPreview enforces XSS/hex sanitization, strict white-label impact isolation, and >= 9.5/10 Critic outreach preview', () => {
+  assert.equal(AGENCY_SANDBOX_COLOR_SWATCHES.length, 5);
+  for (const sw of AGENCY_SANDBOX_COLOR_SWATCHES) {
+    assert.match(sw.hex, /^#[0-9A-Fa-f]{6}$/);
+  }
+
+  const sampleSummary = {
+    domainUrl: 'https://vanguardfreight.io',
+    hostname: 'vanguardfreight.io',
+    brandName: 'Vanguard FreightOps',
+    industryVertical: 'general_b2b' as const,
+    visibilityScore: 38,
+    accuracyScore: 76,
+    isShopify: false,
+    detectedPlatform: 'webflow' as const,
+    detectedPlatformLabel: 'Webflow',
+    shopifyMcpStatus: 'unavailable' as const,
+    agentsMdStatus: 'missing' as const,
+    llmsTxtStatus: 'missing' as const,
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: false,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    jsonLdCount: 1,
+    samplePromptResult: {
+      promptText: 'Best LTL freight management platform',
+      aiEngine: 'chatgpt',
+      brandMentioned: false,
+      competitorsMentioned: ['Flexport', 'Freightos'],
+      citedSourceUrlsBlurred: [],
+      hallucinationDetected: true,
+    },
+    upgradeUrl: 'https://verisource.dev/pricing',
+  };
+
+  // XSS javascript: URL + invalid hex + "Verisource" in agency input must all be sanitized
+  const sanitized = buildAgencySandboxPreview({
+    summary: sampleSummary,
+    agencyBrandName: 'Verisource',
+    agencyPrimaryColor: 'javascript:bad',
+    agencyCtaUrl: 'javascript:alert(1)',
+  });
+  assert.equal(sanitized.agencyName, 'Northstar Search Studio');
+  assert.equal(sanitized.brandColor, '#0A0E17');
+  assert.equal(sanitized.bookingUrl, 'https://cal.com/northstar/ai-audit');
+
+  const customAgency = buildAgencySandboxPreview({
+    summary: sampleSummary,
+    agencyBrandName: 'Apex Search Partners',
+    agencyPrimaryColor: '#1E3A8A',
+    agencyCtaUrl: 'https://cal.com/apex-search/review',
+  });
+  assert.equal(customAgency.agencyName, 'Apex Search Partners');
+  assert.equal(customAgency.brandColor, '#1E3A8A');
+  assert.equal(customAgency.bookingUrl, 'https://cal.com/apex-search/review');
+  assert.equal(customAgency.detectedPlatformLabel, 'Webflow');
+  assert.ok(customAgency.whiteLabelImpactItems.length >= 2);
+
+  for (const item of customAgency.whiteLabelImpactItems) {
+    const itemText = `${item.badgeLabel} ${item.whatIsWrong} ${item.whyItMatters} ${item.howToFix}`;
+    assert.ok(
+      !/verisource/i.test(itemText),
+      `Expected zero Verisource mentions inside white-label impact item: ${itemText}`
+    );
+    assert.ok(item.howToFix.includes('Apex Search Partners'));
+    assert.equal(gradeArtifactQuality(itemText).breakdown.lexicon_filter, 2.0);
+  }
+
+  assert.ok(customAgency.outreachPreview.score >= 9.5);
+  assert.equal(customAgency.outreachPreview.breakdown.lexicon_filter, 2.0);
+  assert.ok(customAgency.outreachPreview.content.includes('[activates on Agency plan]'));
+  assert.ok(customAgency.outreachPreview.content.includes('— Apex Search Partners'));
+  assert.ok(
+    !/plain[- ]english|\bin english\b|everyday english/i.test(
+      customAgency.outreachPreview.content
+    )
+  );
+  assert.ok(
+    !/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(
+      customAgency.outreachPreview.content
+    )
+  );
+  assert.ok(!/\bbeta\b/i.test(customAgency.outreachPreview.content));
 });
