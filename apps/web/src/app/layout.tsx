@@ -263,6 +263,12 @@ export default function RootLayout({
                 /templates
               </Link>
               <Link
+                href="/benchmarks"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /benchmarks
+              </Link>
+              <Link
                 href="/tools"
                 style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
               >

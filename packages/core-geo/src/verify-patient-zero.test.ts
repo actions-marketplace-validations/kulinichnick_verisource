@@ -3521,3 +3521,50 @@ test('M70 (Sprint GTM-3) 7-CMS Starter Templates & smithery.yaml pass >= 9.5/10 
   assert.ok(smitheryRaw.includes('name: dev.verisource/mcp'));
   assert.ok(!smitheryRaw.includes('url: https://mcp.verisource.dev/sse'));
 });
+
+test('M71 (Sprint GTM-5) COMMUNITY_LAUNCH_KIT.md & 2026 40-Domain Benchmark Study pass >= 9.5/10 Critic with zero Beta or coffee leaks', () => {
+  const communityKitPath = path.resolve(
+    process.cwd(),
+    '../../COMMUNITY_LAUNCH_KIT.md'
+  );
+  const communityKitMd = fs.readFileSync(communityKitPath, 'utf8');
+  const kitAudit = gradeArtifactQuality(communityKitMd, 'agents_md');
+  assert.ok(
+    kitAudit.score >= 9.5,
+    `Expected COMMUNITY_LAUNCH_KIT.md >= 9.5, got ${kitAudit.score}: ${kitAudit.violations.join('; ')}`
+  );
+  assert.equal(kitAudit.breakdown.lexicon_filter, 2.0);
+  assert.ok(
+    communityKitMd.includes(
+      'https://verisource.dev/benchmarks/ai-search-readiness-2026'
+    )
+  );
+  assert.ok(communityKitMd.includes('https://mcp.verisource.dev/mcp'));
+  assert.ok(!communityKitMd.includes('https://mcp.verisource.dev/sse'));
+  assert.ok(!/example\.com|\bTODO\b|\[Insert /i.test(communityKitMd));
+  assert.ok(
+    !/plain[- ]english|\bin english\b|everyday english/i.test(communityKitMd)
+  );
+  assert.ok(
+    !/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(
+      communityKitMd
+    )
+  );
+  assert.ok(!/\bbeta\b/i.test(communityKitMd));
+  assert.ok(
+    !/aurearoasters|mosaicroasters/i.test(communityKitMd),
+    'Expected zero coffee-store fixture names in COMMUNITY_LAUNCH_KIT.md'
+  );
+
+  const benchmarkSrcPath = path.resolve(
+    process.cwd(),
+    '../../apps/web/src/lib/benchmark-study-2026.ts'
+  );
+  const benchmarkSrc = fs.readFileSync(benchmarkSrcPath, 'utf8');
+  assert.equal(gradeArtifactQuality(benchmarkSrc).breakdown.lexicon_filter, 2.0);
+  assert.ok(!/aurearoasters|mosaicroasters/i.test(benchmarkSrc));
+  assert.ok(!/\bbeta\b/i.test(benchmarkSrc));
+  assert.ok(
+    !/plain[- ]english|\bin english\b|everyday english/i.test(benchmarkSrc)
+  );
+});

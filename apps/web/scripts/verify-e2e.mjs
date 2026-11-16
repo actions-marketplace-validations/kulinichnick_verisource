@@ -3435,7 +3435,78 @@ async function run() {
         m70IndexNow.urls.includes('https://verisource.dev/templates'),
       'Expected /sitemap.xml, /llms.txt, /agents.md, and /api/indexnow to include https://verisource.dev/templates'
     );
-    console.log('✔ [67/67] M70 (Sprint GTM-3) Public /templates 7-CMS Starter Hub, smithery.yaml & 22-URL IndexNow Parity verified!');
+    console.log('✔ [67/68] M70 (Sprint GTM-3) Public /templates 7-CMS Starter Hub, smithery.yaml & IndexNow Parity verified!');
+
+    // 66. M71 (Sprint GTM-5) 2026 40-Domain AI Search & Agent Readiness Benchmark (/benchmarks + /benchmarks/ai-search-readiness-2026 + 24-URL IndexNow Parity)
+    const [benchmarksHubRes, benchmarkStudyRes] = await Promise.all([
+      fetch(`${BASE}/benchmarks`),
+      fetch(`${BASE}/benchmarks/ai-search-readiness-2026`),
+    ]);
+    assert.equal(benchmarksHubRes.status, 200);
+    assert.equal(benchmarkStudyRes.status, 200);
+
+    const benchmarksHubHtml = await benchmarksHubRes.text();
+    const benchmarkStudyHtml = await benchmarkStudyRes.text();
+
+    assert.ok(
+      benchmarksHubHtml.includes('"@type":"CollectionPage"') &&
+        benchmarksHubHtml.includes('/benchmarks/ai-search-readiness-2026'),
+      'Expected /benchmarks hub to render CollectionPage JSON-LD and link to /benchmarks/ai-search-readiness-2026'
+    );
+    assert.ok(
+      benchmarkStudyHtml.includes('"@type":"Dataset"') &&
+        benchmarkStudyHtml.includes('"@type":"TechArticle"') &&
+        benchmarkStudyHtml.includes('"@type":"FAQPage"') &&
+        benchmarkStudyHtml.includes('Cross-Vertical Readiness Matrix') &&
+        benchmarkStudyHtml.includes('All Verticals (40)') &&
+        benchmarkStudyHtml.includes('vs-pill-btn'),
+      'Expected /benchmarks/ai-search-readiness-2026 to render Dataset + TechArticle + FAQPage JSON-LD, SSR Cross-Vertical Readiness Matrix, and .vs-pill-btn cohort filter'
+    );
+
+    for (const [bLabel, bHtml] of [
+      ['/benchmarks', benchmarksHubHtml],
+      ['/benchmarks/ai-search-readiness-2026', benchmarkStudyHtml],
+    ]) {
+      assert.ok(
+        !bHtml.includes('aurearoasters') && !bHtml.includes('mosaicroasters'),
+        `Expected zero coffee-store echoes on ${bLabel}`
+      );
+      const bVisible = bHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (bVisible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${bLabel}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(bVisible) &&
+          !PLAIN_ENGLISH_JARGON.test(bVisible) &&
+          !/\bbeta\b/i.test(bVisible),
+        `Found /10, plain-English, or Beta jargon on ${bLabel}`
+      );
+    }
+
+    assert.ok(
+      m70Sitemap.includes('https://verisource.dev/benchmarks') &&
+        m70Sitemap.includes(
+          'https://verisource.dev/benchmarks/ai-search-readiness-2026'
+        ) &&
+        m70Llms.includes(
+          'https://verisource.dev/benchmarks/ai-search-readiness-2026'
+        ) &&
+        m70Agents.includes(
+          'https://verisource.dev/benchmarks/ai-search-readiness-2026'
+        ) &&
+        m70IndexNow.urls.includes('https://verisource.dev/benchmarks') &&
+        m70IndexNow.urls.includes(
+          'https://verisource.dev/benchmarks/ai-search-readiness-2026'
+        ) &&
+        m70IndexNow.submittedCount >= 24,
+      'Expected /sitemap.xml, /llms.txt, /agents.md, and 24-URL /api/indexnow to include /benchmarks and /benchmarks/ai-search-readiness-2026'
+    );
+    console.log('✔ [68/68] M71 (Sprint GTM-5) 2026 40-Domain AI Search & Agent Readiness Benchmark (/benchmarks/*) & 24-URL IndexNow Parity verified!');
   } finally {
     server.kill();
   }
