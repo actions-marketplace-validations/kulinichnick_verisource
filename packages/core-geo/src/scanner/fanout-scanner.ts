@@ -13,7 +13,10 @@ import {
 } from '../fixtures/patient-zero.js';
 import { classifyIndustryVertical } from '../generator/fix-generator.js';
 import { detectHallucinations } from '../watchdog/hallucination-watchdog.js';
-import type { NormalizedDomain } from './bot-waf-prober.js';
+import {
+  matchesPublicHostname,
+  type NormalizedDomain,
+} from './bot-waf-prober.js';
 
 export interface PerplexityAgentQueryOptions {
   input: string;
@@ -177,7 +180,7 @@ export function generateDefaultPromptsForDomain(
   isShopify?: boolean
 ): string[] {
   const fixtureDomain = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(domain.hostname)
+    matchesPublicHostname(d.domain_url, domain.hostname)
   );
   if (fixtureDomain) {
     const seeded = PATIENT_ZERO_PROMPTS.filter(
@@ -1170,7 +1173,7 @@ function buildMockEngineScan(
   truthSheet: BrandTruthSheet
 ): EngineScanResult {
   const fixtureDomain = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(domain.hostname)
+    matchesPublicHostname(d.domain_url, domain.hostname)
   );
 
   if (fixtureDomain) {

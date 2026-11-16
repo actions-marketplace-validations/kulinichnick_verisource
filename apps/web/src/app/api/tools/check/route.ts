@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   getWebsitePlatformMeta,
   inspectShopifyStorefront,
+  matchesPublicHostname,
   normalizePublicDomain,
   PATIENT_ZERO_DOMAINS,
   probeDomainHttpReadiness,
@@ -95,7 +96,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const fixtureMatch = PATIENT_ZERO_DOMAINS.find((d) =>
-      d.domain_url.toLowerCase().includes(normalized.hostname)
+      matchesPublicHostname(d.domain_url, normalized.hostname)
     );
 
     if (!fixtureMatch) {
@@ -104,6 +105,12 @@ export async function POST(request: Request): Promise<NextResponse> {
         request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
         '127.0.0.1';
       const today = new Date().toISOString().slice(0, 10);
+      if (toolIpDailyMap.size > 1000) {
+        for (const [k, v] of toolIpDailyMap.entries()) {
+          if (v.day !== today) toolIpDailyMap.delete(k);
+        }
+        if (toolIpDailyMap.size > 1000) toolIpDailyMap.clear();
+      }
       const existing = toolIpDailyMap.get(ip);
       const used = existing && existing.day === today ? existing.count : 0;
       if (used >= 15) {
@@ -117,6 +124,14 @@ export async function POST(request: Request): Promise<NextResponse> {
         );
       }
       toolIpDailyMap.set(ip, { day: today, count: used + 1 });
+    }
+
+    if (toolResultCache.size > 500) {
+      const now = Date.now();
+      for (const [k, v] of toolResultCache.entries()) {
+        if (v.expiresAt <= now) toolResultCache.delete(k);
+      }
+      if (toolResultCache.size > 500) toolResultCache.clear();
     }
 
     const env = resolveCoreGeoEnv(

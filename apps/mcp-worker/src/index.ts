@@ -29,6 +29,7 @@ import {
   authorizeAndMeterPaidTool,
   buildPassThroughAuthInfo,
   extractBearerToken,
+  verifyZeroCreditBearerEntitlement,
 } from './auth.js';
 import {
   checkFreeGraderIpRateLimit,
@@ -131,7 +132,14 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
 
         if (!summary) {
           fromCache = false;
-          if (!caller.rawBearerToken) {
+          const isEntitledSubscriber = caller.rawBearerToken
+            ? await verifyZeroCreditBearerEntitlement({
+                rawBearerToken: caller.rawBearerToken,
+                env,
+              })
+            : false;
+
+          if (!isEntitledSubscriber) {
             const rateCheck = await checkFreeGraderIpRateLimit(
               caller.clientIp,
               env,

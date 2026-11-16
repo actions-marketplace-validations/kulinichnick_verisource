@@ -3,7 +3,10 @@ import type {
   HallucinationDetail,
 } from '../db/types.js';
 import { PATIENT_ZERO_DOMAINS } from '../fixtures/patient-zero.js';
-import type { DomainHttpProbeResult } from '../scanner/bot-waf-prober.js';
+import {
+  matchesPublicHostname,
+  type DomainHttpProbeResult,
+} from '../scanner/bot-waf-prober.js';
 import type { ShopifyInspectionResult } from '../shopify/shopify-adapter.js';
 
 export function autoDraftBrandTruthSheet(
@@ -11,7 +14,7 @@ export function autoDraftBrandTruthSheet(
   shopify: ShopifyInspectionResult
 ): BrandTruthSheet {
   const knownFixture = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(probe.domain.hostname)
+    matchesPublicHostname(d.domain_url, probe.domain.hostname)
   );
   if (knownFixture) {
     const cloned = structuredClone(knownFixture.brand_truth_sheet);

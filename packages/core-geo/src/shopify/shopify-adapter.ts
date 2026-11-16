@@ -1,6 +1,7 @@
 import type { AgentsMdStatus, ShopifyMcpStatus } from '../db/types.js';
 import {
   classifyAgentsMdContent,
+  fetchWithSafePublicRedirects,
   type DomainHttpProbeResult,
 } from '../scanner/bot-waf-prober.js';
 
@@ -28,20 +29,24 @@ async function probeMcpJsonRpcEndpoint(endpointUrl: string): Promise<{
   tools: string[];
 }> {
   try {
-    const response = await fetch(endpointUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json, text/event-stream',
+    const response = await fetchWithSafePublicRedirects(
+      endpointUrl,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/list',
+          params: {},
+        }),
       },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'tools/list',
-        params: {},
-      }),
-      signal: AbortSignal.timeout(5000),
-    });
+      5000,
+      3
+    );
 
     if (!response.ok) {
       return { active: false, tools: [] };
@@ -98,10 +103,12 @@ async function fetchPublicShopifySkus(origin: string): Promise<{
   priceRangeSummary: string | null;
 }> {
   try {
-    const response = await fetch(`${origin}/products.json?limit=8`, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(5000),
-    });
+    const response = await fetchWithSafePublicRedirects(
+      `${origin}/products.json?limit=8`,
+      { headers: { Accept: 'application/json' } },
+      5000,
+      3
+    );
     if (!response.ok) {
       return { foundProductsEndpoint: false, skus: [], priceRangeSummary: null };
     }

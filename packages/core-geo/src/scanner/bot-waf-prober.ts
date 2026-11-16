@@ -52,12 +52,20 @@ export interface DomainHttpProbeResult {
 }
 
 const PRIVATE_OR_BLOCKED_HOST_REGEX =
-  /^(?:localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+|0\.0\.0\.0|\[::1\]|\[fc[0-9a-f]{2}:.*\]|\[fe80:.*\])$/i;
+  /^(?:localhost|0\.\d+\.\d+\.\d+|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|169\.254\.\d+\.\d+|100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d+\.\d+|\[.*\])$/i;
+
+const RAW_IPV4_LITERAL_REGEX = /^\d{1,3}(?:\.\d{1,3}){3}$/;
+
+const DNS_REBINDING_SUFFIX_REGEX =
+  /(?:^|\.)(?:nip\.io|sslip\.io|xip\.io|localtest\.me|lvh\.me|metadata\.google\.internal)$/i;
 
 export function normalizePublicDomain(input: string): NormalizedDomain {
   const raw = input.trim();
   if (!raw) {
     throw new Error('Domain input cannot be empty.');
+  }
+  if (raw.startsWith('//')) {
+    throw new Error(`Protocol-relative URLs are not permitted: "${input}"`);
   }
 
   const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
@@ -72,17 +80,31 @@ export function normalizePublicDomain(input: string): NormalizedDomain {
     throw new Error('Only HTTP/HTTPS public domains are supported.');
   }
 
+  if (parsed.username || parsed.password) {
+    throw new Error('Invalid domain URL: embedded credentials are not permitted.');
+  }
+
   const hostname = parsed.hostname.toLowerCase().replace(/^www\./, '');
   if (
     !hostname.includes('.') ||
+    hostname.startsWith('[') ||
     hostname.endsWith('.local') ||
     hostname.endsWith('.internal') ||
     hostname.endsWith('.localhost') ||
+    RAW_IPV4_LITERAL_REGEX.test(hostname) ||
+    RAW_IPV4_LITERAL_REGEX.test(parsed.hostname) ||
+    DNS_REBINDING_SUFFIX_REGEX.test(hostname) ||
     PRIVATE_OR_BLOCKED_HOST_REGEX.test(hostname) ||
     PRIVATE_OR_BLOCKED_HOST_REGEX.test(parsed.hostname)
   ) {
     throw new Error(
       `Refusing to scan non-public or internal host: "${parsed.hostname}"`
+    );
+  }
+
+  if (parsed.port && parsed.port !== '80' && parsed.port !== '443') {
+    throw new Error(
+      `Refusing to scan non-public port ":${parsed.port}" on "${parsed.hostname}"`
     );
   }
 
@@ -95,6 +117,19 @@ export function normalizePublicDomain(input: string): NormalizedDomain {
     .join(' ');
 
   return { origin, hostname, inferredBrandName };
+}
+
+export function matchesPublicHostname(
+  domainUrl: string,
+  candidateHostname: string
+): boolean {
+  try {
+    const left = normalizePublicDomain(domainUrl).hostname;
+    const right = candidateHostname.trim().toLowerCase().replace(/^www\./, '');
+    return Boolean(left && right && left === right);
+  } catch {
+    return false;
+  }
 }
 
 const TRACKED_BOTS = [
@@ -456,6 +491,64 @@ function extractHtmlMetadata(html: string): {
   };
 }
 
+export async function fetchWithSafePublicRedirects(
+  initialUrl: string,
+  init?: RequestInit,
+  timeoutMs = 6000,
+  maxRedirects = 4
+): Promise<Response> {
+  let currentUrl = initialUrl;
+  let currentInit: RequestInit = { ...init };
+
+  for (let hop = 0; hop <= maxRedirects; hop += 1) {
+    const parsedTarget = new URL(currentUrl);
+    // Validate every hop's host, scheme, port, and DNS-rebinding suffix against SSRF rules
+    normalizePublicDomain(parsedTarget.origin);
+
+    const response = await fetch(currentUrl, {
+      ...currentInit,
+      redirect: 'manual',
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+    if (
+      response.status === 301 ||
+      response.status === 302 ||
+      response.status === 303 ||
+      response.status === 307 ||
+      response.status === 308
+    ) {
+      const location = response.headers.get('location')?.trim();
+      if (!location || hop === maxRedirects) {
+        return response;
+      }
+      const nextUrl = new URL(location, currentUrl);
+      normalizePublicDomain(nextUrl.origin);
+      currentUrl = nextUrl.toString();
+
+      if (
+        response.status === 301 ||
+        response.status === 302 ||
+        response.status === 303
+      ) {
+        const currentMethod = (currentInit.method ?? 'GET').toUpperCase();
+        if (currentMethod !== 'GET' && currentMethod !== 'HEAD') {
+          currentInit = {
+            ...currentInit,
+            method: 'GET',
+            body: undefined,
+          };
+        }
+      }
+      continue;
+    }
+
+    return response;
+  }
+
+  throw new Error('Maximum safe HTTP redirect hops exceeded.');
+}
+
 async function safeFetchText(
   url: string,
   init?: RequestInit,
@@ -467,11 +560,7 @@ async function safeFetchText(
   body: string;
 }> {
   try {
-    const response = await fetch(url, {
-      ...init,
-      redirect: 'follow',
-      signal: AbortSignal.timeout(timeoutMs),
-    });
+    const response = await fetchWithSafePublicRedirects(url, init, timeoutMs, 4);
     const body = await response.text();
     return {
       ok: response.ok,

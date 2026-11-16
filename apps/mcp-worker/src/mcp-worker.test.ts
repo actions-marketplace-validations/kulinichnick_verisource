@@ -372,3 +372,54 @@ test('Paid generate_geo_fix_bundle honors explicit target_env override (wordpres
       parsed.ai_remediation_prompt.includes('WordPress')
   );
 });
+
+test('M74 Fake or unentitled Bearer headers cannot bypass 3/IP/day rate limit on scan_domain_ai_readiness', async () => {
+  const testDomains = [
+    'alpha-ratecheck-m74.io',
+    'bravo-ratecheck-m74.io',
+    'charlie-ratecheck-m74.io',
+    'delta-ratecheck-m74.io',
+  ];
+
+  for (let i = 0; i < testDomains.length; i += 1) {
+    const req = new Request('https://mcp.verisource.dev/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+        Authorization: 'Bearer forged_garbage_token_attempt',
+        'cf-connecting-ip': '203.0.113.222',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 200 + i,
+        method: 'tools/call',
+        params: {
+          name: 'scan_domain_ai_readiness',
+          arguments: { domain: testDomains[i] },
+        },
+      }),
+    });
+    const res = await worker.fetch(req, TEST_ENV);
+    assert.equal(res.status, 200);
+    const raw = await res.text();
+    const dataLine = raw
+      .split('\n')
+      .find((l) => l.startsWith('data: '));
+    const rpc = JSON.parse(dataLine ? dataLine.slice(6) : raw) as {
+      result: { isError?: boolean; content: Array<{ text: string }> };
+    };
+    if (i < 3) {
+      assert.notEqual(rpc.result.isError, true);
+    } else {
+      assert.equal(
+        rpc.result.isError,
+        true,
+        'Expected 4th uncached domain with forged Bearer header to hit FREE_DAILY_RATE_LIMIT_REACHED'
+      );
+      assert.ok(
+        rpc.result.content[0]!.text.includes('FREE_DAILY_RATE_LIMIT_REACHED')
+      );
+    }
+  }
+});

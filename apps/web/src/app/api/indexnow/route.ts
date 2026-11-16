@@ -1,6 +1,9 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
-import { submitUrlsToIndexNow } from '../../../lib/indexnow';
+import {
+  submitUrlsToIndexNow,
+  VERISOURCE_ORIGIN,
+} from '../../../lib/indexnow';
 
 function constantTimeBearerMatch(header: string | null, secret: string): boolean {
   if (!header || !secret) return false;
@@ -16,7 +19,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   const authHeader = request.headers.get('authorization');
   const adminToken = process.env.ADMIN_MAINTENANCE_TOKEN ?? '';
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
-  const isMockMode = (process.env.PROVIDER_MODE ?? '').toLowerCase() === 'mock';
+  const isMockMode =
+    !serviceRoleKey &&
+    (process.env.PROVIDER_MODE ?? '').toLowerCase() === 'mock';
 
   const authorized =
     (adminToken && constantTimeBearerMatch(authHeader, adminToken)) ||
@@ -34,16 +39,62 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  let body: { dryRun?: boolean; urls?: string[] } = {};
+  let body: { dryRun?: boolean; urls?: unknown } = {};
   try {
-    body = (await request.json()) as { dryRun?: boolean; urls?: string[] };
+    body = (await request.json()) as { dryRun?: boolean; urls?: unknown };
   } catch {
     body = {};
   }
 
+  let validatedUrls: string[] | undefined;
+  if (body.urls !== undefined) {
+    if (
+      !Array.isArray(body.urls) ||
+      body.urls.length === 0 ||
+      body.urls.length > 100
+    ) {
+      return NextResponse.json(
+        {
+          error: 'INVALID_INDEXNOW_URLS',
+          message: 'Provide 1 to 100 canonical https://verisource.dev URLs.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const sanitized: string[] = [];
+    for (const item of body.urls) {
+      if (typeof item !== 'string' || item.length > 300) {
+        return NextResponse.json(
+          { error: 'INVALID_INDEXNOW_URLS' },
+          { status: 400 }
+        );
+      }
+      try {
+        const parsed = new URL(item.trim());
+        if (parsed.origin !== VERISOURCE_ORIGIN) {
+          return NextResponse.json(
+            {
+              error: 'INVALID_INDEXNOW_URLS',
+              message: `All IndexNow URLs must belong to ${VERISOURCE_ORIGIN}.`,
+            },
+            { status: 400 }
+          );
+        }
+        sanitized.push(parsed.toString());
+      } catch {
+        return NextResponse.json(
+          { error: 'INVALID_INDEXNOW_URLS' },
+          { status: 400 }
+        );
+      }
+    }
+    validatedUrls = sanitized;
+  }
+
   const dryRun = isMockMode ? true : Boolean(body.dryRun);
   const result = await submitUrlsToIndexNow({
-    urls: Array.isArray(body.urls) ? body.urls : undefined,
+    urls: validatedUrls,
     dryRun,
   });
 

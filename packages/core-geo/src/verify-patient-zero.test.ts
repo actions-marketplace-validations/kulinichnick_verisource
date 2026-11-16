@@ -101,6 +101,8 @@ import {
   gradeArtifactQuality,
   isAutomatedPreviewBot,
   isFixTypeLiveOnDomain,
+  fetchWithSafePublicRedirects,
+  matchesPublicHostname,
   normalizeAiBotCrawlerSource,
   normalizePublicDomain,
   parseBatchProspectDomains,
@@ -3678,4 +3680,74 @@ test('M72 (Sprint GTM-6) 25% Recurring Partner Engine, Self-Referral Guard & Wor
   const parsedSchema = JSON.parse(schemaMatch[1]!) as { target?: string };
   assert.equal(parsedSchema.target, 'head');
   assert.ok(shopifyConnector.setupGuide.score >= 9.5);
+});
+
+test('M74 Adversarial SSRF Hardening: blocks 0.x.x.x, CGNAT, DNS-rebinding suffixes, non-80/443 ports, substring fixture collisions & 302 metadata redirects', async () => {
+  for (const blockedTarget of [
+    'http://0.1.2.3/',
+    'http://100.100.100.200/latest/meta-data/',
+    'https://8.8.8.8/',
+    'https://169.254.169.254.nip.io/',
+    'https://127.0.0.1.sslip.io/',
+    'https://admin.localtest.me/',
+    'http://metadata.google.internal/computeMetadata/v1/',
+    'https://stripe.com:6379/',
+    'https://admin:secret@stripe.com/',
+  ]) {
+    assert.throws(
+      () => normalizePublicDomain(blockedTarget),
+      `Expected normalizePublicDomain to block "${blockedTarget}"`
+    );
+  }
+
+  assert.equal(
+    matchesPublicHostname('https://aurearoasters.com', 'aurearoasters.com'),
+    true
+  );
+  assert.equal(
+    matchesPublicHostname('https://aurearoasters.com', 'www.aurearoasters.com'),
+    true
+  );
+  assert.equal(
+    matchesPublicHostname('https://aurearoasters.com', 'roasters.com'),
+    false
+  );
+  assert.equal(
+    matchesPublicHostname('https://aurearoasters.com', 's.com'),
+    false
+  );
+
+  // Simulate an external domain responding with 302 -> AWS IMDS 169.254.169.254
+  const originalFetch = globalThis.fetch;
+  try {
+    let hitInternalMetadata = false;
+    globalThis.fetch = (async (input: string | URL | Request) => {
+      const targetStr =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : input.url;
+      if (targetStr.includes('169.254.169.254')) {
+        hitInternalMetadata = true;
+      }
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: 'http://169.254.169.254/latest/meta-data/',
+        },
+      });
+    }) as typeof fetch;
+
+    await assert.rejects(() =>
+      fetchWithSafePublicRedirects('https://public-attacker-redirect.io/')
+    );
+    assert.equal(
+      hitInternalMetadata,
+      false,
+      'Expected fetchWithSafePublicRedirects to abort before issuing HTTP request to 169.254.169.254'
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

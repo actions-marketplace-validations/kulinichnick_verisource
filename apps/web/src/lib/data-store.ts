@@ -83,7 +83,38 @@ export function getProcessedStripeEventsSet(): Set<string> {
   if (!globalForVerisource.__verisourceProcessedStripeEvents) {
     globalForVerisource.__verisourceProcessedStripeEvents = new Set();
   }
-  return globalForVerisource.__verisourceProcessedStripeEvents;
+  const set = globalForVerisource.__verisourceProcessedStripeEvents;
+  while (set.size > 5000) {
+    const oldest = set.values().next().value;
+    if (!oldest) break;
+    set.delete(oldest);
+  }
+  return set;
+}
+
+export function checkHourlyOutboundVerifyLimit(
+  bucketKey: string,
+  maxPerHour = 60
+): boolean {
+  if (!globalForVerisource.__verisourceVerifyFixesIpMap) {
+    globalForVerisource.__verisourceVerifyFixesIpMap = new Map();
+  }
+  const map = globalForVerisource.__verisourceVerifyFixesIpMap;
+  const hourBucket = new Date().toISOString().slice(0, 13);
+  if (map.size > 2000) {
+    for (const [k, v] of map.entries()) {
+      if (v.hourBucket !== hourBucket) map.delete(k);
+    }
+    if (map.size > 2000) map.clear();
+  }
+  const existing = map.get(bucketKey);
+  const used =
+    existing && existing.hourBucket === hourBucket ? existing.count : 0;
+  if (used >= maxPerHour) {
+    return false;
+  }
+  map.set(bucketKey, { hourBucket, count: used + 1 });
+  return true;
 }
 
 export function mcpLimitForPlan(plan: ProfileRow['plan_tier']): number {

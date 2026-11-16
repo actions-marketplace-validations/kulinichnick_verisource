@@ -8,6 +8,7 @@ import {
   type PlanTier,
 } from '@verisource/core-geo';
 import type { WorkerEnv } from './types.js';
+import { getCachedJson, setCachedJson } from './cache.js';
 
 export interface McpCallerPrincipal {
   rawBearerToken: string | null;
@@ -298,4 +299,84 @@ export async function authorizeAndMeterPaidTool(params: {
     errorCode: null,
     upgradeMessage: null,
   };
+}
+
+export async function verifyZeroCreditBearerEntitlement(params: {
+  rawBearerToken: string | null;
+  env: WorkerEnv;
+}): Promise<boolean> {
+  const token = params.rawBearerToken?.trim();
+  if (!token) return false;
+
+  const hasLiveSupabaseService = Boolean(
+    params.env.NEXT_PUBLIC_SUPABASE_URL && params.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
+  if (hasLiveSupabaseService) {
+    const supabase = createClient<Database>(
+      params.env.NEXT_PUBLIC_SUPABASE_URL!,
+      params.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false } }
+    );
+
+    if (token.startsWith('vs_')) {
+      if (!/^vs_live_[0-9a-f]{48}$/.test(token)) {
+        return false;
+      }
+      const keyHash = await sha256Hex(token);
+      const cacheKey = `auth:zero_credit:v1:${keyHash}`;
+      const cached = await getCachedJson<{ entitled: boolean }>(
+        cacheKey,
+        params.env
+      );
+      if (cached) {
+        return cached.entitled;
+      }
+
+      const { data: keyRow } = await supabase
+        .from('mcp_api_keys')
+        .select('user_id, is_active')
+        .eq('key_hash', keyHash)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!keyRow?.user_id) {
+        await setCachedJson(cacheKey, { entitled: false }, 60, params.env);
+        return false;
+      }
+
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('plan_tier')
+        .eq('id', keyRow.user_id)
+        .maybeSingle();
+
+      const entitled =
+        prof?.plan_tier === 'pro_99' || prof?.plan_tier === 'agency_249';
+      await setCachedJson(cacheKey, { entitled }, 60, params.env);
+      return entitled;
+    }
+
+    const { data: userData, error: userErr } =
+      await supabase.auth.getUser(token);
+    if (userErr || !userData.user) {
+      return false;
+    }
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('plan_tier')
+      .eq('id', userData.user.id)
+      .maybeSingle();
+
+    return prof?.plan_tier === 'pro_99' || prof?.plan_tier === 'agency_249';
+  }
+
+  // Local Mock Mode
+  const mockEntry = mockCreditBalances.get(token);
+  if (mockEntry) {
+    return (
+      mockEntry.planTier === 'pro_99' || mockEntry.planTier === 'agency_249'
+    );
+  }
+  return /^vs_live_[0-9a-f]{48}$/.test(token);
 }

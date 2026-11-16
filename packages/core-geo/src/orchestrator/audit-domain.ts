@@ -28,6 +28,7 @@ import {
 } from '../generator/fix-generator.js';
 import {
   analyzeCrawlerHtmlReadability,
+  matchesPublicHostname,
   normalizePublicDomain,
   probeDomainHttpReadiness,
   type CrawlerReadabilityReport,
@@ -609,7 +610,7 @@ async function resolveProbeAndShopify(
 
   // Check if offline/mock Patient Zero store fallback is needed when network is unreachable or skipped (MV3 sandbox)
   const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(normalized.hostname)
+    matchesPublicHostname(d.domain_url, normalized.hostname)
   );
 
   if (skipDirectHttpProbe) {
@@ -812,7 +813,7 @@ export async function runDomainReadinessScan(
   const allHallucinations = teaserScans.flatMap((s) => s.hallucinationDetails);
 
   const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(probe.domain.hostname)
+    matchesPublicHostname(d.domain_url, probe.domain.hostname)
   );
 
   const visibilityScore =
@@ -924,7 +925,7 @@ export async function runFullGeoAudit(options: {
   const allHallucinations = scanResults.flatMap((s) => s.hallucinationDetails);
 
   const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(probe.domain.hostname)
+    matchesPublicHostname(d.domain_url, probe.domain.hostname)
   );
 
   const visibilityScore =
@@ -1007,7 +1008,7 @@ export async function verifyLiveFixDeployment(
   const normalized = normalizePublicDomain(domainInput);
   const liveProbe = await probeDomainHttpReadiness(domainInput, env);
   const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
-    d.domain_url.toLowerCase().includes(normalized.hostname)
+    matchesPublicHostname(d.domain_url, normalized.hostname)
   );
 
   let probe = liveProbe;

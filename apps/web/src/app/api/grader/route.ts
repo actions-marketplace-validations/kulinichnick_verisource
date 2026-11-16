@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
+  matchesPublicHostname,
   normalizePublicDomain,
   PATIENT_ZERO_DOMAINS,
   runDomainReadinessScan,
@@ -50,21 +51,23 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const isPatientZeroSample = PATIENT_ZERO_DOMAINS.some((d) =>
-      d.domain_url.toLowerCase().includes(normalized.hostname)
+      matchesPublicHostname(d.domain_url, normalized.hostname)
     );
 
-    // Rate-limit custom unauthenticated scans to 5/IP/day while allowing unlimited Patient Zero demo clicks
-    if (!isPatientZeroSample) {
+    // Rate-limit custom unauthenticated scans to 5/IP/day (and cap forceRefresh cache-busts at 15/IP/day even on sample domains)
+    if (!isPatientZeroSample || Boolean(body.forceRefresh)) {
       const ip =
         request.headers.get('cf-connecting-ip') ??
         request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
         '127.0.0.1';
       const today = new Date().toISOString().slice(0, 10);
       const ipMap = getGraderIpMap();
-      const entry = ipMap.get(ip);
+      const bucketKey = isPatientZeroSample ? `refresh:${ip}` : ip;
+      const dailyLimit = isPatientZeroSample ? 15 : 5;
+      const entry = ipMap.get(bucketKey);
       const used = entry && entry.day === today ? entry.count : 0;
 
-      if (used >= 5) {
+      if (used >= dailyLimit) {
         return NextResponse.json(
           {
             error: 'FREE_SCAN_LIMIT_REACHED',
@@ -74,7 +77,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           { status: 429, headers: CORS_HEADERS }
         );
       }
-      ipMap.set(ip, { day: today, count: used + 1 });
+      ipMap.set(bucketKey, { day: today, count: used + 1 });
     }
 
     const summary = await runDomainReadinessScan(normalized.origin);

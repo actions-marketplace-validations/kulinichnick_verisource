@@ -21,6 +21,7 @@ function checkRateBucket(
     for (const [k, v] of map) {
       if (now >= v.resetAt) map.delete(k);
     }
+    if (map.size > 4000) map.clear();
   }
   const bucket = map.get(key);
   if (!bucket || now >= bucket.resetAt) {
@@ -53,7 +54,18 @@ function isSameOriginRequest(request: Request): boolean {
   const candidate = originHeader || refererHeader;
   if (!candidate || !expectedHost) return false;
   try {
-    return new URL(candidate).hostname.toLowerCase() === expectedHost;
+    const parsedHost = new URL(candidate).hostname.toLowerCase();
+    if (parsedHost === expectedHost) return true;
+    if (
+      (parsedHost === 'verisource.dev' ||
+        parsedHost === 'www.verisource.dev') &&
+      (expectedHost === 'verisource.dev' ||
+        expectedHost === 'www.verisource.dev' ||
+        expectedHost.endsWith('.vercel.app'))
+    ) {
+      return true;
+    }
+    return false;
   } catch {
     return false;
   }
@@ -200,8 +212,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         {
           error: 'AUTH_LINK_GENERATION_FAILED',
           message:
-            linkErr?.message ??
-            'Unable to generate your sign-in link right now. Please try again.',
+            'Unable to generate your sign-in link right now. Please verify your email address or try again in a moment.',
         },
         { status: 500 }
       );

@@ -3745,7 +3745,57 @@ async function run() {
         benchmarkStudyHtml.includes('vs-stack'),
       'Expected /connectors and /benchmarks/ai-search-readiness-2026 to use .vs-stack minmax(0, 1fr) overflow lock'
     );
-    console.log('✔ [70/70] M73 Post-GTM Header Resources Popover, Mobile Nav Drawer & Zero-Overflow Grid Containment verified!');
+    console.log('✔ [70/71] M73 Post-GTM Header Resources Popover, Mobile Nav Drawer & Zero-Overflow Grid Containment verified!');
+
+    // 69. M74 Adversarial Post-GTM Security Hardening (Global Headers, DNS-Rebinding/Port SSRF, Substring Fixture Guard & Off-Origin IndexNow Block)
+    const rootSecRes = await fetch(`${BASE}/`);
+    assert.equal(
+      rootSecRes.headers.get('x-content-type-options'),
+      'nosniff',
+      'Expected X-Content-Type-Options: nosniff header'
+    );
+    assert.equal(
+      rootSecRes.headers.get('x-frame-options'),
+      'SAMEORIGIN',
+      'Expected X-Frame-Options: SAMEORIGIN header'
+    );
+    assert.equal(
+      rootSecRes.headers.get('referrer-policy'),
+      'strict-origin-when-cross-origin',
+      'Expected Referrer-Policy: strict-origin-when-cross-origin header'
+    );
+
+    for (const ssrfPayload of [
+      'https://169.254.169.254.nip.io',
+      'https://stripe.com:6379',
+      'http://0.1.2.3',
+    ]) {
+      const blockedToolRes = await fetch(`${BASE}/api/tools/check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: ssrfPayload }),
+      });
+      assert.equal(
+        blockedToolRes.status,
+        400,
+        `Expected /api/tools/check to reject SSRF payload ${ssrfPayload}`
+      );
+    }
+
+    const offOriginIndexNowRes = await fetch(`${BASE}/api/indexnow`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        dryRun: true,
+        urls: ['https://evil-spoofer.com/injected'],
+      }),
+    });
+    assert.equal(
+      offOriginIndexNowRes.status,
+      400,
+      'Expected /api/indexnow to reject off-origin URLs with HTTP 400'
+    );
+    console.log('✔ [71/71] M74 Adversarial Security Hardening (Security Headers, DNS-Rebinding/Port SSRF, Substring Guard & IndexNow Origin Lock) verified!');
   } finally {
     server.kill();
   }

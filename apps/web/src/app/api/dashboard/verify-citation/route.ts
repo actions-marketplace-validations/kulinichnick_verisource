@@ -5,6 +5,7 @@ import {
   type DomainRow,
 } from '@verisource/core-geo';
 import {
+  checkHourlyOutboundVerifyLimit,
   getLocalMockStore,
   resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
@@ -80,6 +81,19 @@ export async function POST(request: Request): Promise<NextResponse> {
           message: 'Domain not found in your workspace.',
         },
         { status: 404 }
+      );
+    }
+
+    if (
+      !checkHourlyOutboundVerifyLimit(`verify_cit:${access.profile.id}`, 60)
+    ) {
+      return NextResponse.json(
+        {
+          error: 'RATE_LIMITED',
+          message:
+            'Hourly live citation verification quota reached (60 checks/hour). Please wait a few minutes and try again.',
+        },
+        { status: 429 }
       );
     }
 
