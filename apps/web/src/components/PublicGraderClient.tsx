@@ -388,6 +388,11 @@ export function PublicGraderClient(): React.ReactElement {
                       gap: '8px',
                     }}
                   >
+                    {result.detectedPlatformLabel ? (
+                      <StatusBadge>
+                        {`PLATFORM: ${result.detectedPlatformLabel.toUpperCase()}`}
+                      </StatusBadge>
+                    ) : null}
                     {cached24h !== null ? (
                       <StatusBadge tone={cached24h ? 'neutral' : 'pass'}>
                         {cached24h ? '24H CACHE' : 'FRESH LIVE SCAN'}

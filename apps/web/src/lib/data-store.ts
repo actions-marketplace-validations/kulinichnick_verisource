@@ -27,6 +27,7 @@ import {
   type ProfileRow,
   type PublicPitchReportResult,
   type TrackedPromptRow,
+  type WebsitePlatformId,
 } from '@verisource/core-geo';
 
 interface LocalWorkspaceState {
@@ -694,6 +695,7 @@ export async function provisionDomainAuditForWorkspace(input: {
   snapshots: CitationSnapshotRow[];
   fixes: GeneratedFixRow[];
   crawlerReadability?: CrawlerReadabilityReport;
+  detectedPlatform?: WebsitePlatformId;
   alreadyExists: boolean;
   capReached: boolean;
 }> {
@@ -866,6 +868,9 @@ export async function provisionDomainAuditForWorkspace(input: {
     snapshots: newSnapshots,
     fixes: newFixes,
     crawlerReadability: audit.probe.crawlerReadability,
+    detectedPlatform: audit.shopify.isShopify
+      ? 'shopify'
+      : audit.probe.detectedPlatform ?? 'nextjs_custom',
     alreadyExists: false,
     capReached: false,
   };

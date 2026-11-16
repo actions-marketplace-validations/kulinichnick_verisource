@@ -301,9 +301,15 @@ export function buildCitationAnswerPageBundle(
   const roleInstruction =
     mode === 'shopify_liquid'
       ? `Act as a Senior Shopify Liquid & Technical SEO Engineer for **${brand}** (\`${origin}\`). Create a fast, server-rendered Online Store 2.0 page at \`${suggestedPath}\` (via a custom \`templates/page.${slugifySegment(suggestedPath)}.json\` + semantic HTML section or Shopify Admin Page) without altering existing theme styles or cart behavior.`
-      : mode === 'chat_assistant'
-        ? `Act as my Senior Web Content & Technical SEO Engineer for **${brand}** (\`${origin}\`). Ask me which CMS powers my site (WordPress, Webflow, Framer, Shopify, Squarespace, or Next.js) if I haven't shared it yet, then give me exact step-by-step instructions to publish this new citation-ready page at \`${suggestedPath}\`.`
-        : `Act as a Principal Full-Stack & Technical SEO Engineer inside the codebase for **${brand}** (\`${origin}\`). Inspect the existing routing structure (Next.js App Router, Astro, Remix, SvelteKit, Nuxt, or static HTML) and build a server-rendered (\`SSR\`/\`SSG\`) public route at \`${suggestedPath}\` matching our site's existing typography and layout tokens.`;
+      : mode === 'wordpress_cms'
+        ? `Act as my Senior WordPress & Technical SEO Engineer for **${brand}** (\`${origin}\`). Walk me through creating a clean WordPress page at \`${suggestedPath}\` using Gutenberg Table / Custom HTML blocks (plus page-level \`FAQPage\` JSON-LD via WPCode or RankMath/Yoast).`
+        : mode === 'webflow_cms'
+          ? `Act as my Senior Webflow & Technical SEO Specialist for **${brand}** (\`${origin}\`). Walk me through creating a static Webflow page at \`${suggestedPath}\` with a semantic HTML \`<table>\` Embed and injecting the \`FAQPage\` JSON-LD into that page's **Page Settings -> Inside \`<head>\` tag**.`
+          : mode === 'wix_squarespace_framer'
+            ? `Act as my Senior No-Code Website Specialist for **${brand}** (\`${origin}\`). Walk me through creating a public page at \`${suggestedPath}\` on Wix, Squarespace, or Framer using a clean HTML Code/Embed block for the comparison \`<table>\` and page-level Header Code Injection for the \`FAQPage\` JSON-LD.`
+            : mode === 'chat_assistant'
+              ? `Act as my Senior Web Content & Technical SEO Engineer for **${brand}** (\`${origin}\`). Ask me which CMS powers my site (WordPress, Webflow, Framer, Shopify, Squarespace, or Next.js) if I haven't shared it yet, then give me exact step-by-step instructions to publish this new citation-ready page at \`${suggestedPath}\`.`
+              : `Act as a Principal Full-Stack & Technical SEO Engineer inside the codebase for **${brand}** (\`${origin}\`). Inspect the existing routing structure (Next.js App Router, Astro, Remix, SvelteKit, Nuxt, or static HTML) and build a server-rendered (\`SSR\`/\`SSG\`) public route at \`${suggestedPath}\` matching our site's existing typography and layout tokens.`;
 
   const promptLines: string[] = [
     `# AI Citation Page Build Prompt — ${pageTitle}`,

@@ -48,6 +48,7 @@ import {
   classifyPromptIntent,
   computeScoreDeltaSummary,
   computeShopifyCheckoutKey,
+  detectWebsitePlatform,
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
   dispatchProspectOpenEmail,
@@ -66,6 +67,7 @@ import {
   generateDefaultPromptsForDomain,
   generateMcpApiKey,
   generateSuggestedBuyerPrompts,
+  getWebsitePlatformMeta,
   gradeArtifactQuality,
   isAutomatedPreviewBot,
   isFixTypeLiveOnDomain,
@@ -2405,4 +2407,98 @@ test('M53 7-Day Trial Lifecycle Evaluator & Day-3 / Day-5 Plain-English Activati
   assert.ok(day5Progress.subject.includes('4/4 AI files live'));
   assert.ok(day5Progress.text.includes('Acme Dental vs. BrightSmile Clinic'));
   assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(day5Progress.text));
+});
+
+test('M54 Website Builder / CMS Detector (7 platforms) & Platform-Specific 1-Click AI Prompts pass >= 9.5/10 with /ai-facts no-code routing', () => {
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<link href="https://cdn.shopify.com/s/files/theme.css" />',
+    }).platformId,
+    'shopify'
+  );
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<link rel="stylesheet" href="/wp-content/themes/astra/style.css" />',
+    }).platformId,
+    'wordpress'
+  );
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<html data-wf-site="65a123" data-wf-page="65a456"></html>',
+    }).platformId,
+    'webflow'
+  );
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<meta name="generator" content="Wix.com Website Builder" />',
+    }).platformId,
+    'wix'
+  );
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<!-- This is Squarespace. --><script src="https://static1.squarespace.com/static/ta.js"></script>',
+    }).platformId,
+    'squarespace'
+  );
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<div data-framer-hydrate-v2="true"></div>',
+    }).platformId,
+    'framer'
+  );
+  assert.equal(
+    detectWebsitePlatform({
+      html: '<!doctype html><html><body><div id="__next">App</div></body></html>',
+    }).platformId,
+    'nextjs_custom'
+  );
+
+  assert.equal(
+    getWebsitePlatformMeta('webflow').recommendedAiEnv,
+    'webflow_cms'
+  );
+  assert.equal(
+    getWebsitePlatformMeta('squarespace').recommendedAiEnv,
+    'wix_squarespace_framer'
+  );
+
+  const sampleDom = {
+    ...PATIENT_ZERO_DOMAINS[1]!,
+    domain_url: 'https://acmedental.com',
+    brand_name: 'Acme Dental',
+    is_shopify: false,
+  };
+  const sampleFixes = PATIENT_ZERO_FIXES.filter(
+    (f) => f.domain_id === PATIENT_ZERO_DOMAINS[1]!.id
+  );
+
+  for (const envMode of [
+    'wordpress_cms',
+    'webflow_cms',
+    'wix_squarespace_framer',
+  ] as const) {
+    const prompt = buildAiRemediationMasterPrompt({
+      domain: sampleDom,
+      fixes: sampleFixes,
+      targetEnv: envMode,
+    });
+    assert.ok(prompt.score >= 9.5, `Expected >= 9.5 for ${envMode}`);
+    assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|\bCritic\b/i.test(prompt.content));
+    if (envMode !== 'wordpress_cms') {
+      assert.ok(
+        prompt.content.includes('verisource-ai-facts'),
+        `Expected /ai-facts container guidance for ${envMode}`
+      );
+    } else {
+      assert.ok(prompt.content.includes('WPCode'));
+    }
+
+    const studio = buildCitationAnswerPageBundle({
+      domain: sampleDom,
+      blueprintType: 'vs_competitor',
+      rivalName: 'BrightSmile',
+      targetEnv: envMode,
+    });
+    assert.ok(studio.aiBuildPrompt.score >= 9.5);
+  }
 });

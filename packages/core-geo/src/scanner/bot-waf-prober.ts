@@ -4,6 +4,10 @@ import type {
   LlmsTxtStatus,
   RobotsAiBotStatus,
 } from '../db/types.js';
+import {
+  detectWebsitePlatform,
+  type WebsitePlatformId,
+} from './cms-detector.js';
 
 export interface NormalizedDomain {
   origin: string;
@@ -41,6 +45,7 @@ export interface DomainHttpProbeResult {
   agentsMdRaw: string | null;
   agentsMdInitialStatus: AgentsMdStatus;
   htmlSignalsShopify: boolean;
+  detectedPlatform?: WebsitePlatformId;
   extractedPriceMentions: string[];
   extractedShippingMentions: string[];
   crawlerReadability?: CrawlerReadabilityReport;
@@ -624,11 +629,28 @@ export async function probeDomainHttpReadiness(
   const shopifyHeaderDetected = Boolean(
     homeRes.headers?.get('x-shopid') || homeRes.headers?.get('x-shopify-stage')
   );
+  const detectedPlatformInfo = detectWebsitePlatform({
+    html: htmlBody,
+    headers: homeRes.headers,
+    isShopifyOverride: htmlMeta.htmlSignalsShopify || shopifyHeaderDetected,
+  });
 
   let effectiveAgentsMdRaw = validAgentsMd ? agentsRes.body : null;
   let effectiveAgentsMdStatus = classifyAgentsMdContent(effectiveAgentsMdRaw);
+  let verifiedAlternateAiFactsContainer = false;
 
-  // Follow same-origin <link rel="alternate" type="text/markdown" href="..."> overrides (e.g., native Shopify stores where platform edge intercepts /agents.md)
+  if (
+    llmsRes.ok &&
+    !validLlmsTxt &&
+    /<article[^>]*class=["'][^"']*verisource-ai-facts[^"']*["']/i.test(
+      llmsRes.body
+    ) &&
+    llmsRes.body.toLowerCase().includes(domain.hostname)
+  ) {
+    verifiedAlternateAiFactsContainer = true;
+  }
+
+  // Follow same-origin <link rel="alternate" type="text/markdown" href="..."> overrides (e.g., Shopify, Webflow, Wix, Squarespace, Framer /ai-facts pages)
   if (
     effectiveAgentsMdStatus !== 'custom_enriched' &&
     htmlMeta.alternateMarkdownHref
@@ -649,6 +671,14 @@ export async function probeDomainHttpReadiness(
           4500
         );
         if (altRes.ok && altRes.body.trim().length >= 80) {
+          if (
+            /<article[^>]*class=["'][^"']*verisource-ai-facts[^"']*["']/i.test(
+              altRes.body
+            ) &&
+            altRes.body.toLowerCase().includes(domain.hostname)
+          ) {
+            verifiedAlternateAiFactsContainer = true;
+          }
           const extractedTruth = extractVerifiableTruthFromAlternateBody(
             altRes.body,
             altRes.headers?.get('content-type') ?? null
@@ -667,6 +697,8 @@ export async function probeDomainHttpReadiness(
     }
   }
 
+  const effectiveValidLlms = validLlmsTxt || verifiedAlternateAiFactsContainer;
+
   const initialCrawlerHtml =
     homeRes.body.length > 0 ? homeRes.body : htmlBody;
   const crawlerReadability = analyzeCrawlerHtmlReadability(initialCrawlerHtml);
@@ -679,11 +711,16 @@ export async function probeDomainHttpReadiness(
     metaDescription: htmlMeta.metaDescription,
     jsonLdBlocks: htmlMeta.jsonLdBlocks,
     robotsAiBotStatus,
-    llmsTxtStatus: validLlmsTxt ? 'present' : 'missing',
-    llmsTxtExcerpt: validLlmsTxt ? llmsRes.body.slice(0, 500) : null,
+    llmsTxtStatus: effectiveValidLlms ? 'present' : 'missing',
+    llmsTxtExcerpt: validLlmsTxt
+      ? llmsRes.body.slice(0, 500)
+      : verifiedAlternateAiFactsContainer && effectiveAgentsMdRaw
+        ? effectiveAgentsMdRaw.slice(0, 500)
+        : null,
     agentsMdRaw: effectiveAgentsMdRaw,
     agentsMdInitialStatus: effectiveAgentsMdStatus,
     htmlSignalsShopify: htmlMeta.htmlSignalsShopify || shopifyHeaderDetected,
+    detectedPlatform: detectedPlatformInfo.platformId,
     extractedPriceMentions: htmlMeta.extractedPriceMentions,
     extractedShippingMentions: htmlMeta.extractedShippingMentions,
     crawlerReadability,

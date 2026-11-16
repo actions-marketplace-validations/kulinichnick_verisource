@@ -23,6 +23,7 @@ import {
   evaluateCommerceAttributeReadiness,
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
+  getWebsitePlatformMeta,
   normalizePublicDomain,
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
@@ -45,6 +46,7 @@ import {
   type ScoreDeltaSummary,
   type SubPageBotInspectionReport,
   type TrackedPromptRow,
+  type WebsitePlatformId,
 } from '@verisource/core-geo';
 import {
   CodeArtifactCard,
@@ -292,6 +294,9 @@ export function DashboardConsoleClient(props: {
   const [sendingTestBotPing, setSendingTestBotPing] = useState(false);
   const [aiPromptTargetEnv, setAiPromptTargetEnv] =
     useState<AiRemediationTargetEnv>('coding_agent');
+  const [detectedPlatformByDomainId, setDetectedPlatformByDomainId] = useState<
+    Record<string, WebsitePlatformId>
+  >({});
   const [copiedAiFixPrompt, setCopiedAiFixPrompt] = useState(false);
   const [expandedAiFixPrompt, setExpandedAiFixPrompt] = useState(false);
   const [citationBlueprintType, setCitationBlueprintType] =
@@ -516,10 +521,17 @@ export function DashboardConsoleClient(props: {
     setRivalXrayInput('');
     setRivalXrayReport(null);
     setCopiedOvertakePrompt(false);
+    const knownPlatform = activeDomain
+      ? detectedPlatformByDomainId[activeDomain.id]
+      : undefined;
     setAiPromptTargetEnv(
-      activeDomain?.is_shopify ? 'shopify_liquid' : 'coding_agent'
+      knownPlatform
+        ? getWebsitePlatformMeta(knownPlatform).recommendedAiEnv
+        : activeDomain?.is_shopify
+          ? 'shopify_liquid'
+          : 'coding_agent'
     );
-  }, [activeDomain?.id, activeDomain?.is_shopify]);
+  }, [activeDomain?.id, activeDomain?.is_shopify, detectedPlatformByDomainId]);
 
   useEffect(() => {
     if (!activeDomain) return;
@@ -865,6 +877,7 @@ export function DashboardConsoleClient(props: {
         snapshots?: CitationSnapshotRow[];
         fixes?: GeneratedFixRow[];
         crawlerReadability?: CrawlerReadabilityReport;
+        detectedPlatform?: WebsitePlatformId;
       };
       if (!res.ok || json.error || !json.domain) {
         setBannerError(json.message ?? 'Could not add domain.');
@@ -876,6 +889,12 @@ export function DashboardConsoleClient(props: {
           setCrawlerReadabilityByDomainId((prev) => ({
             ...prev,
             [json.domain!.id]: json.crawlerReadability!,
+          }));
+        }
+        if (json.detectedPlatform) {
+          setDetectedPlatformByDomainId((prev) => ({
+            ...prev,
+            [json.domain!.id]: json.detectedPlatform!,
           }));
         }
         setData((prev) => ({
@@ -921,6 +940,7 @@ export function DashboardConsoleClient(props: {
         fixes?: GeneratedFixRow[];
         scoreDelta?: ScoreDeltaSummary;
         crawlerReadability?: CrawlerReadabilityReport;
+        detectedPlatform?: WebsitePlatformId;
       };
       if (!res.ok || json.error || !json.domain) {
         setBannerError(json.message ?? 'Unable to re-scan domain.');
@@ -930,6 +950,12 @@ export function DashboardConsoleClient(props: {
           setCrawlerReadabilityByDomainId((prev) => ({
             ...prev,
             [json.domain!.id]: json.crawlerReadability!,
+          }));
+        }
+        if (json.detectedPlatform) {
+          setDetectedPlatformByDomainId((prev) => ({
+            ...prev,
+            [json.domain!.id]: json.detectedPlatform!,
           }));
         }
         setData((prev) => ({
@@ -5180,8 +5206,18 @@ export function DashboardConsoleClient(props: {
                         color: 'var(--vs-ink-muted)',
                       }}
                     >
-                      TARGET AI TOOL:
+                      SITE BUILDER / AI TOOL:
                     </span>
+                    {activeDomain &&
+                    (detectedPlatformByDomainId[activeDomain.id] ||
+                      activeDomain.is_shopify) ? (
+                      <StatusBadge tone="pass">
+                        {`AUTO-DETECTED: ${getWebsitePlatformMeta(
+                          detectedPlatformByDomainId[activeDomain.id] ??
+                            'shopify'
+                        ).displayName.toUpperCase()}`}
+                      </StatusBadge>
+                    ) : null}
                     <div
                       role="group"
                       aria-label="Target AI environment"
@@ -5203,12 +5239,24 @@ export function DashboardConsoleClient(props: {
                               'Coding Agent (Antigravity · Claude · Cursor)',
                           },
                           {
-                            id: 'chat_assistant',
-                            label: 'ChatGPT / Claude Web (CMS & No-Code)',
+                            id: 'wordpress_cms',
+                            label: 'WordPress (WPCode · Yoast)',
+                          },
+                          {
+                            id: 'webflow_cms',
+                            label: 'Webflow',
+                          },
+                          {
+                            id: 'wix_squarespace_framer',
+                            label: 'Wix · Squarespace · Framer',
                           },
                           {
                             id: 'shopify_liquid',
                             label: 'Shopify Theme (Liquid)',
+                          },
+                          {
+                            id: 'chat_assistant',
+                            label: 'ChatGPT / Claude Web (CMS & No-Code)',
                           },
                         ] as const
                       ).map((opt) => {

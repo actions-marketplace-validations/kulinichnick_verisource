@@ -86,6 +86,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       snapshots: provisioned.snapshots,
       fixes: provisioned.fixes,
       crawlerReadability: provisioned.crawlerReadability,
+      detectedPlatform: provisioned.detectedPlatform,
     });
   } catch (err) {
     return NextResponse.json(
@@ -288,6 +289,9 @@ export async function PUT(request: Request): Promise<NextResponse> {
       fixes: refreshedFixes,
       scoreDelta,
       crawlerReadability: audit.probe.crawlerReadability,
+      detectedPlatform: audit.shopify.isShopify
+        ? 'shopify'
+        : audit.probe.detectedPlatform ?? 'nextjs_custom',
     });
   } catch (err) {
     return NextResponse.json(

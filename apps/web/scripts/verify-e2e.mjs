@@ -2251,7 +2251,20 @@ async function run() {
       trialRoadmapDashHtml.includes('Email Me Step-by-Step Link'),
       'Expected Email Me Step-by-Step Link CTA inside 7-Day Trial Roadmap banner'
     );
-    console.log('✔ [49/49] M53 Automated 7-Day Trial Onboarding & Activation Nudge Engine (401/400/200 Day-3 & Day-5 >= 9.5/10 + Trial Roadmap CTA) verified!');
+    console.log('✔ [49/50] M53 Automated 7-Day Trial Onboarding & Activation Nudge Engine (401/400/200 Day-3 & Day-5 >= 9.5/10 + Trial Roadmap CTA) verified!');
+
+    // 48. M54 Automatic Website Builder / CMS Detector & 6-Platform Step 02 Selector
+    assert.equal(aureaJson.detectedPlatform, 'shopify');
+    assert.equal(aureaJson.detectedPlatformLabel, 'Shopify');
+    assert.ok(
+      m42Tab2Html.includes('SITE BUILDER / AI TOOL:') &&
+        m42Tab2Html.includes('AUTO-DETECTED: SHOPIFY') &&
+        m42Tab2Html.includes('WordPress (WPCode') &&
+        m42Tab2Html.includes('Webflow') &&
+        m42Tab2Html.includes('Wix · Squarespace · Framer'),
+      'Expected Auto-Detected Website Builder badge & WordPress/Webflow/Wix-Squarespace-Framer pills in Step 02'
+    );
+    console.log('✔ [50/50] M54 Automatic Website Builder / CMS Detector & Platform-Specific Step 02 Selector verified!');
   } finally {
     server.kill();
   }

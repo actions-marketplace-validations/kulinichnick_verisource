@@ -34,6 +34,10 @@ import {
   type DomainHttpProbeResult,
 } from '../scanner/bot-waf-prober.js';
 import {
+  getWebsitePlatformMeta,
+  type WebsitePlatformId,
+} from '../scanner/cms-detector.js';
+import {
   generateDefaultPromptsForDomain,
   runMultiEnginePromptScan,
   type EngineScanResult,
@@ -59,6 +63,8 @@ export interface ReadinessScanSummary {
   visibilityScore: number;
   accuracyScore: number;
   isShopify: boolean;
+  detectedPlatform?: WebsitePlatformId;
+  detectedPlatformLabel?: string;
   shopifyMcpStatus: ShopifyMcpStatus;
   agentsMdStatus: AgentsMdStatus;
   llmsTxtStatus: LlmsTxtStatus;
@@ -108,6 +114,8 @@ export interface LiveFixVerificationReport {
   brandName: string;
   checkedAt: string;
   isShopify: boolean;
+  detectedPlatform?: WebsitePlatformId;
+  detectedPlatformLabel?: string;
   shopifyMcpStatus: ShopifyMcpStatus;
   agentsMdStatus: AgentsMdStatus;
   llmsTxtStatus: LlmsTxtStatus;
@@ -158,6 +166,8 @@ export function computeVisibilityScore(params: {
   agentsMdStatus: AgentsMdStatus;
   jsonLdCount: number;
   isShopify: boolean;
+  detectedPlatform?: WebsitePlatformId;
+  detectedPlatformLabel?: string;
   shopifyMcpStatus: ShopifyMcpStatus;
   scanResults: EngineScanResult[];
 }): number {
@@ -343,6 +353,8 @@ export function buildAgencyPitchPayload(params: {
   llmsTxtStatus: LlmsTxtStatus;
   agentsMdStatus: AgentsMdStatus;
   isShopify: boolean;
+  detectedPlatform?: WebsitePlatformId;
+  detectedPlatformLabel?: string;
   shopifyMcpStatus: ShopifyMcpStatus;
   jsonLdCount: number;
   crawlerReadability?: CrawlerReadabilityReport;
@@ -751,6 +763,12 @@ export async function runDomainReadinessScan(
     visibilityScore,
     accuracyScore,
     isShopify: shopify.isShopify,
+    detectedPlatform: shopify.isShopify
+      ? 'shopify'
+      : probe.detectedPlatform ?? 'nextjs_custom',
+    detectedPlatformLabel: getWebsitePlatformMeta(
+      shopify.isShopify ? 'shopify' : probe.detectedPlatform ?? 'nextjs_custom'
+    ).displayName,
     shopifyMcpStatus: shopify.shopifyMcpStatus,
     agentsMdStatus: shopify.agentsMdStatus,
     llmsTxtStatus: probe.llmsTxtStatus,
@@ -856,6 +874,12 @@ export async function runFullGeoAudit(options: {
     llmsTxtStatus: probe.llmsTxtStatus,
     agentsMdStatus: shopify.agentsMdStatus,
     isShopify: shopify.isShopify,
+    detectedPlatform: shopify.isShopify
+      ? 'shopify'
+      : probe.detectedPlatform ?? 'nextjs_custom',
+    detectedPlatformLabel: getWebsitePlatformMeta(
+      shopify.isShopify ? 'shopify' : probe.detectedPlatform ?? 'nextjs_custom'
+    ).displayName,
     shopifyMcpStatus: shopify.shopifyMcpStatus,
     jsonLdCount: probe.jsonLdBlocks.length,
     crawlerReadability: probe.crawlerReadability,
@@ -1020,6 +1044,12 @@ export async function verifyLiveFixDeployment(
     brandName,
     checkedAt: new Date().toISOString(),
     isShopify: shopify.isShopify,
+    detectedPlatform: shopify.isShopify
+      ? 'shopify'
+      : probe.detectedPlatform ?? 'nextjs_custom',
+    detectedPlatformLabel: getWebsitePlatformMeta(
+      shopify.isShopify ? 'shopify' : probe.detectedPlatform ?? 'nextjs_custom'
+    ).displayName,
     shopifyMcpStatus: shopify.shopifyMcpStatus,
     agentsMdStatus: shopify.agentsMdStatus,
     llmsTxtStatus: probe.llmsTxtStatus,
@@ -2373,7 +2403,10 @@ export function buildExecutiveAuditReportMarkdown(params: {
 export type AiRemediationTargetEnv =
   | 'coding_agent'
   | 'chat_assistant'
-  | 'shopify_liquid';
+  | 'shopify_liquid'
+  | 'wordpress_cms'
+  | 'webflow_cms'
+  | 'wix_squarespace_framer';
 
 export function buildAiRemediationMasterPrompt(params: {
   domain: Pick<
@@ -2440,12 +2473,21 @@ export function buildAiRemediationMasterPrompt(params: {
   const pendingFixes = onSiteFixes.filter((f) => !f.is_applied);
   const fixesToInclude = pendingFixes.length > 0 ? pendingFixes : onSiteFixes;
 
+  const isNoRootFileBuilder =
+    mode === 'webflow_cms' || mode === 'wix_squarespace_framer';
+
   const roleHeader =
     mode === 'shopify_liquid'
       ? `Act as a Senior Shopify Liquid & Technical SEO Engineer working on the Online Store 2.0 theme for **${domain.brand_name}** (\`https://${cleanHost}\`). Apply every AI Search & Agent Readiness fix below without altering existing visual styling, cart drawers, or checkout flows.`
-      : mode === 'chat_assistant'
-        ? `Act as my Senior Web Implementation Engineer for **${domain.brand_name}** (\`https://${cleanHost}\`). If I have not told you which CMS or platform powers my site yet (WordPress, Webflow, Framer, Squarespace, Wix, Shopify, Next.js, or custom HTML), ask me first—then give me exact step-by-step instructions to publish every verified fix block below.`
-        : `Act as a Principal Full-Stack & Technical SEO Engineer working directly inside my codebase for **${domain.brand_name}** (\`https://${cleanHost}\`). First inspect my repository structure to detect the framework (Next.js App Router, Pages Router, Astro, Remix, SvelteKit, Nuxt, or static HTML), then implement every AI Search & Agent Readiness fix below without changing existing UI layouts or breaking the build.`;
+      : mode === 'wordpress_cms'
+        ? `Act as my Senior WordPress & Technical SEO Engineer for **${domain.brand_name}** (\`https://${cleanHost}\`). Walk me through exact, plain-English WordPress Admin clicks (using WPCode / Insert Headers & Footers, RankMath or Yoast SEO, Elementor/Gutenberg, or root file upload) to publish every verified fix below without touching PHP theme files unless requested.`
+        : mode === 'webflow_cms'
+          ? `Act as my Senior Webflow & Technical SEO Specialist for **${domain.brand_name}** (\`https://${cleanHost}\`). Because Webflow does not host arbitrary root \`.md\` files natively, guide me step by step using **Site Settings -> Custom Code -> Head Code**, a clean static Webflow page at \`/ai-facts\` wrapped in \`<article class="verisource-ai-facts">\`, and **Site Settings -> Publishing -> 301 Redirects** (\`/llms.txt\` -> \`/ai-facts\` and \`/agents.md\` -> \`/ai-facts\`).`
+          : mode === 'wix_squarespace_framer'
+            ? `Act as my Senior No-Code Website & AI Search Specialist for **${domain.brand_name}** (\`https://${cleanHost}\`). Ask me whether my site runs on **Wix**, **Squarespace**, or **Framer** if I haven't confirmed yet—then give me exact click-by-click dashboard steps using Header Code Injection (\`<script type="application/ld+json">\` + \`<link rel="alternate" type="text/markdown" href="/ai-facts" />\`), one public \`/ai-facts\` page containing \`<article class="verisource-ai-facts">\`, and 301 URL redirects for \`/llms.txt\` and \`/agents.md\` -> \`/ai-facts\`.`
+            : mode === 'chat_assistant'
+              ? `Act as my Senior Web Implementation Engineer for **${domain.brand_name}** (\`https://${cleanHost}\`). If I have not told you which CMS or platform powers my site yet (WordPress, Webflow, Framer, Squarespace, Wix, Shopify, Next.js, or custom HTML), ask me first—then give me exact step-by-step instructions to publish every verified fix block below.`
+              : `Act as a Principal Full-Stack & Technical SEO Engineer working directly inside my codebase for **${domain.brand_name}** (\`https://${cleanHost}\`). First inspect my repository structure to detect the framework (Next.js App Router, Pages Router, Astro, Remix, SvelteKit, Nuxt, or static HTML), then implement every AI Search & Agent Readiness fix below without changing existing UI layouts or breaking the build.`;
 
   const lines: string[] = [
     `# AI Search & Agent Remediation Prompt — ${domain.brand_name} (${cleanHost})`,
@@ -2509,6 +2551,14 @@ export function buildAiRemediationMasterPrompt(params: {
 
   lines.push('', `## 3. Exact Verified Artifacts to Implement`);
 
+  if (isNoRootFileBuilder) {
+    lines.push(
+      '',
+      `### No-Code Builder Setup Note (\`/ai-facts\` + \`<head>\` Alternate Tag)`,
+      `Because Webflow, Wix, Squarespace, and Framer do not upload raw \`.md\` files to \`/\`, publish a clean public page at \`https://${cleanHost}/ai-facts\` containing an HTML Embed wrapped in \`<article class="verisource-ai-facts">...</article>\` with both your \`/agents.md\` rules and \`/llms.txt\` links below, add \`<link rel="alternate" type="text/markdown" href="/ai-facts" title="${domain.brand_name} Verified AI Truth" />\` inside your site-wide \`<head>\` custom code, and set 301 redirects from \`/llms.txt\` -> \`/ai-facts\` and \`/agents.md\` -> \`/ai-facts\`. Verisource's **Verify Live Fixes** scanner natively recognizes this setup.`
+    );
+  }
+
   if (blockedBots.length > 0) {
     lines.push(
       '',
@@ -2534,14 +2584,24 @@ export function buildAiRemediationMasterPrompt(params: {
         placementInstruction =
           mode === 'shopify_liquid'
             ? `Inject inside \`layout/theme.liquid\` immediately before \`</head>\` wrapped in \`<script type="application/ld+json">...</script>\`.`
-            : `Render in the root document \`<head>\` (e.g. \`app/layout.tsx\`, \`index.html\`, or CMS Header Code) inside \`<script type="application/ld+json">\`.`;
+            : mode === 'wordpress_cms'
+              ? `In WordPress Admin, open **WPCode -> Header & Footer -> Header** (or Elementor Custom Code -> \`<head>\`) and paste wrapped in \`<script type="application/ld+json">...</script>\`.`
+              : mode === 'webflow_cms'
+                ? `In Webflow **Site Settings -> Custom Code -> Head Code**, paste wrapped in \`<script type="application/ld+json">...</script>\` plus \`<link rel="alternate" type="text/markdown" href="/ai-facts" />\`, then Publish.`
+                : mode === 'wix_squarespace_framer'
+                  ? `Paste into site-wide Header Code Injection (**Squarespace:** Website Tools -> Code Injection -> Header; **Wix:** Settings -> Custom Code -> Head; **Framer:** Site Settings -> Custom Code -> End of \`<head>\`) wrapped in \`<script type="application/ld+json">...</script>\` alongside \`<link rel="alternate" type="text/markdown" href="/ai-facts" />\`.`
+                  : `Render in the root document \`<head>\` (e.g. \`app/layout.tsx\`, \`index.html\`, or CMS Header Code) inside \`<script type="application/ld+json">\`.`;
         break;
       case 'llms_txt':
         codeFenceLang = 'markdown';
         placementInstruction =
           mode === 'shopify_liquid'
             ? `Serve at \`https://${cleanHost}/llms.txt\` via edge route or publish at \`/pages/llms\` with a URL redirect from \`/llms.txt\`.`
-            : `Create a static file or route at \`/llms.txt\` (\`public/llms.txt\` or \`app/llms.txt/route.ts\`) returning \`Content-Type: text/plain; charset=utf-8\`.`;
+            : mode === 'wordpress_cms'
+              ? `Upload as \`llms.txt\` in your WordPress public web root (via File Manager / SFTP), or include inside an \`<article class="verisource-ai-facts">\` page at \`/ai-facts\` with a 301 redirect from \`/llms.txt\` -> \`/ai-facts\`.`
+              : isNoRootFileBuilder
+                ? `Include inside your \`<article class="verisource-ai-facts">\` HTML Embed on \`https://${cleanHost}/ai-facts\` and add a 301 redirect from \`/llms.txt\` -> \`/ai-facts\`.`
+                : `Create a static file or route at \`/llms.txt\` (\`public/llms.txt\` or \`app/llms.txt/route.ts\`) returning \`Content-Type: text/plain; charset=utf-8\`.`;
         break;
       case 'shopify_agents_liquid':
         codeFenceLang = 'liquid';
@@ -2549,7 +2609,12 @@ export function buildAiRemediationMasterPrompt(params: {
         break;
       case 'agents_md':
         codeFenceLang = 'markdown';
-        placementInstruction = `Serve at \`https://${cleanHost}/agents.md\` (\`public/agents.md\` or \`app/agents.md/route.ts\` with \`Content-Type: text/markdown; charset=utf-8\`) and add \`<link rel="alternate" type="text/markdown" href="/agents.md" />\` in \`<head>\`.`;
+        placementInstruction =
+          mode === 'wordpress_cms'
+            ? `Upload as \`agents.md\` in your WordPress web root (or publish inside \`<article class="verisource-ai-facts">\` on \`/ai-facts\`) and add \`<link rel="alternate" type="text/markdown" href="/agents.md" />\` (or \`href="/ai-facts"\`) in \`<head>\`.`
+            : isNoRootFileBuilder
+              ? `Render inside \`<article class="verisource-ai-facts">...</article>\` on \`https://${cleanHost}/ai-facts\`, add \`<link rel="alternate" type="text/markdown" href="/ai-facts" />\` in \`<head>\`, and 301-redirect \`/agents.md\` -> \`/ai-facts\`.`
+              : `Serve at \`https://${cleanHost}/agents.md\` (\`public/agents.md\` or \`app/agents.md/route.ts\` with \`Content-Type: text/markdown; charset=utf-8\`) and add \`<link rel="alternate" type="text/markdown" href="/agents.md" />\` in \`<head>\`.`;
         break;
       case 'fanout_faq_block':
         codeFenceLang = 'markdown';
@@ -2574,9 +2639,11 @@ export function buildAiRemediationMasterPrompt(params: {
     '',
     `## 4. Verification Checklist Before Finishing`,
     `1. Validate every \`application/ld+json\` payload with \`JSON.parse()\` to guarantee valid JSON syntax.`,
-    mode === 'chat_assistant'
-      ? `2. Tell me the exact URLs to test in my browser (\`https://${cleanHost}/\`, \`https://${cleanHost}/llms.txt\`, \`https://${cleanHost}/agents.md\`) once I paste each block.`
-      : `2. Run the project typecheck/build command to confirm zero regressions, and verify \`/llms.txt\`, \`/agents.md\`, and homepage \`JSON-LD\` resolve with HTTP \`200\`.`,
+    mode === 'coding_agent'
+      ? `2. Run the project typecheck/build command to confirm zero regressions, and verify \`/llms.txt\`, \`/agents.md\`, and homepage \`JSON-LD\` resolve with HTTP \`200\`.`
+      : isNoRootFileBuilder
+        ? `2. Confirm \`https://${cleanHost}/ai-facts\` is published publicly, \`<link rel="alternate" type="text/markdown" href="/ai-facts" />\` is present in \`<head>\`, and click **Verify Live Fixes** inside Verisource Step 02.`
+        : `2. Tell me the exact URLs to test in my browser (\`https://${cleanHost}/\`, \`https://${cleanHost}/llms.txt\`, \`https://${cleanHost}/agents.md\`) once I paste each block, then remind me to click **Verify Live Fixes** in Verisource Step 02.`,
     `3. Confirm zero unverified pricing or discontinued product claims appear anywhere in the added code.`
   );
 
