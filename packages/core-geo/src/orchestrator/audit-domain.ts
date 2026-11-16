@@ -483,6 +483,89 @@ export function buildAgencyPitchPayload(params: {
     snapshots: params.scanResults,
   });
 
+  const resolvedPlatform: WebsitePlatformId = params.isShopify
+    ? 'shopify'
+    : params.detectedPlatform ?? 'nextjs_custom';
+  const resolvedPlatformMeta = getWebsitePlatformMeta(resolvedPlatform);
+  const resolvedPlatformLabel =
+    params.detectedPlatformLabel ?? resolvedPlatformMeta.displayName;
+  const hostDisplay = cleanHost || params.brandName;
+
+  const businessImpactItems: NonNullable<
+    PitchSummaryPayload['business_impact_items']
+  > = [];
+
+  if (
+    params.robotsAiBotStatus.waf_blocked ||
+    !params.robotsAiBotStatus.GPTBot ||
+    !params.robotsAiBotStatus.PerplexityBot
+  ) {
+    businessImpactItems.push({
+      badgeLabel: 'FIX FIRST · AI BLOCKED',
+      severity: 'fix_first',
+      whatIsWrong: `Firewall or robots.txt rules on ${hostDisplay} block AI search crawlers from reading key pages.`,
+      whyItMatters:
+        'When ChatGPT or Perplexity cannot open your site, they omit your business from buyer shortlists or pull outdated details from third-party directories.',
+      howToFix:
+        'Allow GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot on public pages inside robots.txt and firewall rules.',
+    });
+  }
+
+  if (params.crawlerReadability?.status === 'csr_js_trap') {
+    businessImpactItems.push({
+      badgeLabel: 'FIX FIRST · BLANK TO AI BOTS',
+      severity: 'fix_first',
+      whatIsWrong: `AI crawlers only extract ${params.crawlerReadability.visibleWordCount} visible words on ${hostDisplay} because core text relies on browser JavaScript.`,
+      whyItMatters:
+        'Fast AI crawlers skip heavy client-side scripts, making your products, services, and pricing appear blank during retrieval.',
+      howToFix:
+        'Expose core headings, offers, pricing, and FAQs directly in server-rendered HTML and structured schema.',
+    });
+  }
+
+  if (params.allHallucinations.length > 0) {
+    businessImpactItems.push({
+      badgeLabel: `FIX FIRST · ${params.allHallucinations.length} WRONG AI CLAIM${
+        params.allHallucinations.length === 1 ? '' : 'S'
+      }`,
+      severity: 'fix_first',
+      whatIsWrong: `AI answer engines are quoting inaccurate pricing, shipping, or service claims about ${params.brandName}.`,
+      whyItMatters:
+        'Buyers comparing options in ChatGPT or Gemini bounce to a rival when AI states wrong prices or claims you lack a service you offer.',
+      howToFix: `Publish verified pricing and explicit exclusions via JSON-LD and ${
+        resolvedPlatformMeta.supportsRootStaticFiles
+          ? '/agents.md'
+          : 'an /ai-facts page linked in <head>'
+      }.`,
+    });
+  }
+
+  if (
+    params.jsonLdCount < 2 ||
+    params.llmsTxtStatus === 'missing' ||
+    params.agentsMdStatus !== 'custom_enriched'
+  ) {
+    businessImpactItems.push({
+      badgeLabel: 'MISSING AI FACT FILES',
+      severity: businessImpactItems.length === 0 ? 'fix_first' : 'high_impact',
+      whatIsWrong: `${hostDisplay} is missing structured AI fact-sheet files (JSON-LD entity/FAQ schema, /llms.txt, or custom /agents.md).`,
+      whyItMatters:
+        'Without machine-readable pricing and FAQ files, AI assistants guess what you sell instead of citing your business with confidence.',
+      howToFix: `Deploy validated JSON-LD and AI fact files (${resolvedPlatformMeta.quickWhereToPasteSummary}).`,
+    });
+  }
+
+  if (competitorsWinning.length > 0) {
+    businessImpactItems.push({
+      badgeLabel: 'WIN BUYER SHORTLISTS',
+      severity: 'high_impact',
+      whatIsWrong: `AI engines recommend ${competitorsWinning.slice(0, 3).join(', ')} when buyers compare options in your category.`,
+      whyItMatters:
+        'AI-referred visitors convert at 14.2%–15.9% vs. 1.76%–2.8% for traditional organic search, and AI usually names only 2–3 businesses per prompt.',
+      howToFix: `Publish a structured "${params.brandName} vs. ${competitorsWinning[0]}" comparison table and place verified specs on cited review sources.`,
+    });
+  }
+
   return {
     top_gaps: topGaps.slice(0, 4),
     competitors_winning: competitorsWinning,
@@ -493,6 +576,9 @@ export function buildAgencyPitchPayload(params: {
     sentiment_framing: sentiment.dominantFraming,
     sentiment_score: sentiment.sentimentScore,
     head_to_head_sov: sentiment.headToHeadSov,
+    detected_platform: resolvedPlatform,
+    detected_platform_label: resolvedPlatformLabel,
+    business_impact_items: businessImpactItems.slice(0, 4),
     top_citation_sources: rankedSources.slice(0, 4).map((src) => ({
       sourceHost: src.sourceHost,
       sourceCategoryLabel: src.sourceCategoryLabel,
@@ -2480,7 +2566,7 @@ export function buildAiRemediationMasterPrompt(params: {
     mode === 'shopify_liquid'
       ? `Act as a Senior Shopify Liquid & Technical SEO Engineer working on the Online Store 2.0 theme for **${domain.brand_name}** (\`https://${cleanHost}\`). Apply every AI Search & Agent Readiness fix below without altering existing visual styling, cart drawers, or checkout flows.`
       : mode === 'wordpress_cms'
-        ? `Act as my Senior WordPress & Technical SEO Engineer for **${domain.brand_name}** (\`https://${cleanHost}\`). Walk me through exact, plain-English WordPress Admin clicks (using WPCode / Insert Headers & Footers, RankMath or Yoast SEO, Elementor/Gutenberg, or root file upload) to publish every verified fix below without touching PHP theme files unless requested.`
+        ? `Act as my Senior WordPress & Technical SEO Engineer for **${domain.brand_name}** (\`https://${cleanHost}\`). Walk me through exact, step-by-step WordPress Admin clicks (using WPCode / Insert Headers & Footers, RankMath or Yoast SEO, Elementor/Gutenberg, or root file upload) to publish every verified fix below without touching PHP theme files unless requested.`
         : mode === 'webflow_cms'
           ? `Act as my Senior Webflow & Technical SEO Specialist for **${domain.brand_name}** (\`https://${cleanHost}\`). Because Webflow does not host arbitrary root \`.md\` files natively, guide me step by step using **Site Settings -> Custom Code -> Head Code**, a clean static Webflow page at \`/ai-facts\` wrapped in \`<article class="verisource-ai-facts">\`, and **Site Settings -> Publishing -> 301 Redirects** (\`/llms.txt\` -> \`/ai-facts\` and \`/agents.md\` -> \`/ai-facts\`).`
           : mode === 'wix_squarespace_framer'

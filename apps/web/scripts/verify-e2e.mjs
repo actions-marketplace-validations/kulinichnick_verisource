@@ -2172,7 +2172,7 @@ async function run() {
     );
     console.log('✔ [47/48] M51 Source-Category-Aware Off-Site Citation Acquisition Engine & 1-Click Playbook Exporter verified!');
 
-    // 46. M52 Non-Pro Plain-English UX Clarity, De-Cluttered Homepage & Progressive Disclosure Accordions
+    // 46. M52 Non-Pro Easy-to-Use UX Clarity, De-Cluttered Homepage & Progressive Disclosure Accordions
     assert.ok(
       homeAfterHtml.includes('HOW VERISOURCE WORKS') &&
         homeAfterHtml.includes('STEP 02 · COPY 1 AI PROMPT') &&
@@ -2180,10 +2180,10 @@ async function run() {
       'Expected 3-step How Verisource Works guide on / and zero raw tracking pixel code dumps on /'
     );
     assert.ok(
-      m42Tab1Html.includes('PLAIN-ENGLISH SITE DIAGNOSIS') &&
+      m42Tab1Html.includes('SITE DIAGNOSIS &amp; ACTION PLAN') &&
         m42Tab1Html.includes('Copy AI Prompt to Install Tracker') &&
         m42Tab1Html.includes('<details class="vs-disclosure">'),
-      'Expected Plain-English Site Diagnosis & collapsed Optional Tracking Codes <details> drawer on Step 01'
+      'Expected Site Diagnosis & Action Plan & collapsed Optional Tracking Codes <details> drawer on Step 01'
     );
     assert.ok(
       m42Tab2Html.includes('RECOMMENDED · NO CODING NEEDED') &&
@@ -2191,7 +2191,7 @@ async function run() {
         m42Tab2Html.includes('<details class="vs-disclosure">'),
       'Expected 1-Click AI Fix Prompt guided flow & collapsed Individual Raw Code Files <details> drawer on Step 02'
     );
-    console.log('✔ [48/49] M52 Non-Pro Plain-English UX Clarity, De-Cluttered Homepage & Progressive Disclosure verified!');
+    console.log('✔ [48/51] M52 Non-Pro Easy-to-Use UX Clarity, De-Cluttered Homepage & Progressive Disclosure verified!');
 
     // 47. M53 Automated 7-Day Trial Activation Nudge API (/api/dashboard/trial-nudge: 401 unauth, 400 invalid stage/email, 200 Day-3 & Day-5 >= 9.5/10) + Trial Roadmap CTA
     const unauthTrialNudge = await fetch(`${BASE}/api/dashboard/trial-nudge`, {
@@ -2264,7 +2264,62 @@ async function run() {
         m42Tab2Html.includes('Wix · Squarespace · Framer'),
       'Expected Auto-Detected Website Builder badge & WordPress/Webflow/Wix-Squarespace-Framer pills in Step 02'
     );
-    console.log('✔ [50/50] M54 Automatic Website Builder / CMS Detector & Platform-Specific Step 02 Selector verified!');
+    console.log('✔ [50/51] M54 Automatic Website Builder / CMS Detector & Platform-Specific Step 02 Selector verified!');
+
+    // 49. M55 Easy-to-Use Wording Polish (Zero "plain English" / "in English" Leaks) + /audit/[slug] Business Impact & CMS Upgrade
+    const PLAIN_ENGLISH_JARGON =
+      /plain[- ]english|\bin english\b|everyday english/i;
+    const m55MintedAuditHtml = await fetch(
+      `${BASE}${batchPitchJson.share_urls[0]}`
+    ).then((r) => r.text());
+    const m55DirectAuditHtml = await fetch(
+      `${BASE}/audit/mosaic-springfield-audit`
+    ).then((r) => r.text());
+
+    assert.ok(
+      m55DirectAuditHtml.includes(
+        'SITE DIAGNOSIS &amp; BUSINESS IMPACT · WHAT TO FIX FIRST'
+      ) && m55DirectAuditHtml.includes('READY-TO-APPLY FIX PLAN'),
+      'Expected Site Diagnosis & Business Impact card on /audit/mosaic-springfield-audit'
+    );
+    const whiteLabelMainBody = (
+      m55MintedAuditHtml
+        .split('class="vs-whitelabel-audit-root')[1]
+        ?.split('</main>')[0] ?? ''
+    ).replace(/<script[\s\S]*?<\/script>/gi, ' ');
+    assert.ok(
+      m55MintedAuditHtml.includes(
+        'SITE DIAGNOSIS &amp; BUSINESS IMPACT · WHAT TO FIX FIRST'
+      ) &&
+        m55MintedAuditHtml.includes('PLATFORM:') &&
+        whiteLabelMainBody.length > 100 &&
+        !whiteLabelMainBody.includes('Verisource'),
+      'Expected Business Impact card, Platform badge, and strict white-label isolation on third-party /audit/[slug]'
+    );
+
+    for (const [routeLabel, rawHtml] of [
+      ['/', homeAfterHtml],
+      ['/mcp-guide', mcpGuideHtml],
+      ['/dashboard Step 1', m42Tab1Html],
+      ['/dashboard Step 2', m42Tab2Html],
+      ['/audit/mosaic-springfield-audit', m55DirectAuditHtml],
+      ['white-label /audit/[slug]', m55MintedAuditHtml],
+    ]) {
+      const visible = rawHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.ok(
+        !PLAIN_ENGLISH_JARGON.test(visible),
+        `Expected zero "plain English" / "in English" phrasing on ${routeLabel}`
+      );
+      assert.equal(
+        (visible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${routeLabel}`
+      );
+    }
+    console.log('✔ [51/51] M55 Easy-to-Use Wording Polish (0 "plain English" leaks) & /audit/[slug] Business Impact + CMS Upgrade verified!');
   } finally {
     server.kill();
   }

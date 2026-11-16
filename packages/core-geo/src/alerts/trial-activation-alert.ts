@@ -208,7 +208,7 @@ export function buildTrialActivationNudgeAlert(
       ? topIssuePlain
         ? `Quick Day-3 check-in on ${hostname} (${visScore}/100 AI Visibility): ${topIssuePlain}`
         : `Quick Day-3 check-in on ${hostname}: your verified JSON-LD, /llms.txt, and /agents.md website files are ready in Step 02 (${appliedCount}/${totalFixes} live so far).`
-      : 'Quick Day-3 check-in on your 7-day Verisource trial: add your website URL in the Console so we can prepare your plain-English diagnosis and 1-Click AI Fix Prompt.';
+      : 'Quick Day-3 check-in on your 7-day Verisource trial: add your website URL in the Console so we can prepare your step-by-step site action plan and 1-Click AI Fix Prompt.';
 
     const howToSteps = [
       'You do not need to write code or edit raw files manually. Fix your website in 3 quick clicks:',

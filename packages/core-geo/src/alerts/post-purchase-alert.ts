@@ -103,7 +103,7 @@ export function buildPostPurchaseWelcomeAlert(
 
   const secondParagraph = cleanDomain
     ? `We audited ${cleanDomain} across ChatGPT, Google Gemini, and Perplexity${scoreClause} and bundled ${artifactCount} verified schema.org JSON-LD, /llms.txt, and /agents.md fixes into one ready-to-copy AI Prompt in Step 02 (no manual coding needed—paste straight into ChatGPT, Claude, Antigravity, Cursor, or Shopify).`
-    : `Your ${planLabel} workspace is provisioned with plain-English site diagnosis, 3-engine citation checks, and a 1-Click AI Fix Prompt for ChatGPT, Claude, Antigravity, Cursor, or Shopify.`;
+    : `Your ${planLabel} workspace is provisioned with step-by-step site diagnosis, 3-engine citation checks, and a 1-Click AI Fix Prompt for ChatGPT, Claude, Antigravity, Cursor, or Shopify.`;
 
   const thirdParagraph =
     input.planTier === 'tripwire_19'

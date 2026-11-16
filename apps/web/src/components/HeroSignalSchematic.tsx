@@ -414,7 +414,7 @@ export function HeroSignalSchematic(): React.ReactElement {
         }}
       >
         <span>
-          <strong>Plain-English Guided Mode</strong> +{' '}
+          <strong>Easy-to-Use Guided Mode</strong> +{' '}
           <strong className="vs-mono">Pro /mcp Mode</strong> built in
         </span>
         <span className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)' }}>

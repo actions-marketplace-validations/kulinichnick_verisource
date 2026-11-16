@@ -100,6 +100,15 @@ export type PitchSummaryPayload = {
   }>;
   crawler_readability_status?: 'ssr_clean' | 'low_signal_bloat' | 'csr_js_trap';
   crawler_signal_pct?: number;
+  detected_platform?: string;
+  detected_platform_label?: string;
+  business_impact_items?: Array<{
+    badgeLabel: string;
+    severity: 'fix_first' | 'high_impact' | 'healthy';
+    whatIsWrong: string;
+    whyItMatters: string;
+    howToFix: string;
+  }>;
 };
 
 export type ProfileRow = {

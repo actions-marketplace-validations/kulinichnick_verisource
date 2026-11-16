@@ -24,7 +24,7 @@ const READY_TO_ASK_PROMPTS = [
     persona: 'FOR STORE OWNERS & FOUNDERS',
     title: 'Catch invented prices & missing /agents.md facts',
     prompt:
-      'Use Verisource to check our company domain for AI pricing hallucinations and summarize what we should fix first in plain English.',
+      'Use Verisource to check our company domain for AI pricing hallucinations and give us a clear, step-by-step list of what to fix first.',
   },
   {
     persona: 'FOR DEVELOPERS & B2B SAAS TEAMS',
@@ -99,7 +99,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
               >
                 Point your favorite AI assistant to{' '}
                 <code className="vs-mono">https://mcp.verisource.dev/mcp</code>.
-                Ask it in plain English to check if{' '}
+                Ask it directly to check if{' '}
                 <code className="vs-mono">GPTBot</code> is blocked, see which
                 rival articles ChatGPT cites, or write verified{' '}
                 <code className="vs-mono">JSON-LD</code> and{' '}
@@ -245,10 +245,10 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
           </div>
         </section>
 
-        {/* Plain-English Prompts Section */}
+        {/* Ready-to-Use Prompts Section */}
         <section style={{ marginBottom: '54px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            PLAIN-ENGLISH PROMPTS
+            EASY-TO-USE AGENT PROMPTS
           </div>
           <h2
             style={{

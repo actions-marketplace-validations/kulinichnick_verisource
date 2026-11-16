@@ -273,7 +273,7 @@ export function McpQuickstartClient(): React.ReactElement {
             className="vs-eyebrow"
             style={{ marginBottom: '4px', color: 'var(--vs-ink-secondary)' }}
           >
-            PLAIN-ENGLISH SETUP · {activeGuide.label.toUpperCase()}
+            EASY 30-SECOND SETUP · {activeGuide.label.toUpperCase()}
           </div>
           <div
             style={{

@@ -142,16 +142,36 @@ export default async function AgencyPitchReportPage({
         </div>
       </div>
 
-      {/* Plain-English Executive Context Strip */}
-      <div className="vs-guided-banner" style={{ marginBottom: '20px' }}>
-        <div style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: '2px' }}>
-          How to read this 60-second audit
+      {/* Executive Context Strip */}
+      <div
+        className="vs-guided-banner"
+        style={{
+          marginBottom: '20px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '10px',
+        }}
+      >
+        <div style={{ maxWidth: '720px' }}>
+          <div
+            style={{ fontWeight: 600, fontSize: '13.5px', marginBottom: '2px' }}
+          >
+            How to read this 60-second audit
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+            We tested how ChatGPT, Google Gemini, and Perplexity answer buyer
+            questions in your category, checked whether your website gives AI
+            bots verified pricing facts, and prepared an easy-to-follow action
+            plan below.
+          </div>
         </div>
-        <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-          We tested how ChatGPT, Google Gemini, and Perplexity answer buyer
-          questions in your category, checked whether your website gives AI bots
-          verified pricing facts, and listed the exact fixes ready to publish.
-        </div>
+        {report.summary_payload.detected_platform_label ? (
+          <StatusBadge tone="pass">
+            {`PLATFORM: ${report.summary_payload.detected_platform_label.toUpperCase()}`}
+          </StatusBadge>
+        ) : null}
       </div>
 
       {/* Top Executive Score Strip */}
@@ -191,6 +211,134 @@ export default async function AgencyPitchReportPage({
           />
         </div>
       </div>
+
+      {/* M55: Easy-to-Follow Business Impact & Action Plan (Works for M55 + Legacy Reports) */}
+      {(() => {
+        const synthesizedItems =
+          report.summary_payload.business_impact_items &&
+          report.summary_payload.business_impact_items.length > 0
+            ? report.summary_payload.business_impact_items
+            : [
+                ...(report.hallucination_count > 0
+                  ? [
+                      {
+                        badgeLabel: `FIX FIRST · ${report.hallucination_count} WRONG AI CLAIM${
+                          report.hallucination_count === 1 ? '' : 'S'
+                        }`,
+                        severity: 'fix_first' as const,
+                        whatIsWrong: `AI engines are quoting inaccurate pricing or policy claims about ${report.prospect_brand_name}.`,
+                        whyItMatters:
+                          'Buyers comparing options inside ChatGPT or Gemini move on to a competitor when AI states outdated prices or missing services.',
+                        howToFix:
+                          'Publish verified pricing and explicit exclusions via structured JSON-LD schema and /agents.md.',
+                      },
+                    ]
+                  : []),
+                ...report.summary_payload.top_gaps.slice(0, 2).map((gap, idx) => ({
+                  badgeLabel:
+                    idx === 0 && report.hallucination_count === 0
+                      ? 'FIX FIRST · WEBSITE READINESS'
+                      : 'HIGH-IMPACT SITE FIX',
+                  severity: (idx === 0 && report.hallucination_count === 0
+                    ? 'fix_first'
+                    : 'high_impact') as 'fix_first' | 'high_impact',
+                  whatIsWrong: gap,
+                  whyItMatters:
+                    'AI-referred visitors convert at 14.2%–15.9% vs. 1.76%–2.8% for standard search, and AI engines skip sites missing structured fact files.',
+                  howToFix:
+                    report.summary_payload.recommended_fixes[idx] ??
+                    'Publish validated JSON-LD, /llms.txt, and /agents.md fact files on your domain.',
+                })),
+              ];
+
+        if (synthesizedItems.length === 0) return null;
+
+        return (
+          <div
+            className="vs-card"
+            style={{ marginBottom: '20px', overflow: 'hidden' }}
+          >
+            <div
+              style={{
+                padding: '13px 20px',
+                background: 'var(--vs-surface-warm)',
+                borderBottom: '1px solid var(--vs-border)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              }}
+            >
+              <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                SITE DIAGNOSIS &amp; BUSINESS IMPACT · WHAT TO FIX FIRST
+              </div>
+              <StatusBadge tone="pass">READY-TO-APPLY FIX PLAN</StatusBadge>
+            </div>
+
+            <div
+              style={{
+                padding: '14px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+              }}
+            >
+              {synthesizedItems.map((item, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--vs-border)',
+                    background:
+                      item.severity === 'fix_first'
+                        ? 'var(--vs-crit-bg)'
+                        : 'var(--vs-surface-subtle)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    <StatusBadge
+                      tone={
+                        item.severity === 'fix_first' ? 'critical' : 'warn'
+                      }
+                    >
+                      {item.badgeLabel}
+                    </StatusBadge>
+                    <strong style={{ fontSize: '13.5px' }}>
+                      {i + 1}. {item.whatIsWrong}
+                    </strong>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-secondary)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      Business impact:
+                    </strong>{' '}
+                    {item.whyItMatters}{' '}
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      Fix:
+                    </strong>{' '}
+                    {item.howToFix}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Rival Shortlist Strip */}
       {report.summary_payload.competitors_winning.length > 0 ? (
@@ -505,12 +653,14 @@ export default async function AgencyPitchReportPage({
       >
         <div>
           <div style={{ fontWeight: 600, fontSize: '15px' }}>
-            Want these verified website fixes published for{' '}
-            {report.prospect_brand_name}?
+            {isVerisourceDirect
+              ? `Fix ${report.prospect_brand_name} in minutes—no coding required`
+              : `Want these verified website fixes published for ${report.prospect_brand_name}?`}
           </div>
           <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-            {agencyName} has already prepared the copy-paste implementation
-            package for your site.
+            {isVerisourceDirect
+              ? 'Copy 1 ready-made Verisource prompt into ChatGPT, Claude, Antigravity, Cursor, or your website builder to apply every fix above.'
+              : `${agencyName} has already prepared the verified implementation package for your site.`}
           </div>
         </div>
         <div

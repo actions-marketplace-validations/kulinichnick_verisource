@@ -67,7 +67,7 @@ export default function HomePage(): React.ReactElement {
               who to hire or buy from—and AI-referred visitors convert at{' '}
               <strong className="vs-mono">14.2%–15.9%</strong> vs. Google
               organic&rsquo;s <strong className="vs-mono">1.76%–2.8%</strong>.
-              Verisource scans your website, explains in plain English why
+              Verisource scans your website, shows clearly why
               competitors get recommended instead (or where AI quotes wrong
               prices), and gives you{' '}
               <strong style={{ color: 'var(--vs-ink)' }}>
@@ -112,7 +112,7 @@ export default function HomePage(): React.ReactElement {
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   01
                 </strong>{' '}
-                Scan your site &amp; see plain-English issues
+                Scan your site &amp; see what to fix
               </span>
               <span>
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
@@ -219,8 +219,8 @@ export default function HomePage(): React.ReactElement {
                 >
                   Enter your website URL. Verisource checks real buyer questions
                   across ChatGPT, Gemini, and Perplexity, flags invented pricing
-                  claims, and explains in everyday English what is missing on
-                  your site.
+                  claims, and gives you an easy-to-follow breakdown of what is
+                  missing on your site.
                 </p>
                 <div
                   className="vs-mono"
@@ -393,7 +393,7 @@ export default function HomePage(): React.ReactElement {
               <tbody>
                 <tr>
                   <td>
-                    <strong>Plain-English Diagnosis &amp; Pricing Check</strong>
+                    <strong>Easy-to-Use Diagnosis &amp; Pricing Check</strong>
                   </td>
                   <td style={{ color: 'var(--vs-ink-secondary)' }}>
                     Raw charts &amp; SEO jargon only

@@ -66,7 +66,7 @@ function describeFixPlainly(fixType: string): string {
     case 'shopify_agents_liquid':
       return 'What it is: Shopify theme rulebook that gives AI shopping assistants your verified catalog, prices, and shipping rules.';
     case 'agents_md':
-      return 'What it is: Plain-English instruction manual (/agents.md) telling AI bots what you sell and what false claims to reject.';
+      return 'What it is: Easy-to-read instruction manual (/agents.md) telling AI bots what you sell and what false claims to reject.';
     case 'llms_txt':
       return 'What it is: Clean 1-page directory (/llms.txt) of your key pages and policies built specifically for AI search bots.';
     case 'fanout_faq_block':
@@ -3142,7 +3142,7 @@ export function DashboardConsoleClient(props: {
               <GuidedExplainerBanner
                 stepLabel="STEP 01 OF 03 · WHAT WE FOUND ON YOUR WEBSITE"
                 title="Start here: see what needs to be fixed—then let your AI fix it in Step 02"
-                description="Review your plain-English site diagnosis below, confirm your real prices in 'Your Real Business Facts', and click 'Fix With 1-Click AI Prompt →' to update your site without coding."
+                description="Review your step-by-step site action plan below, confirm your real prices in 'Your Real Business Facts', and click 'Fix With 1-Click AI Prompt →' to update your site without coding."
                 glossary={[
                   {
                     term: 'AI Visibility',
@@ -3356,7 +3356,7 @@ export function DashboardConsoleClient(props: {
                         className="vs-eyebrow"
                         style={{ color: 'var(--vs-ink)' }}
                       >
-                        PLAIN-ENGLISH SITE DIAGNOSIS · WHAT NEEDS TO BE FIXED ON{' '}
+                        SITE DIAGNOSIS &amp; ACTION PLAN · WHAT NEEDS TO BE FIXED ON{' '}
                         {activeDomainHostname.toUpperCase()}
                       </span>
                       <StatusBadge tone="pass">NO CODING NEEDED</StatusBadge>

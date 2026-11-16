@@ -2502,3 +2502,73 @@ test('M54 Website Builder / CMS Detector (7 platforms) & Platform-Specific 1-Cli
     assert.ok(studio.aiBuildPrompt.score >= 9.5);
   }
 });
+
+test('M55 White-Label PitchSummaryPayload populates detected_platform & pure business_impact_items with zero Verisource or plain-English leaks', () => {
+  const pitch = buildAgencyPitchPayload({
+    brandName: 'Summit Orthodontics',
+    hostname: 'summitortho.com',
+    robotsAiBotStatus: {
+      GPTBot: false,
+      'OAI-SearchBot': true,
+      PerplexityBot: false,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    llmsTxtStatus: 'missing',
+    agentsMdStatus: 'missing',
+    isShopify: false,
+    detectedPlatform: 'squarespace',
+    detectedPlatformLabel: 'Squarespace',
+    shopifyMcpStatus: 'unavailable',
+    jsonLdCount: 0,
+    scanResults: [
+      {
+        promptText: 'Best orthodontist in Denver',
+        aiEngine: 'chatgpt',
+        brandMentioned: false,
+        citationRank: null,
+        competitorsMentioned: ['Mile High Braces', 'Peak Ortho'],
+        citedSourceUrls: ['https://yelp.com/biz/mile-high-braces'],
+        decompiledFanoutQueries: ['denver invisalign pricing'],
+        fanoutTelemetryType: 'observed_query',
+        hallucinationDetected: true,
+        hallucinationDetails: [
+          {
+            claim_text: 'Summit Orthodontics starts at $1,900',
+            verified_truth: 'Comprehensive treatment starts at $4,500',
+            severity: 'high',
+            category: 'pricing',
+          },
+        ],
+        rawAnswerExcerpt: 'Mile High Braces and Peak Ortho lead Denver reviews.',
+      },
+    ],
+    allHallucinations: [
+      {
+        claim_text: 'Summit Orthodontics starts at $1,900',
+        verified_truth: 'Comprehensive treatment starts at $4,500',
+        severity: 'high',
+        category: 'pricing',
+      },
+    ],
+  });
+
+  assert.equal(pitch.detected_platform, 'squarespace');
+  assert.equal(pitch.detected_platform_label, 'Squarespace');
+  assert.ok((pitch.business_impact_items?.length ?? 0) >= 3);
+
+  for (const item of pitch.business_impact_items ?? []) {
+    const combined = `${item.whatIsWrong} ${item.whyItMatters} ${item.howToFix}`;
+    assert.ok(
+      !/verisource/i.test(combined),
+      `Expected pure white-label agency isolation in business_impact_items, got: ${combined}`
+    );
+    assert.ok(
+      !/plain[- ]english|in english|everyday english/i.test(combined),
+      `Expected zero "plain English" phrasing in business_impact_items`
+    );
+    const graded = gradeArtifactQuality(combined);
+    assert.equal(graded.breakdown.lexicon_filter, 2.0);
+  }
+});

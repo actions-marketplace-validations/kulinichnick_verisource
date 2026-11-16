@@ -35,7 +35,7 @@ function describeFixPlainly(fixType: string): string {
     case 'shopify_agents_liquid':
       return 'Shopify theme template giving AI shopping assistants verified product rules.';
     case 'agents_md':
-      return 'Plain-English rulebook telling AI bots what you sell and what not to invent.';
+      return 'Easy-to-read rulebook telling AI bots what you sell and what not to invent.';
     case 'llms_txt':
       return 'Quick-read directory of your key pages built for AI search crawlers.';
     case 'fanout_faq_block':

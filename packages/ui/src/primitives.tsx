@@ -38,7 +38,7 @@ export function UxModeSwitch(props: {
         data-active={props.mode === 'guided' ? 'true' : 'false'}
         aria-pressed={props.mode === 'guided'}
         onClick={() => props.onChange('guided')}
-        title="Plain-English step-by-step view for founders, marketers, and store owners"
+        title="Easy-to-use step-by-step view for founders, marketers, and store owners"
       >
         {props.compact ? 'Guided' : 'Guided Mode'}
       </button>
@@ -294,7 +294,7 @@ export function ThreeTabShell(props: {
           ? 'Brand Health & AI Mistakes'
           : 'Visibility, Hallucinations & ROI',
       sub: isGuided
-        ? 'Plain-English site issues & real prices'
+        ? 'Clear site issues & real prices'
         : 'Share of Voice, Watchdog & Bot WAF',
     },
     {

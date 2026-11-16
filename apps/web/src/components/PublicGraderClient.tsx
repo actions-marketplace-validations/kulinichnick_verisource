@@ -173,7 +173,7 @@ export function PublicGraderClient(): React.ReactElement {
       >
         <div>
           <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-            FREE AI SEARCH &amp; AGENT READINESS AUDIT (PLAIN-ENGLISH DIAGNOSIS)
+            FREE AI SEARCH &amp; AGENT READINESS AUDIT (EASY-TO-USE ACTION PLAN)
           </div>
           <div
             style={{
@@ -182,8 +182,8 @@ export function PublicGraderClient(): React.ReactElement {
               marginTop: '2px',
             }}
           >
-            Enter your website to see in plain English why AI skips your
-            business—and get a 1-click prompt for your AI tool to fix it.
+            Enter your website to see why AI skips your business—and get a
+            1-click prompt for your AI tool to fix it.
           </div>
         </div>
 
@@ -372,7 +372,7 @@ export function PublicGraderClient(): React.ReactElement {
                       className="vs-eyebrow"
                       style={{ color: 'var(--vs-ink)', marginBottom: '2px' }}
                     >
-                      PLAIN-ENGLISH SITE DIAGNOSIS · WHAT NEEDS TO BE FIXED ON{' '}
+                      SITE DIAGNOSIS &amp; ACTION PLAN · WHAT NEEDS TO BE FIXED ON{' '}
                       {result.hostname.toUpperCase()}
                     </div>
                     <strong style={{ fontSize: '14.5px' }}>
@@ -683,7 +683,7 @@ export function PublicGraderClient(): React.ReactElement {
                     }}
                   >
                     Optional — raw crawler checks for engineers (already
-                    summarized in plain English above).
+                    summarized in your action plan above).
                   </span>
                 </div>
                 <span className="vs-disclosure-pill">Details</span>
