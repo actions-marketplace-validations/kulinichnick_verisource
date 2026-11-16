@@ -4,7 +4,10 @@ import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   buildPlainEnglishSiteDiagnosis,
+  buildPublicAiPromptTeaser,
+  getWebsitePlatformMeta,
   type ReadinessScanSummary,
+  type RecommendedRemediationEnv,
 } from '@verisource/core-geo';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
 
@@ -33,6 +36,8 @@ export function PublicGraderClient(): React.ReactElement {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReadinessScanSummary | null>(null);
+  const [selectedPromptEnv, setSelectedPromptEnv] =
+    useState<RecommendedRemediationEnv>('coding_agent');
   const [cached24h, setCached24h] = useState<boolean | null>(null);
   const [copiedScanLink, setCopiedScanLink] = useState(false);
   const autoScannedRef = useRef(false);
@@ -60,6 +65,10 @@ export function PublicGraderClient(): React.ReactElement {
       if (!res.ok || data.error) {
         setError(data.message ?? 'Unable to scan that domain.');
       } else {
+        const meta = getWebsitePlatformMeta(
+          data.detectedPlatform ?? (data.isShopify ? 'shopify' : 'nextjs_custom')
+        );
+        setSelectedPromptEnv(meta.recommendedAiEnv);
         setResult(data);
         setCached24h(Boolean(data.cached24h));
       }
@@ -497,91 +506,236 @@ export function PublicGraderClient(): React.ReactElement {
               </div>
             ) : null}
 
-            {/* 2. Prominent 1-Click AI Fix Prompt Push (Primary CTA) */}
-            <div
-              style={{
-                marginBottom: '18px',
-                border: '1px solid var(--vs-ink)',
-                borderRadius: '8px',
-                background: 'var(--vs-surface-warm)',
-                padding: '16px 18px',
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '14px',
-              }}
-            >
-              <div style={{ maxWidth: '670px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: '5px',
-                  }}
-                >
-                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-                    RECOMMENDED FIX · COPY 1 PROMPT INTO YOUR OWN AI TOOL
-                  </span>
-                  <StatusBadge tone="pass">NO CODING NEEDED</StatusBadge>
-                </div>
-                <strong
-                  style={{
-                    display: 'block',
-                    fontSize: '15.5px',
-                    marginBottom: '5px',
-                  }}
-                >
-                  {plainDiagnosis && plainDiagnosis.issueCount > 0
-                    ? `Let your AI fix all ${plainDiagnosis.issueCount} issue${
-                        plainDiagnosis.issueCount === 1 ? '' : 's'
-                      } on ${result.hostname} automatically`
-                    : `Generate vs.-Competitor pages & track 35+ buyer prompts for ${result.hostname}`}
-                </strong>
-                <div
-                  style={{
-                    fontSize: '13px',
-                    color: 'var(--vs-ink-secondary)',
-                    lineHeight: 1.55,
-                  }}
-                >
-                  Inside your private Console, Verisource bundles every fix for{' '}
-                  <strong style={{ color: 'var(--vs-ink)' }}>
-                    {result.hostname}
-                  </strong>{' '}
-                  (<code className="vs-mono">JSON-LD</code> business &amp; FAQ
-                  schema, <code className="vs-mono">/llms.txt</code>,{' '}
-                  <code className="vs-mono">/agents.md</code>, and real pricing
-                  rules) into <strong>one ready-made prompt</strong>. Copy it,
-                  paste it into{' '}
-                  <strong>
-                    ChatGPT, Claude, Antigravity, Cursor, Lovable, or Shopify
-                  </strong>
-                  , and your AI updates your site for you.
-                </div>
-              </div>
+            {/* 2. Prominent 1-Click AI Fix Prompt Push + Live Tailored Prompt Preview */}
+            {(() => {
+              const detectedMeta = getWebsitePlatformMeta(
+                result.detectedPlatform ??
+                  (result.isShopify ? 'shopify' : 'nextjs_custom')
+              );
+              const promptTeaser = buildPublicAiPromptTeaser({
+                brandName: result.brandName,
+                hostname: result.hostname,
+                targetEnv: selectedPromptEnv,
+                robotsAiBotStatus: result.robotsAiBotStatus,
+                llmsTxtStatus: result.llmsTxtStatus,
+                agentsMdStatus: result.agentsMdStatus,
+                jsonLdCount: result.jsonLdCount,
+                isShopify: result.isShopify,
+                hallucinationDetected:
+                  result.samplePromptResult.hallucinationDetected,
+              });
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                <Link
-                  href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
-                    result.hostname
-                  )}`}
-                  className="vs-btn"
+              return (
+                <div
+                  style={{
+                    marginBottom: '18px',
+                    border: '1px solid var(--vs-ink)',
+                    borderRadius: '8px',
+                    background: 'var(--vs-surface-warm)',
+                    padding: '16px 18px',
+                  }}
                 >
-                  Start 7-Day Free Trial &amp; Get My AI Prompt ($0 Today) →
-                </Link>
-                <Link
-                  href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
-                    result.hostname
-                  )}`}
-                  className="vs-btn vs-btn-secondary"
-                >
-                  Or $19 One-Time Audit Pass
-                </Link>
-              </div>
-            </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      marginBottom: '14px',
+                    }}
+                  >
+                    <div style={{ maxWidth: '670px', minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '8px',
+                          marginBottom: '5px',
+                        }}
+                      >
+                        <span
+                          className="vs-eyebrow"
+                          style={{ color: 'var(--vs-ink)' }}
+                        >
+                          RECOMMENDED FIX · COPY 1 PROMPT INTO YOUR OWN AI TOOL
+                        </span>
+                        <StatusBadge tone="pass">NO CODING NEEDED</StatusBadge>
+                        <StatusBadge>
+                          {`AUTO-DETECTED: ${detectedMeta.displayName.toUpperCase()}`}
+                        </StatusBadge>
+                      </div>
+                      <strong
+                        style={{
+                          display: 'block',
+                          fontSize: '15.5px',
+                          marginBottom: '5px',
+                        }}
+                      >
+                        {plainDiagnosis && plainDiagnosis.issueCount > 0
+                          ? `Let your AI fix all ${plainDiagnosis.issueCount} issue${
+                              plainDiagnosis.issueCount === 1 ? '' : 's'
+                            } on ${result.hostname} automatically`
+                          : `Generate vs.-Competitor pages & track 35+ buyer prompts for ${result.hostname}`}
+                      </strong>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        {promptTeaser.whereToPasteLine}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                      <Link
+                        href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
+                          result.hostname
+                        )}`}
+                        className="vs-btn"
+                      >
+                        Start 7-Day Free Trial &amp; Get My AI Prompt ($0 Today) →
+                      </Link>
+                      <Link
+                        href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
+                          result.hostname
+                        )}`}
+                        className="vs-btn vs-btn-secondary"
+                      >
+                        Or $19 One-Time Audit Pass
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Interactive Platform Switcher + Redacted Prompt Preview */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <span
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: 'var(--vs-ink-muted)',
+                        marginRight: '2px',
+                      }}
+                    >
+                      PREVIEW PROMPT FOR:
+                    </span>
+                    {(
+                      [
+                        ['coding_agent', 'Coding Agent (Cursor · Claude · Antigravity)'],
+                        ['wordpress_cms', 'WordPress'],
+                        ['webflow_cms', 'Webflow'],
+                        ['wix_squarespace_framer', 'Wix · Squarespace · Framer'],
+                        ['shopify_liquid', 'Shopify'],
+                        ['chat_assistant', 'ChatGPT / Claude Web'],
+                      ] as const
+                    ).map(([envId, label]) => {
+                      const active = selectedPromptEnv === envId;
+                      return (
+                        <button
+                          key={envId}
+                          type="button"
+                          onClick={() => setSelectedPromptEnv(envId)}
+                          style={{
+                            border: active
+                              ? '1px solid var(--vs-ink)'
+                              : '1px solid var(--vs-border-strong)',
+                            background: active ? 'var(--vs-ink)' : '#FFFFFF',
+                            color: active
+                              ? '#FFFFFF'
+                              : 'var(--vs-ink-secondary)',
+                            borderRadius: '4px',
+                            padding: '4px 9px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      border: '1px solid var(--vs-border-strong)',
+                      background: 'var(--vs-terminal)',
+                    }}
+                  >
+                    <pre
+                      className="vs-code-block"
+                      style={{
+                        borderRadius: 0,
+                        padding: '12px 14px 8px 14px',
+                        fontSize: '12px',
+                        whiteSpace: 'pre-wrap',
+                        overflowWrap: 'anywhere',
+                      }}
+                    >
+                      <code>{promptTeaser.visibleHeaderText}</code>
+                    </pre>
+                    <div
+                      className="vs-mono"
+                      style={{
+                        padding: '0 14px 12px 14px',
+                        fontSize: '11.5px',
+                        lineHeight: 1.6,
+                        color: '#A3A8B4',
+                      }}
+                    >
+                      {promptTeaser.redactedPayloadLines.map((line, i) => (
+                        <div
+                          key={i}
+                          className="vs-blur-token"
+                          style={{
+                            display: 'block',
+                            overflowWrap: 'anywhere',
+                          }}
+                        >
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      style={{
+                        padding: '8px 14px',
+                        borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+                        background: 'rgba(255, 255, 255, 0.04)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        fontSize: '11.5px',
+                        color: '#EAE8E1',
+                      }}
+                    >
+                      <span>
+                        Full copy-paste prompt + syntax-validated site files
+                        ready inside Console Step 02.
+                      </span>
+                      <span className="vs-mono" style={{ color: '#A7F3D0' }}>
+                        $0.00 due today on 7-day trial
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 3. Sample Buyer Question Preview */}
             <div

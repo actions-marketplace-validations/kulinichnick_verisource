@@ -9,6 +9,7 @@ import type {
   ShopifyMcpStatus,
 } from '../db/types.js';
 import type { CrawlerReadabilityReport } from '../scanner/bot-waf-prober.js';
+import type { RecommendedRemediationEnv } from '../scanner/cms-detector.js';
 
 export type PlainDiagnosisActionTarget =
   | 'confirm_truth_step1'
@@ -301,4 +302,155 @@ export function buildAnalyticsInstallAiPrompt(
   }
 
   return enforceQualityGate95(sections.join('\n'), 'agents_md');
+}
+
+export interface PublicAiPromptTeaserInput {
+  brandName: string;
+  hostname: string;
+  targetEnv: RecommendedRemediationEnv;
+  robotsAiBotStatus: RobotsAiBotStatus;
+  llmsTxtStatus: LlmsTxtStatus;
+  agentsMdStatus: AgentsMdStatus;
+  jsonLdCount: number;
+  isShopify?: boolean;
+  hallucinationDetected?: boolean;
+}
+
+export interface PublicAiPromptTeaser {
+  targetEnv: RecommendedRemediationEnv;
+  envBadgeLabel: string;
+  whereToPasteLine: string;
+  visibleHeaderText: string;
+  redactedPayloadLines: string[];
+  qualityScore: number;
+}
+
+export function buildPublicAiPromptTeaser(
+  input: PublicAiPromptTeaserInput
+): PublicAiPromptTeaser {
+  const host = input.hostname.trim().toLowerCase();
+  const brand = input.brandName.trim() || host;
+
+  const blockedBots: string[] = [];
+  if (!input.robotsAiBotStatus.GPTBot) blockedBots.push('GPTBot');
+  if (!input.robotsAiBotStatus['OAI-SearchBot']) {
+    blockedBots.push('OAI-SearchBot');
+  }
+  if (!input.robotsAiBotStatus.PerplexityBot) {
+    blockedBots.push('PerplexityBot');
+  }
+  if (!input.robotsAiBotStatus.ClaudeBot) blockedBots.push('ClaudeBot');
+
+  const actionsToApply: string[] = [];
+  if (blockedBots.length > 0 || input.robotsAiBotStatus.waf_blocked) {
+    actionsToApply.push(
+      `allow ${
+        blockedBots.length > 0 ? blockedBots.join(', ') : 'AI search crawlers'
+      } in /robots.txt`
+    );
+  }
+  if (input.jsonLdCount < 2) {
+    actionsToApply.push('inject Organization + FAQPage JSON-LD in <head>');
+  }
+  if (input.agentsMdStatus !== 'custom_enriched') {
+    actionsToApply.push(
+      input.targetEnv === 'webflow_cms' ||
+        input.targetEnv === 'wix_squarespace_framer'
+        ? 'publish /ai-facts brand & pricing rules'
+        : input.targetEnv === 'shopify_liquid'
+          ? 'deploy templates/agents.md.liquid + /pages/ai-facts'
+          : 'publish /agents.md brand & pricing rules'
+    );
+  }
+  if (input.llmsTxtStatus !== 'present') {
+    actionsToApply.push(
+      input.targetEnv === 'webflow_cms' ||
+        input.targetEnv === 'wix_squarespace_framer'
+        ? 'add <link rel="alternate" type="text/markdown" href="/ai-facts">'
+        : 'publish /llms.txt crawler directory'
+    );
+  }
+  if (input.hallucinationDetected) {
+    actionsToApply.push('correct wrong AI pricing claims');
+  }
+  if (actionsToApply.length === 0) {
+    actionsToApply.push(
+      'refresh JSON-LD FAQPage schema & build a You vs. Competitor comparison page'
+    );
+  }
+
+  let envBadgeLabel = 'CODING AGENT (ANTIGRAVITY · CLAUDE · CURSOR)';
+  let whereToPasteLine =
+    'Paste this prompt into Cursor, Claude Code, Windsurf, or Antigravity so your coding agent writes the files directly into your repo.';
+  let usesAiFactsPage = false;
+
+  switch (input.targetEnv) {
+    case 'wordpress_cms':
+      envBadgeLabel = 'WORDPRESS (WPCODE · RANKMATH · YOAST)';
+      whereToPasteLine =
+        'Paste this prompt into ChatGPT or Claude—it walks you step by step through WPCode Header Injection and publishing /agents.md + /llms.txt on WordPress.';
+      break;
+    case 'webflow_cms':
+      envBadgeLabel = 'WEBFLOW (CUSTOM CODE + /AI-FACTS)';
+      whereToPasteLine =
+        'Paste this prompt into ChatGPT or Claude—it gives exact Webflow Site Settings -> Custom Code -> Head snippets, your /ai-facts page, and 301 Redirect rules.';
+      usesAiFactsPage = true;
+      break;
+    case 'wix_squarespace_framer':
+      envBadgeLabel = 'WIX · SQUARESPACE · FRAMER (/AI-FACTS)';
+      whereToPasteLine =
+        'Paste this prompt into ChatGPT or Claude—it walks you through Header Code Injection plus a /ai-facts page so no root file upload is needed.';
+      usesAiFactsPage = true;
+      break;
+    case 'shopify_liquid':
+      envBadgeLabel = 'SHOPIFY THEME (LIQUID + UCP)';
+      whereToPasteLine =
+        'Paste this prompt into Shopify Sidekick, ChatGPT, Claude, or Cursor to add layout/theme.liquid JSON-LD and templates/agents.md.liquid.';
+      break;
+    case 'chat_assistant':
+      envBadgeLabel = 'CHATGPT / CLAUDE WEB (NO-CODE STEP-BY-STEP)';
+      whereToPasteLine =
+        'Paste this prompt into ChatGPT or Claude Web—your AI assistant explains exactly where to paste each block in your website dashboard.';
+      break;
+    case 'coding_agent':
+    default:
+      break;
+  }
+
+  const rawVisibleLines = [
+    `# Task: Fix AI Search Visibility & Verified Brand Facts on ${host}`,
+    `Target Website: https://${host} (${brand})`,
+    `Mode: ${envBadgeLabel}`,
+    `Rule 1: Lock every price, plan, and service area strictly to ${brand}'s verified facts—do not invent discounts or unverified claims.`,
+    `Rule 2: Apply ${actionsToApply.join(' + ')}.`,
+  ].join('\n');
+
+  const enforced = enforceQualityGate95(rawVisibleLines, 'agents_md');
+
+  const redactedPayloadLines = usesAiFactsPage
+    ? [
+        `## 1. Validated JSON-LD Graph (<script type="application/ld+json">{"@context":"https://schema.org","@graph":[/* console-locked */]}</script>)`,
+        `## 2. Hosted Builder AI Rulebook (/ai-facts -> <article class="verisource-ai-facts">/* verified-pricing-locked */</article>)`,
+        `## 3. Alternate Markdown Feed (<link rel="alternate" type="text/markdown" href="/ai-facts"> + 301 redirect rules)`,
+      ]
+    : input.targetEnv === 'shopify_liquid'
+      ? [
+          `## 1. Storefront Offer & Product JSON-LD (layout/theme.liquid -> {"@context":"https://schema.org","@type":"Organization" /* locked */})`,
+          `## 2. Shopify Agent Truth Override (templates/agents.md.liquid + /pages/ai-facts /* verified-sku-rules-locked */)`,
+          `## 3. Canonical Storefront Directory (/llms.txt + /api/ucp/mcp commerce verification checklist)`,
+        ]
+      : [
+          `## 1. Validated JSON-LD Entity & FAQPage Graph (<script type="application/ld+json">{"@context":"https://schema.org" /* locked */}</script>)`,
+          `## 2. Verified Brand & Pricing Rulebook (/agents.md -> /* verified-pricing-and-exclusions-locked */)`,
+          `## 3. Canonical AI Crawler Directory (/llms.txt -> /* canonical-routes-and-faq-locked */)`,
+        ];
+
+  return {
+    targetEnv: input.targetEnv,
+    envBadgeLabel,
+    whereToPasteLine,
+    visibleHeaderText: enforced.content,
+    redactedPayloadLines,
+    qualityScore: enforced.score,
+  };
 }

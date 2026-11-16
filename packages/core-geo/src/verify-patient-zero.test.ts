@@ -37,6 +37,7 @@ import {
   buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
+  buildPublicAiPromptTeaser,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
   buildTrialActivationNudgeAlert,
@@ -2570,5 +2571,63 @@ test('M55 White-Label PitchSummaryPayload populates detected_platform & pure bus
     );
     const graded = gradeArtifactQuality(combined);
     assert.equal(graded.breakdown.lexicon_filter, 2.0);
+  }
+});
+
+test('M58 buildPublicAiPromptTeaser generates >= 9.5/10 tailored headers and non-scrapeable redacted lines across all 6 environments', () => {
+  const envs = [
+    'coding_agent',
+    'wordpress_cms',
+    'webflow_cms',
+    'wix_squarespace_framer',
+    'shopify_liquid',
+    'chat_assistant',
+  ] as const;
+
+  for (const targetEnv of envs) {
+    const teaser = buildPublicAiPromptTeaser({
+      brandName: 'Northstar Dental Studio',
+      hostname: 'northstardental.com',
+      targetEnv,
+      robotsAiBotStatus: {
+        GPTBot: true,
+        'OAI-SearchBot': true,
+        PerplexityBot: false,
+        ClaudeBot: true,
+        'Google-Extended': true,
+        waf_blocked: false,
+      },
+      llmsTxtStatus: 'missing',
+      agentsMdStatus: 'missing',
+      jsonLdCount: 0,
+      isShopify: targetEnv === 'shopify_liquid',
+      hallucinationDetected: true,
+    });
+
+    assert.equal(teaser.targetEnv, targetEnv);
+    assert.ok(
+      teaser.qualityScore >= 9.5,
+      `Expected teaser qualityScore >= 9.5 for ${targetEnv}, got ${teaser.qualityScore}`
+    );
+    assert.ok(teaser.visibleHeaderText.includes('northstardental.com'));
+    assert.ok(teaser.visibleHeaderText.includes('PerplexityBot'));
+    assert.equal(teaser.redactedPayloadLines.length, 3);
+    assert.ok(
+      teaser.redactedPayloadLines.every(
+        (l) => l.includes('locked') || l.includes('301 redirect') || l.includes('checklist')
+      ),
+      'Expected redacted lines to contain only structural placeholders without paid schema payloads'
+    );
+    if (targetEnv === 'webflow_cms' || targetEnv === 'wix_squarespace_framer') {
+      assert.ok(
+        teaser.redactedPayloadLines.some((l) =>
+          l.includes('verisource-ai-facts')
+        )
+      );
+    }
+    const combined = `${teaser.whereToPasteLine} ${teaser.visibleHeaderText}`;
+    assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+    assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+    assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
   }
 });

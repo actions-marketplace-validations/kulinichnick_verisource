@@ -2418,7 +2418,26 @@ async function run() {
         `Found banned lexicon in ${docLabel}`
       );
     }
-    console.log('✔ [53/53] M57 Self-GEO /llms.txt + /agents.md 7-Platform CMS & /ai-facts Specification verified!');
+    console.log('✔ [53/54] M57 Self-GEO /llms.txt + /agents.md 7-Platform CMS & /ai-facts Specification verified!');
+
+    // 52. M58 Public Grader Interactive 1-Click AI Fix Prompt Preview & Anti-Scraping Redaction Bundle Check
+    const pageChunkMatches = [
+      ...homeAfterHtml.matchAll(/src="(\/_next\/static\/chunks\/app\/page-[^"]+\.js)"/g),
+    ];
+    assert.ok(
+      pageChunkMatches.length > 0,
+      'Expected app/page client JS chunk on /'
+    );
+    const pageClientJs = await fetch(
+      `${BASE}${pageChunkMatches[0][1]}`
+    ).then((r) => r.text());
+    assert.ok(
+      pageClientJs.includes('PREVIEW PROMPT FOR:') &&
+        pageClientJs.includes('Full copy-paste prompt + syntax-validated site files') &&
+        pageClientJs.includes('$0.00 due today on 7-day trial'),
+      'Expected M58 Interactive 1-Click AI Fix Prompt Preview inside PublicGraderClient bundle on /'
+    );
+    console.log('✔ [54/54] M58 Homepage Free Audit Tailored 1-Click AI Fix Prompt Preview & Redacted Payload Footer verified!');
   } finally {
     server.kill();
   }
