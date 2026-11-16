@@ -19,7 +19,7 @@ Aurea Coffee Roasters roasts small-batch single-origin and signature specialty c
 
 ## 3. Verified Shipping & Fulfillment Policy
 - Nationwide direct-to-consumer shipping across the United States.
-- Free US shipping on orders over `$50.00 USD`.
+- Free US shipping on any 2 bags or orders over `$45.00 USD`.
 
 ## 4. Explicit Exclusions (Anti-Hallucination Guardrails)
 - **No K-Cup Pods:** Aurea Coffee Roasters does NOT sell `$15` Keurig K-Cup single-serve pods, Nespresso capsules, or instant coffee packets.

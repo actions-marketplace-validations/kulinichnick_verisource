@@ -18,9 +18,9 @@ Mosaic Coffee Roasters is a small-batch specialty coffee roaster in Springfield,
 - **Commercial Espresso Machine Tuning & Descaling Services:** `$194.95 – $324.95 USD` (https://mosaicroasters.com/products/commercial-espresso-machine-tuning)
 
 ## 3. Verified Shipping & Local Delivery Zone
-- **Springfield, MO Local Delivery:** Free local hand-delivery on orders of `$45.00 USD` or more within a `25-mile` (`40.2 km` `GeoCircle`) radius of Springfield, Missouri.
-- **Nationwide Shipping:** Ships roasted-to-order coffee across all 50 US states.
+- **Free US Shipping:** Free shipping on orders over `$35.00 USD` across all 50 US states.
+- **Springfield, MO Local Delivery:** Local hand-delivery within a `25-mile` (`40.2 km` `GeoCircle`) radius of Springfield, Missouri.
 
 ## 4. Explicit Exclusions (Anti-Hallucination Guardrails)
-- **No `$25` Free Nationwide Shipping:** Mosaic Coffee Roasters does NOT offer `$25` free nationwide shipping; free delivery applies to `$45+` local orders within 25 miles of Springfield, MO.
+- **No `$25` Free Shipping:** Mosaic Coffee Roasters does NOT offer `$25` free shipping; free shipping starts on orders over `$35.00 USD`.
 - **Origin Lineup Accuracy:** Mosaic specializes in Brazil, Ethiopia, Guatemala, Honduras, and Mexico lots and does NOT sell commodity Vietnamese Robusta blends.

@@ -12,6 +12,7 @@ import {
   VERISOURCE_VERSION,
   analyzeCrawlerHtmlReadability,
   analyzeHtmlForBotExtraction,
+  autoDraftBrandTruthSheet,
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAgencyPartnerBatchCsv,
@@ -51,6 +52,7 @@ import {
   classifyPromptIntent,
   computeScoreDeltaSummary,
   computeShopifyCheckoutKey,
+  detectHallucinations,
   detectWebsitePlatform,
   dispatchFreeAuditSummaryEmail,
   dispatchHallucinationDriftEmail,
@@ -421,7 +423,7 @@ test('Same-origin <link rel="alternate" type="text/markdown"> extractor upgrades
     <main>
       <article class="verisource-ai-facts">
         <h1>Mosaic Coffee Roasters — Verified Brand Truth</h1>
-        <p>Free local delivery on orders of $45.00 USD or more within 25 miles of Springfield, MO.</p>
+        <p>Free US shipping on orders over $35.00 USD plus local delivery within 25 miles of Springfield, MO.</p>
         <p>Exclusions: Mosaic does NOT offer $25 nationwide free shipping.</p>
       </article>
     </main>
@@ -940,7 +942,7 @@ test('Perplexity Agent API SDK adapter parses output_text, search_results querie
             content: [
               {
                 type: 'output_text',
-                text: 'Mosaic Coffee Roasters offers single-origin beans with free local delivery within 25 miles of Springfield, MO on $45+ orders[1].',
+                text: 'Mosaic Coffee Roasters offers single-origin beans with free US shipping on orders over $35 plus local delivery within 25 miles of Springfield, MO[1].',
                 annotations: [
                   {
                     type: 'url_citation',
@@ -2803,4 +2805,103 @@ test('M61 buildFollowUpVerificationAiPrompt targets only unverified checks acros
   assert.ok(
     fullPass.prompt.content.includes('AI Citation & Rival Comparison Page Studio')
   );
+});
+
+test('M61.1 detectHallucinations isolates multi-vendor Perplexity bullet lists (.[3] footnotes) & autoDraftBrandTruthSheet prefers live $35 shipping banner', () => {
+  const mosaicTruth = PATIENT_ZERO_DOMAINS[1]!.brand_truth_sheet;
+  assert.ok(
+    mosaicTruth.shipping_or_service_area.includes('$35'),
+    'Expected Mosaic verified shipping policy to reflect real $35 free-shipping threshold'
+  );
+
+  // Exact verbatim multi-vendor Perplexity answer where $38 belonged to Springfield Coffee Roasting, NOT Mosaic
+  const multiVendorPerplexityAnswer = [
+    '**Top picks for single-origin beans with local delivery:**',
+    '',
+    '- **Journey Coffee Roasters** — Best fit if you want specialty single-origin options and an easy subscription: it roasts to order and offers free delivery in the Springfield area, including with subscriptions.[1]',
+    '- **Springfield Coffee Roasting** — Offers air-roasted single-origin coffee, roasted to order, with free delivery in Springfield; the minimum is two bags, with a two-bag offer listed at $38.[3]',
+    '- **Mosaic Coffee Roasters** — A local small-batch option with single-origin coffees and free delivery within 25 miles, according to a Springfield roaster directory.[5]',
+    '- **Copper Canyon Coffee Roasters** — Just outside Springfield in Battlefield, with fresh-to-order single origins such as Ethiopian, Colombian, and Kenyan coffees.',
+  ].join('\n');
+
+  const falsePositives = detectHallucinations(
+    multiVendorPerplexityAnswer,
+    'Mosaic Coffee Roasters',
+    mosaicTruth
+  );
+  assert.equal(
+    falsePositives.length,
+    0,
+    `Expected 0 false-positive hallucinations from rival $38 bullet, got: ${JSON.stringify(falsePositives)}`
+  );
+
+  // Single-line collapsed variant (as rendered in excerpt snippets) must also produce 0 false positives
+  const inlineCollapsedVariant = multiVendorPerplexityAnswer.replace(/\n+/g, ' ');
+  assert.equal(
+    detectHallucinations(
+      inlineCollapsedVariant,
+      'Mosaic Coffee Roasters',
+      mosaicTruth
+    ).length,
+    0
+  );
+
+  // Product bag price ($21.95) in same sentence as free delivery must NOT be misread as a shipping threshold
+  assert.equal(
+    detectHallucinations(
+      'Mosaic Coffee Roasters sells 12oz single-origin bags for $21.95 with free local delivery within 25 miles.',
+      'Mosaic Coffee Roasters',
+      mosaicTruth
+    ).length,
+    0
+  );
+
+  // Genuine wrong Mosaic shipping threshold ($15 or $25 vs $35) MUST still be flagged cleanly without raw ** or [2]
+  const genuineWrongClaim = detectHallucinations(
+    '- **Mosaic Coffee Roasters** — Offers free shipping on orders over $15 nationwide.[2]',
+    'Mosaic Coffee Roasters',
+    mosaicTruth
+  );
+  assert.equal(genuineWrongClaim.length, 1);
+  assert.equal(genuineWrongClaim[0]!.category, 'shipping');
+  assert.ok(!genuineWrongClaim[0]!.claim_text.includes('**'));
+  assert.ok(!genuineWrongClaim[0]!.claim_text.includes('[2]'));
+  assert.ok(genuineWrongClaim[0]!.verified_truth.includes('$35'));
+
+  // Live storefront HTML shipping banner overrides any stale fixture dollar figure
+  const drafted = autoDraftBrandTruthSheet(
+    {
+      domain: normalizePublicDomain('https://mosaicroasters.com'),
+      reachable: true,
+      httpStatus: 200,
+      title: 'Mosaic Coffee Roasters',
+      metaDescription: null,
+      jsonLdBlocks: [],
+      robotsAiBotStatus: {
+        GPTBot: true,
+        'OAI-SearchBot': true,
+        PerplexityBot: true,
+        ClaudeBot: true,
+        'Google-Extended': true,
+        waf_blocked: false,
+      },
+      llmsTxtStatus: 'missing',
+      llmsTxtExcerpt: null,
+      agentsMdRaw: null,
+      agentsMdInitialStatus: 'missing',
+      htmlSignalsShopify: true,
+      extractedPriceMentions: ['$21.95'],
+      extractedShippingMentions: ['FREE SHIPPING ON ORDERS OVER $40!'],
+    },
+    {
+      isShopify: true,
+      shopifyMcpStatus: 'ucp_active',
+      activeMcpEndpoint: 'https://mosaicroasters.com/api/ucp/mcp',
+      exposedMcpTools: [],
+      agentsMdStatus: 'custom_enriched',
+      catalogSkus: [],
+      priceRangeSummary: '$21.95 USD',
+    }
+  );
+  assert.equal(drafted.shipping_or_service_area, 'FREE SHIPPING ON ORDERS OVER $40!');
 });

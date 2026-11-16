@@ -41,7 +41,7 @@ begin
       "is_user_verified": true,
       "core_offering": "Modern luxury single-origin specialty coffee roasted to order, inspired by Catholic saints and ancient church heritage.",
       "verified_pricing_summary": "12oz whole-bean bags range from $22 to $28 USD; recurring roast subscriptions save 12%.",
-      "shipping_or_service_area": "Nationwide US shipping; orders over $50 ship free.",
+      "shipping_or_service_area": "Nationwide US shipping; free shipping on any 2 bags or orders $45+.",
       "key_differentiators": ["QR code on every bag linking to brew recipes and saint biographies", "Direct-trade single-origin small batches"],
       "discontinued_or_false_claims_to_flag": ["Does NOT sell Keurig K-Cup pods or instant coffee packets", "Not a brick-and-mortar cafe chain"]
     }'::jsonb,
@@ -55,9 +55,9 @@ begin
       "is_user_verified": true,
       "core_offering": "Small-batch single-origin specialty coffee roasted in Springfield, Missouri featuring Brazil, Ethiopia, Guatemala, Honduras, and Mexico.",
       "verified_pricing_summary": "12oz single-origin bags priced at $18 to $23 USD.",
-      "shipping_or_service_area": "Nationwide US shipping plus free local hand-delivery on orders $45+ within 25 miles of Springfield, MO.",
-      "key_differentiators": ["Five core single-origin profiles: Brazil, Ethiopia, Guatemala, Honduras, Mexico", "Free local delivery within 25 miles of Springfield, MO on $45+ orders"],
-      "discontinued_or_false_claims_to_flag": ["Does NOT offer free nationwide shipping at $25"]
+      "shipping_or_service_area": "Free US shipping on orders over $35, plus local hand-delivery within 25 miles of Springfield, MO.",
+      "key_differentiators": ["Five core single-origin profiles: Brazil, Ethiopia, Guatemala, Honduras, Mexico", "Free US shipping on orders over $35 plus local delivery within 25 miles of Springfield, MO"],
+      "discontinued_or_false_claims_to_flag": ["Does NOT offer free nationwide shipping at $25 (free shipping starts on orders over $35)"]
     }'::jsonb,
     36, 54, 'bbbbbbbb-1111-4000-8000-000000000002', now()
   )
@@ -97,7 +97,7 @@ begin
     '["Kingdom Coffee", "Eurasia Coffee Co.", "Brick & Mortar Coffee"]'::jsonb,
     '["https://www.springfieldmo.org/blog/post/local-coffee-roasters/", "https://reddit.com/r/springfieldMO/comments/best-local-coffee-beans"]'::jsonb,
     'cited_source_only', true,
-    '[{"claim_text":"Mosaic Coffee Roasters offers free nationwide shipping on orders over $25.","verified_truth":"Free local delivery applies to $45+ orders within 25 miles of Springfield, MO.","severity":"high","category":"shipping"}]'::jsonb,
+    '[{"claim_text":"Mosaic Coffee Roasters offers free nationwide shipping on orders over $25.","verified_truth":"Free US shipping applies on orders over $35, plus local delivery within 25 miles of Springfield, MO.","severity":"high","category":"shipping"}]'::jsonb,
     'In Springfield, MO, Kingdom Coffee and Brick & Mortar lead local listings, while Mosaic Coffee Roasters ships nationwide free over $25.'
   )
   on conflict (id) do nothing;
@@ -131,7 +131,7 @@ UCP / MCP Endpoint: https://aurearoasters.com/api/ucp/mcp
     '{
       "top_gaps": ["PerplexityBot blocked at edge WAF (HTTP 403)", "Missing /llms.txt and custom /agents.md", "Zero LocalBusiness GeoCircle JSON-LD for Springfield, MO"],
       "competitors_winning": ["Kingdom Coffee", "Eurasia Coffee Co.", "Brick & Mortar Coffee"],
-      "hallucination_examples": [{"claim_text":"Offers free nationwide shipping on orders over $25.","verified_truth":"Free local delivery applies to $45+ orders within 25 miles of Springfield, MO.","severity":"high","category":"shipping"}],
+      "hallucination_examples": [{"claim_text":"Offers free nationwide shipping on orders over $25.","verified_truth":"Free US shipping applies on orders over $35, plus local delivery within 25 miles of Springfield, MO.","severity":"high","category":"shipping"}],
       "recommended_fixes": ["Allowlist PerplexityBot in Cloudflare WAF", "Publish custom agents.md.liquid referencing /api/ucp/mcp"]
     }'::jsonb,
     4

@@ -14,7 +14,27 @@ export function autoDraftBrandTruthSheet(
     d.domain_url.toLowerCase().includes(probe.domain.hostname)
   );
   if (knownFixture) {
-    return structuredClone(knownFixture.brand_truth_sheet);
+    const cloned = structuredClone(knownFixture.brand_truth_sheet);
+    // If live storefront HTML is reachable and exposes a concrete $ shipping banner that differs, prefer live store truth
+    if (probe.reachable && probe.extractedShippingMentions.length > 0) {
+      const liveBanner = probe.extractedShippingMentions.find((s) =>
+        /\$\d{1,4}/.test(s)
+      );
+      if (liveBanner) {
+        const liveNums = extractDollarNumbers(liveBanner);
+        const fixtureNums = extractDollarNumbers(
+          cloned.shipping_or_service_area
+        );
+        if (
+          liveNums.length > 0 &&
+          fixtureNums.length > 0 &&
+          liveNums[0] !== fixtureNums[0]
+        ) {
+          cloned.shipping_or_service_area = liveBanner;
+        }
+      }
+    }
+    return cloned;
   }
 
   const coreOffering =
@@ -77,11 +97,70 @@ function extractDollarNumbers(text: string): number[] {
     .filter((n) => Number.isFinite(n));
 }
 
-function splitSentences(text: string): string[] {
-  return text
-    .split(/(?<=[.!?])\s+/)
+function extractShippingThresholdDollars(clause: string): number[] {
+  const results: number[] = [];
+  const patterns = [
+    /(?:free\s+(?:[\w-]+\s+){0,3}(?:shipping|delivery)|ships?\s+(?:[\w-]+\s+){0,2}free)\s+(?:on\s+orders?\s+)?(?:over|above|at|from|of|for|minimum)?\s*\$(\d{1,5}(?:\.\d{1,2})?)/gi,
+    /(?:orders?\s+(?:of|over|above|at\s+least)|minimum(?:\s+order)?(?:\s+of|\s+is)?|threshold(?:\s+is|\s+of)?)\s*\$(\d{1,5}(?:\.\d{1,2})?)/gi,
+    /\$(\d{1,5}(?:\.\d{1,2})?)\+?\s*(?:minimum|min\b|orders?\s+ship\s+free|free\s+(?:shipping|delivery)|local\s+orders?)/gi,
+  ];
+  for (const rx of patterns) {
+    let match: RegExpExecArray | null;
+    while ((match = rx.exec(clause)) !== null) {
+      const val = Number.parseFloat(match[1] ?? '');
+      if (Number.isFinite(val) && !results.includes(val)) {
+        results.push(val);
+      }
+    }
+  }
+  return results;
+}
+
+function cleanClaimExcerpt(raw: string): string {
+  return raw
+    .replace(/^\s*(?:[-*•]|\d+[.)])\s+/, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/(?:\[\d+\])+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function splitBrandScopedUnits(text: string, brandFirstToken: string): string[] {
+  // 1. Split across newlines, Markdown list bullets (both multiline and inline collapsed `- **Brand**`),
+  //    and sentence punctuation even when followed by Perplexity/ChatGPT `[1]` footnote brackets.
+  const primarySegments = text
+    .split(
+      /\r?\n+\s*(?:[-*•]|\d+[.)])\s+|\r?\n+|\s+[-•*]\s+(?=\*\*[A-Z0-9])|(?<=[.!?])(?:\s*(?:\[\d+\]|\(\d+\)|["'”’])+)*\s+/
+    )
     .map((s) => s.trim())
     .filter(Boolean);
+
+  const units: string[] = [];
+  for (const segment of primarySegments) {
+    if (brandFirstToken && !segment.toLowerCase().includes(brandFirstToken)) {
+      continue;
+    }
+
+    // 2. If a compound sentence contrasts multiple brands (`Kingdom charges $14, while Mosaic...`),
+    //    narrow down to the sub-clause(s) that actually mention the target brand.
+    const subClauses = segment
+      .split(/\s*(?:;\s+|,\s+(?:while|whereas|but|although)\s+)/i)
+      .map((c) => c.trim())
+      .filter(Boolean);
+
+    if (subClauses.length > 1 && brandFirstToken) {
+      const matchingSub = subClauses.filter((c) =>
+        c.toLowerCase().includes(brandFirstToken)
+      );
+      if (matchingSub.length > 0) {
+        units.push(...matchingSub);
+        continue;
+      }
+    }
+    units.push(segment);
+  }
+
+  return units;
 }
 
 function hasNegationNear(sentenceLower: string, termLower: string): boolean {
@@ -103,8 +182,8 @@ export function detectHallucinations(
   }
 
   const details: HallucinationDetail[] = [];
-  const sentences = splitSentences(answerExcerpt);
   const brandFirstToken = brandName.split(/\s+/)[0]?.toLowerCase() ?? '';
+  const sentences = splitBrandScopedUnits(answerExcerpt, brandFirstToken);
 
   // 1. Check explicit false-claim / exclusion rules in Brand Truth Sheet
   for (const rule of truthSheet.discontinued_or_false_claims_to_flag) {
@@ -145,12 +224,13 @@ export function detectHallucinations(
     for (const sentence of sentences) {
       const lower = sentence.toLowerCase();
       if (brandFirstToken && !lower.includes(brandFirstToken)) continue;
+      const cleanedClaim = cleanClaimExcerpt(sentence);
 
       for (const term of uniqueTerms) {
         if (term.startsWith('$')) continue;
         if (lower.includes(term) && !hasNegationNear(lower, term)) {
           details.push({
-            claim_text: sentence,
+            claim_text: cleanedClaim,
             verified_truth: rule,
             severity: 'high',
             category: 'offering',
@@ -171,15 +251,20 @@ export function detectHallucinations(
     for (const sentence of sentences) {
       const lower = sentence.toLowerCase();
       if (brandFirstToken && !lower.includes(brandFirstToken)) continue;
-      if (!/free\s+(?:nationwide\s+|local\s+)?(?:shipping|delivery)/i.test(sentence)) {
+      if (
+        !/free\s+(?:nationwide\s+|local\s+|us\s+|standard\s+)?(?:shipping|delivery)|ships?\s+(?:nationwide\s+|us\s+)?free/i.test(
+          sentence
+        )
+      ) {
         continue;
       }
 
-      const claimedNums = extractDollarNumbers(sentence);
+      const cleanedClaim = cleanClaimExcerpt(sentence);
+      const claimedNums = extractShippingThresholdDollars(sentence);
       for (const claimed of claimedNums) {
         if (Math.abs(claimed - verifiedThreshold) >= 5) {
           details.push({
-            claim_text: sentence,
+            claim_text: cleanedClaim,
             verified_truth: truthSheet.shipping_or_service_area,
             severity: 'high',
             category: 'shipping',
@@ -188,15 +273,17 @@ export function detectHallucinations(
         }
       }
 
-      // Also catch claiming "free nationwide shipping" when verified truth is strictly local delivery
+      // Also catch claiming "free nationwide shipping" ONLY when verified truth is strictly local-only delivery
       if (
         /free\s+nationwide\s+shipping/i.test(sentence) &&
         /local\s+(?:hand-)?delivery/i.test(truthSheet.shipping_or_service_area) &&
-        !/free\s+nationwide/i.test(truthSheet.shipping_or_service_area) &&
-        !details.some((d) => d.claim_text === sentence)
+        !/free\s+(?:us\s+|nationwide\s+)?shipping/i.test(
+          truthSheet.shipping_or_service_area
+        ) &&
+        !details.some((d) => d.claim_text === cleanedClaim)
       ) {
         details.push({
-          claim_text: sentence,
+          claim_text: cleanedClaim,
           verified_truth: truthSheet.shipping_or_service_area,
           severity: 'high',
           category: 'shipping',
@@ -216,15 +303,16 @@ export function detectHallucinations(
       if (brandFirstToken && !lower.includes(brandFirstToken)) continue;
       if (/shipping|delivery/i.test(sentence)) continue;
 
+      const cleanedClaim = cleanClaimExcerpt(sentence);
       const claimedPrices = extractDollarNumbers(sentence);
       for (const claimed of claimedPrices) {
         if (
           claimed > 0 &&
           claimed < minVerifiedPrice - 3 &&
-          !details.some((d) => d.claim_text === sentence)
+          !details.some((d) => d.claim_text === cleanedClaim)
         ) {
           details.push({
-            claim_text: sentence,
+            claim_text: cleanedClaim,
             verified_truth: truthSheet.verified_pricing_summary,
             severity: 'medium',
             category: 'pricing',

@@ -57,7 +57,7 @@ export const PATIENT_ZERO_DOMAINS: DomainRow[] = [
       verified_pricing_summary:
         '12oz whole-bean bags range from $22 to $28 USD; recurring roast subscriptions save 12%.',
       shipping_or_service_area:
-        'Nationwide US shipping; orders over $50 ship free via USPS Priority or UPS Ground.',
+        'Nationwide US shipping; free shipping on any 2 bags or orders $45+.',
       key_differentiators: [
         'Each bag includes a scannable QR code linking directly to brew recipes and historical saint biographies.',
         'Direct-trade single-origin lots roasted in small batches.',
@@ -99,14 +99,14 @@ export const PATIENT_ZERO_DOMAINS: DomainRow[] = [
       verified_pricing_summary:
         '12oz single-origin bags priced at $18 to $23 USD; 5lb wholesale/home-barista bags available.',
       shipping_or_service_area:
-        'Nationwide US shipping plus free local hand-delivery on orders $45+ within 25 miles of Springfield, MO.',
+        'Free US shipping on orders over $35, plus local hand-delivery within 25 miles of Springfield, MO.',
       key_differentiators: [
         'Five core single-origin profiles: Brazil, Ethiopia, Guatemala, Honduras, and Mexico.',
-        'Free local delivery within 25 miles of Springfield, MO on $45+ orders.',
+        'Free US shipping on orders over $35 plus local delivery within 25 miles of Springfield, MO.',
         'Roasted fresh weekly for pour-over, drip, and espresso.',
       ],
       discontinued_or_false_claims_to_flag: [
-        'Does NOT offer free nationwide shipping at $25 (free local delivery threshold is $45 within 25 miles of Springfield, MO).',
+        'Does NOT offer free nationwide shipping at $25 (free shipping starts on orders over $35).',
         'Does NOT source Sumatran or Vietnamese Robusta blends.',
       ],
     },
@@ -212,7 +212,7 @@ export const PATIENT_ZERO_SNAPSHOTS: CitationSnapshotRow[] = [
       {
         claim_text: 'Mosaic Coffee Roasters offers free nationwide shipping on orders over $25.',
         verified_truth:
-          'Free local delivery applies to $45+ orders within 25 miles of Springfield, MO; nationwide shipping rates apply outside the local zone.',
+          'Free US shipping applies on orders over $35, plus local hand-delivery within 25 miles of Springfield, MO.',
         severity: 'high',
         category: 'shipping',
       },
@@ -240,7 +240,7 @@ UCP / MCP Endpoint: https://aurearoasters.com/api/ucp/mcp
 - Packaging Feature: Every bag prints a QR code linking to origin-specific brew guides and historical saint biographies.
 
 ## Shipping Policy
-- Nationwide US shipping; free shipping applies automatically on orders $50.00+ USD.`,
+- Nationwide US shipping; free shipping applies on any 2 bags or orders $45.00+ USD.`,
     natural_quality_score: 9.8,
     quality_rubric_breakdown: {
       lexicon_filter: 2.0,
@@ -274,7 +274,7 @@ UCP / MCP Endpoint: https://aurearoasters.com/api/ucp/mcp
               longitude: -93.2923,
             },
             geoRadius: '40233.6',
-            description: 'Free local delivery within 25 miles of Springfield, MO on orders $45+.',
+            description: 'Free US shipping on orders over $35 plus local delivery within 25 miles of Springfield, MO.',
           },
           { '@type': 'Country', name: 'United States' },
         ],
@@ -357,7 +357,7 @@ export const PATIENT_ZERO_PITCH_REPORT: AgencyPitchReportRow = {
       {
         claim_text: 'Offers free nationwide shipping on orders over $25.',
         verified_truth:
-          'Free local delivery applies to $45+ orders within 25 miles of Springfield, MO.',
+          'Free US shipping applies on orders over $35, plus local delivery within 25 miles of Springfield, MO.',
         severity: 'high',
         category: 'shipping',
       },
