@@ -338,12 +338,14 @@ export function extractBrandNameFromTitle(
 
 export function buildAgencyPitchPayload(params: {
   brandName: string;
+  hostname?: string;
   robotsAiBotStatus: RobotsAiBotStatus;
   llmsTxtStatus: LlmsTxtStatus;
   agentsMdStatus: AgentsMdStatus;
   isShopify: boolean;
   shopifyMcpStatus: ShopifyMcpStatus;
   jsonLdCount: number;
+  crawlerReadability?: CrawlerReadabilityReport;
   scanResults: EngineScanResult[];
   allHallucinations: HallucinationDetail[];
 }): PitchSummaryPayload {
@@ -425,11 +427,72 @@ export function buildAgencyPitchPayload(params: {
     'Place factual brand specs on top third-party URLs currently citing competitors.',
   ];
 
+  const cleanHost = params.hostname
+    ? params.hostname
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, '')
+        .replace(/^www\./, '')
+        .split('/')[0] ?? ''
+    : '';
+
+  const totalScans = params.scanResults.length;
+  const mentionedScans = params.scanResults.filter(
+    (s) => s.brandMentioned
+  ).length;
+  const citedScans = params.scanResults.filter((s) => {
+    if (cleanHost) {
+      return s.citedSourceUrls.some((rawUrl) => {
+        try {
+          const h = new URL(rawUrl.trim()).hostname
+            .replace(/^www\./, '')
+            .toLowerCase();
+          return h === cleanHost || h.endsWith(`.${cleanHost}`);
+        } catch {
+          return false;
+        }
+      });
+    }
+    return s.brandMentioned && s.citedSourceUrls.length > 0;
+  }).length;
+
+  const mentionRatePct =
+    totalScans > 0 ? Math.round((mentionedScans / totalScans) * 100) : 0;
+  const citationRatePct =
+    totalScans > 0 ? Math.round((citedScans / totalScans) * 100) : 0;
+
+  const sentiment = summarizeBrandSentimentAndSov({
+    brandName: params.brandName,
+    snapshots: params.scanResults,
+  });
+
+  const rankedSources = rankCitationGapSources({
+    targetHostname: cleanHost,
+    snapshots: params.scanResults,
+  });
+
   return {
     top_gaps: topGaps.slice(0, 4),
     competitors_winning: competitorsWinning,
     hallucination_examples: params.allHallucinations.slice(0, 3),
     recommended_fixes: recommendedFixes,
+    mention_rate_pct: mentionRatePct,
+    citation_rate_pct: citationRatePct,
+    sentiment_framing: sentiment.dominantFraming,
+    sentiment_score: sentiment.sentimentScore,
+    head_to_head_sov: sentiment.headToHeadSov,
+    top_citation_sources: rankedSources.slice(0, 4).map((src) => ({
+      sourceHost: src.sourceHost,
+      sourceCategoryLabel: src.sourceCategoryLabel,
+      ownership: src.ownership,
+      recommendedAction: src.recommendedAction,
+    })),
+    ...(params.crawlerReadability
+      ? {
+          crawler_readability_status: params.crawlerReadability.status,
+          crawler_signal_pct: params.crawlerReadability.signalToHtmlPct,
+        }
+      : {}),
   };
 }
 
@@ -788,12 +851,14 @@ export async function runFullGeoAudit(options: {
 
   const pitchSummaryPayload = buildAgencyPitchPayload({
     brandName,
+    hostname: probe.domain.hostname,
     robotsAiBotStatus: probe.robotsAiBotStatus,
     llmsTxtStatus: probe.llmsTxtStatus,
     agentsMdStatus: shopify.agentsMdStatus,
     isShopify: shopify.isShopify,
     shopifyMcpStatus: shopify.shopifyMcpStatus,
     jsonLdCount: probe.jsonLdBlocks.length,
+    crawlerReadability: probe.crawlerReadability,
     scanResults,
     allHallucinations,
   });

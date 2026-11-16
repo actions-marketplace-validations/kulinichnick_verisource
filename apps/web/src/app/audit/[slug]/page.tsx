@@ -223,6 +223,202 @@ export default async function AgencyPitchReportPage({
         </div>
       ) : null}
 
+      {/* Enriched M44 Executive Intelligence: Sentiment + Head-to-Head Rival SoV & Categorized Sources */}
+      {(report.summary_payload.head_to_head_sov?.length ?? 0) > 0 ||
+      (report.summary_payload.top_citation_sources?.length ?? 0) > 0 ? (
+        <div className="vs-grid-2" style={{ marginBottom: '20px' }}>
+          {report.summary_payload.head_to_head_sov &&
+          report.summary_payload.head_to_head_sov.length > 0 ? (
+            <div className="vs-card" style={{ padding: '18px 20px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  marginBottom: '12px',
+                }}
+              >
+                <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                  HEAD-TO-HEAD RIVAL SHARE OF VOICE
+                </div>
+                {report.summary_payload.sentiment_framing ? (
+                  <StatusBadge
+                    tone={
+                      report.summary_payload.sentiment_framing === 'recommended'
+                        ? 'pass'
+                        : report.summary_payload.sentiment_framing ===
+                              'cautionary' ||
+                            report.summary_payload.sentiment_framing ===
+                              'invisible'
+                          ? 'critical'
+                          : 'warn'
+                    }
+                  >
+                    {`FRAMING: ${report.summary_payload.sentiment_framing.toUpperCase()}${
+                      report.summary_payload.sentiment_score !== undefined
+                        ? ` · ${report.summary_payload.sentiment_score}/100`
+                        : ''
+                    }`}
+                  </StatusBadge>
+                ) : null}
+              </div>
+
+              {report.summary_payload.mention_rate_pct !== undefined ? (
+                <div
+                  style={{
+                    fontSize: '12.5px',
+                    color: 'var(--vs-ink-secondary)',
+                    marginBottom: '12px',
+                  }}
+                >
+                  Mention Rate:{' '}
+                  <strong className="vs-mono">
+                    {`${report.summary_payload.mention_rate_pct}%`}
+                  </strong>{' '}
+                  · Direct Cited URL Rate:{' '}
+                  <strong className="vs-mono">
+                    {`${report.summary_payload.citation_rate_pct ?? 0}%`}
+                  </strong>
+                  {report.summary_payload.crawler_readability_status ? (
+                    <>
+                      {' '}
+                      · HTML Readability:{' '}
+                      <strong className="vs-mono">
+                        {report.summary_payload.crawler_readability_status
+                          .replace(/_/g, ' ')
+                          .toUpperCase()}
+                      </strong>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              >
+                {report.summary_payload.head_to_head_sov.map((row) => (
+                  <div key={row.entityName}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '12.5px',
+                        marginBottom: '3px',
+                      }}
+                    >
+                      <span
+                        style={{ fontWeight: row.isTargetBrand ? 700 : 500 }}
+                      >
+                        {row.entityName}
+                        {row.isTargetBrand ? ' (Your Brand)' : ''}
+                      </span>
+                      <span className="vs-mono">
+                        {`${row.shareOfVoicePct}% (${row.mentions})`}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        height: '6px',
+                        borderRadius: '999px',
+                        background: 'var(--vs-border)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${Math.max(
+                            row.shareOfVoicePct,
+                            row.mentions > 0 ? 6 : 0
+                          )}%`,
+                          height: '100%',
+                          background: row.isTargetBrand
+                            ? brandColor
+                            : 'var(--vs-ink-muted)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {report.summary_payload.top_citation_sources &&
+          report.summary_payload.top_citation_sources.length > 0 ? (
+            <div className="vs-card" style={{ padding: '18px 20px' }}>
+              <div
+                className="vs-eyebrow"
+                style={{ color: 'var(--vs-ink)', marginBottom: '10px' }}
+              >
+                THIRD-PARTY SOURCES FEEDING AI ANSWERS
+              </div>
+              <div
+                style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
+              >
+                {report.summary_payload.top_citation_sources.map((src) => (
+                  <div
+                    key={src.sourceHost}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--vs-border)',
+                      background: 'var(--vs-surface-subtle)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '6px',
+                        flexWrap: 'wrap',
+                        marginBottom: '3px',
+                      }}
+                    >
+                      <strong className="vs-mono" style={{ fontSize: '12px' }}>
+                        {src.sourceHost}
+                      </strong>
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          gap: '4px',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <StatusBadge>{src.sourceCategoryLabel}</StatusBadge>
+                        <StatusBadge
+                          tone={
+                            src.ownership === 'citation_gap'
+                              ? 'critical'
+                              : 'pass'
+                          }
+                        >
+                          {src.ownership === 'citation_gap'
+                            ? 'CITATION GAP'
+                            : src.ownership === 'co_cited'
+                              ? 'CO-CITED'
+                              : 'OWNED'}
+                        </StatusBadge>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      {src.recommendedAction}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {/* Hallucination Evidence Alert */}
       {report.summary_payload.hallucination_examples.length > 0 ? (
         <div className="vs-card vs-table-wrap" style={{ marginBottom: '20px' }}>

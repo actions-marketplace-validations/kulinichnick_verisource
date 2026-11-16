@@ -249,6 +249,10 @@ export function DashboardConsoleClient(props: {
   const [crawlerReadabilityByDomainId, setCrawlerReadabilityByDomainId] =
     useState<Record<string, CrawlerReadabilityReport>>({});
   const [shopifyCheckoutKey, setShopifyCheckoutKey] = useState<string>('');
+  const [attributionEventFilter, setAttributionEventFilter] = useState<
+    'all' | 'bot_crawls' | 'human_referrals'
+  >('all');
+  const [sendingTestBotPing, setSendingTestBotPing] = useState(false);
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
     subject: string;
@@ -1034,6 +1038,62 @@ export function DashboardConsoleClient(props: {
     setBannerSuccess(
       `Exported Executive AI Search Report (${artifact.score}/10 Quality Score) as ${hostSlug}-ai-search-audit.md.`
     );
+  }
+
+  async function handleSendTestBotPing() {
+    if (!activeDomain) return;
+    setSendingTestBotPing(true);
+    setBannerError(null);
+    try {
+      const hmacKey =
+        shopifyCheckoutKey ||
+        (await computeShopifyCheckoutKey({
+          domainId: activeDomain.id,
+          trackingPixelToken: activeDomain.tracking_pixel_token,
+        }));
+      const res = await fetch('/api/pixel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: activeDomain.tracking_pixel_token,
+          checkout_key: hmacKey,
+          event_type: 'ai_bot_crawl',
+          source_engine:
+            'Mozilla/5.0 (compatible; GPTBot/1.2; +https://openai.com/gptbot)',
+          landing_path: '/agents.md',
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        id?: string;
+        event_type?: AiAttributionEventRow['event_type'];
+        source_engine?: string;
+      };
+      if (!res.ok || json.error) {
+        setBannerError('Unable to record test AI bot crawl ping.');
+      } else {
+        const createdRow: AiAttributionEventRow = {
+          id: json.id ?? crypto.randomUUID(),
+          domain_id: activeDomain.id,
+          event_type: 'ai_bot_crawl',
+          source_engine: json.source_engine ?? 'GPTBot',
+          landing_path: '/agents.md',
+          conversion_value_usd: null,
+          created_at: new Date().toISOString(),
+        };
+        setData((prev) => ({
+          ...prev,
+          attributionEvents: [createdRow, ...prev.attributionEvents],
+        }));
+        setBannerSuccess(
+          `Verified live HMAC ingestion: recorded GPTBot crawl on /agents.md for ${activeDomain.brand_name}.`
+        );
+      }
+    } catch {
+      setBannerError('Network error sending test AI bot crawl ping.');
+    } finally {
+      setSendingTestBotPing(false);
+    }
   }
 
   async function handleVerifyTruthSheet(e: React.FormEvent) {
@@ -3536,6 +3596,228 @@ export function DashboardConsoleClient(props: {
                   code={edgeCrawlerSnippet}
                 />
               )}
+
+              {/* Live Agent Crawl & AI Referral Event Ledger */}
+              <div
+                style={{
+                  marginTop: '16px',
+                  border: '1px solid var(--vs-border)',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    background: 'var(--vs-surface-subtle)',
+                    borderBottom: '1px solid var(--vs-border)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                  }}
+                >
+                  <div>
+                    <span
+                      className="vs-eyebrow"
+                      style={{ color: 'var(--vs-ink)' }}
+                    >
+                      LIVE AGENT CRAWL &amp; REFERRAL LEDGER
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-muted)',
+                        marginLeft: '8px',
+                      }}
+                    >
+                      {`${domainAttribution.length} verified telemetry event(s)`}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '5px',
+                        padding: '2px',
+                        background: '#FFFFFF',
+                        gap: '2px',
+                      }}
+                    >
+                      {(
+                        [
+                          {
+                            id: 'all',
+                            label: `All (${domainAttribution.length})`,
+                          },
+                          {
+                            id: 'bot_crawls',
+                            label: `Bot Crawls (${totalBotCrawls})`,
+                          },
+                          {
+                            id: 'human_referrals',
+                            label: `Visits & Sales (${
+                              domainAttribution.length - totalBotCrawls
+                            })`,
+                          },
+                        ] as const
+                      ).map((pill) => {
+                        const active = attributionEventFilter === pill.id;
+                        return (
+                          <button
+                            key={pill.id}
+                            type="button"
+                            onClick={() => setAttributionEventFilter(pill.id)}
+                            style={{
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              background: active
+                                ? 'var(--vs-ink)'
+                                : 'transparent',
+                              color: active
+                                ? '#FFFFFF'
+                                : 'var(--vs-ink-secondary)',
+                            }}
+                          >
+                            {pill.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={sendingTestBotPing}
+                      onClick={() => void handleSendTestBotPing()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                      title="Send a signed HMAC test GPTBot crawl ping to verify your telemetry pipeline"
+                    >
+                      {sendingTestBotPing
+                        ? 'Pinging...'
+                        : '⚡ Send Test Bot Ping'}
+                    </button>
+                  </div>
+                </div>
+
+                {(() => {
+                  const filteredEvents = domainAttribution.filter((ev) => {
+                    if (attributionEventFilter === 'bot_crawls') {
+                      return ev.event_type === 'ai_bot_crawl';
+                    }
+                    if (attributionEventFilter === 'human_referrals') {
+                      return ev.event_type !== 'ai_bot_crawl';
+                    }
+                    return true;
+                  });
+
+                  if (filteredEvents.length === 0) {
+                    return (
+                      <div
+                        style={{
+                          padding: '14px',
+                          fontSize: '12.5px',
+                          color: 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        No telemetry events recorded in this filter yet. Paste
+                        the pixel or Edge Bot Crawl Logger above, or click{' '}
+                        <strong>⚡ Send Test Bot Ping</strong> to verify live
+                        ingestion.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="vs-table-wrap">
+                      <table className="vs-table">
+                        <thead>
+                          <tr>
+                            <th>Signal</th>
+                            <th>Engine / Crawler</th>
+                            <th>Target Path</th>
+                            <th>Outcome / Revenue</th>
+                            <th>Observed</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredEvents.slice(0, 10).map((ev) => (
+                            <tr key={ev.id}>
+                              <td>
+                                <StatusBadge
+                                  tone={
+                                    ev.event_type === 'ai_referral_conversion'
+                                      ? 'pass'
+                                      : ev.event_type === 'ai_bot_crawl'
+                                        ? 'neutral'
+                                        : 'warn'
+                                  }
+                                >
+                                  {ev.event_type === 'ai_bot_crawl'
+                                    ? 'BOT CRAWL'
+                                    : ev.event_type === 'ai_referral_conversion'
+                                      ? 'CHECKOUT SALE'
+                                      : 'AI REFERRAL'}
+                                </StatusBadge>
+                              </td>
+                              <td
+                                className="vs-mono"
+                                style={{ fontSize: '12px', fontWeight: 600 }}
+                              >
+                                {ev.source_engine}
+                              </td>
+                              <td
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '12px',
+                                  color: 'var(--vs-ink-secondary)',
+                                }}
+                              >
+                                {ev.landing_path || '/'}
+                              </td>
+                              <td
+                                className="vs-mono"
+                                style={{ fontSize: '12px' }}
+                              >
+                                {ev.event_type === 'ai_referral_conversion' &&
+                                typeof ev.conversion_value_usd === 'number'
+                                  ? `$${ev.conversion_value_usd.toFixed(2)} USD`
+                                  : ev.event_type === 'ai_bot_crawl'
+                                    ? 'HMAC Verified'
+                                    : 'Session Landed'}
+                              </td>
+                              <td
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '11.5px',
+                                  color: 'var(--vs-ink-muted)',
+                                }}
+                              >
+                                {ev.created_at.slice(0, 16).replace('T', ' ')}{' '}
+                                UTC
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         ) : null}

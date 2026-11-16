@@ -1708,3 +1708,78 @@ test('M43 Executive AI Search Audit Report exporter passes >= 9.5/10 Critic with
   assert.ok(execReport.content.includes('## 7. Categorized Citation Gap Sources'));
   assert.ok(execReport.content.includes('## 8. Priority Funnel Prompts to Track Next'));
 });
+
+test('M44 Enriched buildAgencyPitchPayload populates Mention/Citation %, Sentiment, Head-to-Head SoV & Categorized Sources', () => {
+  const enrichedPitch = buildAgencyPitchPayload({
+    brandName: 'Resend',
+    hostname: 'resend.com',
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: true,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    llmsTxtStatus: 'present',
+    agentsMdStatus: 'missing',
+    isShopify: false,
+    shopifyMcpStatus: 'unavailable',
+    jsonLdCount: 2,
+    crawlerReadability: {
+      status: 'ssr_clean',
+      rawHtmlBytes: 24000,
+      visibleTextChars: 5400,
+      visibleWordCount: 820,
+      signalToHtmlPct: 22.5,
+      estimatedTokens: 1350,
+      hasSemanticLandmarks: true,
+      detectedCsrShell: false,
+      summary: 'SSR HTML clean.',
+    },
+    scanResults: [
+      {
+        promptText: 'Best developer email APIs',
+        aiEngine: 'perplexity',
+        brandMentioned: true,
+        citationRank: 1,
+        competitorsMentioned: ['Postmark', 'SendGrid'],
+        citedSourceUrls: [
+          'https://resend.com/pricing',
+          'https://reddit.com/r/webdev/comments/email_apis',
+        ],
+        decompiledFanoutQueries: ['resend vs postmark'],
+        fanoutTelemetryType: 'observed_query',
+        hallucinationDetected: false,
+        hallucinationDetails: [],
+        rawAnswerExcerpt: 'Resend is a top pick for React developers.',
+      },
+      {
+        promptText: 'Compare transactional email deliverability',
+        aiEngine: 'chatgpt',
+        brandMentioned: true,
+        citationRank: 2,
+        competitorsMentioned: ['Postmark'],
+        citedSourceUrls: ['https://g2.com/categories/transactional-email'],
+        decompiledFanoutQueries: [],
+        fanoutTelemetryType: 'observed_query',
+        hallucinationDetected: false,
+        hallucinationDetails: [],
+        rawAnswerExcerpt: 'Postmark and Resend lead developer ratings.',
+      },
+    ],
+    allHallucinations: [],
+  });
+
+  assert.equal(enrichedPitch.mention_rate_pct, 100);
+  assert.equal(enrichedPitch.citation_rate_pct, 50);
+  assert.equal(enrichedPitch.sentiment_framing, 'recommended');
+  assert.ok((enrichedPitch.head_to_head_sov?.length ?? 0) >= 2);
+  assert.ok(
+    enrichedPitch.top_citation_sources?.some(
+      (s) => s.sourceHost === 'reddit.com' && s.sourceCategoryLabel === 'UGC / Community'
+    )
+  );
+  assert.equal(enrichedPitch.crawler_readability_status, 'ssr_clean');
+  assert.equal(enrichedPitch.crawler_signal_pct, 22.5);
+});

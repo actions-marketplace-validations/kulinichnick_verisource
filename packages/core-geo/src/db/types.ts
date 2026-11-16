@@ -82,6 +82,24 @@ export type PitchSummaryPayload = {
   competitors_winning: string[];
   hallucination_examples: HallucinationDetail[];
   recommended_fixes: string[];
+  mention_rate_pct?: number;
+  citation_rate_pct?: number;
+  sentiment_framing?: 'recommended' | 'neutral' | 'cautionary' | 'invisible';
+  sentiment_score?: number;
+  head_to_head_sov?: Array<{
+    entityName: string;
+    isTargetBrand: boolean;
+    mentions: number;
+    shareOfVoicePct: number;
+  }>;
+  top_citation_sources?: Array<{
+    sourceHost: string;
+    sourceCategoryLabel: string;
+    ownership: 'citation_gap' | 'co_cited' | 'owned';
+    recommendedAction: string;
+  }>;
+  crawler_readability_status?: 'ssr_clean' | 'low_signal_bloat' | 'csr_js_trap';
+  crawler_signal_pct?: number;
 };
 
 export type ProfileRow = {

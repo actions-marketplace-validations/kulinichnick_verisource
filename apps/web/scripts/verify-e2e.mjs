@@ -1657,7 +1657,35 @@ async function run() {
       }
     );
     assert.equal(m43DeletePromptAgainRes.status, 404);
-    console.log('✔ [39/39] M43 Sitemap + Hero SVG coffee-echo scrub, Executive Audit Export & full Prompt CRUD (POST + PUT + DELETE + 404) verified!');
+    console.log('✔ [39/40] M43 Sitemap + Hero SVG coffee-echo scrub, Executive Audit Export & full Prompt CRUD (POST + PUT + DELETE + 404) verified');
+
+    // 38. M44 Enriched /audit/[slug] Rival SoV + Categorized Sources & Tab 1 Live Agent Crawl & Referral Ledger
+    assert.ok(
+      m42Tab1Html.includes('LIVE AGENT CRAWL &amp; REFERRAL LEDGER') &&
+        m42Tab1Html.includes('Send Test Bot Ping') &&
+        m42Tab1Html.includes('HMAC Verified'),
+      'Expected Live Agent Crawl & Referral Ledger with Send Test Bot Ping and HMAC Verified GPTBot row on Tab 1'
+    );
+
+    const m44PitchHtml = (
+      await (await fetch(`${BASE}${cleanPitchJson.share_url}`)).text()
+    ).replace(/<!--[\s\S]*?-->/g, '');
+    assert.ok(
+      m44PitchHtml.includes('HEAD-TO-HEAD RIVAL SHARE OF VOICE') &&
+        m44PitchHtml.includes('THIRD-PARTY SOURCES FEEDING AI ANSWERS') &&
+        m44PitchHtml.includes('Mention Rate:'),
+      'Expected Head-to-Head Rival Share of Voice and Categorized Sources on minted /audit/[slug]'
+    );
+    const strippedM44Pitch = m44PitchHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM44Pitch.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on M44 enriched /audit/[slug]'
+    );
+    console.log('✔ [40/40] M44 Enriched /audit/[slug] Rival SoV + Categorized Sources & Tab 1 Live Agent Crawl Ledger verified!');
   } finally {
     server.kill();
   }
