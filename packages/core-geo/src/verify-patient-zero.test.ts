@@ -36,6 +36,7 @@ import {
   buildLocalServiceBatchCsv,
   buildLocalServiceOutreachSequence,
   buildLocalServicePlaybookMarkdown,
+  buildMagicLinkSignInAlert,
   buildMcpDiscoveryManifest,
   buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
@@ -56,6 +57,7 @@ import {
   detectWebsitePlatform,
   dispatchFreeAuditSummaryEmail,
   dispatchHallucinationDriftEmail,
+  dispatchMagicLinkSignInEmail,
   dispatchPostPurchaseWelcomeEmail,
   dispatchProspectOpenEmail,
   dispatchTrialActivationNudgeEmail,
@@ -2904,4 +2906,26 @@ test('M61.1 detectHallucinations isolates multi-vendor Perplexity bullet lists (
     }
   );
   assert.equal(drafted.shipping_or_service_area, 'FREE SHIPPING ON ORDERS OVER $40!');
+});
+
+test('M61.2 buildMagicLinkSignInAlert & dispatchMagicLinkSignInEmail generate >= 9.5/10 Resend sign-in emails with HTML escaping', async () => {
+  const built = buildMagicLinkSignInAlert({
+    recipientEmail: 'aurearoasters@gmail.com',
+    actionLink: 'https://verisource.dev/dashboard#access_token=test_otp_token',
+    appOrigin: 'https://verisource.dev',
+  });
+  assert.ok(built.quality.score >= 9.5);
+  assert.ok(built.html.includes('aurearoasters@gmail.com'));
+  assert.ok(built.html.includes('Sign In to Console'));
+  assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(built.text));
+  assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(built.text));
+  assert.equal(gradeArtifactQuality(built.text).breakdown.lexicon_filter, 2.0);
+
+  const dryRun = await dispatchMagicLinkSignInEmail({
+    recipientEmail: 'aurearoasters@gmail.com',
+    actionLink: 'https://verisource.dev/dashboard#access_token=test_otp_token',
+  });
+  assert.equal(dryRun.mode, 'preview_dry_run');
+  assert.equal(dryRun.delivered, false);
+  assert.ok(dryRun.qualityScore >= 9.5);
 });

@@ -114,16 +114,7 @@ export function SampleAuditCohortClient(props: {
         <div
           role="tablist"
           aria-label="Filter benchmark audits by industry vertical"
-          style={{
-            display: 'inline-flex',
-            flexWrap: 'wrap',
-            maxWidth: '100%',
-            border: '1px solid var(--vs-border)',
-            borderRadius: '5px',
-            padding: '2px',
-            background: '#FFFFFF',
-            gap: '2px',
-          }}
+          className="vs-pill-group"
         >
           {filterTabs.map((tab) => {
             const active = activeFilter === tab.id;
@@ -133,17 +124,9 @@ export function SampleAuditCohortClient(props: {
                 type="button"
                 role="tab"
                 aria-selected={active}
+                data-active={active ? 'true' : 'false'}
+                className="vs-pill-btn vs-pill-btn-sm"
                 onClick={() => setActiveFilter(tab.id)}
-                style={{
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: '5px 11px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  background: active ? 'var(--vs-ink)' : 'transparent',
-                  color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-                }}
               >
                 {tab.label} ({tab.count})
               </button>

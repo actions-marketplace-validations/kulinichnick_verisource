@@ -305,7 +305,11 @@ export function DashboardConsoleClient(props: {
       : null;
   const appliedInitialEnvRef = React.useRef(false);
   const [aiPromptTargetEnv, setAiPromptTargetEnv] =
-    useState<AiRemediationTargetEnv>(() => initialValidEnv ?? 'coding_agent');
+    useState<AiRemediationTargetEnv>(
+      () =>
+        initialValidEnv ??
+        (activeDomain?.is_shopify ? 'shopify_liquid' : 'coding_agent')
+    );
   const [detectedPlatformByDomainId, setDetectedPlatformByDomainId] = useState<
     Record<string, WebsitePlatformId>
   >({});
@@ -494,6 +498,34 @@ export function DashboardConsoleClient(props: {
           )}; Path=/; Max-Age=604800; SameSite=Lax`;
           window.location.reload();
         }
+        return;
+      }
+
+      const nextPath = `/dashboard${window.location.search || ''}`;
+      const magicRes = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: gateEmail.trim(),
+          nextPath,
+        }),
+      });
+      const magicJson = (await magicRes.json().catch(() => ({}))) as {
+        ok?: boolean;
+        fallbackToClientOtp?: boolean;
+        message?: string;
+      };
+
+      if (magicJson.ok) {
+        setGateSent(true);
+        return;
+      }
+
+      if (!magicJson.fallbackToClientOtp && !magicRes.ok) {
+        setGateError(
+          magicJson.message ??
+            'Unable to send sign-in link right now. Please try again.'
+        );
         return;
       }
 
@@ -2406,60 +2438,30 @@ export function DashboardConsoleClient(props: {
                   <div
                     role="group"
                     aria-label="Console sign-in method"
-                    style={{
-                      display: 'inline-flex',
-                      border: '1px solid var(--vs-border)',
-                      borderRadius: '6px',
-                      padding: '2px',
-                      background: 'var(--vs-surface-subtle)',
-                    }}
+                    className="vs-pill-group"
                   >
                     <button
                       type="button"
+                      className="vs-pill-btn vs-pill-btn-sm"
+                      data-active={
+                        gateAuthMethod === 'magic_link' ? 'true' : 'false'
+                      }
                       onClick={() => {
                         setGateAuthMethod('magic_link');
                         setGateError(null);
-                      }}
-                      style={{
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px 9px',
-                        borderRadius: '4px',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        background:
-                          gateAuthMethod === 'magic_link'
-                            ? 'var(--vs-ink)'
-                            : 'transparent',
-                        color:
-                          gateAuthMethod === 'magic_link'
-                            ? '#FFFFFF'
-                            : 'var(--vs-ink-secondary)',
                       }}
                     >
                       1-Click Link
                     </button>
                     <button
                       type="button"
+                      className="vs-pill-btn vs-pill-btn-sm"
+                      data-active={
+                        gateAuthMethod === 'password' ? 'true' : 'false'
+                      }
                       onClick={() => {
                         setGateAuthMethod('password');
                         setGateError(null);
-                      }}
-                      style={{
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px 9px',
-                        borderRadius: '4px',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        background:
-                          gateAuthMethod === 'password'
-                            ? 'var(--vs-ink)'
-                            : 'transparent',
-                        color:
-                          gateAuthMethod === 'password'
-                            ? '#FFFFFF'
-                            : 'var(--vs-ink-secondary)',
                       }}
                     >
                       Password
@@ -3584,14 +3586,9 @@ export function DashboardConsoleClient(props: {
                 </div>
 
                 <div
-                  style={{
-                    display: 'inline-flex',
-                    border: '1px solid var(--vs-border)',
-                    borderRadius: '5px',
-                    padding: '2px',
-                    background: '#FFFFFF',
-                    gap: '2px',
-                  }}
+                  className="vs-pill-group"
+                  role="group"
+                  aria-label="Filter answers by AI engine"
                 >
                   {(
                     [
@@ -3610,17 +3607,9 @@ export function DashboardConsoleClient(props: {
                       <button
                         key={pill.id}
                         type="button"
+                        className="vs-pill-btn vs-pill-btn-sm"
+                        data-active={active ? 'true' : 'false'}
                         onClick={() => setSelectedEngineFilter(pill.id)}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '3px 9px',
-                          borderRadius: '4px',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
-                          background: active ? 'var(--vs-ink)' : 'transparent',
-                          color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-                        }}
                       >
                         {pill.label}
                       </button>
@@ -4449,14 +4438,9 @@ export function DashboardConsoleClient(props: {
                     }}
                   >
                     <div
-                      style={{
-                        display: 'inline-flex',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '5px',
-                        padding: '2px',
-                        background: '#FFFFFF',
-                        gap: '2px',
-                      }}
+                      className="vs-pill-group"
+                      role="group"
+                      aria-label="Filter attribution ledger"
                     >
                       {(
                         [
@@ -4481,21 +4465,9 @@ export function DashboardConsoleClient(props: {
                           <button
                             key={pill.id}
                             type="button"
+                            className="vs-pill-btn vs-pill-btn-sm"
+                            data-active={active ? 'true' : 'false'}
                             onClick={() => setAttributionEventFilter(pill.id)}
-                            style={{
-                              border: 'none',
-                              cursor: 'pointer',
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              background: active
-                                ? 'var(--vs-ink)'
-                                : 'transparent',
-                              color: active
-                                ? '#FFFFFF'
-                                : 'var(--vs-ink-secondary)',
-                            }}
                           >
                             {pill.label}
                           </button>
@@ -4726,55 +4698,25 @@ export function DashboardConsoleClient(props: {
                     <div
                       role="group"
                       aria-label="Attribution snippet mode"
-                      style={{
-                        display: 'inline-flex',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '6px',
-                        padding: '2px',
-                        background: 'var(--vs-surface-subtle)',
-                      }}
+                      className="vs-pill-group"
                     >
                       <button
                         type="button"
+                        className="vs-pill-btn vs-pill-btn-sm"
+                        data-active={
+                          attributionTab === 'browser_pixel' ? 'true' : 'false'
+                        }
                         onClick={() => setAttributionTab('browser_pixel')}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
-                          background:
-                            attributionTab === 'browser_pixel'
-                              ? 'var(--vs-ink)'
-                              : 'transparent',
-                          color:
-                            attributionTab === 'browser_pixel'
-                              ? '#FFFFFF'
-                              : 'var(--vs-ink-secondary)',
-                        }}
                       >
                         Browser Revenue Pixel (10 Lines)
                       </button>
                       <button
                         type="button"
+                        className="vs-pill-btn vs-pill-btn-sm"
+                        data-active={
+                          attributionTab === 'edge_crawler' ? 'true' : 'false'
+                        }
                         onClick={() => setAttributionTab('edge_crawler')}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
-                          background:
-                            attributionTab === 'edge_crawler'
-                              ? 'var(--vs-ink)'
-                              : 'transparent',
-                          color:
-                            attributionTab === 'edge_crawler'
-                              ? '#FFFFFF'
-                              : 'var(--vs-ink-secondary)',
-                        }}
                       >
                         Edge AI Bot Crawl Logger
                       </button>
@@ -5301,15 +5243,7 @@ export function DashboardConsoleClient(props: {
                     <div
                       role="group"
                       aria-label="Target AI environment"
-                      style={{
-                        display: 'inline-flex',
-                        flexWrap: 'wrap',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '6px',
-                        padding: '2px',
-                        background: '#FFFFFF',
-                        gap: '2px',
-                      }}
+                      className="vs-pill-group"
                     >
                       {(
                         [
@@ -5345,21 +5279,9 @@ export function DashboardConsoleClient(props: {
                           <button
                             key={opt.id}
                             type="button"
+                            className="vs-pill-btn vs-pill-btn-sm"
+                            data-active={active ? 'true' : 'false'}
                             onClick={() => setAiPromptTargetEnv(opt.id)}
-                            style={{
-                              border: 'none',
-                              cursor: 'pointer',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              fontSize: '11.5px',
-                              fontWeight: 600,
-                              background: active
-                                ? 'var(--vs-ink)'
-                                : 'transparent',
-                              color: active
-                                ? '#FFFFFF'
-                                : 'var(--vs-ink-secondary)',
-                            }}
                           >
                             {opt.label}
                           </button>
@@ -5834,15 +5756,7 @@ export function DashboardConsoleClient(props: {
                     <div
                       role="group"
                       aria-label="Citation page blueprint"
-                      style={{
-                        display: 'inline-flex',
-                        flexWrap: 'wrap',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '6px',
-                        padding: '2px',
-                        background: '#FFFFFF',
-                        gap: '2px',
-                      }}
+                      className="vs-pill-group"
                     >
                       {(
                         [
@@ -5865,21 +5779,9 @@ export function DashboardConsoleClient(props: {
                           <button
                             key={bp.id}
                             type="button"
+                            className="vs-pill-btn vs-pill-btn-sm"
+                            data-active={active ? 'true' : 'false'}
                             onClick={() => setCitationBlueprintType(bp.id)}
-                            style={{
-                              border: 'none',
-                              cursor: 'pointer',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              fontSize: '11.5px',
-                              fontWeight: 600,
-                              background: active
-                                ? 'var(--vs-ink)'
-                                : 'transparent',
-                              color: active
-                                ? '#FFFFFF'
-                                : 'var(--vs-ink-secondary)',
-                            }}
                           >
                             {bp.label}
                           </button>
@@ -6650,14 +6552,9 @@ export function DashboardConsoleClient(props: {
                     ↓ Export Citation Playbook (.md)
                   </button>
                   <div
-                    style={{
-                      display: 'inline-flex',
-                      border: '1px solid var(--vs-border)',
-                      borderRadius: '5px',
-                      padding: '2px',
-                      background: '#FFFFFF',
-                      gap: '2px',
-                    }}
+                    className="vs-pill-group"
+                    role="group"
+                    aria-label="Filter citation sources"
                   >
                     {(
                       [
@@ -6682,17 +6579,9 @@ export function DashboardConsoleClient(props: {
                         <button
                           key={pill.id}
                           type="button"
+                          className="vs-pill-btn vs-pill-btn-sm"
+                          data-active={active ? 'true' : 'false'}
                           onClick={() => setCitationSourceFilter(pill.id)}
-                          style={{
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px 10px',
-                            borderRadius: '4px',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            background: active ? 'var(--vs-ink)' : 'transparent',
-                            color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-                          }}
                         >
                           {pill.label}
                         </button>
@@ -7320,55 +7209,25 @@ export function DashboardConsoleClient(props: {
                   <div
                     role="group"
                     aria-label="Prospect input mode"
-                    style={{
-                      display: 'inline-flex',
-                      background: 'var(--vs-surface-warm)',
-                      border: '1px solid var(--vs-border)',
-                      borderRadius: '6px',
-                      padding: '2px',
-                    }}
+                    className="vs-pill-group"
                   >
                     <button
                       type="button"
+                      className="vs-pill-btn vs-pill-btn-sm"
+                      data-active={
+                        pitchInputMode === 'single' ? 'true' : 'false'
+                      }
                       onClick={() => setPitchInputMode('single')}
-                      style={{
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px 10px',
-                        borderRadius: '4px',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        background:
-                          pitchInputMode === 'single'
-                            ? 'var(--vs-ink)'
-                            : 'transparent',
-                        color:
-                          pitchInputMode === 'single'
-                            ? '#FFFFFF'
-                            : 'var(--vs-ink-secondary)',
-                      }}
                     >
                       Single Site
                     </button>
                     <button
                       type="button"
+                      className="vs-pill-btn vs-pill-btn-sm"
+                      data-active={
+                        pitchInputMode === 'batch' ? 'true' : 'false'
+                      }
                       onClick={() => setPitchInputMode('batch')}
-                      style={{
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '4px 10px',
-                        borderRadius: '4px',
-                        fontSize: '11.5px',
-                        fontWeight: 600,
-                        background:
-                          pitchInputMode === 'batch'
-                            ? 'var(--vs-ink)'
-                            : 'transparent',
-                        color:
-                          pitchInputMode === 'batch'
-                            ? '#FFFFFF'
-                            : 'var(--vs-ink-secondary)',
-                      }}
                     >
                       Batch List
                     </button>
@@ -7722,44 +7581,28 @@ export function DashboardConsoleClient(props: {
                     <div
                       role="group"
                       aria-label="Cold outreach sequence touch"
-                      style={{
-                        display: 'inline-flex',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '6px',
-                        padding: '2px',
-                        background: 'var(--vs-surface)',
-                      }}
+                      className="vs-pill-group"
                     >
-                    {(
-                      [
-                        { id: 'day0', label: 'Touch 1 · Day 0' },
-                        { id: 'day3', label: 'Touch 2 · Day 3' },
-                        { id: 'day7', label: 'Touch 3 · Day 7' },
-                      ] as const
-                    ).map((step) => {
-                      const active = selectedOutreachTouch === step.id;
-                      return (
-                        <button
-                          key={step.id}
-                          type="button"
-                          onClick={() => setSelectedOutreachTouch(step.id)}
-                          style={{
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '4px 10px',
-                            borderRadius: '4px',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            background: active ? 'var(--vs-ink)' : 'transparent',
-                            color: active
-                              ? '#FFFFFF'
-                              : 'var(--vs-ink-secondary)',
-                          }}
-                        >
-                          {step.label}
-                        </button>
-                      );
-                    })}
+                      {(
+                        [
+                          { id: 'day0', label: 'Touch 1 · Day 0' },
+                          { id: 'day3', label: 'Touch 2 · Day 3' },
+                          { id: 'day7', label: 'Touch 3 · Day 7' },
+                        ] as const
+                      ).map((step) => {
+                        const active = selectedOutreachTouch === step.id;
+                        return (
+                          <button
+                            key={step.id}
+                            type="button"
+                            className="vs-pill-btn vs-pill-btn-sm"
+                            data-active={active ? 'true' : 'false'}
+                            onClick={() => setSelectedOutreachTouch(step.id)}
+                          >
+                            {step.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

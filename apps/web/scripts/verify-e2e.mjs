@@ -2669,7 +2669,98 @@ async function run() {
         m61Step2Html.includes('Verify Live Fixes'),
       'Expected Step 02 to render Comparison Page Studio scroll anchor and Verify Live Fixes controls'
     );
-    console.log('✔ [57/57] M61 Targeted Follow-Up AI Fix Prompt (/api/dashboard/verify-fixes 400/200 >= 9.5/10 + CMS Guidance + Step 02 Studio Anchor) verified!');
+    console.log('✔ [57/58] M61 Targeted Follow-Up AI Fix Prompt (/api/dashboard/verify-fixes 400/200 >= 9.5/10 + CMS Guidance + Step 02 Studio Anchor) verified!');
+
+    // 56. M61.2 Tactile Pill Buttons (.vs-pill-btn), Subscriber-Aware /pricing (Hides $19 + Upgrade/Downgrade CTAs), & Resend /api/auth/magic-link
+    assert.ok(
+      m61Step2Html.includes('vs-pill-group') &&
+        m61Step2Html.includes('vs-pill-btn'),
+      'Expected .vs-pill-group and .vs-pill-btn tactile pill buttons on Step 02'
+    );
+
+    const subscriberPricingHtml = await (
+      await fetch(`${BASE}/pricing`, { headers: OWNER_HEADERS })
+    ).text();
+    assert.ok(
+      !subscriberPricingHtml.includes('Buy $19 Audit Pass') &&
+        !subscriberPricingHtml.includes('Start 7-Day Free Trial') &&
+        subscriberPricingHtml.includes('CURRENT PLAN') &&
+        subscriberPricingHtml.includes('Downgrade to Starter') &&
+        subscriberPricingHtml.includes('Upgrade to Agency Plan'),
+      'Expected signed-in Pro subscriber /pricing view to hide $19 Audit Pass and show CURRENT PLAN + Upgrade/Downgrade CTAs'
+    );
+    const strippedSubPricing = subscriberPricingHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedSubPricing.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on subscriber /pricing view'
+    );
+
+    // /api/auth/magic-link security & rate-limit checks
+    const noOriginMagicRes = await fetch(`${BASE}/api/auth/magic-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'aurearoasters@gmail.com' }),
+    });
+    assert.equal(noOriginMagicRes.status, 403);
+
+    const openRedirectMagicRes = await fetch(`${BASE}/api/auth/magic-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: BASE },
+      body: JSON.stringify({
+        email: 'aurearoasters@gmail.com',
+        nextPath: 'https://evil-phisher.com/steal',
+      }),
+    });
+    assert.equal(openRedirectMagicRes.status, 400);
+
+    const crlfEmailMagicRes = await fetch(`${BASE}/api/auth/magic-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: BASE },
+      body: JSON.stringify({
+        email: 'bad@email\r\nBcc:victim@test.com',
+      }),
+    });
+    assert.equal(crlfEmailMagicRes.status, 400);
+
+    for (let i = 0; i < 5; i += 1) {
+      const validMagicRes = await fetch(`${BASE}/api/auth/magic-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: BASE,
+          'x-forwarded-for': '198.51.100.88',
+        },
+        body: JSON.stringify({
+          email: 'aurearoasters@gmail.com',
+          nextPath: '/dashboard?tab=tab2_fixes',
+        }),
+      });
+      assert.equal(validMagicRes.status, 200);
+      const validMagicJson = await validMagicRes.json();
+      assert.equal(validMagicJson.ok, true);
+      assert.ok(validMagicJson.qualityScore >= 9.5);
+      // Security check: actionLink must NEVER be returned in JSON
+      assert.ok(!JSON.stringify(validMagicJson).includes('access_token'));
+      assert.ok(!JSON.stringify(validMagicJson).includes('actionLink'));
+    }
+
+    const sixthMagicRes = await fetch(`${BASE}/api/auth/magic-link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.88',
+      },
+      body: JSON.stringify({
+        email: 'aurearoasters@gmail.com',
+      }),
+    });
+    assert.equal(sixthMagicRes.status, 429);
+    console.log('✔ [58/58] M61.2 Tactile Pill Buttons (.vs-pill-btn), Subscriber /pricing Upgrade/Downgrade View & Resend /api/auth/magic-link (403/400/200/429) verified!');
   } finally {
     server.kill();
   }

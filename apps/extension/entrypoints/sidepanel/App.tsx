@@ -1059,12 +1059,8 @@ export default function App(): React.ReactElement {
                 </div>
 
                 <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '4px',
-                    marginBottom: '8px',
-                  }}
+                  className="vs-pill-group"
+                  style={{ gap: '4px', marginBottom: '8px' }}
                 >
                   {(
                     [
@@ -1081,19 +1077,10 @@ export default function App(): React.ReactElement {
                       <button
                         key={envId}
                         type="button"
+                        className="vs-pill-btn vs-pill-btn-sm"
+                        data-active={active ? 'true' : 'false'}
                         onClick={() => setSelectedPromptEnv(envId)}
-                        style={{
-                          border: active
-                            ? '1px solid var(--vs-ink)'
-                            : '1px solid var(--vs-border-strong)',
-                          background: active ? 'var(--vs-ink)' : '#FFFFFF',
-                          color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-                          borderRadius: '4px',
-                          padding: '3px 7px',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
+                        style={{ padding: '3px 8px', fontSize: '10.5px' }}
                       >
                         {label}
                       </button>
@@ -1365,56 +1352,26 @@ export default function App(): React.ReactElement {
                         ? '✓ Tracker Prompt Copied'
                         : 'Copy AI Prompt to Install Tracker'}
                     </button>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        border: '1px solid var(--vs-border)',
-                        borderRadius: '5px',
-                        padding: '2px',
-                        background: 'var(--vs-surface-subtle)',
-                      }}
-                    >
+                    <div className="vs-pill-group" style={{ gap: '4px' }}>
                       <button
                         type="button"
+                        className="vs-pill-btn vs-pill-btn-sm"
+                        data-active={
+                          attributionMode === 'browser_pixel' ? 'true' : 'false'
+                        }
                         onClick={() => setAttributionMode('browser_pixel')}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '3px 7px',
-                          borderRadius: '4px',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          background:
-                            attributionMode === 'browser_pixel'
-                              ? 'var(--vs-ink)'
-                              : 'transparent',
-                          color:
-                            attributionMode === 'browser_pixel'
-                              ? '#FFFFFF'
-                              : 'var(--vs-ink-secondary)',
-                        }}
+                        style={{ padding: '3px 8px', fontSize: '10.5px' }}
                       >
                         Browser Pixel
                       </button>
                       <button
                         type="button"
+                        className="vs-pill-btn vs-pill-btn-sm"
+                        data-active={
+                          attributionMode === 'edge_crawler' ? 'true' : 'false'
+                        }
                         onClick={() => setAttributionMode('edge_crawler')}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '3px 7px',
-                          borderRadius: '4px',
-                          fontSize: '10.5px',
-                          fontWeight: 600,
-                          background:
-                            attributionMode === 'edge_crawler'
-                              ? 'var(--vs-ink)'
-                              : 'transparent',
-                          color:
-                            attributionMode === 'edge_crawler'
-                              ? '#FFFFFF'
-                              : 'var(--vs-ink-secondary)',
-                        }}
+                        style={{ padding: '3px 8px', fontSize: '10.5px' }}
                       >
                         Edge Bot Logger
                       </button>

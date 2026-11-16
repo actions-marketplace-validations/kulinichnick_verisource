@@ -391,7 +391,7 @@ export async function resolveAuthenticatedProfile(
     .maybeSingle();
 
   if (existingProfile) {
-    if (isOwner && existingProfile.plan_tier !== 'agency_249') {
+    if (isOwner && existingProfile.plan_tier === 'free') {
       const upgradedLimit = Math.max(existingProfile.mcp_calls_limit, 5000);
       const { data: ownerProfile } = await supabase
         .from('profiles')

@@ -128,8 +128,9 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   const hasPriorBillingHistory = auth
     ? Boolean(
-        (auth.profile.stripe_customer_id &&
-          !auth.profile.stripe_customer_id.startsWith('cus_demo_')) ||
+        auth.profile.plan_tier !== 'free' ||
+          (auth.profile.stripe_customer_id &&
+            !auth.profile.stripe_customer_id.startsWith('cus_demo_')) ||
           auth.profile.stripe_subscription_id ||
           auth.profile.tripwire_paid_at
       )

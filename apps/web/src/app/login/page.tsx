@@ -73,6 +73,33 @@ export default function LoginPage(): React.ReactElement {
         return;
       }
 
+      const magicRes = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          nextPath: nextHref,
+        }),
+      });
+      const magicJson = (await magicRes.json().catch(() => ({}))) as {
+        ok?: boolean;
+        fallbackToClientOtp?: boolean;
+        message?: string;
+      };
+
+      if (magicJson.ok) {
+        setSent(true);
+        return;
+      }
+
+      if (!magicJson.fallbackToClientOtp && !magicRes.ok) {
+        setError(
+          magicJson.message ??
+            'Unable to send sign-in link right now. Please try again.'
+        );
+        return;
+      }
+
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
@@ -138,60 +165,33 @@ export default function LoginPage(): React.ReactElement {
           <div
             role="group"
             aria-label="Sign-in method"
+            className="vs-pill-group"
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: '4px',
-              padding: '3px',
-              borderRadius: '6px',
-              border: '1px solid var(--vs-border)',
-              background: 'var(--vs-surface-subtle)',
+              gap: '8px',
               marginBottom: '18px',
             }}
           >
             <button
               type="button"
+              className="vs-pill-btn"
+              data-active={authMethod === 'magic_link' ? 'true' : 'false'}
               onClick={() => {
                 setAuthMethod('magic_link');
                 setError(null);
-              }}
-              style={{
-                border: 'none',
-                cursor: 'pointer',
-                padding: '7px 10px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: 600,
-                background:
-                  authMethod === 'magic_link' ? 'var(--vs-ink)' : 'transparent',
-                color:
-                  authMethod === 'magic_link'
-                    ? '#FFFFFF'
-                    : 'var(--vs-ink-secondary)',
               }}
             >
               1-Click Email Link
             </button>
             <button
               type="button"
+              className="vs-pill-btn"
+              data-active={authMethod === 'password' ? 'true' : 'false'}
               onClick={() => {
                 setAuthMethod('password');
                 setSent(false);
                 setError(null);
-              }}
-              style={{
-                border: 'none',
-                cursor: 'pointer',
-                padding: '7px 10px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: 600,
-                background:
-                  authMethod === 'password' ? 'var(--vs-ink)' : 'transparent',
-                color:
-                  authMethod === 'password'
-                    ? '#FFFFFF'
-                    : 'var(--vs-ink-secondary)',
               }}
             >
               Email &amp; Password

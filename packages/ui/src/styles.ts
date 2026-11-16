@@ -205,43 +205,57 @@ main {
   border-color: var(--vs-crit-border);
 }
 
-/* Segmented Guided / Pro UX Mode Switch */
-.vs-mode-switch {
+/* Tactile Pill Buttons & Mode Switches (Consistent Site-Wide Selection Pills) */
+.vs-mode-switch,
+.vs-pill-group {
   display: inline-flex;
   flex-wrap: wrap;
   max-width: 100%;
   align-items: center;
-  padding: 2px;
-  border-radius: 6px;
-  border: 1px solid var(--vs-border-strong);
-  background: var(--vs-surface-subtle);
-  gap: 2px;
+  gap: 6px;
 }
 
-.vs-mode-btn {
+.vs-mode-btn,
+.vs-pill-btn {
   appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--vs-ink-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--vs-border-strong);
+  background: var(--vs-surface);
+  color: var(--vs-ink-secondary);
   font-family: var(--vs-sans);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.25;
-  padding: 6px 10px;
-  border-radius: 4px;
+  padding: 6px 13px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  box-shadow: 0 1px 1px rgba(10, 14, 23, 0.03);
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
   white-space: nowrap;
 }
 
-.vs-mode-btn:hover {
+.vs-mode-btn:hover:not(:disabled),
+.vs-pill-btn:hover:not(:disabled) {
   color: var(--vs-ink);
+  border-color: var(--vs-ink);
+  background: var(--vs-surface-warm);
 }
 
-.vs-mode-btn[data-active="true"] {
-  background: var(--vs-surface);
-  color: var(--vs-ink);
-  box-shadow: 0 1px 2px rgba(10, 14, 23, 0.08);
+.vs-mode-btn[data-active="true"],
+.vs-pill-btn[data-active="true"],
+.vs-pill-btn[aria-selected="true"] {
+  background: var(--vs-ink);
+  border-color: var(--vs-ink);
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(10, 14, 23, 0.16);
+}
+
+.vs-pill-btn-sm {
+  padding: 4.5px 11px;
+  font-size: 11.5px;
 }
 
 /* Easy-to-Use Guided Explainer Card */
@@ -468,6 +482,12 @@ main {
   gap: 14px;
 }
 
+.vs-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .vs-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -493,6 +513,7 @@ main {
 
 .vs-hero-grid > *,
 .vs-grid-4 > *,
+.vs-grid-3 > *,
 .vs-grid-2 > *,
 .vs-grid-split > *,
 .vs-showcase-grid > *,
@@ -636,7 +657,8 @@ main {
     grid-template-columns: minmax(0, 1fr);
     gap: 24px;
   }
-  .vs-grid-4 {
+  .vs-grid-4,
+  .vs-grid-3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .vs-grid-split {
@@ -691,7 +713,8 @@ main {
     line-height: 1.35;
     overflow-wrap: anywhere;
   }
-  .vs-mode-btn {
+  .vs-mode-btn,
+  .vs-pill-btn {
     white-space: normal;
     text-align: center;
   }
@@ -711,6 +734,7 @@ main {
     white-space: normal !important;
   }
   .vs-grid-2,
+  .vs-grid-3,
   .vs-grid-4 {
     grid-template-columns: minmax(0, 1fr);
   }

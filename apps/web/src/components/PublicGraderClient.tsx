@@ -755,13 +755,10 @@ export function PublicGraderClient(): React.ReactElement {
 
                   {/* Interactive Platform Switcher + Redacted Prompt Preview */}
                   <div
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      alignItems: 'center',
-                      gap: '6px',
-                      marginBottom: '10px',
-                    }}
+                    className="vs-pill-group"
+                    role="group"
+                    aria-label="Preview AI prompt platform"
+                    style={{ marginBottom: '10px' }}
                   >
                     <span
                       className="vs-mono"
@@ -789,21 +786,9 @@ export function PublicGraderClient(): React.ReactElement {
                         <button
                           key={envId}
                           type="button"
+                          className="vs-pill-btn vs-pill-btn-sm"
+                          data-active={active ? 'true' : 'false'}
                           onClick={() => setSelectedPromptEnv(envId)}
-                          style={{
-                            border: active
-                              ? '1px solid var(--vs-ink)'
-                              : '1px solid var(--vs-border-strong)',
-                            background: active ? 'var(--vs-ink)' : '#FFFFFF',
-                            color: active
-                              ? '#FFFFFF'
-                              : 'var(--vs-ink-secondary)',
-                            borderRadius: '4px',
-                            padding: '4px 9px',
-                            fontSize: '11.5px',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                          }}
                         >
                           {label}
                         </button>

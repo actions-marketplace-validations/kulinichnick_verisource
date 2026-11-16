@@ -48,43 +48,21 @@ export function AgencyRoiCalculator(): React.ReactElement {
         <div
           role="group"
           aria-label="Agency billing cycle"
-          style={{
-            display: 'inline-flex',
-            border: '1px solid var(--vs-border)',
-            borderRadius: '6px',
-            padding: '2px',
-            background: 'var(--vs-surface)',
-          }}
+          className="vs-pill-group"
         >
           <button
             type="button"
+            className="vs-pill-btn vs-pill-btn-sm"
+            data-active={cycle === 'monthly' ? 'true' : 'false'}
             onClick={() => setCycle('monthly')}
-            style={{
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 10px',
-              borderRadius: '4px',
-              fontSize: '11.5px',
-              fontWeight: 600,
-              background: cycle === 'monthly' ? 'var(--vs-ink)' : 'transparent',
-              color: cycle === 'monthly' ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-            }}
           >
             Monthly ($249/mo)
           </button>
           <button
             type="button"
+            className="vs-pill-btn vs-pill-btn-sm"
+            data-active={cycle === 'annual' ? 'true' : 'false'}
             onClick={() => setCycle('annual')}
-            style={{
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 10px',
-              borderRadius: '4px',
-              fontSize: '11.5px',
-              fontWeight: 600,
-              background: cycle === 'annual' ? 'var(--vs-ink)' : 'transparent',
-              color: cycle === 'annual' ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-            }}
           >
             Annual ($199/mo · -20%)
           </button>

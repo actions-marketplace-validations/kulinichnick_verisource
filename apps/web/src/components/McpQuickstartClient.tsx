@@ -236,12 +236,8 @@ export function McpQuickstartClient(): React.ReactElement {
         </div>
 
         <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px',
-            marginBottom: '16px',
-          }}
+          className="vs-pill-group"
+          style={{ marginBottom: '16px' }}
           role="tablist"
           aria-label="MCP client selector"
         >
@@ -253,11 +249,9 @@ export function McpQuickstartClient(): React.ReactElement {
                 type="button"
                 role="tab"
                 aria-selected={isSelected}
+                data-active={isSelected ? 'true' : 'false'}
                 onClick={() => setSelectedClient(clientId)}
-                className={
-                  isSelected ? 'vs-btn' : 'vs-btn vs-btn-secondary'
-                }
-                style={{ padding: '7px 13px', fontSize: '12.5px' }}
+                className="vs-pill-btn"
               >
                 {CLIENT_GUIDES[clientId].label}
               </button>
