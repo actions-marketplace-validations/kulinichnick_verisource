@@ -15,6 +15,7 @@ import {
   buildCitationGapActionPlaybookMarkdown,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
+  buildFollowUpVerificationAiPrompt,
   buildImplementationBundleMarkdown,
   buildPlainEnglishSiteDiagnosis,
   buildShopifyCustomerEventsPixel,
@@ -310,6 +311,8 @@ export function DashboardConsoleClient(props: {
   >({});
   const [copiedAiFixPrompt, setCopiedAiFixPrompt] = useState(false);
   const [expandedAiFixPrompt, setExpandedAiFixPrompt] = useState(false);
+  const [copiedFollowUpPrompt, setCopiedFollowUpPrompt] = useState(false);
+  const [expandedFollowUpPrompt, setExpandedFollowUpPrompt] = useState(false);
   const [citationBlueprintType, setCitationBlueprintType] =
     useState<CitationPageBlueprintType>('vs_competitor');
   const [customCitationRival, setCustomCitationRival] = useState('');
@@ -520,6 +523,8 @@ export function DashboardConsoleClient(props: {
     setSelectedCitationSourceHost(null);
     setCopiedAiFixPrompt(false);
     setExpandedAiFixPrompt(false);
+    setCopiedFollowUpPrompt(false);
+    setExpandedFollowUpPrompt(false);
     setCustomCitationRival('');
     setCustomCitationPrompt('');
     setCopiedCitationPagePrompt(false);
@@ -712,6 +717,24 @@ export function DashboardConsoleClient(props: {
         targetEnv: aiPromptTargetEnv,
       })
     : null;
+
+  const activeFixVerification =
+    lastFixVerification &&
+    (!activeDomainHostname ||
+      lastFixVerification.hostname.toLowerCase() ===
+        activeDomainHostname.toLowerCase())
+      ? lastFixVerification
+      : null;
+
+  const followUpVerificationBundle =
+    activeDomain && activeFixVerification
+      ? buildFollowUpVerificationAiPrompt({
+          domain: activeDomain,
+          verification: activeFixVerification,
+          fixes: domainFixes,
+          targetEnv: aiPromptTargetEnv,
+        })
+      : null;
 
   const suggestedBuyerPrompts =
     activeDomain && brandSentimentAndSov
@@ -1872,11 +1895,15 @@ export function DashboardConsoleClient(props: {
     if (!activeDomain) return;
     setVerifyingFixes(true);
     setBannerError(null);
+    setCopiedFollowUpPrompt(false);
     try {
       const res = await fetch('/api/dashboard/verify-fixes', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ domain_id: activeDomain.id }),
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          env: aiPromptTargetEnv,
+        }),
       });
       const json = (await res.json()) as {
         error?: string;
@@ -1893,6 +1920,12 @@ export function DashboardConsoleClient(props: {
       } else {
         const appliedIdSet = new Set(json.appliedFixIds ?? []);
         recordDomainScoreDelta(json.domain.id, json.scoreDelta);
+        if (json.verification.detectedPlatform) {
+          setDetectedPlatformByDomainId((prev) => ({
+            ...prev,
+            [json.domain!.id]: json.verification!.detectedPlatform!,
+          }));
+        }
         setLastFixVerification(json.verification);
         setData((prev) => ({
           ...prev,
@@ -1915,11 +1948,47 @@ export function DashboardConsoleClient(props: {
         setBannerSuccess(
           `Verified ${liveCheckCount}/4 on-site checks live on ${json.verification.hostname} (${appliedIdSet.size} artifact(s) marked live · Visibility ${deltaText}).`
         );
+        if (typeof document !== 'undefined') {
+          setTimeout(() => {
+            document
+              .getElementById('vs-live-verification-result')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 60);
+        }
       }
     } catch {
       setBannerError('Network error while verifying live fixes.');
     } finally {
       setVerifyingFixes(false);
+    }
+  }
+
+  async function handleCopyFollowUpVerificationPrompt() {
+    if (!followUpVerificationBundle) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(
+          followUpVerificationBundle.prompt.content
+        );
+      }
+      setCopiedFollowUpPrompt(true);
+      setTimeout(() => setCopiedFollowUpPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  function handleJumpToComparisonStudio() {
+    setCitationBlueprintType('vs_competitor');
+    setExpandedCitationPageStudio(true);
+    setActiveTab('tab2_fixes');
+    if (typeof document !== 'undefined') {
+      setTimeout(() => {
+        const studioEl = document.getElementById('vs-citation-page-studio');
+        if (studioEl) {
+          studioEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 60);
     }
   }
 
@@ -2149,12 +2218,7 @@ export function DashboardConsoleClient(props: {
       return;
     }
     if (target === 'build_vs_page_step2') {
-      setCitationBlueprintType('vs_competitor');
-      setExpandedCitationPageStudio(true);
-      setActiveTab('tab2_fixes');
-      if (typeof window !== 'undefined') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      handleJumpToComparisonStudio();
       return;
     }
     if (target === 'offsite_citations_step3') {
@@ -5319,9 +5383,317 @@ export function DashboardConsoleClient(props: {
               </div>
             ) : null}
 
+            {/* M61: Instant Top-of-Step-02 Live Fix Verification Scorecard & Follow-Up AI Prompt */}
+            {activeFixVerification && followUpVerificationBundle ? (
+              <div
+                id="vs-live-verification-result"
+                className="vs-card"
+                style={{
+                  overflow: 'hidden',
+                  marginBottom: '20px',
+                  border: followUpVerificationBundle.allVerified
+                    ? '1.5px solid var(--vs-pass-border)'
+                    : '1.5px solid var(--vs-ink)',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '12px 18px',
+                    borderBottom: '1px solid var(--vs-border)',
+                    background: followUpVerificationBundle.allVerified
+                      ? 'var(--vs-pass-bg)'
+                      : 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <strong style={{ fontSize: '13.5px' }}>
+                      Live Fix Deployment Check — {activeFixVerification.hostname}
+                    </strong>
+                    <StatusBadge
+                      tone={
+                        followUpVerificationBundle.allVerified ? 'pass' : 'warn'
+                      }
+                    >
+                      {followUpVerificationBundle.allVerified
+                        ? '4/4 VERIFIED LIVE'
+                        : `${followUpVerificationBundle.liveCount}/4 LIVE · ${followUpVerificationBundle.remainingCount} STILL NEEDED`}
+                    </StatusBadge>
+                  </div>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    {activeScoreDelta ? (
+                      <StatusBadge
+                        tone={
+                          activeScoreDelta.visibilityDelta > 0
+                            ? 'pass'
+                            : 'neutral'
+                        }
+                      >
+                        SCORE IMPACT: {activeScoreDelta.previousVisibilityScore}{' '}
+                        → {activeScoreDelta.currentVisibilityScore} (
+                        {activeScoreDelta.visibilityDelta >= 0
+                          ? `+${activeScoreDelta.visibilityDelta}`
+                          : activeScoreDelta.visibilityDelta}{' '}
+                        PTS)
+                      </StatusBadge>
+                    ) : null}
+                    <span
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-muted)',
+                      }}
+                    >
+                      Checked{' '}
+                      {new Date(
+                        activeFixVerification.checkedAt
+                      ).toLocaleTimeString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="vs-ledger-strip-4">
+                  {followUpVerificationBundle.checkGuidance.map((item) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        padding: '13px 15px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '6px',
+                            marginBottom: '6px',
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 600,
+                              fontSize: '12.5px',
+                              color: 'var(--vs-ink)',
+                            }}
+                          >
+                            {item.label}
+                          </span>
+                          <StatusBadge tone={item.live ? 'pass' : 'warn'}>
+                            {item.live ? 'LIVE' : 'STILL NEEDED'}
+                          </StatusBadge>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--vs-ink-secondary)',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          {item.statusDetail}
+                        </div>
+                      </div>
+                      {!item.live ? (
+                        <div
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: '5px',
+                            background: 'var(--vs-surface-warm)',
+                            border: '1px solid var(--vs-border)',
+                            fontSize: '11.5px',
+                            color: 'var(--vs-ink)',
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          <strong>How to finish:</strong> {item.troubleshootingTip}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+
+                <div
+                  style={{
+                    padding: '13px 18px',
+                    borderTop: '1px solid var(--vs-border)',
+                    background: '#FFFFFF',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  {followUpVerificationBundle.allVerified ? (
+                    <>
+                      <div
+                        style={{
+                          maxWidth: '640px',
+                          fontSize: '13px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          All 4 core AI files are live on{' '}
+                          {activeFixVerification.hostname}!
+                        </strong>{' '}
+                        ChatGPT, Gemini, and Perplexity can crawl your site and
+                        read your verified <code className="vs-mono">JSON-LD</code>,{' '}
+                        <code className="vs-mono">/llms.txt</code>, and{' '}
+                        <code className="vs-mono">/agents.md</code> facts. Next
+                        win: publish a structured comparison page to capture
+                        buyer shortlists.
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={handleJumpToComparisonStudio}
+                          className="vs-btn"
+                          style={{ padding: '9px 15px', fontSize: '12.5px' }}
+                        >
+                          {`Next Win: Build ${activeDomain.brand_name} vs. ${effectiveRivalForStudio} Page →`}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab('tab3_offsite');
+                            if (typeof window !== 'undefined') {
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '9px 13px', fontSize: '12px' }}
+                        >
+                          Open Step 03 Off-Site Sources →
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div
+                        style={{
+                          maxWidth: '640px',
+                          fontSize: '12.5px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          {followUpVerificationBundle.remainingCount} of 4 checks
+                          still need publishing or cache clearing.
+                        </strong>{' '}
+                        Copy this targeted follow-up prompt—it tells your AI to
+                        keep your {followUpVerificationBundle.liveCount}/4
+                        working checks untouched and finish only what is still
+                        missing.
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void handleCopyFollowUpVerificationPrompt()
+                          }
+                          className="vs-btn"
+                          style={{ padding: '9px 15px', fontSize: '12.5px' }}
+                        >
+                          {copiedFollowUpPrompt
+                            ? '✓ Follow-Up Prompt Copied — Paste Into Your AI!'
+                            : 'Copy Follow-Up Prompt for Remaining Fixes'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedFollowUpPrompt((prev) => !prev)
+                          }
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '8px 12px', fontSize: '12px' }}
+                        >
+                          {expandedFollowUpPrompt
+                            ? 'Hide Follow-Up Prompt'
+                            : 'Inspect Follow-Up Prompt'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleVerifyLiveFixes()}
+                          disabled={verifyingFixes}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '8px 12px', fontSize: '12px' }}
+                        >
+                          {verifyingFixes ? 'Checking...' : '↻ Check Again'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {expandedFollowUpPrompt &&
+                !followUpVerificationBundle.allVerified ? (
+                  <div
+                    style={{
+                      padding: '14px 18px',
+                      borderTop: '1px solid var(--vs-border)',
+                      background: '#FFFFFF',
+                    }}
+                  >
+                    <CodeArtifactCard
+                      title={`Targeted Follow-Up AI Fix Prompt (${followUpVerificationBundle.remainingCount} Remaining Check${
+                        followUpVerificationBundle.remainingCount === 1
+                          ? ''
+                          : 's'
+                      })`}
+                      fileHint="Paste into the same AI chat (Claude, ChatGPT, Antigravity, Cursor, or Shopify) to finish only the remaining items"
+                      code={followUpVerificationBundle.prompt.content}
+                      qualityScore={followUpVerificationBundle.prompt.score}
+                      qualityBreakdown={
+                        followUpVerificationBundle.prompt.breakdown
+                      }
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             {/* M48: AI Citation & Rival Comparison Page Studio */}
             {activeCitationPageBundle ? (
               <div
+                id="vs-citation-page-studio"
                 className="vs-card"
                 style={{
                   overflow: 'hidden',
@@ -5910,101 +6282,6 @@ export function DashboardConsoleClient(props: {
                 </button>
               </div>
             </div>
-
-            {lastFixVerification ? (
-              <div
-                className="vs-card"
-                style={{ overflow: 'hidden', marginBottom: '18px' }}
-              >
-                <div
-                  style={{
-                    padding: '10px 16px',
-                    borderBottom: '1px solid var(--vs-border)',
-                    background: 'var(--vs-surface-subtle)',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                  }}
-                >
-                  <strong style={{ fontSize: '13px' }}>
-                    Live Fix Deployment Check — {lastFixVerification.hostname}
-                  </strong>
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    {activeScoreDelta ? (
-                      <StatusBadge
-                        tone={
-                          activeScoreDelta.visibilityDelta > 0
-                            ? 'pass'
-                            : 'neutral'
-                        }
-                      >
-                        SCORE IMPACT: {activeScoreDelta.previousVisibilityScore}{' '}
-                        → {activeScoreDelta.currentVisibilityScore} (
-                        {activeScoreDelta.visibilityDelta >= 0
-                          ? `+${activeScoreDelta.visibilityDelta}`
-                          : activeScoreDelta.visibilityDelta}{' '}
-                        PTS)
-                      </StatusBadge>
-                    ) : null}
-                    <span
-                      className="vs-mono"
-                      style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
-                    >
-                      Checked{' '}
-                      {new Date(
-                        lastFixVerification.checkedAt
-                      ).toLocaleTimeString()}
-                    </span>
-                  </div>
-                </div>
-                <div className="vs-ledger-strip-4">
-                  {lastFixVerification.checks.map((item) => (
-                    <div key={item.id} style={{ padding: '13px 15px' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '6px',
-                          marginBottom: '6px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontWeight: 600,
-                            fontSize: '12.5px',
-                            color: 'var(--vs-ink)',
-                          }}
-                        >
-                          {item.label}
-                        </span>
-                        <StatusBadge tone={item.live ? 'pass' : 'warn'}>
-                          {item.live ? 'LIVE' : 'PENDING'}
-                        </StatusBadge>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          color: 'var(--vs-ink-secondary)',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {item.detail}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
 
             {/* M52 Progressive Disclosure: Explain & Collapse Raw Individual Code Files in Guided Mode */}
             <details className="vs-disclosure" open={!isGuided}>

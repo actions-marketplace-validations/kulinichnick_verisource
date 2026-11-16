@@ -28,6 +28,7 @@ import {
   buildCitationGapActionPlaybookMarkdown,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
+  buildFollowUpVerificationAiPrompt,
   buildFreeAuditSummaryAlert,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
@@ -2658,4 +2659,148 @@ test('M60 buildFreeAuditSummaryAlert & dispatchFreeAuditSummaryEmail generate >=
   assert.equal(dryRun.mode, 'preview_dry_run');
   assert.equal(dryRun.delivered, false);
   assert.ok(dryRun.qualityScore >= 9.5);
+});
+
+test('M61 buildFollowUpVerificationAiPrompt targets only unverified checks across all 6 CMS modes (>= 9.5/10) and celebrates 4/4 live', () => {
+  const sampleDom = {
+    ...PATIENT_ZERO_DOMAINS[1]!,
+    domain_url: 'https://summitdental.com',
+    brand_name: 'Summit Dental',
+    is_shopify: false,
+  };
+  const sampleFixes = PATIENT_ZERO_FIXES.filter(
+    (f) => f.domain_id === PATIENT_ZERO_DOMAINS[1]!.id
+  );
+
+  const partialVerification = {
+    domainUrl: 'https://summitdental.com',
+    hostname: 'summitdental.com',
+    brandName: 'Summit Dental',
+    checkedAt: '2026-11-16T00:00:00.000Z',
+    isShopify: false,
+    detectedPlatform: 'webflow' as const,
+    detectedPlatformLabel: 'Webflow',
+    shopifyMcpStatus: 'unavailable' as const,
+    agentsMdStatus: 'missing' as const,
+    llmsTxtStatus: 'missing' as const,
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: true,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    jsonLdCount: 2,
+    hasFaqSchema: true,
+    appliedFixTypes: ['json_ld_schema' as const, 'fanout_faq_block' as const],
+    checks: [
+      {
+        id: 'json_ld' as const,
+        label: 'JSON-LD Entity + FAQ Graph',
+        live: true,
+        detail: '2 schema.org nodes live (includes FAQPage)',
+      },
+      {
+        id: 'llms_txt' as const,
+        label: 'Canonical /llms.txt',
+        live: false,
+        detail: 'Missing or soft-404 at /llms.txt',
+      },
+      {
+        id: 'agents_md' as const,
+        label: 'Canonical /agents.md',
+        live: false,
+        detail: 'No /agents.md or alternate Markdown link detected',
+      },
+      {
+        id: 'crawler_waf' as const,
+        label: 'AI Bot & Edge WAF Access',
+        live: true,
+        detail:
+          'GPTBot, OAI-SearchBot, PerplexityBot & ClaudeBot allowed (HTTP 200)',
+      },
+    ],
+  };
+
+  for (const targetEnv of [
+    'coding_agent',
+    'wordpress_cms',
+    'webflow_cms',
+    'wix_squarespace_framer',
+    'shopify_liquid',
+    'chat_assistant',
+  ] as const) {
+    const res = buildFollowUpVerificationAiPrompt({
+      domain: sampleDom,
+      verification: partialVerification,
+      fixes: sampleFixes,
+      targetEnv,
+    });
+    assert.equal(res.allVerified, false);
+    assert.equal(res.liveCount, 2);
+    assert.equal(res.remainingCount, 2);
+    assert.deepEqual(res.remainingCheckIds, ['llms_txt', 'agents_md']);
+    assert.ok(
+      res.prompt.score >= 9.5,
+      `Expected >= 9.5 for ${targetEnv}, got ${res.prompt.score}`
+    );
+    // Already-live JSON-LD schema payload must NOT be re-emitted
+    assert.ok(
+      !res.prompt.content.includes('```json'),
+      `Expected live JSON-LD block to be omitted from targeted follow-up prompt (${targetEnv})`
+    );
+    assert.ok(res.prompt.content.includes('KEEP INTACT · LIVE'));
+
+    if (targetEnv === 'webflow_cms') {
+      assert.ok(res.prompt.content.includes('Publish to Selected Domains'));
+      assert.ok(res.prompt.content.includes('verisource-ai-facts'));
+    }
+    if (targetEnv === 'wordpress_cms') {
+      assert.ok(res.prompt.content.includes('WPCode'));
+    }
+
+    const combinedText = [
+      res.prompt.content,
+      ...res.checkGuidance.map(
+        (g) => `${g.statusDetail} ${g.troubleshootingTip}`
+      ),
+    ].join('\n');
+    assert.ok(
+      !/plain[- ]english|\bin english\b|everyday english/i.test(combinedText)
+    );
+    assert.ok(
+      !/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combinedText)
+    );
+    assert.equal(
+      gradeArtifactQuality(combinedText).breakdown.lexicon_filter,
+      2.0
+    );
+  }
+
+  const allLiveVerification = {
+    ...partialVerification,
+    agentsMdStatus: 'custom_enriched' as const,
+    llmsTxtStatus: 'present' as const,
+    checks: partialVerification.checks.map((c) => ({
+      ...c,
+      live: true,
+      detail: 'Verified HTTP 200 live',
+    })),
+  };
+
+  const fullPass = buildFollowUpVerificationAiPrompt({
+    domain: sampleDom,
+    verification: allLiveVerification,
+    fixes: sampleFixes,
+    targetEnv: 'webflow_cms',
+  });
+  assert.equal(fullPass.allVerified, true);
+  assert.equal(fullPass.liveCount, 4);
+  assert.equal(fullPass.remainingCount, 0);
+  assert.equal(fullPass.remainingCheckIds.length, 0);
+  assert.ok(fullPass.prompt.score >= 9.5);
+  assert.ok(
+    fullPass.prompt.content.includes('AI Citation & Rival Comparison Page Studio')
+  );
 });

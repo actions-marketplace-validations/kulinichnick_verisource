@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import {
+  buildFollowUpVerificationAiPrompt,
   computeScoreDeltaSummary,
   computeVisibilityScore,
+  getWebsitePlatformMeta,
   verifyLiveFixDeployment,
+  type AiRemediationTargetEnv,
   type CitationSnapshotRow,
   type DomainRow,
   type EngineScanResult,
@@ -13,6 +16,15 @@ import {
   getLocalMockStore,
   resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
+
+const ALLOWED_TARGET_ENVS = new Set<AiRemediationTargetEnv>([
+  'coding_agent',
+  'chat_assistant',
+  'shopify_liquid',
+  'wordpress_cms',
+  'webflow_cms',
+  'wix_squarespace_framer',
+]);
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -39,6 +51,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const body = (await request.json().catch(() => ({}))) as {
       domain_id?: string;
+      env?: string;
     };
 
     if (!body.domain_id || typeof body.domain_id !== 'string') {
@@ -49,6 +62,24 @@ export async function POST(request: Request): Promise<NextResponse> {
         },
         { status: 400 }
       );
+    }
+
+    let explicitEnv: AiRemediationTargetEnv | undefined;
+    if (body.env !== undefined) {
+      if (
+        typeof body.env !== 'string' ||
+        !ALLOWED_TARGET_ENVS.has(body.env as AiRemediationTargetEnv)
+      ) {
+        return NextResponse.json(
+          {
+            error: 'INVALID_TARGET_ENV',
+            message:
+              'Unsupported AI remediation environment. Choose coding_agent, chat_assistant, shopify_liquid, wordpress_cms, webflow_cms, or wix_squarespace_framer.',
+          },
+          { status: 400 }
+        );
+      }
+      explicitEnv = body.env as AiRemediationTargetEnv;
     }
 
     const store = getLocalMockStore();
@@ -119,6 +150,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       agentsMdStatus: verification.agentsMdStatus,
       jsonLdCount: verification.jsonLdCount,
       isShopify: verification.isShopify,
+      detectedPlatform: verification.detectedPlatform,
+      detectedPlatformLabel: verification.detectedPlatformLabel,
       shopifyMcpStatus: verification.shopifyMcpStatus,
       scanResults: mappedScans,
     });
@@ -188,11 +221,40 @@ export async function POST(request: Request): Promise<NextResponse> {
       verifiedLiveChecksCount: verification.checks.filter((c) => c.live).length,
     });
 
+    const resolvedTargetEnv: AiRemediationTargetEnv =
+      explicitEnv ??
+      getWebsitePlatformMeta(
+        verification.detectedPlatform ??
+          (verification.isShopify ? 'shopify' : 'nextjs_custom')
+      ).recommendedAiEnv;
+
+    const updatedFixesForPrompt: GeneratedFixRow[] = existingFixes.map((f) => ({
+      ...f,
+      is_applied: appliedSet.has(f.fix_type),
+    }));
+
+    const followUpResult = buildFollowUpVerificationAiPrompt({
+      domain: updatedDomain,
+      verification,
+      fixes: updatedFixesForPrompt,
+      targetEnv: resolvedTargetEnv,
+    });
+
     return NextResponse.json({
       verification,
       domain: updatedDomain,
       appliedFixIds,
       scoreDelta,
+      followUp: {
+        targetEnv: resolvedTargetEnv,
+        allVerified: followUpResult.allVerified,
+        liveCount: followUpResult.liveCount,
+        remainingCount: followUpResult.remainingCount,
+        remainingCheckIds: followUpResult.remainingCheckIds,
+        checkGuidance: followUpResult.checkGuidance,
+        promptScore: followUpResult.prompt.score,
+        promptContent: followUpResult.prompt.content,
+      },
     });
   } catch (err) {
     return NextResponse.json(

@@ -2600,7 +2600,76 @@ async function run() {
       }),
     });
     assert.equal(rateLimitedSummary3.status, 429);
-    console.log('✔ [56/56] M60 Mobile-to-Desktop Free Audit Email Summary (403 Origin, 400 CRLF/SSRF/Env, 200 >= 9.5/10, 429 Recipient Cap) verified!');
+    console.log('✔ [56/57] M60 Mobile-to-Desktop Free Audit Email Summary (403 Origin, 400 CRLF/SSRF/Env, 200 >= 9.5/10, 429 Recipient Cap) verified!');
+
+    // 55. M61 Targeted Follow-Up AI Fix Prompt on /api/dashboard/verify-fixes (400 Invalid Env, >= 9.5/10 CMS Guidance, Step 02 Studio Anchor)
+    const badVerifyEnvRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        env: 'invalid_xss_env',
+      }),
+    });
+    assert.equal(badVerifyEnvRes.status, 400);
+    const badVerifyEnvJson = await badVerifyEnvRes.json();
+    assert.equal(badVerifyEnvJson.error, 'INVALID_TARGET_ENV');
+
+    const notFoundVerifyRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '00000000-0000-4000-8000-999999999999',
+        env: 'webflow_cms',
+      }),
+    });
+    assert.equal(notFoundVerifyRes.status, 404);
+
+    const m61VerifyWebflowRes = await fetch(`${BASE}/api/dashboard/verify-fixes`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        env: 'webflow_cms',
+      }),
+    });
+    assert.equal(m61VerifyWebflowRes.status, 200);
+    const m61VerifyWebflowJson = await m61VerifyWebflowRes.json();
+    assert.ok(m61VerifyWebflowJson.followUp);
+    assert.equal(m61VerifyWebflowJson.followUp.targetEnv, 'webflow_cms');
+    assert.equal(m61VerifyWebflowJson.followUp.checkGuidance.length, 4);
+    assert.ok(
+      m61VerifyWebflowJson.followUp.promptScore >= 9.5,
+      `Expected followUp.promptScore >= 9.5, got ${m61VerifyWebflowJson.followUp.promptScore}`
+    );
+    assert.equal(
+      (m61VerifyWebflowJson.followUp.promptContent.match(BANNED_LEXICON) ?? [])
+        .length,
+      0,
+      'Found banned lexicon in M61 followUp.promptContent'
+    );
+    assert.ok(
+      !/plain[- ]english|\bin english\b|everyday english/i.test(
+        m61VerifyWebflowJson.followUp.promptContent
+      ),
+      'Expected zero "plain English" phrasing in M61 followUp.promptContent'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(m61VerifyWebflowJson.followUp.promptContent),
+      'Expected zero /10 or Critic jargon in M61 followUp.promptContent'
+    );
+
+    const m61Step2Html = await (
+      await fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+        headers: OWNER_HEADERS,
+      })
+    ).text();
+    assert.ok(
+      m61Step2Html.includes('id="vs-citation-page-studio"') &&
+        m61Step2Html.includes('Verify Live Fixes'),
+      'Expected Step 02 to render Comparison Page Studio scroll anchor and Verify Live Fixes controls'
+    );
+    console.log('✔ [57/57] M61 Targeted Follow-Up AI Fix Prompt (/api/dashboard/verify-fixes 400/200 >= 9.5/10 + CMS Guidance + Step 02 Studio Anchor) verified!');
   } finally {
     server.kill();
   }

@@ -4,12 +4,19 @@ import {
 } from '../critic/quality-gate.js';
 import type {
   AgentsMdStatus,
+  DomainRow,
+  GeneratedFixRow,
   LlmsTxtStatus,
   RobotsAiBotStatus,
   ShopifyMcpStatus,
 } from '../db/types.js';
 import type { CrawlerReadabilityReport } from '../scanner/bot-waf-prober.js';
 import type { RecommendedRemediationEnv } from '../scanner/cms-detector.js';
+import type {
+  AiRemediationTargetEnv,
+  LiveFixCheckItem,
+  LiveFixVerificationReport,
+} from './audit-domain.js';
 
 export type PlainDiagnosisActionTarget =
   | 'confirm_truth_step1'
@@ -452,5 +459,345 @@ export function buildPublicAiPromptTeaser(
     visibleHeaderText: enforced.content,
     redactedPayloadLines,
     qualityScore: enforced.score,
+  };
+}
+
+export interface VerificationCheckGuidance {
+  id: LiveFixCheckItem['id'];
+  label: string;
+  live: boolean;
+  statusDetail: string;
+  troubleshootingTip: string;
+}
+
+export interface FollowUpVerificationAiPromptResult {
+  allVerified: boolean;
+  liveCount: number;
+  remainingCount: number;
+  remainingCheckIds: Array<LiveFixCheckItem['id']>;
+  checkGuidance: VerificationCheckGuidance[];
+  prompt: EnforcedQualityArtifact;
+}
+
+export interface BuildFollowUpVerificationAiPromptInput {
+  domain: Pick<
+    DomainRow,
+    | 'brand_name'
+    | 'domain_url'
+    | 'is_shopify'
+    | 'brand_truth_sheet'
+    | 'visibility_score'
+    | 'accuracy_score'
+  >;
+  verification: LiveFixVerificationReport;
+  fixes: Array<
+    Pick<
+      GeneratedFixRow,
+      | 'fix_type'
+      | 'title'
+      | 'content_payload'
+      | 'is_applied'
+      | 'natural_quality_score'
+    >
+  >;
+  targetEnv?: AiRemediationTargetEnv;
+}
+
+function buildPlatformTroubleshootingTip(
+  checkId: LiveFixCheckItem['id'],
+  live: boolean,
+  mode: AiRemediationTargetEnv,
+  host: string
+): string {
+  if (live) {
+    switch (checkId) {
+      case 'json_ld':
+        return `Verified live on https://${host}—keep existing <script type="application/ld+json"> tags intact.`;
+      case 'llms_txt':
+        return `Verified live—AI search bots can read your site directory feed without errors.`;
+      case 'agents_md':
+        return `Verified live—custom brand pricing and policy rules are exposed to AI crawlers.`;
+      case 'crawler_waf':
+        return `Verified live—GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot receive HTTP 200.`;
+    }
+  }
+
+  switch (checkId) {
+    case 'json_ld':
+      if (mode === 'webflow_cms') {
+        return `Open Webflow Site Settings -> Custom Code -> Head Code, confirm both Organization and FAQPage <script type="application/ld+json"> blocks are saved, then click Publish to Selected Domains.`;
+      }
+      if (mode === 'wix_squarespace_framer') {
+        return `Paste the <script type="application/ld+json"> block into site-wide Header Code Injection (not a draft page) and click Publish so live HTML includes 2+ schema.org nodes.`;
+      }
+      if (mode === 'wordpress_cms') {
+        return `Confirm your WPCode Header snippet is switched to Active and purge WP Rocket, LiteSpeed, Autoptimize, or Cloudflare page cache.`;
+      }
+      if (mode === 'shopify_liquid') {
+        return `Confirm <script type="application/ld+json"> is saved inside layout/theme.liquid before </head> on your Live Published Theme (not an unpublished draft theme).`;
+      }
+      return `Confirm your production deploy completed and root <head> outputs both Organization/Product and FAQPage <script type="application/ld+json"> blocks on https://${host}.`;
+
+    case 'llms_txt':
+      if (mode === 'webflow_cms' || mode === 'wix_squarespace_framer') {
+        return `Add <link rel="alternate" type="text/markdown" href="/ai-facts" /> in site-wide Head Code, map a 301 redirect from /llms.txt -> /ai-facts, and click Publish.`;
+      }
+      if (mode === 'wordpress_cms') {
+        return `Upload llms.txt to your WordPress public web root (or 301-redirect /llms.txt -> /ai-facts with <link rel="alternate" type="text/markdown" href="/ai-facts" />) and clear cache.`;
+      }
+      if (mode === 'shopify_liquid') {
+        return `Publish /pages/ai-facts with <link rel="alternate" type="text/markdown" href="/pages/ai-facts" /> in layout/theme.liquid or serve https://${host}/llms.txt at the edge.`;
+      }
+      return `Serve https://${host}/llms.txt with HTTP 200 and Content-Type: text/plain or text/markdown (avoid SPA HTML fallback pages).`;
+
+    case 'agents_md':
+      if (mode === 'webflow_cms' || mode === 'wix_squarespace_framer') {
+        return `Publish a public https://${host}/ai-facts page wrapping your Brand Truth Markdown inside <article class="verisource-ai-facts">...</article>, add <link rel="alternate" type="text/markdown" href="/ai-facts" /> in <head>, and 301-redirect /agents.md -> /ai-facts.`;
+      }
+      if (mode === 'wordpress_cms') {
+        return `Upload agents.md to your public web root (or publish <article class="verisource-ai-facts"> on /ai-facts linked via <link rel="alternate" type="text/markdown" href="/ai-facts" />) and purge cache.`;
+      }
+      if (mode === 'shopify_liquid') {
+        return `Save templates/agents.md.liquid (or publish /pages/ai-facts wrapped in <article class="verisource-ai-facts"> with <link rel="alternate" type="text/markdown" href="/pages/ai-facts" /> in <head>) to replace stock Shopify boilerplate.`;
+      }
+      return `Serve custom Brand Truth Markdown at https://${host}/agents.md with HTTP 200 and link <link rel="alternate" type="text/markdown" href="/agents.md" /> in <head>.`;
+
+    case 'crawler_waf':
+      if (mode === 'webflow_cms' || mode === 'wix_squarespace_framer') {
+        return `Check your builder's SEO -> robots.txt settings so GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot have Allow: /, then republish your site.`;
+      }
+      if (mode === 'wordpress_cms') {
+        return `Check RankMath / Yoast robots.txt rules and disable Cloudflare or Wordfence bot challenges on public URLs for GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot.`;
+      }
+      if (mode === 'shopify_liquid') {
+        return `Check templates/robots.txt.liquid and edge WAF rules so GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot receive HTTP 200 on public product and policy routes.`;
+      }
+      return `Allow GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot in /robots.txt and exempt verified AI search crawlers from HTTP 403/429 WAF challenges.`;
+  }
+}
+
+export function buildFollowUpVerificationAiPrompt(
+  input: BuildFollowUpVerificationAiPromptInput
+): FollowUpVerificationAiPromptResult {
+  const { domain, verification, fixes } = input;
+  const host =
+    verification.hostname.trim().toLowerCase() ||
+    domain.domain_url
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .split('/')[0] ||
+    'site';
+  const brand = domain.brand_name.trim() || verification.brandName || host;
+  const mode: AiRemediationTargetEnv =
+    input.targetEnv ??
+    (domain.is_shopify || verification.isShopify
+      ? 'shopify_liquid'
+      : 'coding_agent');
+  const isNoRootFileBuilder =
+    mode === 'webflow_cms' || mode === 'wix_squarespace_framer';
+
+  const checkGuidance: VerificationCheckGuidance[] = verification.checks.map(
+    (chk) => ({
+      id: chk.id,
+      label: chk.label,
+      live: chk.live,
+      statusDetail: chk.detail,
+      troubleshootingTip: buildPlatformTroubleshootingTip(
+        chk.id,
+        chk.live,
+        mode,
+        host
+      ),
+    })
+  );
+
+  const liveChecks = checkGuidance.filter((c) => c.live);
+  const remainingChecks = checkGuidance.filter((c) => !c.live);
+  const remainingIds = new Set(remainingChecks.map((c) => c.id));
+
+  if (remainingChecks.length === 0) {
+    const completeLines: string[] = [
+      `# All 4 Core AI Readiness Checks Verified Live — ${brand} (${host})`,
+      '',
+      `Keep every live check untouched. Verisource confirmed HTTP \`200\` readiness across \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, and AI crawler access (\`GPTBot\`, \`OAI-SearchBot\`, \`PerplexityBot\`, \`ClaudeBot\`) on \`https://${host}\`.`,
+      '',
+      `## Guardrails for Future Deploys`,
+      `- Preserve existing \`<script type="application/ld+json">\` blocks, \`/llms.txt\`, \`/agents.md\` (or \`/ai-facts\`), and \`robots.txt\` \`Allow: /\` rules.`,
+      `- Lock all future pricing and fulfillment copy strictly to verified truth: **${domain.brand_truth_sheet.verified_pricing_summary || `${brand} published pricing`}** (${domain.brand_truth_sheet.shipping_or_service_area || 'published coverage'}).`,
+      `- Next high-converting step: open **AI Citation & Rival Comparison Page Studio** in Verisource Step 02 to publish a structured \`<table>\` comparison route.`,
+    ];
+
+    return {
+      allVerified: true,
+      liveCount: liveChecks.length,
+      remainingCount: 0,
+      remainingCheckIds: [],
+      checkGuidance,
+      prompt: enforceQualityGate95(completeLines.join('\n'), 'agents_md'),
+    };
+  }
+
+  const roleInstruction =
+    mode === 'shopify_liquid'
+      ? `Act as my Senior Shopify Liquid & Technical SEO Engineer for **${brand}** (\`https://${host}\`). Finish only the remaining unverified AI readiness items below on the Live Published Theme without altering working files.`
+      : mode === 'wordpress_cms'
+        ? `Act as my Senior WordPress & Technical SEO Engineer for **${brand}** (\`https://${host}\`). Give me exact WordPress Admin clicks (WPCode, RankMath/Yoast, File Manager, and cache purge steps) to finish only the remaining unverified items below.`
+        : mode === 'webflow_cms'
+          ? `Act as my Senior Webflow & Technical SEO Specialist for **${brand}** (\`https://${host}\`). Guide me through Webflow **Site Settings -> Custom Code -> Head Code**, a public \`/ai-facts\` page containing \`<article class="verisource-ai-facts">\`, **301 Redirects**, and clicking **Publish to Selected Domains** for the remaining items below.`
+          : mode === 'wix_squarespace_framer'
+            ? `Act as my Senior No-Code Website Specialist for **${brand}** (\`https://${host}\`). Walk me step by step through site-wide Header Code Injection, a public \`/ai-facts\` page wrapped in \`<article class="verisource-ai-facts">\`, 301 redirects, and clicking **Publish** for the remaining items below.`
+            : mode === 'chat_assistant'
+              ? `Act as my Senior Web Implementation Engineer for **${brand}** (\`https://${host}\`). Walk me step by step through finishing only the remaining unverified items below inside my website dashboard.`
+              : `Act as a Principal Full-Stack & Technical SEO Engineer inside the repository for **${brand}** (\`https://${host}\`). Implement and deploy only the remaining unverified items below without breaking existing routes or live checks.`;
+
+  const lines: string[] = [
+    `# Targeted Follow-Up AI Fix Prompt — ${brand} (${host})`,
+    '',
+    `Publish only the missing items below. Verisource scanned \`https://${host}\` live and confirmed **${liveChecks.length} of 4** checks are already active while **${remainingChecks.length} of 4** still need deployment or cache clearing.`,
+    '',
+    roleInstruction,
+    '',
+    `## 1. Do Not Break Already-Live Checks (${liveChecks.length}/4 Passing)`,
+  ];
+
+  if (liveChecks.length === 0) {
+    lines.push(
+      `- \`0/4\` checks were detected on the live domain yet—confirm you published changes to your production domain (\`https://${host}\`) rather than a staging preview URL.`
+    );
+  } else {
+    for (const passed of liveChecks) {
+      lines.push(
+        `- **[KEEP INTACT · LIVE]** **${passed.label}:** ${passed.statusDetail}.`
+      );
+    }
+  }
+
+  lines.push(
+    '',
+    `## 2. Remaining Checks to Fix Now (${remainingChecks.length}/4 Still Needed)`
+  );
+
+  for (const pending of remainingChecks) {
+    lines.push(
+      `- **[STILL NEEDED]** **${pending.label}** — Live scan result: *${pending.statusDetail}*. **Fix:** ${pending.troubleshootingTip}`
+    );
+  }
+
+  lines.push(
+    '',
+    `## 3. Verified Brand Facts (Zero Invented Claims)`,
+    `- **Core Offering:** ${domain.brand_truth_sheet.core_offering || `${brand} products and services.`}`,
+    `- **Verified Pricing:** ${domain.brand_truth_sheet.verified_pricing_summary || 'Use live published pricing only.'}`,
+    `- **Fulfillment / Coverage:** ${domain.brand_truth_sheet.shipping_or_service_area || 'Use live published coverage terms only.'}`
+  );
+
+  if (
+    domain.brand_truth_sheet.discontinued_or_false_claims_to_flag.length > 0
+  ) {
+    lines.push(
+      `- **Never State These Claims:** ${domain.brand_truth_sheet.discontinued_or_false_claims_to_flag.join(' | ')}`
+    );
+  }
+
+  lines.push('', `## 4. Exact Payloads for Remaining Items Only`);
+
+  if (
+    isNoRootFileBuilder &&
+    (remainingIds.has('llms_txt') || remainingIds.has('agents_md'))
+  ) {
+    lines.push(
+      '',
+      `### Hosted Builder Rule (\`/ai-facts\` + \`<head>\` Link)`,
+      `Place the Markdown blocks below inside an HTML Embed wrapped in \`<article class="verisource-ai-facts">...</article>\` on \`https://${host}/ai-facts\`, add \`<link rel="alternate" type="text/markdown" href="/ai-facts" title="${brand} Verified AI Truth" />\` to site-wide \`<head>\` custom code, set 301 redirects from \`/llms.txt\` and \`/agents.md\` -> \`/ai-facts\`, and click **Publish**.`
+    );
+  }
+
+  if (remainingIds.has('crawler_waf')) {
+    lines.push(
+      '',
+      `### Remaining Item — Allow AI Search Bots in \`/robots.txt\` & Firewall`,
+      'Ensure `/robots.txt` includes these explicit allow rules on public routes and remove HTTP `403`/`429` bot blocks:',
+      '```txt',
+      ...[
+        'GPTBot',
+        'OAI-SearchBot',
+        'PerplexityBot',
+        'ClaudeBot',
+        'Google-Extended',
+      ].flatMap((bot) => [`User-agent: ${bot}`, 'Allow: /', '']),
+      `Sitemap: https://${host}/sitemap.xml`,
+      '```'
+    );
+  }
+
+  const targetedFixes = fixes.filter((fix) => {
+    if (fix.fix_type === 'json_ld_schema') {
+      return remainingIds.has('json_ld');
+    }
+    if (fix.fix_type === 'fanout_faq_block') {
+      return remainingIds.has('json_ld') && !verification.hasFaqSchema;
+    }
+    if (fix.fix_type === 'llms_txt') {
+      return remainingIds.has('llms_txt');
+    }
+    if (fix.fix_type === 'shopify_agents_liquid') {
+      return (
+        remainingIds.has('agents_md') &&
+        (mode === 'shopify_liquid' ||
+          domain.is_shopify ||
+          verification.isShopify)
+      );
+    }
+    if (fix.fix_type === 'agents_md') {
+      if (!remainingIds.has('agents_md')) return false;
+      const hasShopifyLiquid = fixes.some(
+        (f) => f.fix_type === 'shopify_agents_liquid'
+      );
+      if (
+        hasShopifyLiquid &&
+        (mode === 'shopify_liquid' ||
+          domain.is_shopify ||
+          verification.isShopify)
+      ) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  });
+
+  targetedFixes.forEach((fix, idx) => {
+    const codeFence =
+      fix.fix_type === 'json_ld_schema'
+        ? 'json'
+        : fix.fix_type === 'shopify_agents_liquid'
+          ? 'liquid'
+          : 'markdown';
+    lines.push(
+      '',
+      `### Remaining Artifact ${idx + 1}: ${fix.title}`,
+      `\`\`\`${codeFence}`,
+      fix.content_payload.trim(),
+      `\`\`\``
+    );
+  });
+
+  lines.push(
+    '',
+    `## 5. Final Publish & Cache Check`,
+    `1. Validate any \`application/ld+json\` block with \`JSON.parse()\` so zero trailing commas or syntax errors exist.`,
+    `2. Publish to your live production domain (\`https://${host}\`) and purge any CMS/CDN page cache.`,
+    `3. Return to Verisource Console Step 02 and click **Verify Live Fixes** to confirm \`4/4\` live checks.`
+  );
+
+  return {
+    allVerified: false,
+    liveCount: liveChecks.length,
+    remainingCount: remainingChecks.length,
+    remainingCheckIds: remainingChecks.map((c) => c.id),
+    checkGuidance,
+    prompt: enforceQualityGate95(lines.join('\n'), 'agents_md'),
   };
 }
