@@ -40,11 +40,73 @@ const READY_TO_ASK_PROMPTS = [
   },
 ];
 
+const MCP_GUIDE_FAQS = [
+  {
+    question:
+      'Does the Verisource MCP server use stateless Streamable HTTP or legacy /sse?',
+    answer:
+      'Verisource runs exclusively on stateless Streamable HTTP at https://mcp.verisource.dev/mcp (MCP TypeScript SDK v2) with RFC 9728 OAuth 2.0 Protected Resource discovery—zero deprecated /sse transports.',
+  },
+  {
+    question:
+      'Can I test https://mcp.verisource.dev/mcp without an API key or credit card?',
+    answer:
+      'Yes. Unauthenticated MCP clients can call scan_domain_ai_readiness immediately at 0 credits (up to 3 custom domains per IP per UTC day, backed by a 24-hour Cloudflare KV cache).',
+  },
+  {
+    question:
+      'How are cached reads vs. live multi-engine scans metered on Pro and Agency plans?',
+    answer:
+      'Cached reads from the 12-hour Cloudflare KV cache consume 1 credit in under 100ms, while fresh live scans across ChatGPT, Google Gemini, and Perplexity consume 10 credits via atomic PostgreSQL row locks. Connection handshake checks charge 0 credits.',
+  },
+  {
+    question:
+      'Which AI coding and desktop clients connect out of the box?',
+    answer:
+      'Claude Desktop, Cursor IDE, Google Antigravity, Windsurf, Cline, and custom JSON-RPC 2.0 HTTP pipelines connect via a single mcpServers JSON snippet minted inside Console Step 03.',
+  },
+] as const;
+
 export default function McpQuickstartGuidePage(): React.ReactElement {
   const manifest = buildMcpDiscoveryManifest();
 
+  const softwareSourceJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareSourceCode',
+    name: 'Verisource Streamable HTTP MCP Server (dev.verisource/mcp)',
+    codeRepository: 'https://github.com/kulinichnick/verisource',
+    programmingLanguage: 'TypeScript',
+    runtimePlatform: 'Cloudflare Workers (Stateless Streamable HTTP)',
+    url: 'https://verisource.dev/mcp-guide',
+    description:
+      'Official MCP Registry server (dev.verisource/mcp) exposing AI search readiness scans, citation gap fanouts, hallucination watchdogs, and syntax-validated JSON-LD + /agents.md fix bundles at https://mcp.verisource.dev/mcp.',
+  };
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: MCP_GUIDE_FAQS.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareSourceJsonLd),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       {/* Hero Section with Zero-Lag Animated SVG Streamable HTTP Schematic */}
       <section
         className="vs-arch-backdrop"
@@ -268,6 +330,53 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                 fileHint={item.persona}
                 code={item.prompt}
               />
+            ))}
+          </div>
+        </section>
+
+        {/* MCP Protocol & Credit Metering FAQ */}
+        <section style={{ marginBottom: '54px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            MCP TRANSPORT &amp; METERING FAQ
+          </div>
+          <h2
+            style={{
+              fontSize: '24px',
+              letterSpacing: '-0.02em',
+              margin: '0 0 16px 0',
+            }}
+          >
+            Streamable HTTP transport, authentication, and credit rules.
+          </h2>
+          <div className="vs-grid-2">
+            {MCP_GUIDE_FAQS.map((faq) => (
+              <div
+                key={faq.question}
+                className="vs-card"
+                style={{ padding: '20px 22px' }}
+              >
+                <h3
+                  style={{
+                    fontSize: '15px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.01em',
+                    margin: '0 0 8px 0',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {faq.question}
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '13.5px',
+                    lineHeight: 1.6,
+                    color: 'var(--vs-ink-secondary)',
+                  }}
+                >
+                  {faq.answer}
+                </p>
+              </div>
             ))}
           </div>
         </section>

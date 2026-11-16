@@ -7,13 +7,13 @@ const LLMS_TXT_BODY = `# Verisource — B2B Generative Engine Optimization (GEO)
 Canonical Web Console: https://verisource.dev
 Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial
 Platform Comparisons (vs. Profound, Otterly.ai, Peec AI, AthenaHQ, Scrunch AI): https://verisource.dev/compare
-Shopify UCP & 7-CMS Protocol Guides: https://verisource.dev/guides
+Shopify UCP, JSON-LD & 7-CMS Protocol Guides: https://verisource.dev/guides (https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search)
 7-Platform /agents.md, /llms.txt & JSON-LD Starter Templates: https://verisource.dev/templates
 2026 AI Search & Agent Readiness HTTP Benchmark (N = 40 Domains): https://verisource.dev/benchmarks/ai-search-readiness-2026
 Research & Benchmarks Hub: https://verisource.dev/benchmarks
 WordPress Plugin & Shopify OS 2.0 Connector Bridges: https://verisource.dev/connectors
 25% Recurring Affiliate & Creator Partner Hub: https://verisource.dev/partners
-Free Zero-Signup Diagnostic Tools (/llms.txt Validator, GPTBot WAF Checker, Shopify UCP Checker): https://verisource.dev/tools
+Free Zero-Signup Diagnostic Tools (JSON-LD & FAQPage Validator, /llms.txt Validator, GPTBot WAF Checker, Shopify UCP Checker): https://verisource.dev/tools (https://verisource.dev/tools/json-ld-ai-schema-checker)
 Pricing & Plans: https://verisource.dev/pricing
 Sample White-Label Client Audits: https://verisource.dev/sample-audit
 Agency White-Label Overview: https://verisource.dev/agencies

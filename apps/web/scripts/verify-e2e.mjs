@@ -4003,7 +4003,122 @@ async function run() {
       m77SampleAuditHtml.includes('href="/agencies#sandbox"'),
       'Expected /sample-audit hero to link to /agencies#sandbox'
     );
-    console.log('✔ [74/74] M77 Interactive White-Label Agency Client Sandbox (/agencies#sandbox), Service + FAQPage JSON-LD & /sample-audit Handoff verified!');
+    console.log('✔ [74/75] M77 Interactive White-Label Agency Client Sandbox (/agencies#sandbox), Service + FAQPage JSON-LD & /sample-audit Handoff verified!');
+
+    // 73. M78 Free 3-Pillar JSON-LD & FAQPage AI Validator (/tools/json-ld-ai-schema-checker), Protocol Guide (/guides/json-ld-faqpage-schema-for-ai-search), /mcp-guide + /sample-audit JSON-LD & 28-URL IndexNow Parity
+    const [
+      m78SchemaToolRes,
+      m78SchemaGuideRes,
+      m78McpGuideHtml,
+      m78Sitemap,
+      m78Llms,
+      m78Agents,
+      m78IndexNow,
+    ] = await Promise.all([
+      fetch(`${BASE}/tools/json-ld-ai-schema-checker`),
+      fetch(`${BASE}/guides/json-ld-faqpage-schema-for-ai-search`),
+      fetch(`${BASE}/mcp-guide`).then((r) => r.text()),
+      fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+      fetch(`${BASE}/llms.txt`).then((r) => r.text()),
+      fetch(`${BASE}/agents.md`).then((r) => r.text()),
+      fetch(`${BASE}/api/indexnow`, {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({ dryRun: true }),
+      }).then((r) => r.json()),
+    ]);
+    assert.equal(m78SchemaToolRes.status, 200);
+    assert.equal(m78SchemaGuideRes.status, 200);
+
+    const m78SchemaToolHtml = await m78SchemaToolRes.text();
+    const m78SchemaGuideHtml = await m78SchemaGuideRes.text();
+
+    assert.ok(
+      m78SchemaToolHtml.includes('"@type":"WebApplication"') &&
+        m78SchemaToolHtml.includes('"@type":"FAQPage"') &&
+        m78SchemaToolHtml.includes('Free Schema.org JSON-LD, FAQPage &amp; Offer Pricing Validator'),
+      'Expected /tools/json-ld-ai-schema-checker to render WebApplication + FAQPage JSON-LD'
+    );
+    assert.ok(
+      m78SchemaGuideHtml.includes('"@type":"TechArticle"') &&
+        m78SchemaGuideHtml.includes('"@type":"FAQPage"') &&
+        m78SchemaGuideHtml.includes('/tools/json-ld-ai-schema-checker'),
+      'Expected /guides/json-ld-faqpage-schema-for-ai-search to render TechArticle + FAQPage JSON-LD and link to /tools/json-ld-ai-schema-checker'
+    );
+    assert.ok(
+      m78McpGuideHtml.includes('"@type":"SoftwareSourceCode"') &&
+        m78McpGuideHtml.includes('"@type":"FAQPage"') &&
+        m78McpGuideHtml.includes('MCP TRANSPORT &amp; METERING FAQ') &&
+        m77SampleAuditHtml.includes('"@type":"CollectionPage"'),
+      'Expected /mcp-guide SoftwareSourceCode + FAQPage JSON-LD and /sample-audit CollectionPage JSON-LD'
+    );
+
+    assert.ok(
+      validToolJson.jsonLdReadiness &&
+        validToolJson.jsonLdReadiness.hasEntityIdentity === true &&
+        validToolJson.jsonLdReadiness.hasFaqPage === false &&
+        Array.isArray(validToolJson.jsonLdReadiness.missingAiGraphPillars) &&
+        validToolJson.jsonLdReadiness.missingAiGraphPillars.includes('faq_page'),
+      'Expected /api/tools/check on mosaicroasters.com fixture to flag missing faq_page pillar'
+    );
+
+    const selfDogfoodSchemaJson = await fetch(`${BASE}/api/tools/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain: 'verisource.dev',
+        tool: 'json-ld-ai-schema-checker',
+      }),
+    }).then((r) => r.json());
+    assert.ok(
+      selfDogfoodSchemaJson.jsonLdReadiness &&
+        selfDogfoodSchemaJson.jsonLdReadiness.hasEntityIdentity === true &&
+        selfDogfoodSchemaJson.jsonLdReadiness.hasFaqPage === true &&
+        selfDogfoodSchemaJson.jsonLdReadiness.faqQuestionCount >= 3 &&
+        selfDogfoodSchemaJson.jsonLdReadiness.hasOfferOrPricing === true &&
+        selfDogfoodSchemaJson.jsonLdReadiness.missingAiGraphPillars.length === 0,
+      'Expected /api/tools/check on verisource.dev to pass all 3 JSON-LD pillars (Entity + Offer + FAQPage)'
+    );
+
+    for (const [rLabel, rHtml] of [
+      ['/tools/json-ld-ai-schema-checker', m78SchemaToolHtml],
+      ['/guides/json-ld-faqpage-schema-for-ai-search', m78SchemaGuideHtml],
+      ['/mcp-guide', m78McpGuideHtml],
+    ]) {
+      assert.ok(
+        !rHtml.includes('aurearoasters') && !rHtml.includes('mosaicroasters'),
+        `Expected zero coffee-store echoes on ${rLabel}`
+      );
+      const rVisible = rHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (rVisible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${rLabel}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(rVisible) &&
+          !PLAIN_ENGLISH_JARGON.test(rVisible) &&
+          !/\bbeta\b/i.test(rVisible),
+        `Found /10, plain-English, or Beta jargon on ${rLabel}`
+      );
+    }
+
+    assert.ok(
+      m78Sitemap.includes('https://verisource.dev/tools/json-ld-ai-schema-checker') &&
+        m78Sitemap.includes('https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search') &&
+        m78Llms.includes('https://verisource.dev/tools/json-ld-ai-schema-checker') &&
+        m78Llms.includes('https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search') &&
+        m78Agents.includes('https://verisource.dev/tools/json-ld-ai-schema-checker') &&
+        m78Agents.includes('https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search') &&
+        m78IndexNow.urls.includes('https://verisource.dev/tools/json-ld-ai-schema-checker') &&
+        m78IndexNow.urls.includes('https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search') &&
+        m78IndexNow.submittedCount >= 28,
+      'Expected /sitemap.xml, /llms.txt, /agents.md, and 28-URL /api/indexnow to include new JSON-LD validator & guide routes'
+    );
+    console.log('✔ [75/75] M78 Free 3-Pillar JSON-LD & FAQPage Validator, Protocol Guide, /mcp-guide + /sample-audit JSON-LD & 28-URL IndexNow Parity verified!');
   } finally {
     server.kill();
   }

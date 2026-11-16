@@ -201,8 +201,28 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
   );
   const specimenImpact = FALLBACK_COHORT_REPORTS[0]!.summary_payload.business_impact_items!;
 
+  const sampleCollectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Sample White-Label AI Search & Hallucination Client Audits | Verisource',
+    url: 'https://verisource.dev/sample-audit',
+    description:
+      'Live white-label /audit/[slug] client brief specimens across B2B SaaS, WordPress SEO agencies, and multi-location healthcare with 7-platform CMS detection and Business Impact action plans.',
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Verisource',
+      url: 'https://verisource.dev',
+    },
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(sampleCollectionJsonLd),
+        }}
+      />
       <section
         className="vs-arch-backdrop"
         style={{

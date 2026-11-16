@@ -283,6 +283,96 @@ export function FreeSeoToolClient(props: {
             </div>
           ) : null}
 
+          {props.toolSlug === 'json-ld-ai-schema-checker' ? (
+            <div style={{ marginBottom: '18px' }}>
+              <div
+                className="vs-card vs-ledger-strip-3"
+                style={{ marginBottom: '12px', overflow: 'hidden' }}
+              >
+                <div style={{ padding: '14px' }}>
+                  <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+                    1. ENTITY IDENTITY GRAPH
+                  </div>
+                  <StatusBadge
+                    tone={
+                      result.jsonLdReadiness?.hasEntityIdentity
+                        ? 'pass'
+                        : 'critical'
+                    }
+                  >
+                    {result.jsonLdReadiness?.hasEntityIdentity
+                      ? 'TYPED ENTITY LIVE'
+                      : 'ENTITY SCHEMA MISSING'}
+                  </StatusBadge>
+                  <div
+                    className="vs-mono"
+                    style={{
+                      fontSize: '11.5px',
+                      color: 'var(--vs-ink-muted)',
+                      marginTop: '6px',
+                    }}
+                  >
+                    {result.jsonLdTypes.length > 0
+                      ? result.jsonLdTypes.join(' · ')
+                      : '0 @type entities parsed'}
+                  </div>
+                </div>
+
+                <div style={{ padding: '14px' }}>
+                  <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+                    2. FAQPAGE Q&amp;A SCHEMA
+                  </div>
+                  <StatusBadge
+                    tone={result.jsonLdReadiness?.hasFaqPage ? 'pass' : 'warn'}
+                  >
+                    {result.jsonLdReadiness?.hasFaqPage
+                      ? `LIVE · ${result.jsonLdReadiness.faqQuestionCount} Q&A PAIR(S)`
+                      : 'MISSING · 0 Q&A PAIRS'}
+                  </StatusBadge>
+                  <div
+                    style={{
+                      fontSize: '11.5px',
+                      color: 'var(--vs-ink-muted)',
+                      marginTop: '6px',
+                    }}
+                  >
+                    {result.jsonLdReadiness?.hasFaqPage
+                      ? 'Answer-First Q&A chunks exposed to AI crawlers'
+                      : '92.5% of sites miss FAQPage schema for AI prompts'}
+                  </div>
+                </div>
+
+                <div style={{ padding: '14px' }}>
+                  <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+                    3. OFFER &amp; PRICING GRAPH
+                  </div>
+                  <StatusBadge
+                    tone={
+                      result.jsonLdReadiness?.hasOfferOrPricing
+                        ? 'pass'
+                        : 'warn'
+                    }
+                  >
+                    {result.jsonLdReadiness?.hasOfferOrPricing
+                      ? 'OFFER / PRICING LIVE'
+                      : 'PRICING SCHEMA MISSING'}
+                  </StatusBadge>
+                  <div
+                    style={{
+                      fontSize: '11.5px',
+                      color: 'var(--vs-ink-muted)',
+                      marginTop: '6px',
+                    }}
+                  >
+                    {result.jsonLdReadiness?.hasOfferOrPricing
+                      ? 'Structured Offer or Product pricing detected'
+                      : 'AI engines must guess pricing from prose or directories'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           {/* Contextual Conversion Handoff */}
           <div
             className="vs-card"

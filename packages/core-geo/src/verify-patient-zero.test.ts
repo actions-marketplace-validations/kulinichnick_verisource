@@ -107,6 +107,7 @@ import {
   getCmsStarterTemplate,
   getWebsitePlatformMeta,
   gradeArtifactQuality,
+  inspectJsonLdAiReadiness,
   isAutomatedPreviewBot,
   isFixTypeLiveOnDomain,
   fetchWithSafePublicRedirects,
@@ -4007,4 +4008,78 @@ test('M77 buildAgencySandboxPreview enforces XSS/hex sanitization, strict white-
     )
   );
   assert.ok(!/\bbeta\b/i.test(customAgency.outreachPreview.content));
+});
+
+test('M78 inspectJsonLdAiReadiness classifies empty, partial Organization-only, and full 3-pillar @graph JSON-LD + gtm-content zero-slop check', () => {
+  const emptyGraph = inspectJsonLdAiReadiness([]);
+  assert.equal(emptyGraph.blockCount, 0);
+  assert.equal(emptyGraph.hasEntityIdentity, false);
+  assert.equal(emptyGraph.hasFaqPage, false);
+  assert.equal(emptyGraph.hasOfferOrPricing, false);
+  assert.deepEqual(emptyGraph.missingAiGraphPillars, [
+    'entity_identity',
+    'faq_page',
+    'offer_pricing',
+  ]);
+
+  const partialOrgOnly = inspectJsonLdAiReadiness([
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Acme Cloud',
+    },
+  ]);
+  assert.equal(partialOrgOnly.hasEntityIdentity, true);
+  assert.equal(partialOrgOnly.hasFaqPage, false);
+  assert.equal(partialOrgOnly.hasOfferOrPricing, false);
+  assert.deepEqual(partialOrgOnly.missingAiGraphPillars, [
+    'faq_page',
+    'offer_pricing',
+  ]);
+
+  const fullThreePillar = inspectJsonLdAiReadiness([
+    {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'SoftwareApplication',
+          name: 'Acme Cloud',
+          offers: [
+            { '@type': 'Offer', price: '49.00', priceCurrency: 'USD' },
+            { '@type': 'Offer', price: '99.00', priceCurrency: 'USD' },
+          ],
+        },
+        {
+          '@type': 'FAQPage',
+          mainEntity: [
+            {
+              '@type': 'Question',
+              name: 'Q1?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A1' },
+            },
+            {
+              '@type': 'Question',
+              name: 'Q2?',
+              acceptedAnswer: { '@type': 'Answer', text: 'A2' },
+            },
+          ],
+        },
+      ],
+    },
+  ]);
+  assert.equal(fullThreePillar.hasEntityIdentity, true);
+  assert.equal(fullThreePillar.hasFaqPage, true);
+  assert.equal(fullThreePillar.faqQuestionCount, 2);
+  assert.equal(fullThreePillar.hasOfferOrPricing, true);
+  assert.equal(fullThreePillar.missingAiGraphPillars.length, 0);
+
+  const gtmSrcPath = path.resolve(
+    process.cwd(),
+    '../../apps/web/src/lib/gtm-content.ts'
+  );
+  const gtmSrc = fs.readFileSync(gtmSrcPath, 'utf8');
+  assert.equal(gradeArtifactQuality(gtmSrc).breakdown.lexicon_filter, 2.0);
+  assert.ok(!/aurearoasters|mosaicroasters/i.test(gtmSrc));
+  assert.ok(!/\bbeta\b/i.test(gtmSrc));
+  assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(gtmSrc));
 });

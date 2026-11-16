@@ -815,3 +815,128 @@ export async function probeDomainHttpReadiness(
     crawlerReadability,
   };
 }
+
+export type JsonLdAiPillarId =
+  | 'entity_identity'
+  | 'faq_page'
+  | 'offer_pricing';
+
+export interface JsonLdAiReadinessSummary {
+  blockCount: number;
+  detectedTypes: string[];
+  hasEntityIdentity: boolean;
+  hasFaqPage: boolean;
+  faqQuestionCount: number;
+  hasOfferOrPricing: boolean;
+  missingAiGraphPillars: JsonLdAiPillarId[];
+}
+
+const ENTITY_SCHEMA_TYPES = new Set([
+  'organization',
+  'corporation',
+  'localbusiness',
+  'onlinestore',
+  'store',
+  'dentist',
+  'legalservice',
+  'medicalclinic',
+  'medicalorganization',
+  'professionalservice',
+  'softwareapplication',
+  'webapplication',
+  'brand',
+  'homeandconstructionbusiness',
+  'HVACBusiness'.toLowerCase(),
+]);
+
+const OFFER_OR_PRICING_SCHEMA_TYPES = new Set([
+  'offer',
+  'aggregateoffer',
+  'offercatalog',
+  'product',
+  'pricespecification',
+  'unitpricespecification',
+]);
+
+export function inspectJsonLdAiReadiness(
+  blocks: Record<string, unknown>[]
+): JsonLdAiReadinessSummary {
+  const detectedTypesSet = new Set<string>();
+  let hasEntityIdentity = false;
+  let hasFaqPage = false;
+  let faqQuestionCount = 0;
+  let hasOfferOrPricing = false;
+
+  const visitNode = (node: unknown): void => {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+      for (const item of node) visitNode(item);
+      return;
+    }
+
+    const rec = node as Record<string, unknown>;
+    const rawType = rec['@type'];
+    const rawTypes: string[] =
+      typeof rawType === 'string'
+        ? [rawType]
+        : Array.isArray(rawType)
+          ? rawType.filter((t): t is string => typeof t === 'string')
+          : [];
+
+    for (const t of rawTypes) {
+      const cleaned = t.trim();
+      if (!cleaned) continue;
+      detectedTypesSet.add(cleaned);
+      const lower = cleaned.toLowerCase();
+      if (ENTITY_SCHEMA_TYPES.has(lower)) {
+        hasEntityIdentity = true;
+      }
+      if (lower === 'faqpage') {
+        hasFaqPage = true;
+        const mainEntity = rec.mainEntity;
+        if (Array.isArray(mainEntity)) {
+          faqQuestionCount += mainEntity.filter(
+            (q) => q && typeof q === 'object'
+          ).length;
+        } else if (mainEntity && typeof mainEntity === 'object') {
+          faqQuestionCount += 1;
+        }
+      }
+      if (OFFER_OR_PRICING_SCHEMA_TYPES.has(lower)) {
+        hasOfferOrPricing = true;
+      }
+    }
+
+    if (
+      rec.offers !== undefined ||
+      rec.price !== undefined ||
+      rec.priceRange !== undefined
+    ) {
+      hasOfferOrPricing = true;
+      if (rec.offers && typeof rec.offers === 'object') {
+        visitNode(rec.offers);
+      }
+    }
+
+    if (Array.isArray(rec['@graph'])) {
+      for (const child of rec['@graph']) visitNode(child);
+    }
+  };
+
+  visitNode(blocks);
+
+  const missingAiGraphPillars: JsonLdAiPillarId[] = [];
+  if (!hasEntityIdentity) missingAiGraphPillars.push('entity_identity');
+  if (!hasFaqPage) missingAiGraphPillars.push('faq_page');
+  if (!hasOfferOrPricing) missingAiGraphPillars.push('offer_pricing');
+
+  return {
+    blockCount: blocks.length,
+    detectedTypes: Array.from(detectedTypesSet),
+    hasEntityIdentity,
+    hasFaqPage,
+    faqQuestionCount,
+    hasOfferOrPricing,
+    missingAiGraphPillars,
+  };
+}

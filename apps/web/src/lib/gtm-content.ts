@@ -54,7 +54,8 @@ export interface ProtocolGuideEntry {
 export type FreeToolSlug =
   | 'llms-txt-validator'
   | 'ai-crawler-waf-checker'
-  | 'shopify-ai-readiness-checker';
+  | 'shopify-ai-readiness-checker'
+  | 'json-ld-ai-schema-checker';
 
 export interface FreeSeoToolEntry {
   slug: FreeToolSlug;
@@ -622,6 +623,137 @@ export const PROTOCOL_GUIDES: readonly ProtocolGuideEntry[] = [
       },
     ],
   },
+  {
+    slug: 'json-ld-faqpage-schema-for-ai-search',
+    eyebrow: 'SCHEMA.ORG ENTITY, OFFER & FAQPAGE PROTOCOL GUIDE',
+    title:
+      'How to Structure Schema.org JSON-LD, FAQPage & Offer Graphs for ChatGPT, Gemini & Perplexity',
+    metaTitle:
+      'JSON-LD & FAQPage Schema for AI Search (2026): ChatGPT, Gemini & Perplexity Guide | Verisource',
+    metaDescription:
+      'Learn why 92.5% of public sites miss FAQPage JSON-LD and how typed Organization, Product/Offer, LocalBusiness, and FAQPage @graph blocks prevent AI pricing hallucinations.',
+    readingTime: '6 min implementation guide',
+    answerFirstSummary:
+      'In our 2026 40-domain HTTP benchmark, 82.5% of websites shipped basic homepage JSON-LD, yet only 7.5% exposed FAQPage Q&A blocks alongside typed Offer pricing. Combining an Entity Identity node (Organization, SoftwareApplication, OnlineStore, or LocalBusiness), explicit Offer pricing, and 4–6 Answer-First FAQPage entities inside a single @graph gives ChatGPT Search, Google Gemini, and Perplexity verifiable facts to cite.',
+    referenceTable: {
+      headers: [
+        'Business Vertical',
+        'Required Primary @type Nodes',
+        'High-Converting Offer & FAQPage Fields',
+      ],
+      rows: [
+        [
+          'B2B SaaS & DevTools',
+          'Organization + SoftwareApplication + FAQPage',
+          'Tiered Offer price/priceCurrency, free trial terms, SOC 2 / SSO facts, vs.-competitor FAQs',
+        ],
+        [
+          'Shopify & D2C E-Commerce',
+          'OnlineStore + Product + MerchantReturnPolicy + FAQPage',
+          'SKU Offer availability, free-shipping threshold USD, return window days, fulfillment regions',
+        ],
+        [
+          'Dental, Medical & MedSpa',
+          'Dentist / MedicalClinic + LocalBusiness + FAQPage',
+          'Accepted PPO insurance plans, new-patient exam fee, GeoCircle service area, studio hours',
+        ],
+        [
+          'Legal, HVAC & Home Services',
+          'LegalService / HomeAndConstructionBusiness + FAQPage',
+          'Licensed service counties, consultation or dispatch fee structure, emergency SLA response time',
+        ],
+        [
+          'SEO, Webflow & Shopify Agencies',
+          'ProfessionalService + Service + Offer + FAQPage',
+          'Monthly retainer floor, supported CMS stacks, deliverable turnaround time, case-study metrics',
+        ],
+      ],
+    },
+    sections: [
+      {
+        heading:
+          '1. Why Basic Organization Schema Alone Leaves AI Engines Guessing',
+        paragraphs: [
+          'Default CMS SEO plugins typically emit a minimal Organization + WebSite JSON-LD snippet containing only your brand name and logo URL. When a buyer asks ChatGPT or Perplexity how much your product costs, whether you charge setup fees, or which insurance plans you accept, an empty Organization node forces the retrieval model to scrape unstructured prose or third-party review directories.',
+          'Pairing your primary entity node with explicit Offer / OfferCatalog pricing and an Answer-First FAQPage node turns ambiguous marketing copy into deterministic key-value facts that non-JS crawlers (GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot) parse in a single HTTP pass.',
+        ],
+      },
+      {
+        heading:
+          '2. Production @graph Blueprint: Entity + Offer + FAQPage in One Block',
+        paragraphs: [
+          'Place a single syntax-validated <script type="application/ld+json"> @graph block inside your root <head> so every entity shares stable @id references and passes JSON.parse() with zero trailing commas:',
+        ],
+        codeTitle: 'Validated 3-Pillar @graph Specimen (Entity + Offer + FAQPage)',
+        codeBlock: `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://acmecloud.io/#app",
+      "name": "Acme Cloud",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "url": "https://acmecloud.io",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Starter Plan",
+          "price": "49.00",
+          "priceCurrency": "USD"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro Plan",
+          "price": "99.00",
+          "priceCurrency": "USD"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://acmecloud.io/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does Acme Cloud charge onboarding or setup fees?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. Self-serve Starter ($49/month) and Pro ($99/month) workspaces include zero setup fees and a 7-day free trial."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>`,
+      },
+      {
+        heading:
+          '3. Aligning JSON-LD With /agents.md and Visible Page Copy',
+        paragraphs: [
+          'Never stuff hidden claims into JSON-LD that contradict your visible pricing table or your /agents.md specification. Answer engines cross-check structured schema against visible server-rendered HTML and third-party directories—keeping all three surfaces locked to identical dollar figures eliminates pricing hallucinations.',
+        ],
+      },
+    ],
+    relatedToolSlug: 'json-ld-ai-schema-checker',
+    relatedToolLabel: 'Test Your Live JSON-LD & FAQPage Graph Free →',
+    faqs: [
+      {
+        question:
+          'Does FAQPage JSON-LD still matter for AI search even after Google restricted classic FAQ rich snippets?',
+        answer:
+          'Yes. Even though Google narrowed classic SERP accordion rich results, LLM retrieval pipelines (ChatGPT Search, Google AI Overviews, Perplexity, and Claude) actively parse FAQPage Question and Answer pairs as high-confidence Q&A chunks for commercial buyer prompts.',
+      },
+      {
+        question:
+          'How do I add custom FAQPage and Offer JSON-LD on Webflow, WordPress, Wix, or Shopify without writing JSON by hand?',
+        answer:
+          'Scan your domain on Verisource to auto-detect your CMS and generate both a syntax-validated @graph JSON-LD block (tested via JSON.parse) and a 1-Click AI Fix Prompt tailored to your exact website platform.',
+      },
+    ],
+  },
 ];
 
 export const FREE_SEO_TOOLS: readonly FreeSeoToolEntry[] = [
@@ -715,6 +847,37 @@ export const FREE_SEO_TOOLS: readonly FreeSeoToolEntry[] = [
         question: 'How fast can I fix a Shopify store flagged by this checker?',
         answer:
           'Inside Verisource Step 02, Shopify Theme mode generates a ready-to-paste 1-Click AI Fix Prompt plus drop-in layout/theme.liquid and templates/agents.md.liquid code you can publish and verify live in under 5 minutes.',
+      },
+    ],
+  },
+  {
+    slug: 'json-ld-ai-schema-checker',
+    shortName: 'JSON-LD & FAQPage AI Validator',
+    eyebrow: 'FREE 3-PILLAR SCHEMA.ORG AI GRAPH INSPECTOR',
+    title: 'Free Schema.org JSON-LD, FAQPage & Offer Pricing Validator',
+    metaTitle:
+      'Free JSON-LD & FAQPage Schema Validator for AI Search (2026) | Verisource',
+    metaDescription:
+      'Inspect any URL for the 3 schema.org JSON-LD pillars AI answer engines cite: Entity Identity (Organization/LocalBusiness), Offer/Product pricing, and FAQPage Q&A pairs.',
+    answerFirstSummary:
+      'Only 7.5% of public websites ship FAQPage JSON-LD alongside typed Offer pricing. Enter any domain below to inspect live <script type="application/ld+json"> syntax, detected @type entities, FAQPage Question counts, and commercial Offer coverage.',
+    placeholderDomain: 'stripe.com',
+    whatItChecks: [
+      'Live <script type="application/ld+json"> extraction and JSON.parse() syntax verification',
+      'Pillar 1 — Entity Identity (@type Organization, SoftwareApplication, OnlineStore, LocalBusiness, Dentist, LegalService)',
+      'Pillar 2 — Answer-First FAQPage schema presence and exact mainEntity Question pair count',
+      'Pillar 3 — Commercial Offer, Product, OfferCatalog, or priceCurrency pricing coverage',
+    ],
+    faqs: [
+      {
+        question: 'Why do AI answer engines care about Offer and FAQPage JSON-LD?',
+        answer:
+          'Without explicit Offer prices and FAQPage Q&A pairs in your HTML <head>, ChatGPT and Perplexity infer your pricing and policies from outdated third-party directories or Reddit threads—causing avoidable buyer hallucinations.',
+      },
+      {
+        question: 'What if my site only has a basic Yoast or RankMath WebSite schema?',
+        answer:
+          'Basic WebSite + Organization snippets pass Pillar 1 (Entity Identity) while leaving Pillar 2 (FAQPage) and Pillar 3 (Offer Pricing) empty. Verisource Step 02 generates the missing Offer + FAQPage @graph nodes tailored to your exact CMS.',
       },
     ],
   },

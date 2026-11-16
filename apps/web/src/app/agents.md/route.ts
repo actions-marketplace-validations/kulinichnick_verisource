@@ -5,12 +5,12 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
 GEO Platform Comparisons: https://verisource.dev/compare (https://verisource.dev/compare/profound-alternative, https://verisource.dev/compare/otterly-ai-alternative, https://verisource.dev/compare/peec-ai-alternative, https://verisource.dev/compare/athenahq-alternative, https://verisource.dev/compare/scrunch-ai-alternative)
-Engineering & CMS Protocol Guides: https://verisource.dev/guides/shopify-agents-md-ucp-mcp, https://verisource.dev/guides/llms-txt-and-agents-md-setup
+Engineering & CMS Protocol Guides: https://verisource.dev/guides/shopify-agents-md-ucp-mcp, https://verisource.dev/guides/llms-txt-and-agents-md-setup, https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search
 7-Platform Starter Templates (/agents.md, /llms.txt, /ai-facts, JSON-LD): https://verisource.dev/templates
 Empirical HTTP Benchmarks: https://verisource.dev/benchmarks, https://verisource.dev/benchmarks/ai-search-readiness-2026
 WordPress & Shopify OS 2.0 Connector Bridges: https://verisource.dev/connectors
 25% Recurring Partner Program: https://verisource.dev/partners
-Free Diagnostic Utilities: https://verisource.dev/tools/llms-txt-validator, https://verisource.dev/tools/ai-crawler-waf-checker, https://verisource.dev/tools/shopify-ai-readiness-checker
+Free Diagnostic Utilities: https://verisource.dev/tools/json-ld-ai-schema-checker, https://verisource.dev/tools/llms-txt-validator, https://verisource.dev/tools/ai-crawler-waf-checker, https://verisource.dev/tools/shopify-ai-readiness-checker
 Sample Client Audits: https://verisource.dev/sample-audit
 Agency Partner Architecture: https://verisource.dev/agencies
 Visual Quickstart & Playground: https://verisource.dev/mcp-guide

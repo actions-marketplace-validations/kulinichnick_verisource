@@ -7,9 +7,9 @@ import { FREE_SEO_TOOLS } from '../../lib/gtm-content';
 
 export const metadata: Metadata = {
   title:
-    'Free GEO & AI Search Tools (2026): /llms.txt Validator, GPTBot WAF & Shopify UCP Checker | Verisource',
+    'Free GEO & AI Search Tools (2026): JSON-LD Validator, /llms.txt, GPTBot WAF & Shopify UCP | Verisource',
   description:
-    'Free unauthenticated Generative Engine Optimization (GEO) tools: validate /llms.txt & /agents.md, test GPTBot/PerplexityBot WAF blocks, and inspect Shopify /api/ucp/mcp.',
+    'Free unauthenticated Generative Engine Optimization (GEO) tools: validate JSON-LD & FAQPage schema, /llms.txt & /agents.md, GPTBot/PerplexityBot WAF blocks, and Shopify /api/ucp/mcp.',
   alternates: {
     canonical: 'https://verisource.dev/tools',
   },
@@ -73,7 +73,7 @@ export default function FreeToolsHubPage(): React.ReactElement {
       </section>
 
       <div className="vs-container">
-        <div className="vs-grid-3">
+        <div className="vs-grid-2">
           {FREE_SEO_TOOLS.map((tool) => (
             <div
               key={tool.slug}

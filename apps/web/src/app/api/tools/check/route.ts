@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   getWebsitePlatformMeta,
+  inspectJsonLdAiReadiness,
   inspectShopifyStorefront,
   matchesPublicHostname,
   normalizePublicDomain,
@@ -9,6 +10,7 @@ import {
   resolveCoreGeoEnv,
   type AgentsMdStatus,
   type CrawlerReadabilityReport,
+  type JsonLdAiReadinessSummary,
   type LlmsTxtStatus,
   type RecommendedRemediationEnv,
   type RobotsAiBotStatus,
@@ -31,6 +33,7 @@ export interface FreeToolCheckPayload {
   agentsMdStatus: AgentsMdStatus;
   jsonLdCount: number;
   jsonLdTypes: string[];
+  jsonLdReadiness: JsonLdAiReadinessSummary;
   robotsAiBotStatus: RobotsAiBotStatus;
   crawlerReadability: CrawlerReadabilityReport | null;
   isShopify: boolean;
@@ -156,6 +159,26 @@ export async function POST(request: Request): Promise<NextResponse> {
           fixtureMatch.agents_md_status === 'custom_enriched'
             ? ['Organization', 'Product', 'FAQPage']
             : ['Organization'],
+        jsonLdReadiness:
+          fixtureMatch.agents_md_status === 'custom_enriched'
+            ? {
+                blockCount: 4,
+                detectedTypes: ['Organization', 'Product', 'FAQPage'],
+                hasEntityIdentity: true,
+                hasFaqPage: true,
+                faqQuestionCount: 4,
+                hasOfferOrPricing: true,
+                missingAiGraphPillars: [],
+              }
+            : {
+                blockCount: 1,
+                detectedTypes: ['Organization'],
+                hasEntityIdentity: true,
+                hasFaqPage: false,
+                faqQuestionCount: 0,
+                hasOfferOrPricing: false,
+                missingAiGraphPillars: ['faq_page', 'offer_pricing'],
+              },
         robotsAiBotStatus: fixtureMatch.robots_ai_bot_status,
         crawlerReadability: {
           status: 'ssr_clean',
@@ -189,6 +212,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       : (probe.detectedPlatform ?? 'nextjs_custom');
     const platformMeta = getWebsitePlatformMeta(resolvedPlatform);
     const jsonLdTypes = extractSchemaTypes(probe.jsonLdBlocks);
+    const jsonLdReadiness = inspectJsonLdAiReadiness(probe.jsonLdBlocks);
 
     const payload: FreeToolCheckPayload = {
       ok: true,
@@ -205,6 +229,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         : probe.agentsMdInitialStatus,
       jsonLdCount: probe.jsonLdBlocks.length,
       jsonLdTypes,
+      jsonLdReadiness,
       robotsAiBotStatus: probe.robotsAiBotStatus,
       crawlerReadability: probe.crawlerReadability ?? null,
       isShopify: shopify.isShopify,
