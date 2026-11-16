@@ -2191,7 +2191,67 @@ async function run() {
         m42Tab2Html.includes('<details class="vs-disclosure">'),
       'Expected 1-Click AI Fix Prompt guided flow & collapsed Individual Raw Code Files <details> drawer on Step 02'
     );
-    console.log('✔ [48/48] M52 Non-Pro Plain-English UX Clarity, De-Cluttered Homepage & Progressive Disclosure verified!');
+    console.log('✔ [48/49] M52 Non-Pro Plain-English UX Clarity, De-Cluttered Homepage & Progressive Disclosure verified!');
+
+    // 47. M53 Automated 7-Day Trial Activation Nudge API (/api/dashboard/trial-nudge: 401 unauth, 400 invalid stage/email, 200 Day-3 & Day-5 >= 9.5/10) + Trial Roadmap CTA
+    const unauthTrialNudge = await fetch(`${BASE}/api/dashboard/trial-nudge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    assert.equal(unauthTrialNudge.status, 401);
+
+    const badStageTrialNudge = await fetch(`${BASE}/api/dashboard/trial-nudge`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ stage: 'invalid_stage' }),
+    });
+    assert.equal(badStageTrialNudge.status, 400);
+
+    const badEmailTrialNudge = await fetch(`${BASE}/api/dashboard/trial-nudge`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ recipient_email: 'not-an-email' }),
+    });
+    assert.equal(badEmailTrialNudge.status, 400);
+
+    const day3NudgeRes = await fetch(`${BASE}/api/dashboard/trial-nudge`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        stage: 'day3_copy_ai_prompt',
+      }),
+    });
+    assert.equal(day3NudgeRes.status, 200);
+    const day3NudgeJson = await day3NudgeRes.json();
+    assert.equal(day3NudgeJson.stage, 'day3_copy_ai_prompt');
+    assert.ok(day3NudgeJson.qualityScore >= 9.5);
+    assert.ok(day3NudgeJson.actionUrl.includes('tab=tab2_fixes'));
+    assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(day3NudgeJson.text));
+
+    const day5NudgeRes = await fetch(`${BASE}/api/dashboard/trial-nudge`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        stage: 'day5_value_proof',
+      }),
+    });
+    assert.equal(day5NudgeRes.status, 200);
+    const day5NudgeJson = await day5NudgeRes.json();
+    assert.equal(day5NudgeJson.stage, 'day5_value_proof');
+    assert.ok(day5NudgeJson.qualityScore >= 9.5);
+    assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(day5NudgeJson.text));
+
+    const trialRoadmapDashHtml = await fetch(`${BASE}/dashboard?trial=7d`, {
+      headers: OWNER_HEADERS,
+    }).then((r) => r.text());
+    assert.ok(
+      trialRoadmapDashHtml.includes('Email Me Step-by-Step Link'),
+      'Expected Email Me Step-by-Step Link CTA inside 7-Day Trial Roadmap banner'
+    );
+    console.log('✔ [49/49] M53 Automated 7-Day Trial Onboarding & Activation Nudge Engine (401/400/200 Day-3 & Day-5 >= 9.5/10 + Trial Roadmap CTA) verified!');
   } finally {
     server.kill();
   }

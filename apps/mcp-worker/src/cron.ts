@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import {
   dispatchHallucinationDriftEmail,
+  dispatchTrialActivationNudgeEmail,
   dispatchWeeklyExecutiveDigestEmail,
+  evaluateTrialLifecycleStage,
   runFullGeoAudit,
   type AiAttributionEventRow,
   type Database,
@@ -18,10 +20,12 @@ export interface CronScanBatchSummary {
   snapshotsInserted: number;
   alertsDispatched: number;
   digestsDispatched: number;
+  trialNudgesDispatched: number;
 }
 
 const MAX_DOMAINS_PER_CRON_CHUNK = 5;
 const SIX_DAYS_SECONDS = 518400;
+const NINETY_DAYS_SECONDS = 7776000;
 
 function extractBlockedBots(
   botStatus: DomainRow['robots_ai_bot_status']
@@ -48,6 +52,7 @@ export async function runScheduledDomainScans(
       snapshotsInserted: 0,
       alertsDispatched: 0,
       digestsDispatched: 0,
+      trialNudgesDispatched: 0,
     };
   }
 
@@ -67,6 +72,8 @@ export async function runScheduledDomainScans(
   let snapshotsInserted = 0;
   let alertsDispatched = 0;
   let digestsDispatched = 0;
+  let trialNudgesDispatched = 0;
+  const processedTrialUserIds = new Set<string>();
 
   for (const domain of domains) {
     const previousVisibilityScore = domain.visibility_score;
@@ -179,7 +186,107 @@ export async function runScheduledDomainScans(
         }
       }
 
-      // 2. Weekly Executive Client Digest (Pro $99/mo & Agency $249/mo Tiers)
+      const sevenDaysAgoIso = new Date(
+        Date.now() - 7 * 24 * 60 * 60 * 1000
+      ).toISOString();
+
+      const [{ data: attrRows }, { data: fixRows }] = await Promise.all([
+        supabase
+          .from('ai_attribution_events')
+          .select('*')
+          .eq('domain_id', domain.id)
+          .gte('created_at', sevenDaysAgoIso),
+        supabase
+          .from('generated_fixes')
+          .select('*')
+          .eq('domain_id', domain.id),
+      ]);
+
+      const events = (attrRows ?? []) as AiAttributionEventRow[];
+      const fixes = (fixRows ?? []) as GeneratedFixRow[];
+      const aiReferralVisits7d = events.filter(
+        (ev) => ev.event_type === 'ai_referral_visit'
+      ).length;
+      const aiReferralRevenueUsd7d = events
+        .filter((ev) => ev.event_type === 'ai_referral_conversion')
+        .reduce((sum, ev) => sum + Number(ev.conversion_value_usd ?? 0), 0);
+      const botCrawlCount = events.filter(
+        (ev) => ev.event_type === 'ai_bot_crawl'
+      ).length;
+
+      const onSiteFixes = fixes.filter(
+        (f) => f.fix_type !== 'citation_outreach_brief'
+      );
+      const appliedFixesCount = fixes.filter((f) => f.is_applied).length;
+      const appliedOnSiteCount = onSiteFixes.filter((f) => f.is_applied).length;
+      const rivalSet = new Set<string>();
+      for (const snap of audit.scanResults) {
+        for (const comp of snap.competitorsMentioned) {
+          if (comp) rivalSet.add(comp);
+        }
+      }
+      const topRivals = Array.from(rivalSet).slice(0, 3);
+
+      // 2. M53 Automated 7-Day Free Trial Onboarding & Activation Nudge (Day 3 & Day 5)
+      const trialStage = evaluateTrialLifecycleStage({
+        planTier: owner.plan_tier,
+        billingCycle: owner.billing_cycle,
+        mcpCallsLimit: owner.mcp_calls_limit,
+        stripeSubscriptionId: owner.stripe_subscription_id,
+        tripwirePaidAt: owner.tripwire_paid_at,
+        profileCreatedAtIso: owner.created_at,
+      });
+
+      if (trialStage && !processedTrialUserIds.has(owner.id)) {
+        processedTrialUserIds.add(owner.id);
+        const shouldSendForStage =
+          trialStage === 'day5_value_proof' || appliedOnSiteCount === 0;
+
+        if (shouldSendForStage) {
+          const trialDedupKey = `trial_nudge:${trialStage}:${owner.id}`;
+          const alreadySentTrialNudge = env.MCP_CACHE_KV
+            ? await env.MCP_CACHE_KV.get(trialDedupKey)
+            : null;
+
+          if (!alreadySentTrialNudge) {
+            const nudgeResult = await dispatchTrialActivationNudgeEmail({
+              recipientEmail: owner.email,
+              stage: trialStage,
+              planTier: owner.plan_tier,
+              brandName: domain.brand_name,
+              domainUrl: domain.domain_url,
+              visibilityScore: audit.visibilityScore,
+              accuracyScore: audit.accuracyScore,
+              appliedFixesCount: appliedOnSiteCount,
+              totalFixesCount: onSiteFixes.length || 4,
+              botCrawlCount,
+              aiReferralVisits7d,
+              hallucinationCount: audit.allHallucinations.length,
+              robotsAiBotStatus: audit.probe.robotsAiBotStatus,
+              llmsTxtStatus: audit.probe.llmsTxtStatus,
+              agentsMdStatus: audit.shopify.agentsMdStatus,
+              jsonLdCount: audit.probe.jsonLdBlocks.length,
+              topRivals,
+              consoleBaseUrl: appBaseUrl,
+              resendApiKey: env.RESEND_API_KEY,
+              fromEmail: env.ALERT_FROM_EMAIL,
+            });
+
+            if (nudgeResult.delivered) {
+              trialNudgesDispatched += 1;
+              if (env.MCP_CACHE_KV) {
+                await env.MCP_CACHE_KV.put(
+                  trialDedupKey,
+                  new Date().toISOString(),
+                  { expirationTtl: NINETY_DAYS_SECONDS }
+                );
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Weekly Executive Client Digest (Pro $99/mo & Agency $249/mo Tiers)
       if (owner.plan_tier === 'pro_99' || owner.plan_tier === 'agency_249') {
         const digestDedupKey = `digest_dedup:${domain.id}`;
         const alreadySentDigest = env.MCP_CACHE_KV
@@ -187,41 +294,9 @@ export async function runScheduledDomainScans(
           : null;
 
         if (!alreadySentDigest) {
-          const sevenDaysAgoIso = new Date(
-            Date.now() - 7 * 24 * 60 * 60 * 1000
-          ).toISOString();
-
-          const [{ data: attrRows }, { data: fixRows }] = await Promise.all([
-            supabase
-              .from('ai_attribution_events')
-              .select('*')
-              .eq('domain_id', domain.id)
-              .gte('created_at', sevenDaysAgoIso),
-            supabase
-              .from('generated_fixes')
-              .select('*')
-              .eq('domain_id', domain.id),
-          ]);
-
-          const events = (attrRows ?? []) as AiAttributionEventRow[];
-          const fixes = (fixRows ?? []) as GeneratedFixRow[];
-          const aiReferralVisits7d = events.filter(
-            (ev) => ev.event_type === 'ai_referral_visit'
-          ).length;
-          const aiReferralRevenueUsd7d = events
-            .filter((ev) => ev.event_type === 'ai_referral_conversion')
-            .reduce((sum, ev) => sum + Number(ev.conversion_value_usd ?? 0), 0);
-
-          const appliedFixesCount = fixes.filter((f) => f.is_applied).length;
           const enginesCitingCount = audit.scanResults.filter(
             (s) => s.brandMentioned
           ).length;
-          const rivalSet = new Set<string>();
-          for (const snap of audit.scanResults) {
-            for (const comp of snap.competitorsMentioned) {
-              if (comp) rivalSet.add(comp);
-            }
-          }
 
           const digestResult = await dispatchWeeklyExecutiveDigestEmail({
             recipientEmail: owner.email,
@@ -238,7 +313,7 @@ export async function runScheduledDomainScans(
             totalFixesCount: fixes.length || audit.fixes.length,
             activeHallucinationCount: audit.allHallucinations.length,
             blockedBots,
-            topRivalDomains: Array.from(rivalSet).slice(0, 3),
+            topRivalDomains: topRivals,
             agencyBrandName:
               owner.plan_tier === 'agency_249'
                 ? owner.agency_brand_name
@@ -271,11 +346,81 @@ export async function runScheduledDomainScans(
     }
   }
 
+  // 4. M53 Catch-Up Sweep for 0-Domain 7-Day Trial Signups (Rescue Unactivated Trial Users)
+  try {
+    const sevenDaysAgoIso = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const { data: recentTrialProfiles } = await supabase
+      .from('profiles')
+      .select('*')
+      .in('plan_tier', ['starter_49', 'pro_99'])
+      .eq('billing_cycle', 'monthly')
+      .gte('created_at', sevenDaysAgoIso)
+      .limit(10);
+
+    const appBaseUrl = env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev';
+
+    for (const rawProfile of (recentTrialProfiles ?? []) as ProfileRow[]) {
+      if (!rawProfile.email || processedTrialUserIds.has(rawProfile.id)) {
+        continue;
+      }
+      const stage = evaluateTrialLifecycleStage({
+        planTier: rawProfile.plan_tier,
+        billingCycle: rawProfile.billing_cycle,
+        mcpCallsLimit: rawProfile.mcp_calls_limit,
+        stripeSubscriptionId: rawProfile.stripe_subscription_id,
+        tripwirePaidAt: rawProfile.tripwire_paid_at,
+        profileCreatedAtIso: rawProfile.created_at,
+      });
+      if (!stage) continue;
+
+      const { data: existingUserDomains } = await supabase
+        .from('domains')
+        .select('id')
+        .eq('user_id', rawProfile.id)
+        .limit(1);
+
+      // Users who already have domains are handled with full domain metrics in the main loop
+      if (existingUserDomains && existingUserDomains.length > 0) {
+        continue;
+      }
+
+      const trialDedupKey = `trial_nudge:${stage}:${rawProfile.id}`;
+      const alreadySent = env.MCP_CACHE_KV
+        ? await env.MCP_CACHE_KV.get(trialDedupKey)
+        : null;
+      if (alreadySent) continue;
+
+      const rescueResult = await dispatchTrialActivationNudgeEmail({
+        recipientEmail: rawProfile.email,
+        stage,
+        planTier: rawProfile.plan_tier,
+        domainUrl: null,
+        consoleBaseUrl: appBaseUrl,
+        resendApiKey: env.RESEND_API_KEY,
+        fromEmail: env.ALERT_FROM_EMAIL,
+      });
+
+      if (rescueResult.delivered) {
+        trialNudgesDispatched += 1;
+        if (env.MCP_CACHE_KV) {
+          await env.MCP_CACHE_KV.put(trialDedupKey, new Date().toISOString(), {
+            expirationTtl: NINETY_DAYS_SECONDS,
+          });
+        }
+      }
+    }
+  } catch {
+    // Non-blocking catch-up sweep
+  }
+
   return {
     mode: 'live_supabase',
     domainsScanned: domains.length,
     snapshotsInserted,
     alertsDispatched,
     digestsDispatched,
+    trialNudgesDispatched,
   };
 }

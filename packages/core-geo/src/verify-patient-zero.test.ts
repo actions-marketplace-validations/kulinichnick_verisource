@@ -39,6 +39,7 @@ import {
   buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
+  buildTrialActivationNudgeAlert,
   buildWeeklyExecutiveDigest,
   classifyAgentsMdContent,
   classifyCitationSourceCategory,
@@ -50,9 +51,11 @@ import {
   dispatchHallucinationDriftEmail,
   dispatchPostPurchaseWelcomeEmail,
   dispatchProspectOpenEmail,
+  dispatchTrialActivationNudgeEmail,
   dispatchWeeklyExecutiveDigestEmail,
   enforceQualityGate95,
   evaluateCommerceAttributeReadiness,
+  evaluateTrialLifecycleStage,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
   extractCleanCategoryTopic,
@@ -2270,4 +2273,136 @@ test('M52 Plain-English Site Diagnosis & 1-Click Analytics Install AI Prompt tra
   assert.ok(trackerPrompt.score >= 9.5);
   assert.ok(trackerPrompt.content.includes('https://verisource.dev/api/pixel'));
   assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(trackerPrompt.content));
+});
+
+test('M53 7-Day Trial Lifecycle Evaluator & Day-3 / Day-5 Plain-English Activation Nudges pass >= 9.5/10 with strict guardrails', async () => {
+  const baseNow = Date.parse('2026-11-20T12:00:00Z');
+  const hrsAgo = (h: number) => new Date(baseNow - h * 3600 * 1000).toISOString();
+
+  // Day-3 window (72h) on active Starter & Pro trials
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'pro_99',
+      billingCycle: 'monthly',
+      mcpCallsLimit: 150,
+      stripeSubscriptionId: 'sub_trial_123',
+      profileCreatedAtIso: hrsAgo(72),
+      nowMs: baseNow,
+    }),
+    'day3_copy_ai_prompt'
+  );
+
+  // Day-5 window (120h)
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'starter_49',
+      billingCycle: 'monthly',
+      mcpCallsLimit: 25,
+      stripeSubscriptionId: 'sub_trial_456',
+      profileCreatedAtIso: hrsAgo(120),
+      nowMs: baseNow,
+    }),
+    'day5_value_proof'
+  );
+
+  // Excludes renewed Pro (1000 credits), annual, Agency, Tripwire-upgraded, Day-0 (12h), and Month-2 (300h)
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'pro_99',
+      billingCycle: 'monthly',
+      mcpCallsLimit: 1000,
+      stripeSubscriptionId: 'sub_paid_123',
+      profileCreatedAtIso: hrsAgo(72),
+      nowMs: baseNow,
+    }),
+    null
+  );
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'agency_249',
+      billingCycle: 'monthly',
+      stripeSubscriptionId: 'sub_agency',
+      profileCreatedAtIso: hrsAgo(72),
+      nowMs: baseNow,
+    }),
+    null
+  );
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'pro_99',
+      billingCycle: 'annual',
+      mcpCallsLimit: 150,
+      stripeSubscriptionId: 'sub_ann',
+      profileCreatedAtIso: hrsAgo(72),
+      nowMs: baseNow,
+    }),
+    null
+  );
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'starter_49',
+      billingCycle: 'monthly',
+      stripeSubscriptionId: 'sub_trip',
+      tripwirePaidAt: hrsAgo(90),
+      profileCreatedAtIso: hrsAgo(72),
+      nowMs: baseNow,
+    }),
+    null
+  );
+  assert.equal(
+    evaluateTrialLifecycleStage({
+      planTier: 'pro_99',
+      billingCycle: 'monthly',
+      mcpCallsLimit: 150,
+      stripeSubscriptionId: 'sub_day0',
+      profileCreatedAtIso: hrsAgo(12),
+      nowMs: baseNow,
+    }),
+    null
+  );
+
+  const day3DomainAlert = buildTrialActivationNudgeAlert({
+    stage: 'day3_copy_ai_prompt',
+    planTier: 'pro_99',
+    brandName: 'Acme Dental',
+    domainUrl: 'https://acmedental.com',
+    visibilityScore: 38,
+    accuracyScore: 72,
+    appliedFixesCount: 0,
+    totalFixesCount: 4,
+    hallucinationCount: 1,
+  });
+  assert.ok(day3DomainAlert.quality.score >= 9.5);
+  assert.ok(day3DomainAlert.subject.includes('acmedental.com'));
+  assert.ok(day3DomainAlert.text.includes('Copy Prompt for My AI'));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(day3DomainAlert.text));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(day3DomainAlert.html));
+
+  const day3ZeroDomain = buildTrialActivationNudgeAlert({
+    stage: 'day3_copy_ai_prompt',
+    planTier: 'starter_49',
+    domainUrl: null,
+  });
+  assert.ok(day3ZeroDomain.quality.score >= 9.5);
+  assert.ok(day3ZeroDomain.subject.includes('[7-Day Trial Quickstart]'));
+
+  const day5Progress = await dispatchTrialActivationNudgeEmail({
+    recipientEmail: 'founder@acmedental.com',
+    stage: 'day5_value_proof',
+    planTier: 'pro_99',
+    brandName: 'Acme Dental',
+    domainUrl: 'https://acmedental.com',
+    visibilityScore: 84,
+    accuracyScore: 100,
+    appliedFixesCount: 4,
+    totalFixesCount: 4,
+    botCrawlCount: 3,
+    aiReferralVisits7d: 5,
+    topRivals: ['BrightSmile Clinic'],
+  });
+  assert.equal(day5Progress.mode, 'preview_dry_run');
+  assert.ok(day5Progress.qualityScore >= 9.5);
+  assert.ok(day5Progress.subject.includes('4/4 AI files live'));
+  assert.ok(day5Progress.text.includes('Acme Dental vs. BrightSmile Clinic'));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(day5Progress.text));
 });

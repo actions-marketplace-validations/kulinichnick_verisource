@@ -1969,6 +1969,45 @@ export function DashboardConsoleClient(props: {
       : null;
 
   const [copiedAnalyticsPrompt, setCopiedAnalyticsPrompt] = useState(false);
+  const [sendingTrialGuide, setSendingTrialGuide] = useState(false);
+
+  async function handleSendTrialQuickstartEmail() {
+    setSendingTrialGuide(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/trial-nudge', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          ...(activeDomain ? { domain_id: activeDomain.id } : {}),
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        delivered?: boolean;
+        mode?: 'live_resend' | 'preview_dry_run';
+        recipientEmail?: string;
+        subject?: string;
+      };
+      if (!res.ok || json.error) {
+        setBannerError(
+          json.message ?? 'Unable to email your Step-by-Step AI Prompt link.'
+        );
+      } else {
+        const targetEmail = json.recipientEmail ?? data.profile.email;
+        setBannerSuccess(
+          json.mode === 'live_resend'
+            ? `Sent your 3-step AI Fix Prompt guide & direct Step 02 link to ${targetEmail}.`
+            : `Prepared your 3-step AI Fix Prompt quickstart guide for ${targetEmail} (${json.subject}).`
+        );
+      }
+    } catch {
+      setBannerError('Network error sending quickstart guide email.');
+    } finally {
+      setSendingTrialGuide(false);
+    }
+  }
 
   const estimatedLiveJsonLdCount =
     (domainFixes.some((f) => f.fix_type === 'json_ld_schema' && f.is_applied)
@@ -2926,14 +2965,28 @@ export function DashboardConsoleClient(props: {
               </span>
               <StatusBadge tone="pass">$0.00 CHARGED TODAY</StatusBadge>
             </div>
-            <button
-              type="button"
-              onClick={() => setDismissedTrialChecklist(true)}
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '4px 10px', fontSize: '11.5px' }}
-            >
-              Dismiss
-            </button>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                disabled={sendingTrialGuide}
+                onClick={() => void handleSendTrialQuickstartEmail()}
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                title="Email yourself a direct laptop link & 3-step AI Fix Prompt guide"
+              >
+                {sendingTrialGuide
+                  ? 'Sending...'
+                  : 'Email Me Step-by-Step Link'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissedTrialChecklist(true)}
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '4px 10px', fontSize: '11.5px' }}
+              >
+                Dismiss
+              </button>
+            </div>
           </div>
           <div className="vs-grid-2" style={{ gap: '12px', fontSize: '12.5px' }}>
             <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>

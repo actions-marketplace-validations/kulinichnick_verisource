@@ -294,7 +294,7 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
   assert.ok(forgedRes.content[0]!.text.includes('INVALID_OR_REVOKED_KEY'));
 });
 
-test('Scheduled weekly cron handler returns clean mock_noop summary with alertsDispatched=0 and digestsDispatched=0 when unconfigured', async () => {
+test('Scheduled weekly cron handler returns clean mock_noop summary with alertsDispatched=0, digestsDispatched=0 and trialNudgesDispatched=0 when unconfigured', async () => {
   const summary = await runScheduledDomainScans(TEST_ENV);
   assert.deepEqual(summary, {
     mode: 'mock_noop',
@@ -302,6 +302,7 @@ test('Scheduled weekly cron handler returns clean mock_noop summary with alertsD
     snapshotsInserted: 0,
     alertsDispatched: 0,
     digestsDispatched: 0,
+    trialNudgesDispatched: 0,
   });
 });
 
