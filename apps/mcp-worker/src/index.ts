@@ -12,6 +12,7 @@ import {
   buildMcpDiscoveryManifest,
   buildTargetedCitationOutreachDraft,
   generateSuggestedBuyerPrompts,
+  getWebsitePlatformMeta,
   normalizePublicDomain,
   rankCitationGapSources,
   runDomainReadinessScan,
@@ -19,6 +20,7 @@ import {
   summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   VERISOURCE_VERSION,
+  type AiRemediationTargetEnv,
   type FullGeoAuditResult,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
@@ -433,14 +435,27 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
       {
         title: 'Generate Syntax-Validated GEO Fix Bundle',
         description:
-          'Paid Tool (Pro/Agency): Generates ready-to-publish JSON-LD entity/FAQ schemas, /llms.txt, custom /agents.md or Shopify agents.md.liquid override, Answer-First FAQs, 1-click AI remediation prompt, and third-party outreach briefs—all syntax-validated against your Brand Truth Sheet.',
+          'Paid Tool (Pro/Agency): Generates ready-to-publish JSON-LD entity/FAQ schemas, /llms.txt, custom /agents.md or Shopify agents.md.liquid override, Answer-First FAQs, platform-tailored 1-click AI remediation prompt, and rival comparison pages—all syntax-validated against your Brand Truth Sheet.',
         inputSchema: z.object({
           domain: z.string().min(3).describe('Target domain or URL'),
           brand_name: z.string().optional(),
+          target_env: z
+            .enum([
+              'coding_agent',
+              'chat_assistant',
+              'shopify_liquid',
+              'wordpress_cms',
+              'webflow_cms',
+              'wix_squarespace_framer',
+            ])
+            .optional()
+            .describe(
+              'Optional target AI/CMS environment override; auto-detected from site HTML/headers when omitted'
+            ),
           live_refresh: z.boolean().optional(),
         }),
       },
-      async ({ domain, brand_name, live_refresh }) => {
+      async ({ domain, brand_name, target_env, live_refresh }) => {
         const isLive = Boolean(live_refresh || brand_name);
         const creditsCost = isLive ? 10 : 1;
 
@@ -502,6 +517,13 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           crawlerReadability: audit.probe.crawlerReadability ?? null,
         });
 
+        const detectedPlatformId =
+          audit.probe.detectedPlatform ??
+          (audit.shopify.isShopify ? 'shopify' : 'nextjs_custom');
+        const platformMeta = getWebsitePlatformMeta(detectedPlatformId);
+        const resolvedTargetEnv: AiRemediationTargetEnv =
+          target_env ?? platformMeta.recommendedAiEnv;
+
         const remediationPrompt = buildAiRemediationMasterPrompt({
           domain: {
             brand_name: audit.brandName,
@@ -524,6 +546,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           })),
           snapshots: audit.scanResults,
           crawlerReadability: audit.probe.crawlerReadability ?? null,
+          targetEnv: resolvedTargetEnv,
         });
 
         const topRival =
@@ -546,11 +569,15 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           blueprintType: 'vs_competitor',
           rivalName: topRival,
           targetPrompt: audit.trackedPrompts[0] ?? null,
+          targetEnv: resolvedTargetEnv,
         });
 
         const payload = {
           domain: audit.domainUrl,
           brand_name: audit.brandName,
+          detected_platform: platformMeta.platformId,
+          detected_platform_label: platformMeta.displayName,
+          target_env: resolvedTargetEnv,
           is_shopify: audit.shopify.isShopify,
           shopify_mcp_status: audit.shopify.shopifyMcpStatus,
           served_from_cache: servedFromCache,

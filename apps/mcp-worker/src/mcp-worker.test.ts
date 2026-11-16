@@ -178,6 +178,9 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
     credits_charged: number;
     credits_remaining: number;
     fixes: Array<{ naturalQualityScore: number }>;
+    detected_platform?: string;
+    detected_platform_label?: string;
+    target_env?: string;
     citation_comparison_page?: {
       suggested_path: string;
       markdown_page: string;
@@ -187,6 +190,9 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
   };
   assert.equal(bundlePayload.credits_charged, 10);
   assert.equal(bundlePayload.credits_remaining, 990);
+  assert.equal(bundlePayload.detected_platform, 'shopify');
+  assert.equal(bundlePayload.detected_platform_label, 'Shopify');
+  assert.equal(bundlePayload.target_env, 'shopify_liquid');
   assert.ok(bundlePayload.fixes.every((f) => f.naturalQualityScore >= 9.5));
   assert.ok(
     bundlePayload.citation_comparison_page?.suggested_path.startsWith('/pages/') &&
@@ -324,4 +330,45 @@ test('GET /.well-known/mcp.json and /server.json expose 4-tool Streamable HTTP r
   assert.equal(manifest.remotes[0]?.type, 'streamable-http');
   assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
   assert.equal(manifest.tools.length, 4);
+});
+
+test('Paid generate_geo_fix_bundle honors explicit target_env override (wordpress_cms)', async () => {
+  const req = new Request('https://mcp.verisource.dev/mcp', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+      Authorization: 'Bearer vs_demo_pro_key',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 99,
+      method: 'tools/call',
+      params: {
+        name: 'generate_geo_fix_bundle',
+        arguments: {
+          domain: 'mosaicroasters.com',
+          target_env: 'wordpress_cms',
+        },
+      },
+    }),
+  });
+  const res = await worker.fetch(req, TEST_ENV);
+  assert.equal(res.status, 200);
+  const raw = await res.text();
+  const dataLine = raw
+    .split('\n')
+    .find((l) => l.startsWith('data: '));
+  const rpc = JSON.parse(dataLine ? dataLine.slice(6) : raw) as {
+    result: { content: Array<{ text: string }> };
+  };
+  const parsed = JSON.parse(rpc.result.content[0]!.text) as {
+    target_env: string;
+    ai_remediation_prompt: string;
+  };
+  assert.equal(parsed.target_env, 'wordpress_cms');
+  assert.ok(
+    parsed.ai_remediation_prompt.includes('WPCode') ||
+      parsed.ai_remediation_prompt.includes('WordPress')
+  );
 });

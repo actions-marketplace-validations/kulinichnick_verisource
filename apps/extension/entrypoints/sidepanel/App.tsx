@@ -2,17 +2,21 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
+  buildAnalyticsInstallAiPrompt,
   buildCitationAnswerPageBundle,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
+  buildPlainEnglishSiteDiagnosis,
   evaluateCommerceAttributeReadiness,
   generateGeoFixBundle,
   generateSuggestedBuyerPrompts,
+  getWebsitePlatformMeta,
   rankCitationGapSources,
   runFullGeoAudit,
   summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
+  type AiRemediationTargetEnv,
   type FullGeoAuditResult,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
@@ -75,8 +79,11 @@ export default function App(): React.ReactElement {
   const [attributionMode, setAttributionMode] = useState<
     'browser_pixel' | 'edge_crawler'
   >('browser_pixel');
+  const [selectedPromptEnv, setSelectedPromptEnv] =
+    useState<AiRemediationTargetEnv>('coding_agent');
   const [copiedAiPrompt, setCopiedAiPrompt] = useState(false);
   const [copiedRivalPagePrompt, setCopiedRivalPagePrompt] = useState(false);
+  const [copiedTrackerPrompt, setCopiedTrackerPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -140,6 +147,9 @@ export default function App(): React.ReactElement {
               fullAudit.probe.crawlerReadability =
                 liveSummary.crawlerReadability;
             }
+            if (liveSummary.detectedPlatform) {
+              fullAudit.probe.detectedPlatform = liveSummary.detectedPlatform;
+            }
             fullAudit.shopify.isShopify = liveSummary.isShopify;
             fullAudit.shopify.shopifyMcpStatus = liveSummary.shopifyMcpStatus;
             fullAudit.shopify.agentsMdStatus = liveSummary.agentsMdStatus;
@@ -184,6 +194,11 @@ export default function App(): React.ReactElement {
           }
         }
 
+        const resolvedPlatform = getWebsitePlatformMeta(
+          fullAudit.probe.detectedPlatform ??
+            (fullAudit.shopify.isShopify ? 'shopify' : 'nextjs_custom')
+        );
+        setSelectedPromptEnv(resolvedPlatform.recommendedAiEnv);
         setAudit(fullAudit);
         setDomainInput(fullAudit.hostname);
       } catch (err) {
@@ -293,6 +308,34 @@ export default function App(): React.ReactElement {
         new Set(audit.scanResults.flatMap((s) => s.decompiledFanoutQueries))
       )
     : [];
+  const platformMeta = audit
+    ? getWebsitePlatformMeta(
+        audit.probe.detectedPlatform ??
+          (audit.shopify.isShopify ? 'shopify' : 'nextjs_custom')
+      )
+    : null;
+  const plainDiagnosis = audit
+    ? buildPlainEnglishSiteDiagnosis({
+        brandName: audit.brandName,
+        hostname: audit.hostname,
+        visibilityScore: audit.visibilityScore,
+        accuracyScore: audit.accuracyScore,
+        robotsAiBotStatus: audit.probe.robotsAiBotStatus,
+        llmsTxtStatus: audit.probe.llmsTxtStatus,
+        agentsMdStatus: audit.shopify.agentsMdStatus,
+        jsonLdCount: audit.fixes.filter((f) => f.fixType === 'json_ld_schema')
+          .length,
+        isShopify: audit.shopify.isShopify,
+        shopifyMcpStatus: audit.shopify.shopifyMcpStatus,
+        crawlerReadability: audit.probe.crawlerReadability,
+        hallucinationCount: audit.allHallucinations.length,
+        brandMentionedInSample: audit.scanResults.some((s) => s.brandMentioned),
+        topRivals:
+          sentimentAndSov?.headToHeadSov
+            .filter((r) => !r.isTargetBrand)
+            .map((r) => r.entityName) ?? [],
+      })
+    : null;
 
   const mcpSnippet = JSON.stringify(
     {
@@ -596,6 +639,83 @@ export default function App(): React.ReactElement {
                 </div>
               </div>
 
+              {isGuided && plainDiagnosis ? (
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '6px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <span
+                      className="vs-eyebrow"
+                      style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
+                    >
+                      SITE DIAGNOSIS &amp; ACTION PLAN
+                    </span>
+                    {platformMeta ? (
+                      <StatusBadge tone="pass">
+                        {`PLATFORM: ${platformMeta.displayName.toUpperCase()}`}
+                      </StatusBadge>
+                    ) : null}
+                  </div>
+                  <strong
+                    style={{
+                      display: 'block',
+                      fontSize: '12.5px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {plainDiagnosis.headline}
+                  </strong>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '6px',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    {plainDiagnosis.issues.slice(0, 3).map((issue, idx) => (
+                      <div
+                        key={issue.id}
+                        style={{
+                          padding: '7px 9px',
+                          borderRadius: '5px',
+                          border: '1px solid var(--vs-border)',
+                          background:
+                            issue.severity === 'fix_first'
+                              ? 'var(--vs-crit-bg)'
+                              : issue.severity === 'healthy'
+                                ? 'var(--vs-pass-bg)'
+                                : 'var(--vs-surface-subtle)',
+                          fontSize: '11.5px',
+                        }}
+                      >
+                        <strong style={{ display: 'block', marginBottom: '2px' }}>
+                          {idx + 1}. {issue.whatIsWrong}
+                        </strong>
+                        <div style={{ color: 'var(--vs-ink-secondary)' }}>
+                          {issue.whyItMatters}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="vs-btn"
+                    style={{ width: '100%', fontSize: '11.5px', padding: '7px 10px' }}
+                    onClick={() => setActiveTab('tab2_fixes')}
+                  >
+                    Get 1-Click AI Fix Prompt in Step 2 →
+                  </button>
+                </div>
+              ) : null}
+
               {/* Compact 3-Engine Mention vs. Citation Share Strip */}
               <div className="vs-card" style={{ padding: '10px 12px' }}>
                 <div
@@ -737,6 +857,11 @@ export default function App(): React.ReactElement {
                     : 'CRAWLER, JS READABILITY & PROTOCOLS'}
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {platformMeta ? (
+                    <StatusBadge>
+                      {`PLATFORM: ${platformMeta.displayName.toUpperCase()}`}
+                    </StatusBadge>
+                  ) : null}
                   <StatusBadge
                     tone={
                       audit.probe.robotsAiBotStatus.GPTBot ? 'pass' : 'critical'
@@ -895,85 +1020,92 @@ export default function App(): React.ReactElement {
             >
               {isGuided ? (
                 <GuidedExplainerBanner
-                  stepLabel="STEP 2 · COPY-PASTE FIXES"
-                  title="Download or copy your website fix code"
-                  description="Send the single .md bundle to your web developer, or copy individual blocks below."
+                  stepLabel="STEP 2 · 1-CLICK AI FIX PROMPT"
+                  title="Copy 1 prompt into your AI tool to fix your site"
+                  description="Pick your detected site builder or AI tool below, copy the prompt, and let your AI apply the changes."
                 />
               ) : null}
 
-              {commerceReadiness ? (
-                <div className="vs-card" style={{ padding: '10px 12px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '6px',
-                    }}
-                  >
-                    <span
-                      className="vs-eyebrow"
-                      style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
-                    >
-                      AI SHOPPING READINESS
-                    </span>
-                    <StatusBadge
-                      tone={
-                        commerceReadiness.passedCount >= 4 ? 'pass' : 'warn'
-                      }
-                    >
-                      {`${commerceReadiness.passedCount}/${commerceReadiness.totalCount} LIVE`}
-                    </StatusBadge>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '4px',
-                    }}
-                  >
-                    {commerceReadiness.attributes.map((attr) => (
-                      <div
-                        key={attr.id}
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          fontSize: '11.5px',
-                          gap: '6px',
-                        }}
-                      >
-                        <span>{attr.label}</span>
-                        <StatusBadge
-                          tone={attr.liveOnSite ? 'pass' : 'neutral'}
-                        >
-                          {attr.liveOnSite ? 'LIVE' : 'IN BUNDLE'}
-                        </StatusBadge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
+              {/* Platform-Tailored 1-Click AI Fix Prompt Card */}
               <div
                 className="vs-card"
                 style={{
-                  padding: '9px 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
+                  padding: '11px 12px',
+                  borderColor: 'var(--vs-ink)',
+                  background: 'var(--vs-surface-warm)',
                 }}
               >
-                <span style={{ fontSize: '12px', fontWeight: 600 }}>
-                  {audit.fixes.length} Ready-to-Paste Fix
-                  {audit.fixes.length === 1 ? '' : 'es'}
-                </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '6px',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <span
+                    className="vs-eyebrow"
+                    style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
+                  >
+                    1-CLICK AI FIX PROMPT
+                  </span>
+                  {platformMeta ? (
+                    <StatusBadge tone="pass">
+                      {`AUTO-DETECTED: ${platformMeta.displayName.toUpperCase()}`}
+                    </StatusBadge>
+                  ) : null}
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '4px',
+                    marginBottom: '8px',
+                  }}
+                >
+                  {(
+                    [
+                      ['coding_agent', 'Coding Agent'],
+                      ['wordpress_cms', 'WordPress'],
+                      ['webflow_cms', 'Webflow'],
+                      ['wix_squarespace_framer', 'Wix · Sqsp · Framer'],
+                      ['shopify_liquid', 'Shopify'],
+                      ['chat_assistant', 'ChatGPT / Claude'],
+                    ] as const
+                  ).map(([envId, label]) => {
+                    const active = selectedPromptEnv === envId;
+                    return (
+                      <button
+                        key={envId}
+                        type="button"
+                        onClick={() => setSelectedPromptEnv(envId)}
+                        style={{
+                          border: active
+                            ? '1px solid var(--vs-ink)'
+                            : '1px solid var(--vs-border-strong)',
+                          background: active ? 'var(--vs-ink)' : '#FFFFFF',
+                          color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
+                          borderRadius: '4px',
+                          padding: '3px 7px',
+                          fontSize: '10.5px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     className="vs-btn"
-                    style={{ padding: '5px 10px', fontSize: '11px' }}
+                    style={{ padding: '6px 10px', fontSize: '11.5px', flex: '1 1 auto' }}
                     onClick={() => {
                       const promptArtifact = buildAiRemediationMasterPrompt({
                         domain: {
@@ -998,6 +1130,7 @@ export default function App(): React.ReactElement {
                         snapshots: audit.scanResults,
                         crawlerReadability:
                           audit.probe.crawlerReadability ?? null,
+                        targetEnv: selectedPromptEnv,
                       });
                       if (
                         typeof navigator !== 'undefined' &&
@@ -1036,6 +1169,7 @@ export default function App(): React.ReactElement {
                         blueprintType: 'vs_competitor',
                         rivalName: topRival,
                         targetPrompt: audit.trackedPrompts[0] ?? null,
+                        targetEnv: selectedPromptEnv,
                       });
                       if (
                         typeof navigator !== 'undefined' &&
@@ -1092,109 +1226,219 @@ export default function App(): React.ReactElement {
                 </div>
               </div>
 
-              {audit.fixes.map((fix, idx) => (
-                <CodeArtifactCard
-                  key={`${fix.fixType}-${idx}`}
-                  title={fix.title}
-                  plainSummary={
-                    isGuided ? describeFixPlainly(fix.fixType) : undefined
-                  }
-                  fileHint={
-                    isGuided ? undefined : `Artifact Type: ${fix.fixType}`
-                  }
-                  code={fix.contentPayload}
-                  qualityScore={fix.naturalQualityScore}
-                  qualityBreakdown={fix.qualityRubricBreakdown}
-                />
-              ))}
-
-              <div className="vs-card" style={{ padding: '10px 12px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '6px',
-                    marginBottom: '8px',
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  <strong style={{ fontSize: '12px' }}>
-                    Dual AI Attribution
-                  </strong>
+              {commerceReadiness ? (
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
                   <div
                     style={{
-                      display: 'inline-flex',
-                      border: '1px solid var(--vs-border)',
-                      borderRadius: '5px',
-                      padding: '2px',
-                      background: 'var(--vs-surface-subtle)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <span
+                      className="vs-eyebrow"
+                      style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
+                    >
+                      AI SHOPPING READINESS
+                    </span>
+                    <StatusBadge
+                      tone={
+                        commerceReadiness.passedCount >= 4 ? 'pass' : 'warn'
+                      }
+                    >
+                      {`${commerceReadiness.passedCount}/${commerceReadiness.totalCount} LIVE`}
+                    </StatusBadge>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px',
+                    }}
+                  >
+                    {commerceReadiness.attributes.map((attr) => (
+                      <div
+                        key={attr.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          fontSize: '11.5px',
+                          gap: '6px',
+                        }}
+                      >
+                        <span>{attr.label}</span>
+                        <StatusBadge
+                          tone={attr.liveOnSite ? 'pass' : 'neutral'}
+                        >
+                          {attr.liveOnSite ? 'LIVE' : 'IN BUNDLE'}
+                        </StatusBadge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <details className="vs-disclosure" open={!isGuided}>
+                <summary className="vs-disclosure-summary">
+                  <div>
+                    <strong style={{ fontSize: '12px', display: 'block' }}>
+                      Individual Raw Code Files ({audit.fixes.length})
+                    </strong>
+                    <span style={{ fontSize: '11px', color: 'var(--vs-ink-secondary)' }}>
+                      Optional — already bundled inside your 1-Click AI Fix Prompt above.
+                    </span>
+                  </div>
+                  <span className="vs-disclosure-pill">Files</span>
+                </summary>
+                <div
+                  className="vs-disclosure-body"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+                >
+                  {audit.fixes.map((fix, idx) => (
+                    <CodeArtifactCard
+                      key={`${fix.fixType}-${idx}`}
+                      title={fix.title}
+                      plainSummary={
+                        isGuided ? describeFixPlainly(fix.fixType) : undefined
+                      }
+                      fileHint={
+                        isGuided ? undefined : `Artifact Type: ${fix.fixType}`
+                      }
+                      code={fix.contentPayload}
+                      qualityScore={fix.naturalQualityScore}
+                      qualityBreakdown={fix.qualityRubricBreakdown}
+                    />
+                  ))}
+                </div>
+              </details>
+
+              <details className="vs-disclosure" open={!isGuided}>
+                <summary className="vs-disclosure-summary">
+                  <div>
+                    <strong style={{ fontSize: '12px', display: 'block' }}>
+                      Optional AI Visitor &amp; Bot Crawl Tracker
+                    </strong>
+                    <span style={{ fontSize: '11px', color: 'var(--vs-ink-secondary)' }}>
+                      Track visits and conversions referred by ChatGPT and Perplexity.
+                    </span>
+                  </div>
+                  <span className="vs-disclosure-pill">Code</span>
+                </summary>
+                <div className="vs-disclosure-body">
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginBottom: '8px',
+                      flexWrap: 'wrap',
                     }}
                   >
                     <button
                       type="button"
-                      onClick={() => setAttributionMode('browser_pixel')}
-                      style={{
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '3px 7px',
-                        borderRadius: '4px',
-                        fontSize: '10.5px',
-                        fontWeight: 600,
-                        background:
-                          attributionMode === 'browser_pixel'
-                            ? 'var(--vs-ink)'
-                            : 'transparent',
-                        color:
-                          attributionMode === 'browser_pixel'
-                            ? '#FFFFFF'
-                            : 'var(--vs-ink-secondary)',
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                      onClick={() => {
+                        const trackerPrompt = buildAnalyticsInstallAiPrompt({
+                          brandName: audit.brandName,
+                          hostname: audit.hostname,
+                          isShopify: audit.shopify.isShopify,
+                          browserPixelSnippet: pixelPreview,
+                          edgeCrawlerSnippet: edgeCrawlerPreview,
+                        });
+                        if (
+                          typeof navigator !== 'undefined' &&
+                          navigator.clipboard?.writeText
+                        ) {
+                          void navigator.clipboard.writeText(
+                            trackerPrompt.content
+                          );
+                        }
+                        setCopiedTrackerPrompt(true);
+                        setTimeout(() => setCopiedTrackerPrompt(false), 2400);
                       }}
                     >
-                      Browser Pixel
+                      {copiedTrackerPrompt
+                        ? '✓ Tracker Prompt Copied'
+                        : 'Copy AI Prompt to Install Tracker'}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setAttributionMode('edge_crawler')}
+                    <div
                       style={{
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '3px 7px',
-                        borderRadius: '4px',
-                        fontSize: '10.5px',
-                        fontWeight: 600,
-                        background:
-                          attributionMode === 'edge_crawler'
-                            ? 'var(--vs-ink)'
-                            : 'transparent',
-                        color:
-                          attributionMode === 'edge_crawler'
-                            ? '#FFFFFF'
-                            : 'var(--vs-ink-secondary)',
+                        display: 'inline-flex',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '5px',
+                        padding: '2px',
+                        background: 'var(--vs-surface-subtle)',
                       }}
                     >
-                      Edge Bot Logger
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setAttributionMode('browser_pixel')}
+                        style={{
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '3px 7px',
+                          borderRadius: '4px',
+                          fontSize: '10.5px',
+                          fontWeight: 600,
+                          background:
+                            attributionMode === 'browser_pixel'
+                              ? 'var(--vs-ink)'
+                              : 'transparent',
+                          color:
+                            attributionMode === 'browser_pixel'
+                              ? '#FFFFFF'
+                              : 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        Browser Pixel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAttributionMode('edge_crawler')}
+                        style={{
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '3px 7px',
+                          borderRadius: '4px',
+                          fontSize: '10.5px',
+                          fontWeight: 600,
+                          background:
+                            attributionMode === 'edge_crawler'
+                              ? 'var(--vs-ink)'
+                              : 'transparent',
+                          color:
+                            attributionMode === 'edge_crawler'
+                              ? '#FFFFFF'
+                              : 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        Edge Bot Logger
+                      </button>
+                    </div>
                   </div>
+                  <CodeArtifactCard
+                    title={
+                      attributionMode === 'browser_pixel'
+                        ? '10-Line AI Referral Pixel'
+                        : 'Edge AI Bot Crawl Logger'
+                    }
+                    fileHint={
+                      attributionMode === 'browser_pixel'
+                        ? 'Paste before </head> using your Console token'
+                        : 'Next.js middleware.ts / Cloudflare Worker'
+                    }
+                    code={
+                      attributionMode === 'browser_pixel'
+                        ? pixelPreview
+                        : edgeCrawlerPreview
+                    }
+                  />
                 </div>
-                <CodeArtifactCard
-                  title={
-                    attributionMode === 'browser_pixel'
-                      ? '10-Line AI Referral Pixel'
-                      : 'Edge AI Bot Crawl Logger'
-                  }
-                  fileHint={
-                    attributionMode === 'browser_pixel'
-                      ? 'Paste before </head> using your Console token'
-                      : 'Next.js middleware.ts / Cloudflare Worker'
-                  }
-                  code={
-                    attributionMode === 'browser_pixel'
-                      ? pixelPreview
-                      : edgeCrawlerPreview
-                  }
-                />
-              </div>
+              </details>
             </div>
           ) : null}
 

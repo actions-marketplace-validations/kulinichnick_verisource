@@ -2373,7 +2373,52 @@ async function run() {
         `Found banned lexicon on ${showcaseLabel}`
       );
     }
-    console.log('✔ [52/52] M56 Mobile Horizontal Scroll Lock, Dual-Orientation SVG Schematics & /sample-audit + /agencies Showcase Upgrade verified!');
+    console.log('✔ [52/53] M56 Mobile Horizontal Scroll Lock, Dual-Orientation SVG Schematics & /sample-audit + /agencies Showcase Upgrade verified!');
+
+    // 51. M57 Self-GEO /llms.txt & /agents.md 7-Platform CMS + /ai-facts Specification & Zero-Slop Gate
+    const [m57LlmsTxt, m57AgentsMd, m57McpManifest] = await Promise.all([
+      fetch(`${BASE}/llms.txt`).then((r) => r.text()),
+      fetch(`${BASE}/agents.md`).then((r) => r.text()),
+      fetch(`${BASE}/.well-known/mcp.json`).then((r) => r.json()),
+    ]);
+    assert.ok(
+      m57LlmsTxt.includes('https://verisource.dev/sample-audit') &&
+        m57LlmsTxt.includes('verisource-ai-facts') &&
+        m57LlmsTxt.includes('WordPress') &&
+        m57LlmsTxt.includes('Webflow'),
+      'Expected /llms.txt to document /sample-audit, 7-platform CMS support, and /ai-facts verification'
+    );
+    assert.ok(
+      m57AgentsMd.includes('verisource-ai-facts') &&
+        m57AgentsMd.includes('detectedPlatform') &&
+        m57AgentsMd.includes('citation_action_playbook_markdown') &&
+        m57AgentsMd.includes('https://verisource.dev/sample-audit'),
+      'Expected /agents.md to document detectedPlatform, /ai-facts protocol, and citation_action_playbook_markdown'
+    );
+    assert.ok(
+      JSON.stringify(m57McpManifest).includes('WordPress') &&
+        JSON.stringify(m57McpManifest).includes('Webflow'),
+      'Expected /.well-known/mcp.json tool descriptions to include 7-platform CMS coverage'
+    );
+    for (const [docLabel, docText] of [
+      ['/llms.txt', m57LlmsTxt],
+      ['/agents.md', m57AgentsMd],
+    ]) {
+      assert.ok(
+        !PLAIN_ENGLISH_JARGON.test(docText),
+        `Expected zero "plain English" phrasing in ${docLabel}`
+      );
+      assert.ok(
+        !/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(docText),
+        `Expected zero /10 or Critic jargon in ${docLabel}`
+      );
+      assert.equal(
+        (docText.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon in ${docLabel}`
+      );
+    }
+    console.log('✔ [53/53] M57 Self-GEO /llms.txt + /agents.md 7-Platform CMS & /ai-facts Specification verified!');
   } finally {
     server.kill();
   }

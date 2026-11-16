@@ -34,24 +34,25 @@ Every graphic below has been pre-encoded as **strict 24-bit Truecolor RGB PNG (`
 
 ### Detailed Description (Copy-Paste into Chrome Web Store)
 
-Audit how ChatGPT, Google Gemini, and Perplexity cite and describe any B2B site or Shopify storefront directly from Chrome's native Side Panel.
+Audit how ChatGPT, Google Gemini, and Perplexity cite and describe any website or Shopify storefront directly from Chrome's native Side Panel.
 
-Verisource gives founders, technical SEO leads, and GEO agencies a 3-tab inspection workflow without leaving the page they are reviewing:
+Verisource gives business owners, technical SEO leads, and GEO agencies an easy-to-use 3-step inspection workflow without leaving the page they are reviewing:
 
-1. VISIBILITY, HALLUCINATIONS & AI BOT ACCESS
-• Score domain AI readiness (0–100) and Brand Truth accuracy in one click.
+1. SITE DIAGNOSIS, HALLUCINATIONS & AI BOT ACCESS
+• Score domain AI readiness (0–100), Brand Truth accuracy, and head-to-head Rival Share of Voice in one click.
+• Auto-detect 7 website platforms (Shopify, WordPress, Webflow, Wix, Squarespace, Framer, and Custom Code / Next.js).
 • Verify whether /robots.txt or edge WAF rules block GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, or Google-Extended.
 • Diff AI engine claims on pricing, shipping thresholds, and discontinued SKUs against verified ground-truth facts.
 
-2. ONE-CLICK >= 9.5/10 ON-SITE FIXES & SHOPIFY ADAPTER
-• Generate syntax-validated Organization, Product, SoftwareApplication, and FAQPage JSON-LD blocks.
-• Export clean /llms.txt and /agents.md specifications vetted by an adversarial zero-cliche quality critic.
-• Detect Shopify /api/ucp/mcp (Universal Commerce Protocol) and legacy /api/mcp endpoints and export drop-in templates/agents.md.liquid theme overrides.
+2. 1-CLICK AI FIX PROMPTS & VALIDATED ON-SITE ARTIFACTS
+• Copy 1 platform-tailored prompt into Claude, ChatGPT, Antigravity, Cursor, WPCode, Webflow, or Shopify to fix your site without manual coding.
+• Generate syntax-validated Organization, Product, SoftwareApplication, and FAQPage JSON-LD blocks, /llms.txt, /agents.md, and /ai-facts specifications.
+• Draft truth-locked You vs. Competitor comparison pages (/compare/brand-vs-rival) and Shopify /api/ucp/mcp + templates/agents.md.liquid overrides.
 
 3. QUERY FANOUT CITATIONS, AGENCY PITCH LINKS & PAID MCP HUB
-• Inspect decompiled search fanout sub-queries and third-party citation URLs winning commercial prompts.
+• Inspect decompiled search fanout sub-queries and third-party citation URLs (Reddit, G2, Clutch, Editorial) winning commercial prompts.
 • Launch 60-second white-label prospect pitch reports (/audit/[slug]) with your agency brand and booking link.
-• Copy stateless Streamable HTTP configuration for https://mcp.verisource.dev/mcp (compatible with Claude Desktop, Cursor, and Antigravity).
+• Copy stateless Streamable HTTP configuration for https://mcp.verisource.dev/mcp (compatible with Claude Desktop, Cursor, Windsurf, and Antigravity).
 
 PRIVACY & LEAST-PRIVILEGE ARCHITECTURE
 Verisource requests only sidePanel and activeTab permissions. It requests zero <all_urls> host permissions, injects zero background content scripts, and never records cross-site browsing history.

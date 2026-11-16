@@ -95,7 +95,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'free_preview',
         creditsCost: 0,
         description:
-          'Returns AI Visibility Score (0-100), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF and robots.txt access, SSR vs JS crawler readability, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation check.',
+          'Returns AI Visibility Score (0-100), 7-platform CMS detection (Shopify, WordPress, Webflow, Wix, Squarespace, Framer, Custom), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF and robots.txt access, SSR vs JS crawler readability, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation check.',
       },
       {
         name: 'get_citation_gaps_and_fanouts',
@@ -103,7 +103,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Returns 3-engine Mention vs Citation share, Source-Type categorized citation gap domains (UGC/Reddit, Review Directory, Editorial, Competitor), suggested funnel prompts, editorial outreach drafts, and observed search sub-queries.',
+          'Returns 3-engine Mention vs Citation share, Source-Type categorized citation gap domains (UGC/Reddit, Review Directory, Editorial, Competitor), channel-specific citation action playbooks, suggested funnel prompts, and observed search sub-queries.',
       },
       {
         name: 'check_brand_hallucinations',
@@ -119,7 +119,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'paid_pro_agency',
         creditsCost: '1_cached_or_10_live',
         description:
-          'Generates syntax-validated schema.org JSON-LD, /llms.txt, /agents.md, Shopify templates/agents.md.liquid overrides, and citation outreach briefs.',
+          'Generates syntax-validated schema.org JSON-LD, /llms.txt, /agents.md, Shopify templates/agents.md.liquid overrides, platform-tailored 1-click AI remediation prompts, and head-to-head rival comparison pages.',
       },
     ],
   };
