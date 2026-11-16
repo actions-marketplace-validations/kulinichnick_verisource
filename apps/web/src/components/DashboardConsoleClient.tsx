@@ -354,6 +354,33 @@ export function DashboardConsoleClient(props: {
   const [verifyingTracker, setVerifyingTracker] = useState(false);
   const [copiedTrackerFollowUpPrompt, setCopiedTrackerFollowUpPrompt] =
     useState(false);
+  const [citationVerifyUrlInput, setCitationVerifyUrlInput] = useState('');
+  const [verifyingCitationUrl, setVerifyingCitationUrl] = useState<
+    string | null
+  >(null);
+  const [copiedCitationVerifyNote, setCopiedCitationVerifyNote] =
+    useState(false);
+  const [citationVerifyResult, setCitationVerifyResult] = useState<{
+    citationUrl: string;
+    sourceHost: string;
+    sourceCategoryLabel: string;
+    httpStatus: number | null;
+    gptBotStatus: number | null;
+    perplexityBotStatus: number | null;
+    aiBotsAllowed: boolean;
+    brandNameMentioned: boolean;
+    domainLinkPresent: boolean;
+    linkRelType: 'dofollow' | 'nofollow_or_ugc' | 'unlinked_text_only' | 'none';
+    matchedAnchorHref: string | null;
+    matchedSnippetExcerpt: string | null;
+    overallStatus:
+      | 'citation_live_linked'
+      | 'mention_live_unlinked'
+      | 'not_mentioned_yet'
+      | 'bot_blocked_or_unreachable';
+    statusHeadline: string;
+    noteContent: string;
+  } | null>(null);
   const [trackerVerifyResult, setTrackerVerifyResult] = useState<{
     hostname: string;
     httpStatus: number | null;
@@ -640,6 +667,9 @@ export function DashboardConsoleClient(props: {
     setCopiedOvertakePrompt(false);
     setTrackerVerifyResult(null);
     setCopiedTrackerFollowUpPrompt(false);
+    setCitationVerifyUrlInput('');
+    setCitationVerifyResult(null);
+    setCopiedCitationVerifyNote(false);
     if (initialValidEnv && !appliedInitialEnvRef.current) {
       appliedInitialEnvRef.current = true;
       setAiPromptTargetEnv(initialValidEnv);
@@ -2428,6 +2458,96 @@ export function DashboardConsoleClient(props: {
       }
       setCopiedTrackerFollowUpPrompt(true);
       setTimeout(() => setCopiedTrackerFollowUpPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  async function handleVerifyOffSiteCitation(explicitUrl?: string) {
+    if (!activeDomain) return;
+    const targetUrl = (explicitUrl ?? citationVerifyUrlInput).trim();
+    if (!targetUrl) {
+      setBannerError(
+        'Enter a public third-party article, directory, or community thread URL to verify.'
+      );
+      return;
+    }
+    if (explicitUrl) {
+      setCitationVerifyUrlInput(targetUrl);
+    }
+    setVerifyingCitationUrl(targetUrl);
+    setBannerError(null);
+    setCopiedCitationVerifyNote(false);
+    try {
+      const res = await fetch('/api/dashboard/verify-citation', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          citation_url: targetUrl,
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        report?: {
+          citationUrl: string;
+          sourceHost: string;
+          sourceCategoryLabel: string;
+          httpStatus: number | null;
+          gptBotStatus: number | null;
+          perplexityBotStatus: number | null;
+          aiBotsAllowed: boolean;
+          brandNameMentioned: boolean;
+          domainLinkPresent: boolean;
+          linkRelType:
+            | 'dofollow'
+            | 'nofollow_or_ugc'
+            | 'unlinked_text_only'
+            | 'none';
+          matchedAnchorHref: string | null;
+          matchedSnippetExcerpt: string | null;
+          overallStatus:
+            | 'citation_live_linked'
+            | 'mention_live_unlinked'
+            | 'not_mentioned_yet'
+            | 'bot_blocked_or_unreachable';
+          statusHeadline: string;
+        };
+        noteContent?: string;
+      };
+      if (!res.ok || json.error || !json.report) {
+        setBannerError(
+          json.message ?? 'Unable to verify off-site citation URL.'
+        );
+      } else {
+        setCitationVerifyResult({
+          ...json.report,
+          noteContent: json.noteContent ?? '',
+        });
+        if (typeof document !== 'undefined') {
+          setTimeout(() => {
+            document
+              .getElementById('vs-citation-verify-result')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 60);
+        }
+      }
+    } catch {
+      setBannerError('Network error while checking off-site citation URL.');
+    } finally {
+      setVerifyingCitationUrl(null);
+    }
+  }
+
+  async function handleCopyCitationVerifyNote() {
+    if (!citationVerifyResult?.noteContent) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(citationVerifyResult.noteContent);
+      }
+      setCopiedCitationVerifyNote(true);
+      setTimeout(() => setCopiedCitationVerifyNote(false), 2600);
     } catch {
       // Ignore clipboard permission denial
     }
@@ -7374,6 +7494,223 @@ export function DashboardConsoleClient(props: {
                 </div>
               </div>
 
+              {/* M66 Closed-Loop Off-Site Citation Mention Verifier */}
+              <div
+                style={{
+                  padding: '10px 16px',
+                  borderBottom: '1px solid var(--vs-border)',
+                  background: 'var(--vs-surface-warm)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                }}
+              >
+                <div style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>
+                  <strong style={{ color: 'var(--vs-ink)' }}>
+                    Got listed in a roundup, directory, or community thread?
+                  </strong>{' '}
+                  Paste the URL (or click <strong>✓ Check Live</strong> on any row) to verify{' '}
+                  <code className="vs-mono">GPTBot</code> &amp;{' '}
+                  <code className="vs-mono">PerplexityBot</code> crawl access and your live citation link.
+                </div>
+
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={citationVerifyUrlInput}
+                    onChange={(e) => setCitationVerifyUrlInput(e.target.value)}
+                    placeholder="https://g2.com/... or roundup URL"
+                    className="vs-input vs-mono"
+                    style={{
+                      width: '260px',
+                      maxWidth: '100%',
+                      fontSize: '11.5px',
+                      padding: '6px 10px',
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={verifyingCitationUrl !== null}
+                    onClick={() => void handleVerifyOffSiteCitation()}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '6px 11px', fontSize: '11.5px' }}
+                  >
+                    {verifyingCitationUrl !== null
+                      ? 'Checking URL...'
+                      : '✓ Verify Mention Live'}
+                  </button>
+                </div>
+              </div>
+
+              {citationVerifyResult ? (
+                <div
+                  id="vs-citation-verify-result"
+                  style={{
+                    margin: '12px 16px',
+                    padding: '12px 14px',
+                    borderRadius: '6px',
+                    background:
+                      citationVerifyResult.overallStatus ===
+                      'citation_live_linked'
+                        ? 'var(--vs-pass-bg)'
+                        : citationVerifyResult.overallStatus ===
+                            'bot_blocked_or_unreachable'
+                          ? 'var(--vs-crit-bg)'
+                          : 'var(--vs-surface)',
+                    border: `1px solid ${
+                      citationVerifyResult.overallStatus ===
+                      'citation_live_linked'
+                        ? 'var(--vs-pass-border)'
+                        : citationVerifyResult.overallStatus ===
+                            'bot_blocked_or_unreachable'
+                          ? 'var(--vs-crit-border)'
+                          : 'var(--vs-border-strong)'
+                    }`,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <StatusBadge
+                        tone={
+                          citationVerifyResult.overallStatus ===
+                          'citation_live_linked'
+                            ? 'pass'
+                            : citationVerifyResult.overallStatus ===
+                                'bot_blocked_or_unreachable'
+                              ? 'critical'
+                              : 'warn'
+                        }
+                      >
+                        {citationVerifyResult.overallStatus ===
+                        'citation_live_linked'
+                          ? 'LINKED CITATION LIVE'
+                          : citationVerifyResult.overallStatus ===
+                              'mention_live_unlinked'
+                            ? 'UNLINKED MENTION LIVE'
+                            : citationVerifyResult.overallStatus ===
+                                'bot_blocked_or_unreachable'
+                              ? 'BOT BLOCKED / UNREACHABLE'
+                              : 'NOT MENTIONED YET'}
+                      </StatusBadge>
+                      <StatusBadge>
+                        {citationVerifyResult.sourceCategoryLabel}
+                      </StatusBadge>
+                      {citationVerifyResult.linkRelType === 'dofollow' ? (
+                        <StatusBadge tone="pass">DOFOLLOW LINK</StatusBadge>
+                      ) : citationVerifyResult.linkRelType ===
+                        'nofollow_or_ugc' ? (
+                        <StatusBadge tone="neutral">
+                          UGC / NOFOLLOW LINK
+                        </StatusBadge>
+                      ) : citationVerifyResult.linkRelType ===
+                        'unlinked_text_only' ? (
+                        <StatusBadge tone="warn">TEXT DOMAIN ONLY</StatusBadge>
+                      ) : null}
+                      <span
+                        className="vs-mono"
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        GPTBot: {citationVerifyResult.gptBotStatus ?? 'ERR'} ·
+                        PerplexityBot:{' '}
+                        {citationVerifyResult.perplexityBotStatus ?? 'ERR'}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        flexWrap: 'wrap',
+                        gap: '6px',
+                      }}
+                    >
+                      {citationVerifyResult.noteContent ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleCopyCitationVerifyNote()}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        >
+                          {copiedCitationVerifyNote
+                            ? '✓ Note Copied'
+                            : citationVerifyResult.overallStatus ===
+                                'mention_live_unlinked'
+                              ? 'Copy Link-Request Note'
+                              : citationVerifyResult.overallStatus ===
+                                  'not_mentioned_yet'
+                                ? 'Copy Spec Inclusion Note'
+                                : 'Copy Summary'}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => setCitationVerifyResult(null)}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 8px', fontSize: '11.5px' }}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      fontWeight: 600,
+                      color: 'var(--vs-ink)',
+                      marginBottom: citationVerifyResult.matchedSnippetExcerpt
+                        ? '6px'
+                        : 0,
+                    }}
+                  >
+                    {citationVerifyResult.statusHeadline}
+                  </div>
+
+                  {citationVerifyResult.matchedSnippetExcerpt ? (
+                    <div
+                      style={{
+                        padding: '7px 10px',
+                        borderRadius: '5px',
+                        background: 'var(--vs-surface-muted)',
+                        border: '1px solid var(--vs-border)',
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      <strong>Matched page text:</strong>{' '}
+                      &ldquo;{citationVerifyResult.matchedSnippetExcerpt}&rdquo;
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               <table className="vs-table">
                 <thead>
                   <tr>
@@ -7516,26 +7853,45 @@ export function DashboardConsoleClient(props: {
                                 : 'Copy URL'}
                             </button>
                             {src.ownership !== 'owned' ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setSelectedCitationSourceHost((prev) =>
-                                    prev === src.sourceHost
-                                      ? null
-                                      : src.sourceHost
-                                  )
-                                }
-                                className="vs-btn vs-btn-secondary"
-                                style={{
-                                  padding: '4px 9px',
-                                  fontSize: '11.5px',
-                                  borderColor: isPitchSelected
-                                    ? 'var(--vs-ink)'
-                                    : undefined,
-                                }}
-                              >
-                                {isPitchSelected ? 'Selected' : 'Draft Pitch'}
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={verifyingCitationUrl !== null}
+                                  onClick={() =>
+                                    void handleVerifyOffSiteCitation(primaryUrl)
+                                  }
+                                  className="vs-btn vs-btn-secondary"
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '11.5px',
+                                  }}
+                                  title="Check whether this URL currently mentions or links to your brand and allows GPTBot/PerplexityBot"
+                                >
+                                  {verifyingCitationUrl === primaryUrl
+                                    ? 'Checking...'
+                                    : '✓ Check Live'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedCitationSourceHost((prev) =>
+                                      prev === src.sourceHost
+                                        ? null
+                                        : src.sourceHost
+                                    )
+                                  }
+                                  className="vs-btn vs-btn-secondary"
+                                  style={{
+                                    padding: '4px 9px',
+                                    fontSize: '11.5px',
+                                    borderColor: isPitchSelected
+                                      ? 'var(--vs-ink)'
+                                      : undefined,
+                                  }}
+                                >
+                                  {isPitchSelected ? 'Selected' : 'Draft Pitch'}
+                                </button>
+                              </>
                             ) : null}
                           </div>
                         </td>

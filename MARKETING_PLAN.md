@@ -31,9 +31,9 @@
 
 ## 3. Six-Sprint Execution Roadmap
 
-- **[IN PROGRESS] Sprint GTM-1 (`M64`):** Native 90-second 3-persona Interactive Product Tutorial (`/tutorial`), 6-environment CMS visual quickstarts, Homepage Hero tour integration, and capped **Founding Partner Rate** conversion framing across `/pricing` and `/agencies`.
-- **[NEXT] Sprint GTM-2 (`M65`):** BoFu competitor alternative pages (`/compare/*`), CMS protocol setup guides (`/guides/*`), 3 free zero-token SEO micro-tools (`/tools/*`), and Bing Webmaster + IndexNow instant indexing for ChatGPT Search.
-- **Sprint GTM-3 (`M66`):** Public `verisource-mcp` GitHub companion repository + 7-CMS `/agents.md` templates, Smithery / PulseMCP / `awesome-mcp-servers` submissions, Microsoft Edge Add-ons upload, and G2 / Capterra / AlternativeTo profiles.
+- **[DONE] Sprint GTM-1 (`M65`):** Native 90-second 3-persona Interactive Product Tutorial (`/tutorial`), 6-environment CMS visual quickstarts, Homepage Hero tour integration, and capped **Founding Partner Rate** conversion framing across `/pricing` and `/agencies`.
+- **[DONE] Sprint GTM-2 (`M67`):** BoFu competitor alternative pages (`/compare/*`), CMS protocol setup guides (`/guides/*`), 3 free zero-token SEO micro-tools (`/tools/*`), and Bing Webmaster + IndexNow instant indexing for ChatGPT Search.
+- **[NEXT] Sprint GTM-3 (`M68`):** Public `verisource-mcp` GitHub companion repository + 7-CMS `/agents.md` templates, Smithery / PulseMCP / `awesome-mcp-servers` submissions, Microsoft Edge Add-ons upload, and G2 / Capterra / AlternativeTo profiles.
 - **Sprint GTM-4 (`M67`):** Secondary outbound sending domain setup + launch of Cohorts 01–03 + batch-minted 200-agency `/audit/[slug]` outbound pipeline.
 - **Sprint GTM-5 (`M68`):** 300-domain empirical HTTP AI-Readiness Benchmark Study (`/benchmarks/ai-search-readiness-2026`), 1080p walkthrough video capture, and staggered `Show HN` + LinkedIn/X Live URL Audit + Product Hunt launch week.
 - **Sprint GTM-6 (`M69`):** 25% recurring Stripe affiliate partner engine + Shopify App Store & WordPress.org connector bridges.

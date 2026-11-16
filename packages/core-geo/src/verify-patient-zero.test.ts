@@ -7,6 +7,7 @@ import {
   PATIENT_ZERO_FIXES,
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
+  CitationMentionVerifyError,
   CompetitorXrayError,
   SubPageInspectionError,
   VERISOURCE_VERSION,
@@ -66,9 +67,11 @@ import {
   dispatchWeeklyExecutiveDigestEmail,
   enforceQualityGate95,
   evaluateCommerceAttributeReadiness,
+  evaluateOffSiteCitationMention,
   evaluatePublishedCitationPage,
   evaluateTrackerInstallation,
   evaluateTrialLifecycleStage,
+  resolveSafeExternalCitationUrl,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
   extractCleanCategoryTopic,
@@ -3204,6 +3207,119 @@ test('M64 evaluateTrackerInstallation detects verified_live, token_mismatch, Sho
 
   for (const r of [liveRes, mismatchRes, sandboxRes, missingRes]) {
     const combined = `${r.statusHeadline} ${r.cmsTroubleshootingHint}\n${r.followUpInstallPrompt.content}`;
+    assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+    assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+    assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
+  }
+});
+
+test('M66 resolveSafeExternalCitationUrl & evaluateOffSiteCitationMention enforce SSRF + own-domain guards and grade all 4 off-site citation states (>= 9.5/10)', () => {
+  assert.throws(
+    () =>
+      resolveSafeExternalCitationUrl(
+        'http://169.254.169.254/latest/meta-data/',
+        'https://mosaicroasters.com'
+      ),
+    (err: unknown) =>
+      err instanceof CitationMentionVerifyError &&
+      err.code === 'INVALID_CITATION_URL'
+  );
+  assert.throws(
+    () =>
+      resolveSafeExternalCitationUrl(
+        'https://www.mosaicroasters.com/pages/ai-facts',
+        'https://mosaicroasters.com'
+      ),
+    (err: unknown) =>
+      err instanceof CitationMentionVerifyError &&
+      err.code === 'OWN_DOMAIN_ENTERED'
+  );
+
+  const truth = PATIENT_ZERO_DOMAINS[1]!.brand_truth_sheet;
+
+  // 1. Linked citation live (dofollow)
+  const linkedRes = evaluateOffSiteCitationMention({
+    citationUrl: 'https://sprudge.com/springfield-coffee-guide',
+    sourceHost: 'sprudge.com',
+    brandName: 'Mosaic Coffee Roasters',
+    targetHostname: 'mosaicroasters.com',
+    brandTruthSheet: truth,
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml:
+      '<html><body><article><h1>Springfield Guide</h1><p>Local favorites include <a href="https://mosaicroasters.com/collections/all">Mosaic Coffee Roasters</a> with $35+ free shipping.</p></article></body></html>',
+  });
+  assert.equal(linkedRes.overallStatus, 'citation_live_linked');
+  assert.equal(linkedRes.linkRelType, 'dofollow');
+  assert.ok(linkedRes.matchedSnippetExcerpt?.includes('Mosaic Coffee Roasters'));
+  assert.ok(linkedRes.nextActionNote.score >= 9.5);
+
+  // 2. Linked UGC / nofollow on Reddit
+  const ugcRes = evaluateOffSiteCitationMention({
+    citationUrl: 'https://reddit.com/r/coffee/comments/abc123',
+    sourceHost: 'reddit.com',
+    brandName: 'Mosaic Coffee Roasters',
+    targetHostname: 'mosaicroasters.com',
+    brandTruthSheet: truth,
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml:
+      '<html><body><p>Try <a href="https://mosaicroasters.com" rel="nofollow ugc">Mosaic Coffee Roasters</a> in Springfield.</p></body></html>',
+  });
+  assert.equal(ugcRes.overallStatus, 'citation_live_linked');
+  assert.equal(ugcRes.linkRelType, 'nofollow_or_ugc');
+  assert.equal(ugcRes.sourceCategory, 'ugc_community');
+
+  // 3. Unlinked text mention
+  const unlinkedRes = evaluateOffSiteCitationMention({
+    citationUrl: 'https://feastmagazine.com/missouri-roasters',
+    sourceHost: 'feastmagazine.com',
+    brandName: 'Mosaic Coffee Roasters',
+    targetHostname: 'mosaicroasters.com',
+    brandTruthSheet: truth,
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml:
+      '<html><body><p>Mosaic Coffee Roasters roasts small-batch single-origin beans in Springfield, Missouri.</p></body></html>',
+  });
+  assert.equal(unlinkedRes.overallStatus, 'mention_live_unlinked');
+  assert.equal(unlinkedRes.domainLinkPresent, false);
+  assert.ok(unlinkedRes.nextActionNote.score >= 9.5);
+
+  // 4. Not mentioned yet + Bot blocked
+  const missingRes = evaluateOffSiteCitationMention({
+    citationUrl: 'https://g2.com/categories/office-coffee',
+    sourceHost: 'g2.com',
+    brandName: 'Mosaic Coffee Roasters',
+    targetHostname: 'mosaicroasters.com',
+    brandTruthSheet: truth,
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml: '<html><body><p>Top office coffee vendors compared.</p></body></html>',
+  });
+  assert.equal(missingRes.overallStatus, 'not_mentioned_yet');
+  assert.ok(missingRes.nextActionNote.score >= 9.5);
+
+  const blockedRes = evaluateOffSiteCitationMention({
+    citationUrl: 'https://protected-blog.io/list',
+    sourceHost: 'protected-blog.io',
+    brandName: 'Mosaic Coffee Roasters',
+    targetHostname: 'mosaicroasters.com',
+    brandTruthSheet: truth,
+    httpStatus: 403,
+    gptBotStatus: 403,
+    perplexityBotStatus: 403,
+    rawHtml: '',
+  });
+  assert.equal(blockedRes.overallStatus, 'bot_blocked_or_unreachable');
+  assert.ok(blockedRes.nextActionNote.score >= 9.5);
+
+  for (const r of [linkedRes, ugcRes, unlinkedRes, missingRes, blockedRes]) {
+    const combined = `${r.statusHeadline}\n${r.nextActionNote.content}`;
     assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
     assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
     assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);

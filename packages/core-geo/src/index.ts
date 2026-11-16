@@ -8,6 +8,7 @@ export * from './scanner/bot-waf-prober.js';
 export * from './scanner/cms-detector.js';
 export * from './scanner/subpage-inspector.js';
 export * from './scanner/competitor-xray.js';
+export * from './scanner/citation-mention-verifier.js';
 export * from './shopify/shopify-adapter.js';
 export * from './watchdog/hallucination-watchdog.js';
 export * from './scanner/fanout-scanner.js';

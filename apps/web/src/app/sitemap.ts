@@ -1,4 +1,9 @@
 import type { MetadataRoute } from 'next';
+import {
+  COMPETITOR_ALTERNATIVES,
+  FREE_SEO_TOOLS,
+  PROTOCOL_GUIDES,
+} from '../lib/gtm-content';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -39,6 +44,42 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    {
+      url: 'https://verisource.dev/compare',
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.88,
+    },
+    ...COMPETITOR_ALTERNATIVES.map((item) => ({
+      url: `https://verisource.dev/compare/${item.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    })),
+    {
+      url: 'https://verisource.dev/guides',
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    ...PROTOCOL_GUIDES.map((item) => ({
+      url: `https://verisource.dev/guides/${item.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    })),
+    {
+      url: 'https://verisource.dev/tools',
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.88,
+    },
+    ...FREE_SEO_TOOLS.map((item) => ({
+      url: `https://verisource.dev/tools/${item.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    })),
     {
       url: 'https://verisource.dev/llms.txt',
       lastModified: now,

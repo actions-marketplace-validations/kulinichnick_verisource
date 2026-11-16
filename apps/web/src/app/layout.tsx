@@ -239,6 +239,30 @@ export default function RootLayout({
               }}
             >
               <Link
+                href="/tutorial"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /tutorial
+              </Link>
+              <Link
+                href="/compare"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /compare
+              </Link>
+              <Link
+                href="/guides"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /guides
+              </Link>
+              <Link
+                href="/tools"
+                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
+              >
+                /tools
+              </Link>
+              <Link
                 href="/mcp-guide"
                 style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
               >

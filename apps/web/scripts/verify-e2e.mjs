@@ -3061,7 +3061,208 @@ async function run() {
         gtmAgentsMd.includes('https://verisource.dev/tutorial'),
       'Expected /sitemap.xml, /llms.txt, and /agents.md to include https://verisource.dev/tutorial'
     );
-    console.log('✔ [62/62] M65 (Sprint GTM-1) Interactive 90s Product Tour (/tutorial), 7-CMS Setup Guides & Founding Partner Rate Lock verified!');
+    console.log('✔ [62/63] M65 (Sprint GTM-1) Interactive 90s Product Tour (/tutorial), 7-CMS Setup Guides & Founding Partner Rate Lock verified!');
+
+    // 61. M66 Closed-Loop Off-Site Citation Mention Verifier (/api/dashboard/verify-citation: 401/400 SSRF & Own-Domain/404/200 + Step 03 CTA)
+    assert.ok(
+      m42Tab3Html.includes('✓ Verify Mention Live') &&
+        m42Tab3Html.includes('✓ Check Live'),
+      'Expected Step 03 Citation Gap Leaderboard to include ✓ Verify Mention Live and ✓ Check Live buttons'
+    );
+
+    const unauthCitRes = await fetch(`${BASE}/api/dashboard/verify-citation`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        citation_url: 'https://g2.com/categories/coffee',
+      }),
+    });
+    assert.equal(unauthCitRes.status, 401);
+
+    const ssrfCitRes = await fetch(`${BASE}/api/dashboard/verify-citation`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        citation_url: 'http://169.254.169.254/latest/meta-data/',
+      }),
+    });
+    assert.equal(ssrfCitRes.status, 400);
+
+    const ownDomCitRes = await fetch(`${BASE}/api/dashboard/verify-citation`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        citation_url: 'https://aurearoasters.com/collections/all',
+      }),
+    });
+    assert.equal(ownDomCitRes.status, 400);
+    const ownDomCitJson = await ownDomCitRes.json();
+    assert.equal(ownDomCitJson.error, 'OWN_DOMAIN_ENTERED');
+
+    const unknownDomCitRes = await fetch(
+      `${BASE}/api/dashboard/verify-citation`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({
+          domain_id: '00000000-0000-4000-8000-999999999999',
+          citation_url: 'https://g2.com/categories/coffee',
+        }),
+      }
+    );
+    assert.equal(unknownDomCitRes.status, 404);
+
+    const validCitRes = await fetch(`${BASE}/api/dashboard/verify-citation`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        citation_url: 'https://g2.com/categories/specialty-coffee-roasters',
+      }),
+    });
+    assert.equal(validCitRes.status, 200);
+    const validCitJson = await validCitRes.json();
+    assert.equal(validCitJson.ok, true);
+    assert.equal(validCitJson.report.sourceCategory, 'review_directory');
+    assert.ok(validCitJson.noteScore >= 9.5);
+    assert.equal(
+      (validCitJson.noteContent.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in M66 verify-citation noteContent'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(validCitJson.noteContent) &&
+        !PLAIN_ENGLISH_JARGON.test(validCitJson.noteContent),
+      'Found /10 or plain-English jargon in M66 verify-citation noteContent'
+    );
+    console.log('✔ [63/64] M66 Closed-Loop Off-Site Citation Mention Verifier (/api/dashboard/verify-citation 401/400 SSRF & Own-Domain/404/200 >= 9.5/10 + Step 03 CTA) verified!');
+
+    // 62. M67 (Sprint GTM-2): 5 BoFu /compare/* Pages, 2 /guides/* Articles, 3 Free /tools/* Validators (/api/tools/check) & IndexNow RFC
+    const gtm2StaticRoutes = [
+      '/compare',
+      '/compare/profound-alternative',
+      '/compare/otterly-ai-alternative',
+      '/compare/peec-ai-alternative',
+      '/compare/athenahq-alternative',
+      '/compare/scrunch-ai-alternative',
+      '/guides',
+      '/guides/shopify-agents-md-ucp-mcp',
+      '/guides/llms-txt-and-agents-md-setup',
+      '/tools',
+      '/tools/llms-txt-validator',
+      '/tools/ai-crawler-waf-checker',
+      '/tools/shopify-ai-readiness-checker',
+    ];
+
+    for (const routePath of gtm2StaticRoutes) {
+      const r = await fetch(`${BASE}${routePath}`);
+      assert.equal(r.status, 200, `Expected HTTP 200 on ${routePath}`);
+      const html = await r.text();
+      assert.ok(
+        !html.includes('aurearoasters') &&
+          !html.includes('mosaicroasters') &&
+          !html.includes('Aurea Coffee') &&
+          !html.includes('Mosaic Coffee'),
+        `Expected zero coffee-store echoes on ${routePath}`
+      );
+      const visible = html
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      const lexHits = visible.match(BANNED_LEXICON) ?? [];
+      assert.equal(
+        lexHits.length,
+        0,
+        `Found banned lexicon on ${routePath}: ${lexHits.join(', ')}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(visible) &&
+          !PLAIN_ENGLISH_JARGON.test(visible) &&
+          !/\bbeta\b/i.test(visible),
+        `Found /10, plain-English, or Beta jargon on ${routePath}`
+      );
+    }
+
+    // POST /api/tools/check SSRF defense + empty domain 400 + deterministic Shopify check + 1h cache hit
+    const emptyToolRes = await fetch(`${BASE}/api/tools/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    assert.equal(emptyToolRes.status, 400);
+
+    const ssrfToolRes = await fetch(`${BASE}/api/tools/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: 'http://169.254.169.254/latest/meta-data/' }),
+    });
+    assert.equal(ssrfToolRes.status, 400);
+
+    const validToolRes = await fetch(`${BASE}/api/tools/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain: 'mosaicroasters.com',
+        tool: 'shopify-ai-readiness-checker',
+      }),
+    });
+    assert.equal(validToolRes.status, 200);
+    const validToolJson = await validToolRes.json();
+    assert.equal(validToolJson.ok, true);
+    assert.equal(validToolJson.detectedPlatform, 'shopify');
+    assert.equal(validToolJson.recommendedEnv, 'shopify_liquid');
+    assert.equal(validToolJson.cached1h, false);
+
+    const cachedToolRes = await fetch(`${BASE}/api/tools/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: 'mosaicroasters.com' }),
+    });
+    assert.equal(cachedToolRes.status, 200);
+    const cachedToolJson = await cachedToolRes.json();
+    assert.equal(cachedToolJson.cached1h, true);
+
+    // IndexNow RFC key route + Bearer-protected /api/indexnow endpoint
+    const indexNowKeyRes = await fetch(
+      `${BASE}/a94f2d8c6e1b47039c5d8a2e7b1f04c6.txt`
+    );
+    assert.equal(indexNowKeyRes.status, 200);
+    assert.equal(
+      (await indexNowKeyRes.text()).trim(),
+      'a94f2d8c6e1b47039c5d8a2e7b1f04c6'
+    );
+
+    const unauthIndexNowRes = await fetch(`${BASE}/api/indexnow`, {
+      method: 'POST',
+    });
+    assert.equal(unauthIndexNowRes.status, 401);
+
+    const authIndexNowRes = await fetch(`${BASE}/api/indexnow`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ dryRun: true }),
+    });
+    assert.equal(authIndexNowRes.status, 200);
+    const authIndexNowJson = await authIndexNowRes.json();
+    assert.equal(authIndexNowJson.ok, true);
+    assert.ok(authIndexNowJson.submittedCount >= 21);
+
+    const gtm2SitemapXml = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    const gtm2LlmsTxt = await (await fetch(`${BASE}/llms.txt`)).text();
+    const gtm2AgentsMd = await (await fetch(`${BASE}/agents.md`)).text();
+    assert.ok(
+      gtm2SitemapXml.includes('https://verisource.dev/compare/profound-alternative') &&
+        gtm2SitemapXml.includes('https://verisource.dev/guides/shopify-agents-md-ucp-mcp') &&
+        gtm2SitemapXml.includes('https://verisource.dev/tools/llms-txt-validator') &&
+        gtm2LlmsTxt.includes('https://verisource.dev/compare') &&
+        gtm2LlmsTxt.includes('https://verisource.dev/tools') &&
+        gtm2AgentsMd.includes('https://verisource.dev/compare/profound-alternative'),
+      'Expected /sitemap.xml, /llms.txt, and /agents.md to include Sprint GTM-2 comparison, guide, and free-tool routes'
+    );
+    console.log('✔ [64/64] M67 (Sprint GTM-2) 13 Comparison/Guide/Tool SEO Routes, /api/tools/check (400 SSRF/200 Cache) & IndexNow RFC (401/200) verified!');
   } finally {
     server.kill();
   }
