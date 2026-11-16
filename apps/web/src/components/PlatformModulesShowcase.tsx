@@ -32,12 +32,12 @@ const PILLARS: PillarSpec[] = [
   },
   {
     id: 'conversation_explorer',
-    stepTag: '02 · CONVERSATION EXPLORER',
-    title: 'Suggested Funnel Prompts & Source-Type Leaderboard',
-    subtitle: 'Win unbranded category shortlists before buyers ever type your name.',
+    stepTag: '02 · CONVERSATION EXPLORER & RIVAL X-RAY',
+    title: 'Suggested Prompts, Source Types & Live Competitor X-Ray',
+    subtitle: 'Benchmark any competitor domain side by side and win unbranded shortlists.',
     description:
-      'Activate 1-click auto-suggested buyer prompts grouped across Unbranded Discovery, Commercial Comparison, Pricing & Fit, and Branded Trust. Decompile engine search sub-queries and see every external citation source tagged as UGC / Reddit, Review Directory (G2 / Clutch), Editorial, or Competitor.',
-    consoleLocation: 'Console Step 3 · Prompts & Citation Sources',
+      'Run a live side-by-side HTTP X-Ray against any rival domain across GPTBot access, non-JS token density, JSON-LD types, /llms.txt, and /agents.md. Activate 1-click funnel prompts and see every external citation source tagged as UGC / Reddit, Review Directory (G2 / Clutch), Editorial, or Competitor.',
+    consoleLocation: 'Console Step 3 · Competitor X-Ray & Citation Sources',
   },
   {
     id: 'agent_analytics',

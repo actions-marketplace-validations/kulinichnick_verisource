@@ -7,6 +7,7 @@ import {
   PATIENT_ZERO_FIXES,
   PATIENT_ZERO_PITCH_REPORT,
   PATIENT_ZERO_SNAPSHOTS,
+  CompetitorXrayError,
   SubPageInspectionError,
   VERISOURCE_VERSION,
   analyzeCrawlerHtmlReadability,
@@ -69,6 +70,7 @@ import {
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
   resolveSafeSameDomainTargetUrl,
+  runCompetitorTechnicalXray,
   runDomainReadinessScan,
   runFullGeoAudit,
   runPerplexityAgentQuery,
@@ -2047,4 +2049,42 @@ test('M49 Sub-Page AI Bot Extraction Inspector enforces same-domain + SSRF guard
   assert.deepEqual(richSsrReport.jsonLdTypes, ['FAQPage']);
   assert.ok(richSsrReport.botExtractedPreview.includes('[HTML TABLE START]'));
   assert.ok(richSsrReport.aiPageOptimizationPrompt.score >= 9.5);
+});
+
+test('M50 Competitor Technical X-Ray blocks SSRF + self-domain & computes 6-dimension readiness diff (>= 9.5/10 overtake prompt)', async () => {
+  const sampleOwn = PATIENT_ZERO_DOMAINS[0]!;
+
+  await assert.rejects(
+    () =>
+      runCompetitorTechnicalXray({
+        ownDomain: sampleOwn,
+        rivalDomainInput: 'http://169.254.169.254/',
+        rawEnv: { PROVIDER_MODE: 'mock' },
+      }),
+    (err: unknown) =>
+      err instanceof CompetitorXrayError && err.code === 'INVALID_RIVAL_DOMAIN'
+  );
+
+  await assert.rejects(
+    () =>
+      runCompetitorTechnicalXray({
+        ownDomain: sampleOwn,
+        rivalDomainInput: sampleOwn.domain_url,
+        rawEnv: { PROVIDER_MODE: 'mock' },
+      }),
+    (err: unknown) =>
+      err instanceof CompetitorXrayError && err.code === 'SAME_DOMAIN_ERROR'
+  );
+
+  const xray = await runCompetitorTechnicalXray({
+    ownDomain: sampleOwn,
+    rivalDomainInput: 'bluebottlecoffee.com',
+    rawEnv: { PROVIDER_MODE: 'mock' },
+  });
+  assert.equal(xray.rivalHostname, 'bluebottlecoffee.com');
+  assert.equal(xray.dimensions.length, 6);
+  assert.ok(xray.aiOvertakePrompt.score >= 9.5);
+  assert.ok(
+    !/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(xray.aiOvertakePrompt.content)
+  );
 });

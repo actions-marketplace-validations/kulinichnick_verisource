@@ -11,10 +11,10 @@ function buildNextDashboardHref(): string {
   if (typeof window === 'undefined') return '/dashboard';
   const urlParams = new URLSearchParams(window.location.search);
   const nextParams = new URLSearchParams();
-  const targetDomain = urlParams.get('domain');
-  const targetTab = urlParams.get('tab');
-  if (targetDomain) nextParams.set('domain', targetDomain);
-  if (targetTab) nextParams.set('tab', targetTab);
+  for (const key of ['domain', 'tab', 'upgraded', 'trial', 'credit_applied']) {
+    const val = urlParams.get(key);
+    if (val) nextParams.set(key, val);
+  }
   const suffix = nextParams.toString() ? `?${nextParams.toString()}` : '';
   return `/dashboard${suffix}`;
 }
@@ -301,7 +301,7 @@ export default function LoginPage(): React.ReactElement {
             className="vs-btn vs-btn-secondary"
             style={{ width: '100%', textAlign: 'center' }}
           >
-            Need a Console Plan? View Pricing ($19 Pass or $49/mo) →
+            Need a Console Plan? Start 7-Day Free Trial ($0 Today) →
           </Link>
           <Link
             href="/#audit"

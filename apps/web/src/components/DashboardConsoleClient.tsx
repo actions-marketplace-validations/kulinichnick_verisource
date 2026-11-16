@@ -30,6 +30,7 @@ import {
   type AiRemediationTargetEnv,
   type CitationPageBlueprintType,
   type CitationSnapshotRow,
+  type CompetitorTechnicalXrayReport,
   type CrawlerReadabilityReport,
   type DomainRow,
   type GeneratedFixRow,
@@ -285,6 +286,11 @@ export function DashboardConsoleClient(props: {
     useState<SubPageBotInspectionReport | null>(null);
   const [copiedSubPagePrompt, setCopiedSubPagePrompt] = useState(false);
   const [showSubPageRawStream, setShowSubPageRawStream] = useState(false);
+  const [rivalXrayInput, setRivalXrayInput] = useState('');
+  const [runningRivalXray, setRunningRivalXray] = useState(false);
+  const [rivalXrayReport, setRivalXrayReport] =
+    useState<CompetitorTechnicalXrayReport | null>(null);
+  const [copiedOvertakePrompt, setCopiedOvertakePrompt] = useState(false);
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
     subject: string;
@@ -482,6 +488,9 @@ export function DashboardConsoleClient(props: {
     setCopiedSubPagePrompt(false);
     setShowSubPageRawStream(false);
     setSubPageInput(activeDomain?.is_shopify ? '/collections/all' : '/pricing');
+    setRivalXrayInput('');
+    setRivalXrayReport(null);
+    setCopiedOvertakePrompt(false);
     setAiPromptTargetEnv(
       activeDomain?.is_shopify ? 'shopify_liquid' : 'coding_agent'
     );
@@ -1314,6 +1323,58 @@ export function DashboardConsoleClient(props: {
       }
       setCopiedSubPagePrompt(true);
       setTimeout(() => setCopiedSubPagePrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  async function handleRunCompetitorXray(targetOverride?: string) {
+    if (!activeDomain) return;
+    const rawRival = (targetOverride ?? rivalXrayInput).trim();
+    if (!rawRival) return;
+    if (targetOverride) {
+      setRivalXrayInput(targetOverride);
+    }
+    setRunningRivalXray(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/competitor-xray', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          rival_domain: rawRival,
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        xray?: CompetitorTechnicalXrayReport;
+      };
+      if (!res.ok || json.error || !json.xray) {
+        setBannerError(
+          json.message ?? 'Unable to benchmark competitor domain.'
+        );
+      } else {
+        setRivalXrayReport(json.xray);
+      }
+    } catch {
+      setBannerError('Network error while running Competitor Technical X-Ray.');
+    } finally {
+      setRunningRivalXray(false);
+    }
+  }
+
+  async function handleCopyOvertakePrompt() {
+    if (!rivalXrayReport) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(
+          rivalXrayReport.aiOvertakePrompt.content
+        );
+      }
+      setCopiedOvertakePrompt(true);
+      setTimeout(() => setCopiedOvertakePrompt(false), 2600);
     } catch {
       // Ignore clipboard permission denial
     }
@@ -2674,7 +2735,11 @@ export function DashboardConsoleClient(props: {
                 props.initialDomainQuery
                   ? `&domain=${encodeURIComponent(props.initialDomainQuery)}`
                   : ''
-              }`}
+              }${
+                props.upgradedPlan
+                  ? `&upgraded=${encodeURIComponent(props.upgradedPlan)}`
+                  : ''
+              }${props.trialActive ? '&trial=7d' : ''}`}
               className="vs-btn vs-btn-secondary"
               style={{ padding: '5px 11px', fontSize: '12px' }}
             >
@@ -5421,6 +5486,227 @@ export function DashboardConsoleClient(props: {
 
             {activeDomain ? (
               <>
+            {/* M50: Live Competitor Domain Technical X-Ray (Side-by-Side Readiness Diff) */}
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div
+                style={{
+                  padding: '14px 16px',
+                  background: 'var(--vs-surface-warm)',
+                  borderBottom: rivalXrayReport
+                    ? '1px solid var(--vs-border)'
+                    : undefined,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                }}
+              >
+                <div style={{ maxWidth: '640px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                      marginBottom: '3px',
+                    }}
+                  >
+                    <span
+                      className="vs-eyebrow"
+                      style={{ color: 'var(--vs-ink)' }}
+                    >
+                      LIVE COMPETITOR TECHNICAL X-RAY
+                    </span>
+                    <StatusBadge tone="pass">SIDE-BY-SIDE HTTP DIFF</StatusBadge>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-secondary)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Compare <code className="vs-mono">{activeDomainHostname}</code>{' '}
+                    against any competitor domain across{' '}
+                    <code className="vs-mono">GPTBot</code> access, non-JS token
+                    density, <code className="vs-mono">JSON-LD</code> schema
+                    types, <code className="vs-mono">/llms.txt</code>, and{' '}
+                    <code className="vs-mono">/agents.md</code>.
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void handleRunCompetitorXray();
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  {rankedCitationSources
+                    .filter((s) => s.sourceCategory === 'competitor_site')
+                    .slice(0, 3)
+                    .map((comp) => (
+                      <button
+                        key={comp.sourceHost}
+                        type="button"
+                        disabled={runningRivalXray}
+                        onClick={() =>
+                          void handleRunCompetitorXray(comp.sourceHost)
+                        }
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '5px 9px', fontSize: '11.5px' }}
+                      >
+                        {comp.sourceHost}
+                      </button>
+                    ))}
+                  <input
+                    type="text"
+                    value={rivalXrayInput}
+                    onChange={(e) => setRivalXrayInput(e.target.value)}
+                    placeholder="Enter rival domain (e.g. rival.com)"
+                    aria-label="Competitor domain to benchmark"
+                    className="vs-input"
+                    style={{
+                      width: '220px',
+                      padding: '6px 10px',
+                      fontSize: '12px',
+                      background: '#FFFFFF',
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={runningRivalXray}
+                    className="vs-btn"
+                    style={{ padding: '6px 13px', fontSize: '12px' }}
+                  >
+                    {runningRivalXray
+                      ? 'Benchmarking...'
+                      : 'X-Ray Competitor →'}
+                  </button>
+                </form>
+              </div>
+
+              {rivalXrayReport ? (
+                <div style={{ padding: '14px 16px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: '8px',
+                      }}
+                    >
+                      <strong style={{ fontSize: '14px' }}>
+                        {rivalXrayReport.ownBrandName} (
+                        <code className="vs-mono">
+                          {rivalXrayReport.ownHostname}
+                        </code>
+                        ) vs. {rivalXrayReport.rivalBrandName} (
+                        <code className="vs-mono">
+                          {rivalXrayReport.rivalHostname}
+                        </code>
+                        )
+                      </strong>
+                      <StatusBadge
+                        tone={
+                          rivalXrayReport.scoreDelta >= 0 ? 'pass' : 'critical'
+                        }
+                      >
+                        {rivalXrayReport.scoreDelta > 0
+                          ? `LEADING BY +${rivalXrayReport.scoreDelta} PTS`
+                          : rivalXrayReport.scoreDelta < 0
+                            ? `TRAILING BY ${rivalXrayReport.scoreDelta} PTS`
+                            : 'TIED TECHNICAL SCORE'}
+                      </StatusBadge>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyOvertakePrompt()}
+                        className="vs-btn"
+                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        {copiedOvertakePrompt
+                          ? '✓ Overtake Prompt Copied!'
+                          : `Copy AI Prompt to Overtake ${rivalXrayReport.rivalBrandName}`}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCitationBlueprintType('vs_competitor');
+                          setCustomCitationRival(
+                            rivalXrayReport.rivalBrandName
+                          );
+                          setExpandedCitationPageStudio(true);
+                          setActiveTab('tab2_fixes');
+                        }}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '6px 11px', fontSize: '12px' }}
+                      >
+                        {`Build vs. ${rivalXrayReport.rivalBrandName} Page →`}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="vs-table-wrap">
+                    <table className="vs-table">
+                      <thead>
+                        <tr>
+                          <th>Technical GEO Signal</th>
+                          <th>{rivalXrayReport.ownBrandName} (You)</th>
+                          <th>{rivalXrayReport.rivalBrandName}</th>
+                          <th style={{ textAlign: 'right' }}>Advantage</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rivalXrayReport.dimensions.map((dim) => (
+                          <tr key={dim.id}>
+                            <td>
+                              <strong>{dim.label}</strong>
+                            </td>
+                            <td className="vs-mono" style={{ fontSize: '12px' }}>
+                              {dim.ownValue}
+                            </td>
+                            <td className="vs-mono" style={{ fontSize: '12px' }}>
+                              {dim.rivalValue}
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              {dim.winner === 'own' ? (
+                                <StatusBadge tone="pass">YOU LEAD</StatusBadge>
+                              ) : dim.winner === 'rival' ? (
+                                <StatusBadge tone="critical">
+                                  RIVAL LEADS
+                                </StatusBadge>
+                              ) : (
+                                <StatusBadge>TIED</StatusBadge>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
             {/* Citation Gap Source Leaderboard */}
             <div className="vs-card vs-table-wrap">
               <div

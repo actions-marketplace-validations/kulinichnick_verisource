@@ -2092,7 +2092,78 @@ async function run() {
         m42Tab1Html.includes('Inspect Bot View'),
       'Expected Sub-Page AI Bot Extraction Inspector inside Step 01 Module 2'
     );
-    console.log('✔ [45/45] M49 Sub-Page AI Bot Extraction Inspector (401/402/400 SSRF/403 Cross-Domain/200 Valid) verified!');
+    console.log('✔ [45/46] M49 Sub-Page AI Bot Extraction Inspector (401/402/400 SSRF/403 Cross-Domain/200 Valid) verified!');
+
+    // 44. M50 Live Competitor Technical X-Ray (/api/dashboard/competitor-xray: 401 unauth, 400 SSRF, 400 self-domain & 200 6-dimension diff + cache hit)
+    const unauthXrayRes = await fetch(`${BASE}/api/dashboard/competitor-xray`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        rival_domain: 'bluebottlecoffee.com',
+      }),
+    });
+    assert.equal(unauthXrayRes.status, 401);
+
+    const ssrfXrayRes = await fetch(`${BASE}/api/dashboard/competitor-xray`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        rival_domain: 'http://169.254.169.254/',
+      }),
+    });
+    assert.equal(ssrfXrayRes.status, 400);
+
+    const selfDomainXrayRes = await fetch(
+      `${BASE}/api/dashboard/competitor-xray`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({
+          domain_id: '11111111-1111-4000-8000-000000000001',
+          rival_domain: 'aurearoasters.com',
+        }),
+      }
+    );
+    assert.equal(selfDomainXrayRes.status, 400);
+
+    const validXrayRes = await fetch(`${BASE}/api/dashboard/competitor-xray`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        rival_domain: 'bluebottlecoffee.com',
+      }),
+    });
+    assert.equal(validXrayRes.status, 200);
+    const validXrayJson = await validXrayRes.json();
+    assert.equal(validXrayJson.cached, false);
+    assert.equal(validXrayJson.xray.dimensions.length, 6);
+    assert.ok(validXrayJson.xray.aiOvertakePrompt.score >= 9.5);
+
+    const cachedXrayRes = await fetch(`${BASE}/api/dashboard/competitor-xray`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        rival_domain: 'https://www.bluebottlecoffee.com/',
+      }),
+    });
+    assert.equal(cachedXrayRes.status, 200);
+    const cachedXrayJson = await cachedXrayRes.json();
+    assert.equal(cachedXrayJson.cached, true);
+
+    assert.ok(
+      m42Tab3Html.includes('LIVE COMPETITOR TECHNICAL X-RAY') &&
+        m42Tab3Html.includes('X-Ray Competitor'),
+      'Expected Live Competitor Technical X-Ray card at top of Step 03'
+    );
+    assert.ok(
+      loginHtml.includes('Start 7-Day Free Trial ($0 Today)'),
+      'Expected updated 7-Day Free Trial CTA on /login'
+    );
+    console.log('✔ [46/46] M50 Live Competitor Technical X-Ray (401/400 SSRF/400 Self-Domain/200 Diff + 1h Cache) & /login Trial CTA verified!');
   } finally {
     server.kill();
   }
