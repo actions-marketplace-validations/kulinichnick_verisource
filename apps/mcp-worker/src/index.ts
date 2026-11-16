@@ -6,6 +6,7 @@ import {
 } from '@modelcontextprotocol/server';
 import {
   buildAiRemediationMasterPrompt,
+  buildCitationAnswerPageBundle,
   buildExecutiveAuditReportMarkdown,
   buildMcpDiscoveryManifest,
   buildTargetedCitationOutreachDraft,
@@ -511,6 +512,28 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           crawlerReadability: audit.probe.crawlerReadability ?? null,
         });
 
+        const topRival =
+          summarizeBrandSentimentAndSov({
+            brandName: audit.brandName,
+            snapshots: audit.scanResults,
+          }).headToHeadSov.find((r) => !r.isTargetBrand)?.entityName ?? null;
+
+        const citationComparisonPage = buildCitationAnswerPageBundle({
+          domain: {
+            brand_name: audit.brandName,
+            domain_url: audit.domainUrl,
+            industry_vertical: audit.industryVertical,
+            is_shopify: audit.shopify.isShopify,
+            shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+            agents_md_status: audit.shopify.agentsMdStatus,
+            llms_txt_status: audit.probe.llmsTxtStatus,
+            brand_truth_sheet: audit.brandTruthSheet,
+          },
+          blueprintType: 'vs_competitor',
+          rivalName: topRival,
+          targetPrompt: audit.trackedPrompts[0] ?? null,
+        });
+
         const payload = {
           domain: audit.domainUrl,
           brand_name: audit.brandName,
@@ -521,6 +544,14 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           credits_remaining: gate.creditsRemaining,
           ai_remediation_prompt: remediationPrompt.content,
           ai_remediation_prompt_score: remediationPrompt.score,
+          citation_comparison_page: {
+            suggested_path: citationComparisonPage.suggestedPath,
+            canonical_url: citationComparisonPage.canonicalUrl,
+            rival_compared: citationComparisonPage.rivalLabel,
+            markdown_page: citationComparisonPage.markdownPage.content,
+            faq_json_ld: citationComparisonPage.faqJsonLd,
+            ai_build_prompt: citationComparisonPage.aiBuildPrompt.content,
+          },
           executive_audit_report_markdown: executiveReport.content,
           executive_audit_quality_score: executiveReport.score,
           fixes: audit.fixes,

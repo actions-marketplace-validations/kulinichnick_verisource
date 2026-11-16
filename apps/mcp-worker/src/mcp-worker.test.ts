@@ -178,10 +178,23 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
     credits_charged: number;
     credits_remaining: number;
     fixes: Array<{ naturalQualityScore: number }>;
+    citation_comparison_page?: {
+      suggested_path: string;
+      markdown_page: string;
+      faq_json_ld: string;
+      ai_build_prompt: string;
+    };
   };
   assert.equal(bundlePayload.credits_charged, 10);
   assert.equal(bundlePayload.credits_remaining, 990);
   assert.ok(bundlePayload.fixes.every((f) => f.naturalQualityScore >= 9.5));
+  assert.ok(
+    bundlePayload.citation_comparison_page?.suggested_path.startsWith('/pages/') &&
+      bundlePayload.citation_comparison_page.ai_build_prompt.includes(
+        'AI Citation Page Build Prompt'
+      ),
+    'Expected generate_geo_fix_bundle to include citation_comparison_page bundle'
+  );
 
   // 4. Subsequent cached call deducts only 1 credit (990 -> 989)
   const cachedProCall = await postMcpRpc(

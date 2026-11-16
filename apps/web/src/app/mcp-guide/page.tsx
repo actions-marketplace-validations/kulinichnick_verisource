@@ -112,7 +112,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                   href="/api/checkout?plan=pro_99&cycle=monthly"
                   className="vs-btn"
                 >
-                  Get Pro + 1,000 Credits ($99/mo) →
+                  Start 7-Day Free Trial ($0 Today · 150 Credits) →
                 </a>
                 <Link
                   href="/dashboard?tab=tab3_offsite"
@@ -167,13 +167,13 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
               label="Live Multi-Engine Refresh"
               value="10"
               suffix="credits"
-              sublabel="Fresh ChatGPT, Gemini & Perplexity crawl + Critic pass"
+              sublabel="Fresh ChatGPT, Gemini & Perplexity crawl + schema validation"
             />
             <MetricLedgerCell
               label="Monthly Plan Quotas"
               value="1,000"
               suffix="/ 5,000 cr"
-              sublabel="Pro ($99/mo) includes 1,000 · Agency ($249/mo) includes 5,000"
+              sublabel="Pro: 150 7d-trial cr → 1,000/mo · Agency: 5,000/mo"
               tone="pass"
             />
           </div>

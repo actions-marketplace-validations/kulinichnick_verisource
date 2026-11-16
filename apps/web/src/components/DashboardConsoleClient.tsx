@@ -10,6 +10,7 @@ import {
   buildAiRemediationMasterPrompt,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
+  buildCitationAnswerPageBundle,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
@@ -27,6 +28,7 @@ import {
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type AiRemediationTargetEnv,
+  type CitationPageBlueprintType,
   type CitationSnapshotRow,
   type CrawlerReadabilityReport,
   type DomainRow,
@@ -265,6 +267,15 @@ export function DashboardConsoleClient(props: {
     useState<AiRemediationTargetEnv>('coding_agent');
   const [copiedAiFixPrompt, setCopiedAiFixPrompt] = useState(false);
   const [expandedAiFixPrompt, setExpandedAiFixPrompt] = useState(false);
+  const [citationBlueprintType, setCitationBlueprintType] =
+    useState<CitationPageBlueprintType>('vs_competitor');
+  const [customCitationRival, setCustomCitationRival] = useState('');
+  const [customCitationPrompt, setCustomCitationPrompt] = useState('');
+  const [copiedCitationPagePrompt, setCopiedCitationPagePrompt] =
+    useState(false);
+  const [copiedCitationPageMd, setCopiedCitationPageMd] = useState(false);
+  const [expandedCitationPageStudio, setExpandedCitationPageStudio] =
+    useState(false);
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
     subject: string;
@@ -453,6 +464,11 @@ export function DashboardConsoleClient(props: {
     setSelectedCitationSourceHost(null);
     setCopiedAiFixPrompt(false);
     setExpandedAiFixPrompt(false);
+    setCustomCitationRival('');
+    setCustomCitationPrompt('');
+    setCopiedCitationPagePrompt(false);
+    setCopiedCitationPageMd(false);
+    setExpandedCitationPageStudio(false);
     setAiPromptTargetEnv(
       activeDomain?.is_shopify ? 'shopify_liquid' : 'coding_agent'
     );
@@ -639,6 +655,41 @@ export function DashboardConsoleClient(props: {
           existingPrompts: domainPrompts.map((p) => p.prompt_text),
         })
       : [];
+
+  const detectedRivalNames = (brandSentimentAndSov?.headToHeadSov ?? [])
+    .filter((r) => !r.isTargetBrand)
+    .map((r) => r.entityName);
+
+  const effectiveRivalForStudio =
+    customCitationRival.trim() ||
+    detectedRivalNames[0] ||
+    'Category Alternatives';
+
+  const effectivePromptForStudio =
+    customCitationPrompt.trim() ||
+    domainPrompts[0]?.prompt_text ||
+    suggestedBuyerPrompts[0]?.promptText ||
+    '';
+
+  const matchingStudioPromptRow = domainPrompts.find(
+    (p) => p.prompt_text === effectivePromptForStudio
+  );
+  const studioFanouts =
+    matchingStudioPromptRow &&
+    matchingStudioPromptRow.decompiled_fanout_queries.length > 0
+      ? matchingStudioPromptRow.decompiled_fanout_queries
+      : domainPrompts.flatMap((p) => p.decompiled_fanout_queries).slice(0, 4);
+
+  const activeCitationPageBundle = activeDomain
+    ? buildCitationAnswerPageBundle({
+        domain: activeDomain,
+        blueprintType: citationBlueprintType,
+        rivalName: effectiveRivalForStudio,
+        targetPrompt: effectivePromptForStudio,
+        fanoutSubQueries: studioFanouts,
+        targetEnv: aiPromptTargetEnv,
+      })
+    : null;
 
   const rankedCitationSources = activeDomain
     ? rankCitationGapSources({
@@ -1147,6 +1198,55 @@ export function DashboardConsoleClient(props: {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${hostSlug}-ai-remediation-prompt.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCopyCitationPageAiPrompt() {
+    if (!activeCitationPageBundle) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(
+          activeCitationPageBundle.aiBuildPrompt.content
+        );
+      }
+      setCopiedCitationPagePrompt(true);
+      setTimeout(() => setCopiedCitationPagePrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  async function handleCopyCitationPageMarkdown() {
+    if (!activeCitationPageBundle) return;
+    const combined = `${activeCitationPageBundle.markdownPage.content}\n\n<!-- Page-Specific FAQPage JSON-LD -->\n<script type="application/ld+json">\n${activeCitationPageBundle.faqJsonLd}\n</script>\n`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(combined);
+      }
+      setCopiedCitationPageMd(true);
+      setTimeout(() => setCopiedCitationPageMd(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  function handleDownloadCitationPageMarkdown() {
+    if (!activeCitationPageBundle) return;
+    const fileSlug =
+      activeCitationPageBundle.suggestedPath
+        .replace(/^\/+/, '')
+        .replace(/[^a-z0-9-]+/gi, '-') || 'citation-answer-page';
+    const combined = `${activeCitationPageBundle.markdownPage.content}\n\n<!-- Page-Specific FAQPage JSON-LD -->\n<script type="application/ld+json">\n${activeCitationPageBundle.faqJsonLd}\n</script>\n`;
+    const blob = new Blob([combined], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${fileSlug}.md`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -3225,8 +3325,38 @@ export function DashboardConsoleClient(props: {
                               </span>
                             ) : null}
                           </span>
-                          <span className="vs-mono" style={{ fontSize: '12px' }}>
-                            {row.shareOfVoicePct}% ({row.mentions} mentions)
+                          <span
+                            className="vs-mono"
+                            style={{
+                              fontSize: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <span>
+                              {row.shareOfVoicePct}% ({row.mentions} mentions)
+                            </span>
+                            {!row.isTargetBrand ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setCitationBlueprintType('vs_competitor');
+                                  setCustomCitationRival(row.entityName);
+                                  setExpandedCitationPageStudio(true);
+                                  setActiveTab('tab2_fixes');
+                                }}
+                                className="vs-btn vs-btn-secondary"
+                                style={{
+                                  padding: '2px 7px',
+                                  fontSize: '10.5px',
+                                  fontFamily: 'var(--vs-sans)',
+                                }}
+                                title={`Generate ${activeDomain.brand_name} vs. ${row.entityName} comparison page in Step 02`}
+                              >
+                                Build vs. Page →
+                              </button>
+                            ) : null}
                           </span>
                         </div>
                         <div
@@ -4247,6 +4377,345 @@ export function DashboardConsoleClient(props: {
               </div>
             ) : null}
 
+            {/* M48: AI Citation & Rival Comparison Page Studio */}
+            {activeCitationPageBundle ? (
+              <div
+                className="vs-card"
+                style={{
+                  overflow: 'hidden',
+                  marginBottom: '20px',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '14px 18px',
+                    background: 'var(--vs-surface-subtle)',
+                    borderBottom: expandedCitationPageStudio
+                      ? '1px solid var(--vs-border)'
+                      : undefined,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ maxWidth: '720px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <span
+                          className="vs-eyebrow"
+                          style={{ color: 'var(--vs-ink)' }}
+                        >
+                          AI CITATION &amp; RIVAL COMPARISON PAGE STUDIO
+                        </span>
+                        <StatusBadge tone="pass">BRAND TRUTH LOCKED</StatusBadge>
+                        <StatusBadge>
+                          {`ROUTE: ${activeCitationPageBundle.suggestedPath}`}
+                        </StatusBadge>
+                      </div>
+                      <strong
+                        style={{
+                          display: 'block',
+                          fontSize: '15px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {isGuided
+                          ? `Win buyer comparisons and uncited prompts with a structured Answer Page`
+                          : activeCitationPageBundle.pageTitle}
+                      </strong>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        ChatGPT and Perplexity cite structured{' '}
+                        <code className="vs-mono">&lt;table&gt;</code>{' '}
+                        comparisons and Answer-First buyer guides on commercial
+                        shortlists. Generate a truth-locked{' '}
+                        <strong>{activeDomain.brand_name} vs. Competitor</strong>{' '}
+                        or <strong>Buyer Guide</strong> page—or copy one prompt so
+                        your AI builds the route automatically.
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyCitationPageAiPrompt()}
+                        className="vs-btn"
+                        style={{ padding: '8px 14px', fontSize: '12.5px' }}
+                      >
+                        {copiedCitationPagePrompt
+                          ? '✓ AI Page Prompt Copied!'
+                          : 'Copy AI Prompt to Build Page'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyCitationPageMarkdown()}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                      >
+                        {copiedCitationPageMd
+                          ? '✓ Page Copied'
+                          : 'Copy Page + Schema'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadCitationPageMarkdown}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                      >
+                        ↓ Page (.md)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedCitationPageStudio((prev) => !prev)
+                        }
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                      >
+                        {expandedCitationPageStudio
+                          ? 'Hide Preview'
+                          : 'Inspect Page & Schema'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Blueprint Selector + Rival / Prompt Input Row */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                    }}
+                  >
+                    <div
+                      role="group"
+                      aria-label="Citation page blueprint"
+                      style={{
+                        display: 'inline-flex',
+                        flexWrap: 'wrap',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '6px',
+                        padding: '2px',
+                        background: '#FFFFFF',
+                        gap: '2px',
+                      }}
+                    >
+                      {(
+                        [
+                          {
+                            id: 'vs_competitor',
+                            label: `${activeDomain.brand_name} vs. Competitor`,
+                          },
+                          {
+                            id: 'buyer_guide',
+                            label: 'Buyer Guide (Win Prompt)',
+                          },
+                          {
+                            id: 'pricing_truth',
+                            label: 'Pricing & Policy Reference',
+                          },
+                        ] as const
+                      ).map((bp) => {
+                        const active = citationBlueprintType === bp.id;
+                        return (
+                          <button
+                            key={bp.id}
+                            type="button"
+                            onClick={() => setCitationBlueprintType(bp.id)}
+                            style={{
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              fontSize: '11.5px',
+                              fontWeight: 600,
+                              background: active
+                                ? 'var(--vs-ink)'
+                                : 'transparent',
+                              color: active
+                                ? '#FFFFFF'
+                                : 'var(--vs-ink-secondary)',
+                            }}
+                          >
+                            {bp.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {citationBlueprintType === 'vs_competitor' ? (
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <span
+                          className="vs-mono"
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--vs-ink-muted)',
+                          }}
+                        >
+                          COMPARE AGAINST:
+                        </span>
+                        {detectedRivalNames.slice(0, 3).map((rival) => {
+                          const isSelected =
+                            effectiveRivalForStudio.toLowerCase() ===
+                            rival.toLowerCase();
+                          return (
+                            <button
+                              key={rival}
+                              type="button"
+                              onClick={() => setCustomCitationRival(rival)}
+                              className="vs-btn vs-btn-secondary"
+                              style={{
+                                padding: '3px 9px',
+                                fontSize: '11.5px',
+                                borderColor: isSelected
+                                  ? 'var(--vs-ink)'
+                                  : undefined,
+                                fontWeight: isSelected ? 700 : 500,
+                              }}
+                            >
+                              {rival}
+                            </button>
+                          );
+                        })}
+                        <input
+                          type="text"
+                          value={customCitationRival}
+                          onChange={(e) =>
+                            setCustomCitationRival(e.target.value)
+                          }
+                          placeholder="Or type rival name..."
+                          className="vs-input"
+                          style={{
+                            width: '175px',
+                            padding: '4px 9px',
+                            fontSize: '12px',
+                            fontFamily: 'var(--vs-sans)',
+                          }}
+                        />
+                      </div>
+                    ) : citationBlueprintType === 'buyer_guide' ? (
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '6px',
+                          flex: '1 1 320px',
+                          justifyContent: 'flex-end',
+                        }}
+                      >
+                        <select
+                          aria-label="Select tracked buyer prompt"
+                          value={effectivePromptForStudio}
+                          onChange={(e) =>
+                            setCustomCitationPrompt(e.target.value)
+                          }
+                          className="vs-input"
+                          style={{
+                            width: 'auto',
+                            maxWidth: '340px',
+                            padding: '4px 9px',
+                            fontSize: '12px',
+                            fontFamily: 'var(--vs-sans)',
+                          }}
+                        >
+                          {[
+                            ...domainPrompts.map((p) => p.prompt_text),
+                            ...suggestedBuyerPrompts
+                              .slice(0, 4)
+                              .map((s) => s.promptText),
+                          ].map((txt) => (
+                            <option key={txt} value={txt}>
+                              {txt}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          value={customCitationPrompt}
+                          onChange={(e) =>
+                            setCustomCitationPrompt(e.target.value)
+                          }
+                          placeholder="Or type custom buyer question..."
+                          className="vs-input"
+                          style={{
+                            width: '220px',
+                            padding: '4px 9px',
+                            fontSize: '12px',
+                            fontFamily: 'var(--vs-sans)',
+                          }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {expandedCitationPageStudio ? (
+                  <div
+                    style={{
+                      padding: '14px 18px',
+                      background: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px',
+                    }}
+                  >
+                    <CodeArtifactCard
+                      title={activeCitationPageBundle.pageTitle}
+                      fileHint={`Publish at ${activeCitationPageBundle.canonicalUrl} (SSR HTML / Markdown)`}
+                      code={activeCitationPageBundle.markdownPage.content}
+                      qualityScore={activeCitationPageBundle.markdownPage.score}
+                      qualityBreakdown={
+                        activeCitationPageBundle.markdownPage.breakdown
+                      }
+                    />
+                    <CodeArtifactCard
+                      title={`Page-Specific FAQPage JSON-LD (${activeCitationPageBundle.suggestedPath})`}
+                      fileHint={`Inject inside <script type="application/ld+json"> on ${activeCitationPageBundle.suggestedPath}`}
+                      code={activeCitationPageBundle.faqJsonLd}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             {/* Shopify Native Adapter Callout */}
             {activeDomain.is_shopify ? (
               <div
@@ -5154,6 +5623,20 @@ export function DashboardConsoleClient(props: {
                               {rescanningPromptId === p.id
                                 ? 'Scanning...'
                                 : '↻ Re-Scan'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCitationBlueprintType('buyer_guide');
+                                setCustomCitationPrompt(p.prompt_text);
+                                setExpandedCitationPageStudio(true);
+                                setActiveTab('tab2_fixes');
+                              }}
+                              className="vs-btn vs-btn-secondary"
+                              style={{ padding: '2px 7px', fontSize: '10.5px' }}
+                              title="Generate an Answer-First Buyer Guide page for this prompt in Step 02"
+                            >
+                              Draft Answer Page →
                             </button>
                             {!isProtectedDemoSeedDomain ||
                             domainPrompts.length > 1 ? (

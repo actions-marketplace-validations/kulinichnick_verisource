@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
+  buildCitationAnswerPageBundle,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
@@ -75,6 +76,7 @@ export default function App(): React.ReactElement {
     'browser_pixel' | 'edge_crawler'
   >('browser_pixel');
   const [copiedAiPrompt, setCopiedAiPrompt] = useState(false);
+  const [copiedRivalPagePrompt, setCopiedRivalPagePrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -1010,6 +1012,46 @@ export default function App(): React.ReactElement {
                     }}
                   >
                     {copiedAiPrompt ? '✓ Prompt Copied' : 'Copy AI Fix Prompt'}
+                  </button>
+                  <button
+                    type="button"
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '5px 9px', fontSize: '11px' }}
+                    onClick={() => {
+                      const topRival =
+                        sentimentAndSov?.headToHeadSov.find(
+                          (r) => !r.isTargetBrand
+                        )?.entityName ?? null;
+                      const pageBundle = buildCitationAnswerPageBundle({
+                        domain: {
+                          brand_name: audit.brandName,
+                          domain_url: audit.domainUrl,
+                          industry_vertical: audit.industryVertical,
+                          is_shopify: audit.shopify.isShopify,
+                          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                          agents_md_status: audit.shopify.agentsMdStatus,
+                          llms_txt_status: audit.probe.llmsTxtStatus,
+                          brand_truth_sheet: audit.brandTruthSheet,
+                        },
+                        blueprintType: 'vs_competitor',
+                        rivalName: topRival,
+                        targetPrompt: audit.trackedPrompts[0] ?? null,
+                      });
+                      if (
+                        typeof navigator !== 'undefined' &&
+                        navigator.clipboard?.writeText
+                      ) {
+                        void navigator.clipboard.writeText(
+                          pageBundle.aiBuildPrompt.content
+                        );
+                      }
+                      setCopiedRivalPagePrompt(true);
+                      setTimeout(() => setCopiedRivalPagePrompt(false), 2400);
+                    }}
+                  >
+                    {copiedRivalPagePrompt
+                      ? '✓ vs. Rival Copied'
+                      : 'Copy vs. Rival Prompt'}
                   </button>
                   <button
                     type="button"

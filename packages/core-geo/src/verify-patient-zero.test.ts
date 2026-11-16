@@ -19,6 +19,7 @@ import {
   buildAiRemediationMasterPrompt,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
+  buildCitationAnswerPageBundle,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildHallucinationDriftAlert,
@@ -1894,4 +1895,68 @@ test('M47 7-Day Free Trial post-purchase welcome alert passes >= 9.5/10 gate wit
   assert.ok(starterTrialAlert.subject.includes('[7-Day Trial Active] resend.com'));
   assert.ok(starterTrialAlert.text.includes('$0.00 was charged today'));
   assert.ok(starterTrialAlert.text.includes('25 /mcp credits/month'));
+});
+
+test('M48 AI Citation & Rival Comparison Page Studio passes >= 9.5/10 gate across vs_competitor, buyer_guide & pricing_truth blueprints', () => {
+  const sampleDomain = {
+    domain_url: 'https://resend.com',
+    brand_name: 'Resend',
+    industry_vertical: 'b2b_saas_developer',
+    is_shopify: false,
+    shopify_mcp_status: 'unavailable' as const,
+    agents_md_status: 'custom_enriched' as const,
+    llms_txt_status: 'present' as const,
+    brand_truth_sheet: {
+      is_user_verified: true,
+      core_offering: 'Developer-first transactional and marketing email API.',
+      verified_pricing_summary: 'Free up to 3,000 emails/mo; Pro starts at $20/mo for 50,000 emails.',
+      shipping_or_service_area: 'Global multi-region AWS SES & dedicated IP delivery.',
+      key_differentiators: ['React Email integration', 'Sub-second webhook telemetry'],
+      discontinued_or_false_claims_to_flag: ['$10/mo unlimited email tier'],
+    },
+  };
+
+  const vsRival = buildCitationAnswerPageBundle({
+    domain: sampleDomain,
+    blueprintType: 'vs_competitor',
+    rivalName: 'Postmark',
+    targetPrompt: 'Resend vs Postmark for transactional developer email',
+    targetEnv: 'coding_agent',
+  });
+  assert.equal(vsRival.suggestedPath, '/compare/resend-vs-postmark');
+  assert.ok(vsRival.markdownPage.score >= 9.5);
+  assert.ok(vsRival.aiBuildPrompt.score >= 9.5);
+  const parsedFaq = JSON.parse(vsRival.faqJsonLd) as { '@type': string; mainEntity: unknown[] };
+  assert.equal(parsedFaq['@type'], 'FAQPage');
+  assert.equal(parsedFaq.mainEntity.length, 3);
+  assert.ok(vsRival.markdownPage.content.includes('Resend vs. Postmark'));
+  assert.ok(vsRival.markdownPage.content.includes('$20/mo for 50,000 emails'));
+  assert.ok(vsRival.markdownPage.content.includes('$10/mo unlimited email tier'));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(vsRival.markdownPage.content));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(vsRival.aiBuildPrompt.content));
+
+  const buyerGuide = buildCitationAnswerPageBundle({
+    domain: sampleDomain,
+    blueprintType: 'buyer_guide',
+    targetPrompt: 'Best transactional email API with React templates',
+    fanoutSubQueries: ['transactional email API deliverability SLA', 'React Email SMTP API pricing'],
+    targetEnv: 'chat_assistant',
+  });
+  assert.ok(buyerGuide.suggestedPath.startsWith('/guides/'));
+  assert.ok(buyerGuide.markdownPage.score >= 9.5);
+  assert.ok(buyerGuide.aiBuildPrompt.score >= 9.5);
+  assert.ok(buyerGuide.markdownPage.content.includes('transactional email API deliverability SLA'));
+
+  const shopifyPricing = buildCitationAnswerPageBundle({
+    domain: {
+      ...sampleDomain,
+      is_shopify: true,
+      shopify_mcp_status: 'ucp_active',
+    },
+    blueprintType: 'pricing_truth',
+  });
+  assert.equal(shopifyPricing.suggestedPath, '/pages/pricing-and-service-facts');
+  assert.ok(shopifyPricing.markdownPage.score >= 9.5);
+  assert.ok(shopifyPricing.aiBuildPrompt.score >= 9.5);
+  assert.ok(shopifyPricing.aiBuildPrompt.content.includes('Online Store 2.0'));
 });

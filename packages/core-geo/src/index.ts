@@ -10,6 +10,7 @@ export * from './watchdog/hallucination-watchdog.js';
 export * from './scanner/fanout-scanner.js';
 export * from './scanner/prompt-discovery.js';
 export * from './generator/fix-generator.js';
+export * from './generator/citation-page-studio.js';
 export * from './generator/pitch-outreach.js';
 export * from './generator/agency-partner-outreach.js';
 export * from './generator/local-service-outreach.js';

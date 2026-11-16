@@ -1991,7 +1991,31 @@ async function run() {
         !postCancelGateHtml.includes('Start 7-Day Trial'),
       'Expected canceled customer gate to require plan activation without offering a second free trial'
     );
-    console.log('✔ [43/43] M47 7-Day Free Trial checkout, repeat-trial block, Day-0 (150) -> Day-7 (1,000) /mcp credit step-up & cancellation 402 downgrade verified!');
+    console.log('✔ [43/44] M47 7-Day Free Trial checkout, repeat-trial block, Day-0 (150) -> Day-7 (1,000) /mcp credit step-up & cancellation 402 downgrade verified!');
+
+    // 42. M48 AI Citation & Rival Comparison Page Studio (Step 1 Rival -> Step 2 Page Studio -> Step 3 Prompt Draft + /mcp-guide 7-Day Trial CTA)
+    assert.ok(
+      m42Tab1Html.includes('Build vs. Page'),
+      'Expected 1-click Build vs. Page trigger inside Step 01 Head-to-Head Rival Share of Voice'
+    );
+    assert.ok(
+      m42Tab2Html.includes('AI CITATION &amp; RIVAL COMPARISON PAGE STUDIO') &&
+        m42Tab2Html.includes('BRAND TRUTH LOCKED') &&
+        m42Tab2Html.includes('Copy AI Prompt to Build Page') &&
+        m42Tab2Html.includes('Buyer Guide (Win Prompt)') &&
+        m42Tab2Html.includes('Pricing &amp; Policy Reference'),
+      'Expected AI Citation & Rival Comparison Page Studio with 3 blueprints and Copy AI Prompt to Build Page on Step 02'
+    );
+    assert.ok(
+      m42Tab3Html.includes('Draft Answer Page'),
+      'Expected 1-click Draft Answer Page trigger inside Step 03 Tracked Buyer Prompts'
+    );
+    assert.ok(
+      mcpGuideHtml.includes('Start 7-Day Free Trial ($0 Today') &&
+        !mcpGuideHtml.includes('Critic pass'),
+      'Expected /mcp-guide hero 7-Day Free Trial CTA and zero Critic pass copy'
+    );
+    console.log('✔ [44/44] M48 AI Citation & Rival Comparison Page Studio across Steps 1-3 + /mcp-guide 7-Day Trial CTA verified!');
   } finally {
     server.kill();
   }

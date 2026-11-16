@@ -50,12 +50,12 @@ const PILLARS: PillarSpec[] = [
   },
   {
     id: 'shopping_fixes',
-    stepTag: '04 · AI SHOPPING & VERIFIED FIXES',
-    title: 'Shopping Attribute Checklist + Validated Site Code',
-    subtitle: 'Where passive $499/mo trackers stop, Verisource writes the fix.',
+    stepTag: '04 · AI SHOPPING, FIXES & CITATION PAGES',
+    title: 'Shopping Checklist, Validated Schema & vs. Rival Page Studio',
+    subtitle: 'Where passive $499/mo trackers stop, Verisource writes the fix and the comparison page.',
     description:
-      'Audit all 5 structured Offer, Fulfillment, Guardrail, Entity, and Protocol attributes required by ChatGPT Shopping and Perplexity. Copy syntax-validated JSON-LD entity graphs, /llms.txt, /agents.md, Shopify agents.md.liquid files, or a 1-click AI Fix Prompt—then verify live HTTP deployment in one click.',
-    consoleLocation: 'Console Step 2 · Copy-Paste Website Fixes',
+      'Audit all 5 structured Offer, Fulfillment, Guardrail, Entity, and Protocol attributes required by ChatGPT Shopping and Perplexity. Copy syntax-validated JSON-LD entity graphs, /llms.txt, /agents.md, 1-click AI Fix Prompts, and Brand-Truth-locked Head-to-Head Comparison Pages (/compare/you-vs-rival) to win commercial shortlists.',
+    consoleLocation: 'Console Step 2 · Copy-Paste Website Fixes & Citation Studio',
   },
   {
     id: 'agency_mcp',
@@ -458,6 +458,17 @@ export function PlatformModulesShowcase(): React.ReactElement {
                       </td>
                       <td>
                         <StatusBadge tone="pass">READY TO PASTE</StatusBadge>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <strong>Rival Comparison &amp; Buyer Guide Studio</strong>
+                      </td>
+                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                        /compare/brand-vs-rival + FAQPage
+                      </td>
+                      <td>
+                        <StatusBadge tone="pass">BRAND TRUTH LOCKED</StatusBadge>
                       </td>
                     </tr>
                   </tbody>
