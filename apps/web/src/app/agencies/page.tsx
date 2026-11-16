@@ -369,7 +369,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
 
           <CodeArtifactCard
             title="White-Label Agency Cold Outreach Note (Northstar Search Studio)"
-            fileHint="Exported per prospect in Tab 3 Module 4 · Ready for Gmail, Instantly, or LinkedIn DM"
+            fileHint="Exported per prospect in Console Step 03 · Ready for Gmail, Instantly, or LinkedIn DM"
             code={outreachSample.content}
             qualityScore={outreachSample.score}
             qualityBreakdown={outreachSample.breakdown}

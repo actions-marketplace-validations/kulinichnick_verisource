@@ -594,7 +594,7 @@ export function PublicGraderClient(): React.ReactElement {
                       <Link
                         href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
                           result.hostname
-                        )}`}
+                        )}&env=${encodeURIComponent(selectedPromptEnv)}`}
                         className="vs-btn"
                       >
                         Start 7-Day Free Trial &amp; Get My AI Prompt ($0 Today) →
@@ -602,7 +602,7 @@ export function PublicGraderClient(): React.ReactElement {
                       <Link
                         href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
                           result.hostname
-                        )}`}
+                        )}&env=${encodeURIComponent(selectedPromptEnv)}`}
                         className="vs-btn vs-btn-secondary"
                       >
                         Or $19 One-Time Audit Pass

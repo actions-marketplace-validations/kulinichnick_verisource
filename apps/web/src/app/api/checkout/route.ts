@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import {
   normalizePublicDomain,
   resolveCoreGeoEnv,
+  type AiRemediationTargetEnv,
   type BillingCycle,
   type PlanTier,
 } from '@verisource/core-geo';
@@ -21,6 +22,15 @@ const VALID_PLANS = new Set<PlanTier>([
   'starter_49',
   'pro_99',
   'agency_249',
+]);
+
+const VALID_PROMPT_ENVS = new Set<AiRemediationTargetEnv>([
+  'coding_agent',
+  'wordpress_cms',
+  'webflow_cms',
+  'wix_squarespace_framer',
+  'shopify_liquid',
+  'chat_assistant',
 ]);
 
 function getPricingCents(
@@ -56,11 +66,20 @@ export async function GET(request: Request): Promise<NextResponse> {
   const rawPlan = (url.searchParams.get('plan') ?? 'pro_99') as PlanTier;
   const rawCycle = (url.searchParams.get('cycle') ?? 'monthly') as BillingCycle;
   const rawDomainParam = (url.searchParams.get('domain') ?? '').trim();
+  const rawEnvParam = (url.searchParams.get('env') ?? '').trim();
   const rawSlugParam = (url.searchParams.get('slug') ?? '').trim();
   const queryToken = url.searchParams.get('access_token');
 
   if (!VALID_PLANS.has(rawPlan)) {
     return NextResponse.json({ error: 'INVALID_PLAN' }, { status: 400 });
+  }
+
+  let safePromptEnv: AiRemediationTargetEnv | null = null;
+  if (rawEnvParam) {
+    if (!VALID_PROMPT_ENVS.has(rawEnvParam as AiRemediationTargetEnv)) {
+      return NextResponse.json({ error: 'INVALID_TARGET_ENV' }, { status: 400 });
+    }
+    safePromptEnv = rawEnvParam as AiRemediationTargetEnv;
   }
 
   let safeHostname: string | null = null;
@@ -168,11 +187,17 @@ export async function GET(request: Request): Promise<NextResponse> {
       successDest.searchParams.set('domain', safeHostname);
       successDest.searchParams.set('tab', 'tab2_fixes');
     }
+    if (safePromptEnv) {
+      successDest.searchParams.set('env', safePromptEnv);
+    }
 
     const cancelDest = new URL('/pricing', url.origin);
     if (safeHostname) {
       cancelDest.searchParams.set('domain', safeHostname);
       cancelDest.searchParams.set('plan', rawPlan);
+    }
+    if (safePromptEnv) {
+      cancelDest.searchParams.set('env', safePromptEnv);
     }
 
     const baseSessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -286,6 +311,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   if (safeHostname) {
     dest.searchParams.set('domain', safeHostname);
     dest.searchParams.set('tab', 'tab2_fixes');
+  }
+  if (safePromptEnv) {
+    dest.searchParams.set('env', safePromptEnv);
   }
 
   if ( dest.searchParams.get('upgraded') ) {

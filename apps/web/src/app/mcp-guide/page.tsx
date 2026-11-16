@@ -297,7 +297,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                   margin: '0 0 8px 0',
                 }}
               >
-                Mint your SHA-256 <code className="vs-mono">vs_live_</code> Bearer key in Tab 3
+                Mint your SHA-256 <code className="vs-mono">vs_live_</code> Bearer key in Step 03
               </h2>
               <p
                 style={{

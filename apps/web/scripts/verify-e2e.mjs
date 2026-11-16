@@ -2437,7 +2437,50 @@ async function run() {
         pageClientJs.includes('$0.00 due today on 7-day trial'),
       'Expected M58 Interactive 1-Click AI Fix Prompt Preview inside PublicGraderClient bundle on /'
     );
-    console.log('✔ [54/54] M58 Homepage Free Audit Tailored 1-Click AI Fix Prompt Preview & Redacted Payload Footer verified!');
+    console.log('✔ [54/55] M58 Homepage Free Audit Tailored 1-Click AI Fix Prompt Preview & Redacted Payload Footer verified!');
+
+    // 53. M59 End-to-End ?env= CMS/AI Prompt Mode Carryover (/pricing -> /api/checkout 400/303 -> /dashboard Step 02 Pre-Selection)
+    const envLockedPricingHtml = await fetch(
+      `${BASE}/pricing?plan=pro_99&domain=onyxcoffeelab.com&env=webflow_cms`
+    ).then((r) => r.text());
+    assert.ok(
+      envLockedPricingHtml.includes('PROMPT MODE: WEBFLOW') &&
+        envLockedPricingHtml.includes('inside Console Step 02') &&
+        envLockedPricingHtml.includes('env=webflow_cms'),
+      'Expected /pricing?domain=...&env=webflow_cms to display PROMPT MODE: WEBFLOW and carry env=webflow_cms on checkout links'
+    );
+
+    const invalidEnvCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=monthly&domain=onyxcoffeelab.com&env=invalid_xss`,
+      { redirect: 'manual' }
+    );
+    assert.equal(
+      invalidEnvCheckoutRes.status,
+      400,
+      'Expected invalid ?env= parameter on /api/checkout to return HTTP 400'
+    );
+
+    const validEnvCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=monthly&domain=onyxcoffeelab.com&env=webflow_cms`,
+      { redirect: 'manual' }
+    );
+    assert.equal(validEnvCheckoutRes.status, 303);
+    const validEnvLocation = validEnvCheckoutRes.headers.get('location') ?? '';
+    assert.ok(
+      validEnvLocation.includes('tab=tab2_fixes') &&
+        validEnvLocation.includes('env=webflow_cms'),
+      `Expected /api/checkout redirect to carry tab=tab2_fixes&env=webflow_cms, got ${validEnvLocation}`
+    );
+
+    const envPreselectedDashHtml = await fetch(validEnvLocation, {
+      headers: OWNER_HEADERS,
+    }).then((r) => r.text());
+    assert.ok(
+      envPreselectedDashHtml.includes('Webflow Site Settings') ||
+        envPreselectedDashHtml.includes('Custom Code'),
+      'Expected Step 02 on /dashboard?tab=tab2_fixes&env=webflow_cms to pre-select Webflow prompt instructions on load'
+    );
+    console.log('✔ [55/55] M59 End-to-End ?env= CMS Prompt Mode Carryover (/pricing -> 400/303 /api/checkout -> Step 02 pre-selection) verified!');
   } finally {
     server.kill();
   }

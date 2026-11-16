@@ -124,6 +124,7 @@ export function DashboardConsoleClient(props: {
   initialData: WorkspacePayload;
   initialDomainQuery?: string;
   initialTab?: string;
+  initialPromptEnv?: string;
   upgradedPlan?: string;
   creditApplied?: boolean;
   trialActive?: boolean;
@@ -292,8 +293,18 @@ export function DashboardConsoleClient(props: {
     'all' | 'bot_crawls' | 'human_referrals'
   >('all');
   const [sendingTestBotPing, setSendingTestBotPing] = useState(false);
+  const initialValidEnv: AiRemediationTargetEnv | null =
+    props.initialPromptEnv === 'coding_agent' ||
+    props.initialPromptEnv === 'wordpress_cms' ||
+    props.initialPromptEnv === 'webflow_cms' ||
+    props.initialPromptEnv === 'wix_squarespace_framer' ||
+    props.initialPromptEnv === 'shopify_liquid' ||
+    props.initialPromptEnv === 'chat_assistant'
+      ? props.initialPromptEnv
+      : null;
+  const appliedInitialEnvRef = React.useRef(false);
   const [aiPromptTargetEnv, setAiPromptTargetEnv] =
-    useState<AiRemediationTargetEnv>('coding_agent');
+    useState<AiRemediationTargetEnv>(() => initialValidEnv ?? 'coding_agent');
   const [detectedPlatformByDomainId, setDetectedPlatformByDomainId] = useState<
     Record<string, WebsitePlatformId>
   >({});
@@ -521,16 +532,21 @@ export function DashboardConsoleClient(props: {
     setRivalXrayInput('');
     setRivalXrayReport(null);
     setCopiedOvertakePrompt(false);
-    const knownPlatform = activeDomain
-      ? detectedPlatformByDomainId[activeDomain.id]
-      : undefined;
-    setAiPromptTargetEnv(
-      knownPlatform
-        ? getWebsitePlatformMeta(knownPlatform).recommendedAiEnv
-        : activeDomain?.is_shopify
-          ? 'shopify_liquid'
-          : 'coding_agent'
-    );
+    if (initialValidEnv && !appliedInitialEnvRef.current) {
+      appliedInitialEnvRef.current = true;
+      setAiPromptTargetEnv(initialValidEnv);
+    } else {
+      const knownPlatform = activeDomain
+        ? detectedPlatformByDomainId[activeDomain.id]
+        : undefined;
+      setAiPromptTargetEnv(
+        knownPlatform
+          ? getWebsitePlatformMeta(knownPlatform).recommendedAiEnv
+          : activeDomain?.is_shopify
+            ? 'shopify_liquid'
+            : 'coding_agent'
+      );
+    }
   }, [activeDomain?.id, activeDomain?.is_shopify, detectedPlatformByDomainId]);
 
   useEffect(() => {

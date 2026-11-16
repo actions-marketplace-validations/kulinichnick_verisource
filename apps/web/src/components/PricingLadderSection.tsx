@@ -2,12 +2,25 @@
 
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { normalizePublicDomain } from '@verisource/core-geo';
+import {
+  normalizePublicDomain,
+  type RecommendedRemediationEnv,
+} from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
+
+const VALID_PROMPT_ENV_LABELS: Record<RecommendedRemediationEnv, string> = {
+  coding_agent: 'CODING AGENT',
+  wordpress_cms: 'WORDPRESS',
+  webflow_cms: 'WEBFLOW',
+  wix_squarespace_framer: 'WIX · SQUARESPACE · FRAMER',
+  shopify_liquid: 'SHOPIFY',
+  chat_assistant: 'CHATGPT / CLAUDE WEB',
+};
 
 export function PricingLadderSection(props: {
   preselectedDomain?: string;
   preselectedPlan?: string;
+  preselectedEnv?: string;
 }): React.ReactElement {
   const [annual, setAnnual] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -41,9 +54,19 @@ export function PricingLadderSection(props: {
       ? props.preselectedPlan
       : 'pro_99';
 
+  const safeEnv: RecommendedRemediationEnv | null =
+    props.preselectedEnv &&
+    Object.prototype.hasOwnProperty.call(
+      VALID_PROMPT_ENV_LABELS,
+      props.preselectedEnv
+    )
+      ? (props.preselectedEnv as RecommendedRemediationEnv)
+      : null;
+
   const domainParam = safeHostname
     ? `&domain=${encodeURIComponent(safeHostname)}`
     : '';
+  const envParam = safeEnv ? `&env=${encodeURIComponent(safeEnv)}` : '';
   const tokenParam = accessToken
     ? `&access_token=${encodeURIComponent(accessToken)}`
     : '';
@@ -66,7 +89,7 @@ export function PricingLadderSection(props: {
         '$19 credited toward any monthly plan within 7 days',
       ],
       cta: 'Buy $19 Audit Pass',
-      href: `/api/checkout?plan=tripwire_19&cycle=one_time${domainParam}${tokenParam}`,
+      href: `/api/checkout?plan=tripwire_19&cycle=one_time${domainParam}${envParam}${tokenParam}`,
     },
     {
       id: 'starter_49',
@@ -89,7 +112,7 @@ export function PricingLadderSection(props: {
       cta: annual ? 'Start Annual Starter' : 'Start 7-Day Free Trial →',
       href: `/api/checkout?plan=starter_49&cycle=${
         annual ? 'annual' : 'monthly'
-      }${domainParam}${tokenParam}`,
+      }${domainParam}${envParam}${tokenParam}`,
     },
     {
       id: 'pro_99',
@@ -115,7 +138,7 @@ export function PricingLadderSection(props: {
       cta: annual ? 'Start Annual Pro + MCP' : 'Start 7-Day Free Trial →',
       href: `/api/checkout?plan=pro_99&cycle=${
         annual ? 'annual' : 'monthly'
-      }${domainParam}${tokenParam}`,
+      }${domainParam}${envParam}${tokenParam}`,
     },
     {
       id: 'agency_249',
@@ -138,7 +161,7 @@ export function PricingLadderSection(props: {
       cta: annual ? 'Start Annual Agency' : 'Start Agency Plan',
       href: `/api/checkout?plan=agency_249&cycle=${
         annual ? 'annual' : 'monthly'
-      }${domainParam}${tokenParam}`,
+      }${domainParam}${envParam}${tokenParam}`,
     },
   ];
 
@@ -210,12 +233,21 @@ export function PricingLadderSection(props: {
               Selected domain:{' '}
               <strong className="vs-mono">{safeHostname}</strong> — checkout
               automatically audits this site and pre-loads its{' '}
+              <strong>1-Click AI Fix Prompt</strong> plus{' '}
               <code className="vs-mono">JSON-LD</code>,{' '}
               <code className="vs-mono">/llms.txt</code>, and{' '}
-              <code className="vs-mono">/agents.md</code> Fix Bundle inside Tab 2.
+              <code className="vs-mono">/agents.md</code> Fix Bundle inside
+              Console Step 02.
             </div>
           </div>
-          <StatusBadge tone="pass">AUTO-PROVISIONED</StatusBadge>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {safeEnv ? (
+              <StatusBadge>
+                {`PROMPT MODE: ${VALID_PROMPT_ENV_LABELS[safeEnv]}`}
+              </StatusBadge>
+            ) : null}
+            <StatusBadge tone="pass">AUTO-PROVISIONED</StatusBadge>
+          </div>
         </div>
       ) : null}
 

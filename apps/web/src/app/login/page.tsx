@@ -11,7 +11,14 @@ function buildNextDashboardHref(): string {
   if (typeof window === 'undefined') return '/dashboard';
   const urlParams = new URLSearchParams(window.location.search);
   const nextParams = new URLSearchParams();
-  for (const key of ['domain', 'tab', 'upgraded', 'trial', 'credit_applied']) {
+  for (const key of [
+    'domain',
+    'tab',
+    'env',
+    'upgraded',
+    'trial',
+    'credit_applied',
+  ]) {
     const val = urlParams.get(key);
     if (val) nextParams.set(key, val);
   }
@@ -122,8 +129,8 @@ export default function LoginPage(): React.ReactElement {
             color: 'var(--vs-ink-secondary)',
           }}
         >
-          Access your private 3-Tab Admin Console, multi-engine citation
-          tracking, verified website fixes, white-label client briefs, and{' '}
+          Access your private 3-Step Admin Console, multi-engine citation
+          tracking, 1-Click AI Fix Prompts, white-label client briefs, and{' '}
           <code className="vs-mono">/mcp</code> Bearer keys.
         </p>
 
@@ -304,7 +311,7 @@ export default function LoginPage(): React.ReactElement {
             Need a Console Plan? Start 7-Day Free Trial ($0 Today) →
           </Link>
           <Link
-            href="/#audit"
+            href="/#grader"
             style={{
               textAlign: 'center',
               fontSize: '12.5px',

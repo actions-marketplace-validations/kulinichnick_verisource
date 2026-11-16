@@ -18,6 +18,7 @@ export default async function DashboardPage({
   searchParams: Promise<{
     domain?: string;
     tab?: string;
+    env?: string;
     upgraded?: string;
     credit_applied?: string;
     trial?: string;
@@ -154,6 +155,7 @@ export default async function DashboardPage({
       initialData={initialData}
       initialDomainQuery={params.domain}
       initialTab={params.tab}
+      initialPromptEnv={params.env}
       upgradedPlan={params.upgraded}
       creditApplied={params.credit_applied === 'true'}
       trialActive={params.trial === '7d'}

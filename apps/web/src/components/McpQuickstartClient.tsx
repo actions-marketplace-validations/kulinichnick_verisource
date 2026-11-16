@@ -300,7 +300,7 @@ export function McpQuickstartClient(): React.ReactElement {
           plainSummary={
             authMode === 'free_no_key'
               ? 'Runs scan_domain_ai_readiness immediately with 0 credits and no account required (3 custom domains/day/IP).'
-              : 'Replace vs_live_YOUR_48_CHAR_HEX_KEY with a SHA-256 Bearer key minted inside Tab 3 of your Verisource Console.'
+              : 'Replace vs_live_YOUR_48_CHAR_HEX_KEY with a SHA-256 Bearer key minted inside Step 03 of your Verisource Console.'
           }
           code={configSnippet}
         />

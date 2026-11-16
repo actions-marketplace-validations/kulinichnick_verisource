@@ -4,7 +4,7 @@ import { PricingLadderSection } from '../../components/PricingLadderSection';
 export default async function PricingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ domain?: string; plan?: string }>;
+  searchParams: Promise<{ domain?: string; plan?: string; env?: string }>;
 }): Promise<React.ReactElement> {
   const params = await searchParams;
   return (
@@ -12,6 +12,7 @@ export default async function PricingPage({
       <PricingLadderSection
         preselectedDomain={params.domain}
         preselectedPlan={params.plan}
+        preselectedEnv={params.env}
       />
     </div>
   );
