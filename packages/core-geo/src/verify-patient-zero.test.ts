@@ -1867,3 +1867,31 @@ test('M45 1-Click AI Remediation Master Prompt Generator passes >= 9.5/10 Critic
   assert.ok(shopifyPrompt.score >= 9.5);
   assert.ok(shopifyPrompt.content.includes('Online Store 2.0 theme'));
 });
+
+test('M47 7-Day Free Trial post-purchase welcome alert passes >= 9.5/10 gate with $0.00 clarity & starter /mcp pacing', () => {
+  const proTrialAlert = buildPostPurchaseWelcomeAlert({
+    planTier: 'pro_99',
+    targetDomain: 'linear.app',
+    visibilityScore: 68,
+    fixCount: 5,
+    trialDays: 7,
+  });
+  assert.ok(proTrialAlert.quality.score >= 9.5);
+  assert.ok(proTrialAlert.subject.includes('[7-Day Trial Active] linear.app'));
+  assert.ok(proTrialAlert.text.includes('$0.00 was charged today'));
+  assert.ok(proTrialAlert.text.includes('150 starter /mcp credits'));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(proTrialAlert.text));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(proTrialAlert.html));
+
+  const starterTrialAlert = buildPostPurchaseWelcomeAlert({
+    planTier: 'starter_49',
+    targetDomain: 'resend.com',
+    visibilityScore: 64,
+    fixCount: 4,
+    trialDays: 7,
+  });
+  assert.ok(starterTrialAlert.quality.score >= 9.5);
+  assert.ok(starterTrialAlert.subject.includes('[7-Day Trial Active] resend.com'));
+  assert.ok(starterTrialAlert.text.includes('$0.00 was charged today'));
+  assert.ok(starterTrialAlert.text.includes('25 /mcp credits/month'));
+});

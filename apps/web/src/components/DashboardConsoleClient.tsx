@@ -95,6 +95,7 @@ export function DashboardConsoleClient(props: {
   initialTab?: string;
   upgradedPlan?: string;
   creditApplied?: boolean;
+  trialActive?: boolean;
 }): React.ReactElement {
   const [data, setData] = useState<WorkspacePayload>(props.initialData);
   const [selectedDomainId, setSelectedDomainId] = useState<string>(() => {
@@ -153,16 +154,21 @@ export function DashboardConsoleClient(props: {
   const [dismissedHandoffHost, setDismissedHandoffHost] = useState<
     string | null
   >(null);
+  const [dismissedTrialChecklist, setDismissedTrialChecklist] = useState(false);
   const [bannerError, setBannerError] = useState<string | null>(null);
   const [bannerSuccess, setBannerSuccess] = useState<string | null>(
     props.upgradedPlan
-      ? `Plan active: ${props.upgradedPlan.toUpperCase()}${
-          props.initialDomainQuery ? ` for ${props.initialDomainQuery}` : ''
-        }${
-          props.creditApplied
-            ? ' ($19 7-day Tripwire credit applied automatically).'
-            : '.'
-        }`
+      ? props.trialActive
+        ? `7-day free trial active: ${props.upgradedPlan.toUpperCase()}${
+            props.initialDomainQuery ? ` for ${props.initialDomainQuery}` : ''
+          } ($0.00 charged today · 1-click cancel anytime via Manage Billing).`
+        : `Plan active: ${props.upgradedPlan.toUpperCase()}${
+            props.initialDomainQuery ? ` for ${props.initialDomainQuery}` : ''
+          }${
+            props.creditApplied
+              ? ' ($19 7-day Tripwire credit applied automatically).'
+              : '.'
+          }`
       : null
   );
 
@@ -1735,6 +1741,15 @@ export function DashboardConsoleClient(props: {
     data.mode === 'plan_activation_required'
   ) {
     const isPlanActivation = data.mode === 'plan_activation_required';
+    const gateEligibleForTrial =
+      !data.profile.stripe_customer_id &&
+      !data.profile.stripe_subscription_id &&
+      !data.profile.tripwire_paid_at;
+    const gateEligibleFor19Credit = Boolean(
+      data.profile.tripwire_paid_at &&
+        Date.now() - Date.parse(data.profile.tripwire_paid_at) <=
+          7 * 86400 * 1000
+    );
     return (
       <div
         className="vs-container"
@@ -1753,7 +1768,9 @@ export function DashboardConsoleClient(props: {
             }}
           >
             <strong>
-              Stripe checkout confirmed ({props.upgradedPlan.toUpperCase()}).
+              {props.trialActive
+                ? `7-day free trial confirmed (${props.upgradedPlan.toUpperCase()} · $0.00 charged today).`
+                : `Stripe checkout confirmed (${props.upgradedPlan.toUpperCase()}).`}
             </strong>{' '}
             Sign in below with the email you used at checkout to open your
             private Console and generated code fixes.
@@ -2075,8 +2092,9 @@ export function DashboardConsoleClient(props: {
                 lineHeight: 1.5,
               }}
             >
-              Start with a $19 one-time pass for one website (100% credited if
-              you upgrade within 7 days) or choose a recurring workspace plan.
+              {gateEligibleForTrial
+                ? 'Start a 7-day free trial on Starter or Pro ($0.00 due today · cancel in 1 click before Day 7), or pick the $19 one-time Audit Pass with zero recurring billing.'
+                : 'Choose a workspace plan below to provision your private 3-tab Console immediately.'}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -2086,29 +2104,53 @@ export function DashboardConsoleClient(props: {
                     plan: 'tripwire_19',
                     cycle: 'one_time',
                     title: '$19 One-Time Audit Pass',
-                    badge: '7-DAY UPGRADE CREDIT',
-                    desc: '1 domain · Full Tab 2 Fix Bundle (JSON-LD, /agents.md, /llms.txt) · 35 buyer prompts.',
+                    badge: 'NO SUBSCRIPTION',
+                    desc: '1 domain · Full Tab 2 Fix Bundle (JSON-LD, /agents.md, /llms.txt) · $19 credits if you subscribe in 7d.',
+                    cta: 'Buy $19 Pass →',
                   },
                   {
                     plan: 'starter_49',
                     cycle: 'monthly',
-                    title: '$49/mo Starter Console',
-                    badge: '1 DOMAIN',
-                    desc: 'Weekly drift alerts · Prompt Discovery · Browser + Edge Bot Crawl Logger.',
+                    title: gateEligibleForTrial
+                      ? '$49/mo Starter (7-Day Free Trial)'
+                      : '$49/mo Starter Console',
+                    badge: gateEligibleFor19Credit
+                      ? '-$19 CREDIT'
+                      : gateEligibleForTrial
+                        ? '$0 TODAY · 7D TRIAL'
+                        : '1 DOMAIN',
+                    desc: '1 domain · Weekly drift alerts · Prompt Discovery · Browser + Edge Bot Crawl Logger.',
+                    cta: gateEligibleForTrial
+                      ? 'Start 7-Day Trial →'
+                      : 'Activate →',
                   },
                   {
                     plan: 'pro_99',
                     cycle: 'monthly',
-                    title: '$99/mo Pro + Paid MCP',
-                    badge: 'MOST POPULAR',
-                    desc: '3 domains · 100 prompts · 1,000 Streamable HTTP /mcp credits for Cursor & Claude.',
+                    title: gateEligibleForTrial
+                      ? '$99/mo Pro + MCP (7-Day Free Trial)'
+                      : '$99/mo Pro + Paid MCP',
+                    badge: gateEligibleFor19Credit
+                      ? '-$19 CREDIT'
+                      : gateEligibleForTrial
+                        ? 'MOST POPULAR · $0 TODAY'
+                        : 'MOST POPULAR',
+                    desc: gateEligibleForTrial
+                      ? '3 domains · 100 prompts · Streamable HTTP /mcp keys (150 trial credits → 1,000/mo).'
+                      : '3 domains · 100 prompts · 1,000 Streamable HTTP /mcp credits for Cursor & Claude.',
+                    cta: gateEligibleForTrial
+                      ? 'Start 7-Day Trial →'
+                      : 'Activate →',
                   },
                   {
                     plan: 'agency_249',
                     cycle: 'monthly',
                     title: '$249/mo Agency Pipeline',
-                    badge: 'WHITE-LABEL',
+                    badge: gateEligibleFor19Credit
+                      ? '-$19 CREDIT'
+                      : 'WHITE-LABEL',
                     desc: '15 client domains · 400 prompts · Branded /audit/[slug] links · 5,000 /mcp credits.',
+                    cta: 'Activate →',
                   },
                 ] as const
               ).map((tier) => (
@@ -2136,13 +2178,19 @@ export function DashboardConsoleClient(props: {
                         alignItems: 'center',
                         gap: '8px',
                         marginBottom: '3px',
+                        flexWrap: 'wrap',
                       }}
                     >
                       <strong style={{ fontSize: '13.5px' }}>
                         {tier.title}
                       </strong>
                       <StatusBadge
-                        tone={tier.plan === 'pro_99' ? 'pass' : 'neutral'}
+                        tone={
+                          tier.plan === 'pro_99' ||
+                          (tier.plan === 'starter_49' && gateEligibleForTrial)
+                            ? 'pass'
+                            : 'neutral'
+                        }
                       >
                         {tier.badge}
                       </StatusBadge>
@@ -2159,13 +2207,13 @@ export function DashboardConsoleClient(props: {
                   <a
                     href={buildGateCheckoutHref(tier.plan, tier.cycle)}
                     className={
-                      tier.plan === 'pro_99' || tier.plan === 'tripwire_19'
+                      tier.plan === 'pro_99' || tier.plan === 'starter_49'
                         ? 'vs-btn'
                         : 'vs-btn vs-btn-secondary'
                     }
                     style={{ padding: '7px 12px', fontSize: '12px' }}
                   >
-                    Activate →
+                    {tier.cta}
                   </a>
                 </div>
               ))}
@@ -2467,6 +2515,97 @@ export function DashboardConsoleClient(props: {
               Sign In with Checkout Email →
             </Link>
           ) : null}
+        </div>
+      ) : null}
+
+      {(props.trialActive ||
+        (data.profile.plan_tier === 'pro_99' &&
+          data.profile.mcp_calls_limit === 150)) &&
+      !dismissedTrialChecklist ? (
+        <div
+          className="vs-card"
+          style={{
+            padding: '15px 18px',
+            marginBottom: '16px',
+            background: 'var(--vs-surface-warm)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              marginBottom: '10px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                7-DAY FREE TRIAL ROADMAP · GET LIVE CRAWL PROOF BEFORE DAY 7
+              </span>
+              <StatusBadge tone="pass">$0.00 CHARGED TODAY</StatusBadge>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDismissedTrialChecklist(true)}
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '4px 10px', fontSize: '11.5px' }}
+            >
+              Dismiss
+            </button>
+          </div>
+          <div className="vs-grid-2" style={{ gap: '12px', fontSize: '12.5px' }}>
+            <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                1. Day 1 — Lock Truth &amp; Ship Code Fixes:
+              </strong>{' '}
+              Confirm your Brand Truth Sheet in{' '}
+              <button
+                type="button"
+                onClick={() => setActiveTab('tab1_visibility')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  color: 'var(--vs-ink)',
+                }}
+              >
+                Step 01
+              </button>
+              , then copy the{' '}
+              <button
+                type="button"
+                onClick={() => setActiveTab('tab2_fixes')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  color: 'var(--vs-ink)',
+                }}
+              >
+                Step 02 1-Click AI Fix Prompt
+              </button>{' '}
+              into Claude, Cursor, Antigravity, or Shopify and run{' '}
+              <code className="vs-mono">✓ Verify Live Fixes</code>.
+            </div>
+            <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                2. Days 3–7 — Track Bot Crawls &amp; Weekly Lift:
+              </strong>{' '}
+              Watch live <code className="vs-mono">GPTBot</code> and{' '}
+              <code className="vs-mono">PerplexityBot</code> hits appear in your
+              Step 01 Crawl Ledger as AI engines re-index your facts. Stay on for
+              Monday Share-of-Voice digests{data.profile.plan_tier === 'pro_99' ? ' and your full 1,000 /mcp monthly credit step-up' : ''}, or cancel anytime via{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>Manage Billing</strong>.
+            </div>
+          </div>
         </div>
       ) : null}
 

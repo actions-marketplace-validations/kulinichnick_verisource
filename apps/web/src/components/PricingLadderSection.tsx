@@ -54,10 +54,11 @@ export function PricingLadderSection(props: {
       name: 'Audit Pass',
       price: '$19',
       cadence: 'one-time pass',
-      badge: '7-DAY CREDIT',
+      badge: 'NO SUBSCRIPTION',
+      billingNote: 'Single payment · $19 credits toward Month 1 within 7 days',
       highlight: activeHighlightPlan === 'tripwire_19',
       summary:
-        'Test Verisource on 1 website with zero recurring commitment. Credited 100% toward Month 1 if you subscribe within 7 days.',
+        'Test Verisource on 1 website with zero recurring billing. Credited 100% toward Month 1 if you subscribe within 7 days.',
       specs: [
         '1 Complete Website Audit (ChatGPT, Gemini, Perplexity)',
         'Unblurred Competitor Source Links',
@@ -71,8 +72,11 @@ export function PricingLadderSection(props: {
       id: 'starter_49',
       name: 'Starter Brand',
       price: annual ? '$39' : '$49',
-      cadence: annual ? '/mo billed annually' : '/mo billed monthly',
-      badge: '1 WEBSITE',
+      cadence: annual ? '/mo billed annually' : '/mo after 7-day trial',
+      badge: annual ? 'SAVE 20%' : '7-DAY FREE TRIAL',
+      billingNote: annual
+        ? '$468 billed annually · Cancel renewal anytime'
+        : '$0.00 due today · 1-click cancel before Day 7',
       highlight: activeHighlightPlan === 'starter_49',
       summary:
         'Automated weekly AI checks and wrong-price alerts for a single local business, SaaS company, or Shopify store.',
@@ -82,7 +86,7 @@ export function PricingLadderSection(props: {
         'Wrong-Price & Policy Alert Watchdog',
         'Validated JSON-LD, /llms.txt & /agents.md Fixes',
       ],
-      cta: 'Start Starter Plan',
+      cta: annual ? 'Start Annual Starter' : 'Start 7-Day Free Trial →',
       href: `/api/checkout?plan=starter_49&cycle=${
         annual ? 'annual' : 'monthly'
       }${domainParam}${tokenParam}`,
@@ -91,8 +95,11 @@ export function PricingLadderSection(props: {
       id: 'pro_99',
       name: 'Pro + MCP Engine',
       price: annual ? '$79' : '$99',
-      cadence: annual ? '/mo billed annually' : '/mo billed monthly',
-      badge: 'MOST POPULAR',
+      cadence: annual ? '/mo billed annually' : '/mo after 7-day trial',
+      badge: annual ? 'MOST POPULAR' : 'MOST POPULAR · 7D TRIAL',
+      billingNote: annual
+        ? '$948 billed annually · 1,000 /mcp credits/mo'
+        : '$0.00 due today · 1-click cancel before Day 7',
       highlight: activeHighlightPlan === 'pro_99',
       summary:
         'Competitor source map, Shopify catalog adapter, 10-line AI revenue tracker, and direct MCP sync for AI tools.',
@@ -101,9 +108,11 @@ export function PricingLadderSection(props: {
         'Competitor Source Map + Outreach Drafts',
         '10-Line AI Visit & Checkout Revenue Pixel',
         'Shopify /api/ucp/mcp + agents.md.liquid Adapter',
-        'Paid /mcp Server (1,000 credits/mo: 1 cached / 10 live)',
+        annual
+          ? 'Paid /mcp Server (1,000 credits/mo: 1 cached / 10 live)'
+          : 'Paid /mcp Server (150 trial credits → 1,000/mo)',
       ],
-      cta: 'Start Pro + MCP',
+      cta: annual ? 'Start Annual Pro + MCP' : 'Start 7-Day Free Trial →',
       href: `/api/checkout?plan=pro_99&cycle=${
         annual ? 'annual' : 'monthly'
       }${domainParam}${tokenParam}`,
@@ -114,6 +123,9 @@ export function PricingLadderSection(props: {
       price: annual ? '$199' : '$249',
       cadence: annual ? '/mo billed annually' : '/mo billed monthly',
       badge: '15 CLIENT SITES',
+      billingNote: annual
+        ? '$2,388 billed annually · 5,000 /mcp credits/mo'
+        : 'Instant 15-site batch pipeline & 5,000 /mcp credits',
       highlight: activeHighlightPlan === 'agency_249',
       summary:
         'Close $1,500–$3,000/mo client retainers using 60-second branded audit links with your agency logo and booking button.',
@@ -123,7 +135,7 @@ export function PricingLadderSection(props: {
         'Custom Agency Logo, Brand Color & Calendar CTA',
         '5,000 Paid /mcp Server Credits / Month',
       ],
-      cta: 'Start Agency Plan',
+      cta: annual ? 'Start Annual Agency' : 'Start Agency Plan',
       href: `/api/checkout?plan=agency_249&cycle=${
         annual ? 'annual' : 'monthly'
       }${domainParam}${tokenParam}`,
@@ -241,7 +253,7 @@ export function PricingLadderSection(props: {
                 </StatusBadge>
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
+              <div style={{ marginBottom: '6px' }}>
                 <span
                   className="vs-mono"
                   style={{ fontSize: '32px', fontWeight: 700, letterSpacing: '-0.02em' }}
@@ -257,6 +269,24 @@ export function PricingLadderSection(props: {
                 >
                   {tier.cadence}
                 </span>
+              </div>
+
+              <div
+                className="vs-mono"
+                style={{
+                  fontSize: '11.5px',
+                  color:
+                    !annual && (tier.id === 'starter_49' || tier.id === 'pro_99')
+                      ? 'var(--vs-pass-fg)'
+                      : 'var(--vs-ink-muted)',
+                  fontWeight:
+                    !annual && (tier.id === 'starter_49' || tier.id === 'pro_99')
+                      ? 600
+                      : 400,
+                  marginBottom: '12px',
+                }}
+              >
+                {tier.billingNote}
               </div>
 
               <p
@@ -307,6 +337,56 @@ export function PricingLadderSection(props: {
             </a>
           </div>
         ))}
+      </div>
+
+      {/* 7-Day Trial Timeline & Billing Transparency Bar */}
+      <div
+        className="vs-card"
+        style={{
+          marginTop: '16px',
+          padding: '16px 20px',
+          background: 'var(--vs-surface-warm)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginBottom: '10px',
+          }}
+        >
+          <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+            HOW THE 7-DAY FREE TRIAL WORKS (STARTER &amp; PRO MONTHLY)
+          </span>
+          <StatusBadge tone="pass">$0.00 DUE TODAY · 1-CLICK CANCEL</StatusBadge>
+        </div>
+        <div className="vs-grid-2" style={{ gap: '14px', fontSize: '12.5px' }}>
+          <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
+            <strong style={{ color: 'var(--vs-ink)' }}>
+              Days 1–2 (Deploy Fixes in &lt; 10 Min):
+            </strong>{' '}
+            Scan your site across ChatGPT, Gemini, and Perplexity, verify your
+            Brand Truth Sheet, and paste the 1-Click AI Fix Prompt (
+            <code className="vs-mono">JSON-LD</code>,{' '}
+            <code className="vs-mono">/llms.txt</code>,{' '}
+            <code className="vs-mono">/agents.md</code>) into Claude, Cursor,
+            Antigravity, or Shopify.
+          </div>
+          <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
+            <strong style={{ color: 'var(--vs-ink)' }}>
+              Days 3–7 (Verify Bot Crawls &amp; Decide):
+            </strong>{' '}
+            Watch live <code className="vs-mono">GPTBot</code> and{' '}
+            <code className="vs-mono">PerplexityBot</code> crawls hit your Step
+            01 Ledger before your first invoice runs on Day 7. Cancel in 1 click
+            inside Stripe Billing Portal, or pick the{' '}
+            <strong style={{ color: 'var(--vs-ink)' }}>$19 Audit Pass</strong>{' '}
+            if you prefer zero recurring billing.
+          </div>
+        </div>
       </div>
     </section>
   );

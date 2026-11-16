@@ -48,7 +48,7 @@ Paid tools accept either a SHA-256 \`vs_live_\` Bearer API key minted at https:/
 
 ## 4. Verified Commercial Terms & Exclusions
 
-- Plans: \`$19\` One-Time Audit Pass (100% credited toward any monthly subscription within 7 days), \`$49/mo\` Starter Brand, \`$99/mo\` Pro + MCP (\`1,000\` credits/mo), \`$249/mo\` Agency White-Label (\`5,000\` credits/mo).
+- Plans: \`$19\` One-Time Audit Pass (zero recurring billing; 100% credited toward any monthly subscription within 7 days), \`$49/mo\` Starter Brand (includes 7-day free trial on first monthly signup), \`$99/mo\` Pro + MCP (includes 7-day free trial with \`150\` starter \`/mcp\` credits, stepping up to \`1,000\` credits/mo upon first paid invoice), \`$249/mo\` Agency White-Label (\`5,000\` credits/mo).
 - Exclusions: Verisource does NOT sell legacy backlink-farm packages, does NOT expose deprecated \`/sse\` MCP transports, and does NOT collect cross-site browsing history in its Manifest V3 Chrome Extension.
 `;
 

@@ -16,12 +16,14 @@ import {
   runFullGeoAudit,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
+  type BillingCycle,
   type CitationSnapshotRow,
   type CrawlerReadabilityReport,
   type Database,
   type DomainRow,
   type GeneratedFixRow,
   type McpApiKeyRow,
+  type PlanTier,
   type ProfileRow,
   type PublicPitchReportResult,
   type TrackedPromptRow,
@@ -95,6 +97,24 @@ export function mcpLimitForPlan(plan: ProfileRow['plan_tier']): number {
     default:
       return 5;
   }
+}
+
+export function trialMcpLimitForPlan(plan: ProfileRow['plan_tier']): number {
+  switch (plan) {
+    case 'pro_99':
+      return 150;
+    case 'starter_49':
+      return 25;
+    default:
+      return mcpLimitForPlan(plan);
+  }
+}
+
+export function isPlanEligibleFor7DayTrial(
+  plan: PlanTier,
+  cycle: BillingCycle
+): boolean {
+  return (plan === 'starter_49' || plan === 'pro_99') && cycle === 'monthly';
 }
 
 export function domainCapForPlan(plan: ProfileRow['plan_tier']): number {
@@ -434,7 +454,7 @@ export type ConsoleRequestAccess =
     }
   | {
       status: 'plan_activation_required';
-      supabase: SupabaseClient<Database>;
+      supabase: SupabaseClient<Database> | null;
       profile: ProfileRow;
     }
   | {
@@ -473,6 +493,13 @@ export async function resolveConsoleRequestAccess(
 
   if (isMockOwnerRequest(request, explicitToken)) {
     const store = getLocalMockStore();
+    if (!hasActiveConsolePlan(store.profile.plan_tier)) {
+      return {
+        status: 'plan_activation_required',
+        supabase: null,
+        profile: store.profile,
+      };
+    }
     return {
       status: 'mock_owner',
       supabase: null,

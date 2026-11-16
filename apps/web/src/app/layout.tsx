@@ -149,10 +149,10 @@ const FAQ_JSON_LD = {
     },
     {
       '@type': 'Question',
-      name: 'How does the $19 One-Time Audit Pass 7-day credit work?',
+      name: 'How do the 7-day free trial and $19 One-Time Audit Pass work?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Purchasing the $19 Audit Pass activates a complete 3-engine audit and syntax-validated fix bundle for one domain inside the Console. Upgrading to Starter ($49/mo), Pro + MCP ($99/mo), or Agency ($249/mo) within 7 days automatically deducts $19.00 from your first recurring invoice.',
+        text: 'First-time monthly subscribers on Starter ($49/mo) and Pro + MCP ($99/mo) start with a 7-day free trial ($0.00 due today; cancel in 1 click anytime inside Stripe Billing Portal before Day 7). Buyers who prefer zero recurring subscription can buy the $19 One-Time Audit Pass, which also credits $19.00 off Month 1 if upgraded within 7 days.',
       },
     },
   ],

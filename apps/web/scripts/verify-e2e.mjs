@@ -1734,7 +1734,264 @@ async function run() {
         `Expected zero customer-facing /10 Quality Gate or Critic jargon on ${label}`
       );
     }
-    console.log('✔ [42/42] M46 Zero customer-facing /10 or Critic jargon across 10 routes + SCHEMA & FACT VERIFIED badges verified!');
+    console.log('✔ [42/43] M46 Zero customer-facing /10 or Critic jargon across 10 routes + SCHEMA & FACT VERIFIED badges verified!');
+
+    // 41. M47 7-Day Free Trial (Monthly Starter & Pro), Anti-Abuse Repeat-Trial Guard, Day-0 vs Day-7 /mcp Credit Pacing & Cancellation Downgrade
+    assert.ok(
+      pricingHtml.includes('Start 7-Day Free Trial') &&
+        pricingHtml.includes('$0.00 due today') &&
+        pricingHtml.includes('HOW THE 7-DAY FREE TRIAL WORKS'),
+      'Expected 7-Day Free Trial CTAs, $0.00 due today note, and Trial Transparency strip on /pricing'
+    );
+
+    // Repeat-trial block: authenticated owner already has cus_live_e2e_01 from M26
+    const repeatTrialBlockedRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=monthly`,
+      { headers: OWNER_HEADERS, redirect: 'manual' }
+    );
+    assert.equal(repeatTrialBlockedRes.status, 303);
+    const repeatTrialLoc = repeatTrialBlockedRes.headers.get('location') ?? '';
+    assert.ok(
+      !repeatTrialLoc.includes('trial=7d'),
+      `Expected repeat trial to be blocked for existing Stripe customer, got ${repeatTrialLoc}`
+    );
+
+    // Agency $249/mo and Annual plans remain trial-isolated against hit-and-run scraping & annual charge shock
+    const agencyNoTrialRes = await fetch(
+      `${BASE}/api/checkout?plan=agency_249&cycle=monthly`,
+      { redirect: 'manual' }
+    );
+    assert.equal(agencyNoTrialRes.status, 303);
+    assert.ok(
+      !(agencyNoTrialRes.headers.get('location') ?? '').includes('trial=7d'),
+      'Expected Agency $249/mo batch plan not to grant a $0 trial'
+    );
+
+    const annualNoTrialRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=annual`,
+      { redirect: 'manual' }
+    );
+    assert.equal(annualNoTrialRes.status, 303);
+    assert.ok(
+      !(annualNoTrialRes.headers.get('location') ?? '').includes('trial=7d'),
+      'Expected Annual plan not to attach a 7-day trial'
+    );
+
+    // First-time unauthenticated visitor starting a monthly Pro 7-day trial
+    const freshTrialCheckoutRes = await fetch(
+      `${BASE}/api/checkout?plan=pro_99&cycle=monthly&domain=linear.app`,
+      { redirect: 'manual' }
+    );
+    assert.equal(freshTrialCheckoutRes.status, 303);
+    const freshTrialLoc = freshTrialCheckoutRes.headers.get('location') ?? '';
+    assert.ok(
+      freshTrialLoc.includes('upgraded=pro_99') &&
+        freshTrialLoc.includes('trial=7d') &&
+        freshTrialLoc.includes('domain=linear.app'),
+      `Expected fresh Pro monthly checkout redirect to include trial=7d, got ${freshTrialLoc}`
+    );
+
+    const trialDashHtml = (
+      await (
+        await fetch(`${BASE}/dashboard?upgraded=pro_99&trial=7d`, {
+          headers: OWNER_HEADERS,
+        })
+      ).text()
+    ).replace(/<!--[\s\S]*?-->/g, '');
+    assert.ok(
+      trialDashHtml.includes('7-DAY FREE TRIAL ROADMAP') &&
+        trialDashHtml.includes('$0.00 CHARGED TODAY'),
+      'Expected 7-Day Free Trial Roadmap banner on /dashboard?upgraded=pro_99&trial=7d'
+    );
+    const strippedTrialDash = trialDashHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedTrialDash.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /dashboard?trial=7d'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(trialDashHtml),
+      'Found customer-facing /10 or Critic jargon on /dashboard?trial=7d'
+    );
+
+    // Signed Stripe webhook: checkout.session.completed with payment_status=no_payment_required (Day-0 Trial Start -> 150 starter /mcp credits)
+    const trialWebhookPayload = JSON.stringify({
+      id: 'evt_e2e_verisource_trial_start_47',
+      object: 'event',
+      api_version: '2025-01-27.acacia',
+      created: Math.floor(Date.now() / 1000),
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_live_trial_47',
+          object: 'checkout.session',
+          mode: 'subscription',
+          payment_status: 'no_payment_required',
+          customer: 'cus_trial_e2e_47',
+          subscription: 'sub_trial_e2e_47',
+          customer_details: { email: 'trial@linear.app' },
+          metadata: {
+            user_id: '00000000-0000-4000-8000-000000000001',
+            plan_tier: 'pro_99',
+            billing_cycle: 'monthly',
+            trial_days: '7',
+          },
+        },
+      },
+    });
+    const trialStartSig = Stripe.webhooks.generateTestHeaderString({
+      payload: trialWebhookPayload,
+      secret: E2E_WEBHOOK_SECRET,
+    });
+    const trialStartHookRes = await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': trialStartSig,
+      },
+      body: trialWebhookPayload,
+    });
+    assert.equal(trialStartHookRes.status, 200);
+
+    const stateAtDay0 = await (
+      await fetch(`${BASE}/api/dashboard/state`, { headers: OWNER_HEADERS })
+    ).json();
+    assert.equal(stateAtDay0.profile.plan_tier, 'pro_99');
+    assert.equal(
+      stateAtDay0.profile.mcp_calls_limit,
+      150,
+      'Expected Pro 7-day trial to cap starter /mcp credits at 150 before first paid invoice'
+    );
+
+    // Day-0 $0.00 trial creation invoice must NOT prematurely step up /mcp credits to 1,000
+    const zeroDollarInvoicePayload = JSON.stringify({
+      id: 'evt_e2e_verisource_trial_inv0_47',
+      object: 'event',
+      api_version: '2025-01-27.acacia',
+      created: Math.floor(Date.now() / 1000),
+      type: 'invoice.paid',
+      data: {
+        object: {
+          id: 'in_trial_zero_47',
+          object: 'invoice',
+          customer: 'cus_trial_e2e_47',
+          amount_paid: 0,
+        },
+      },
+    });
+    const zeroInvSig = Stripe.webhooks.generateTestHeaderString({
+      payload: zeroDollarInvoicePayload,
+      secret: E2E_WEBHOOK_SECRET,
+    });
+    await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': zeroInvSig,
+      },
+      body: zeroDollarInvoicePayload,
+    });
+    const stateAfterZeroInv = await (
+      await fetch(`${BASE}/api/dashboard/state`, { headers: OWNER_HEADERS })
+    ).json();
+    assert.equal(
+      stateAfterZeroInv.profile.mcp_calls_limit,
+      150,
+      'Expected $0.00 Day-0 trial invoice to preserve 150 starter /mcp cap'
+    );
+
+    // Day-7 $99.00 renewal invoice steps /mcp credits up to 1,000 and resets usage to 0
+    const paidRenewalInvoicePayload = JSON.stringify({
+      id: 'evt_e2e_verisource_trial_inv99_47',
+      object: 'event',
+      api_version: '2025-01-27.acacia',
+      created: Math.floor(Date.now() / 1000),
+      type: 'invoice.paid',
+      data: {
+        object: {
+          id: 'in_trial_paid_47',
+          object: 'invoice',
+          customer: 'cus_trial_e2e_47',
+          amount_paid: 9900,
+        },
+      },
+    });
+    const paidInvSig = Stripe.webhooks.generateTestHeaderString({
+      payload: paidRenewalInvoicePayload,
+      secret: E2E_WEBHOOK_SECRET,
+    });
+    await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': paidInvSig,
+      },
+      body: paidRenewalInvoicePayload,
+    });
+    const stateAfterDay7Paid = await (
+      await fetch(`${BASE}/api/dashboard/state`, { headers: OWNER_HEADERS })
+    ).json();
+    assert.equal(
+      stateAfterDay7Paid.profile.mcp_calls_limit,
+      1000,
+      'Expected paid Day-7 renewal invoice to step Pro /mcp credits up to 1,000'
+    );
+    assert.equal(stateAfterDay7Paid.profile.mcp_calls_used_this_month, 0);
+
+    // Subscription cancellation downgrades profile to free (402 on Console mutations) while preserving stripe_customer_id
+    const cancelSubPayload = JSON.stringify({
+      id: 'evt_e2e_verisource_trial_cancel_47',
+      object: 'event',
+      api_version: '2025-01-27.acacia',
+      created: Math.floor(Date.now() / 1000),
+      type: 'customer.subscription.deleted',
+      data: {
+        object: {
+          id: 'sub_trial_e2e_47',
+          object: 'subscription',
+          customer: 'cus_trial_e2e_47',
+        },
+      },
+    });
+    const cancelSubSig = Stripe.webhooks.generateTestHeaderString({
+      payload: cancelSubPayload,
+      secret: E2E_WEBHOOK_SECRET,
+    });
+    const cancelHookRes = await fetch(`${BASE}/api/webhooks/stripe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'stripe-signature': cancelSubSig,
+      },
+      body: cancelSubPayload,
+    });
+    assert.equal(cancelHookRes.status, 200);
+
+    const revokedAddDomainRes = await fetch(`${BASE}/api/dashboard/domains`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ domain_url: 'vercel.com' }),
+    });
+    assert.equal(
+      revokedAddDomainRes.status,
+      402,
+      'Expected canceled trial/subscription account to receive HTTP 402 on Console mutations'
+    );
+
+    const postCancelGateHtml = (
+      await (
+        await fetch(`${BASE}/dashboard`, { headers: OWNER_HEADERS })
+      ).text()
+    ).replace(/<!--[\s\S]*?-->/g, '');
+    assert.ok(
+      postCancelGateHtml.includes('Activate a plan to provision your private AI Search Console') &&
+        !postCancelGateHtml.includes('Start 7-Day Trial'),
+      'Expected canceled customer gate to require plan activation without offering a second free trial'
+    );
+    console.log('✔ [43/43] M47 7-Day Free Trial checkout, repeat-trial block, Day-0 (150) -> Day-7 (1,000) /mcp credit step-up & cancellation 402 downgrade verified!');
   } finally {
     server.kill();
   }

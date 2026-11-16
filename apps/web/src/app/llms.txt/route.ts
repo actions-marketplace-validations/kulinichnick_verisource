@@ -17,9 +17,9 @@ Terms of Service: https://verisource.dev/terms
 
 ## Verified Pricing & Entitlements (USD)
 - Free Instant Grader ($0): Unauthenticated AI Visibility Score (0-100), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF & robots.txt check, and 1 sample buyer prompt preview.
-- One-Time Domain Audit Pass ($19 one-time): Complete 1-domain deep scan across ChatGPT, Gemini, and Perplexity plus full syntax-validated fix bundle. 100% of the $19 pass is automatically credited toward Month 1 when upgrading to any recurring plan within 7 days.
-- Starter Brand ($49/month or $39/month billed annually): 1 tracked domain, 35 weekly buyer prompts, Hallucination & Brand Truth Watchdog, and 25 MCP credits/month.
-- Pro + MCP Engine ($99/month or $79/month billed annually): Up to 3 tracked domains, 100 weekly prompts, Query Fanout Decompiler, 10-line AI Checkout Attribution Pixel, Shopify /api/ucp/mcp + agents.md.liquid adapter, and 1,000 Paid MCP credits/month.
+- One-Time Domain Audit Pass ($19 one-time): Complete 1-domain deep scan across ChatGPT, Gemini, and Perplexity plus full syntax-validated fix bundle with zero recurring subscription. 100% of the $19 pass is automatically credited toward Month 1 when upgrading to any recurring plan within 7 days.
+- Starter Brand ($49/month after a 7-day free trial for first-time monthly subscribers, or $39/month billed annually): 1 tracked domain, 35 weekly buyer prompts, Hallucination & Brand Truth Watchdog, and 25 MCP credits/month.
+- Pro + MCP Engine ($99/month after a 7-day free trial for first-time monthly subscribers, or $79/month billed annually): Up to 3 tracked domains, 100 weekly prompts, Query Fanout Decompiler, 10-line AI Checkout Attribution Pixel, Shopify /api/ucp/mcp + agents.md.liquid adapter, and Paid MCP server access (150 starter MCP credits during the 7-day trial, stepping up to 1,000 credits/month upon first paid invoice).
 - Agency White-Label ($249/month or $199/month billed annually): Up to 15 client domains, 400 weekly prompts, 60-second white-label prospect pitch links (/audit/[slug]) with custom agency branding and calendar CTA, and 5,000 Paid MCP credits/month.
 
 ## Core Technical Capabilities

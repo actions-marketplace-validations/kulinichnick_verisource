@@ -11,6 +11,7 @@ export interface BuildPostPurchaseWelcomeInput {
   fixCount?: number | null;
   magicLinkUrl?: string | null;
   consoleBaseUrl?: string;
+  trialDays?: number;
 }
 
 export interface BuiltPostPurchaseWelcomeAlert {
@@ -81,10 +82,15 @@ export function buildPostPurchaseWelcomeAlert(
     : `${baseUrl}/dashboard?tab=tab2_fixes`;
   const actionUrl = input.magicLinkUrl?.trim() || fallbackDashboardUrl;
   const { label: planLabel, mcpCredits } = formatPlanLabel(input.planTier);
+  const isTrial = typeof input.trialDays === 'number' && input.trialDays > 0;
 
-  const subject = cleanDomain
-    ? `[Fix Pack Ready] ${cleanDomain} JSON-LD & /agents.md bundle (${planLabel})`
-    : `[Workspace Ready] Your Verisource ${planLabel} is active`;
+  const subject = isTrial
+    ? cleanDomain
+      ? `[${input.trialDays}-Day Trial Active] ${cleanDomain} JSON-LD & /agents.md bundle (${planLabel})`
+      : `[${input.trialDays}-Day Trial Active] Your Verisource ${planLabel} is live`
+    : cleanDomain
+      ? `[Fix Pack Ready] ${cleanDomain} JSON-LD & /agents.md bundle (${planLabel})`
+      : `[Workspace Ready] Your Verisource ${planLabel} is active`;
 
   const scoreClause =
     typeof input.visibilityScore === 'number'
@@ -102,7 +108,15 @@ export function buildPostPurchaseWelcomeAlert(
   const thirdParagraph =
     input.planTier === 'tripwire_19'
       ? 'Your $19 Audit Pass automatically credits $19 off Month 1 if you upgrade to any monthly or annual plan within 7 days.'
-      : `Automated weekly Hallucination Watchdog scans and SHA-256 Bearer /mcp credentials (${mcpCredits} credits/month) are active in your workspace.`;
+      : isTrial
+        ? input.planTier === 'pro_99'
+          ? `$0.00 was charged today. Your ${input.trialDays}-day free trial includes 150 starter /mcp credits (stepping up to 1,000 credits/month upon paid renewal), and you can cancel in 1 click anytime from the Billing Portal.`
+          : `$0.00 was charged today. Your ${input.trialDays}-day free trial includes automated weekly Hallucination Watchdog scans and 25 /mcp credits/month, and you can cancel in 1 click anytime from the Billing Portal.`
+        : `Automated weekly Hallucination Watchdog scans and SHA-256 Bearer /mcp credentials (${mcpCredits} credits/month) are active in your workspace.`;
+
+  const headerBadgeLabel = isTrial
+    ? `${planLabel.toUpperCase()} · ${input.trialDays}-DAY FREE TRIAL`
+    : planLabel.toUpperCase();
 
   const rawTextDraft = [
     'Your Verisource workspace is live.',
@@ -118,7 +132,7 @@ export function buildPostPurchaseWelcomeAlert(
 <body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
   <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
     <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; ${escapeHtml(planLabel.toUpperCase())}
+      VERISOURCE &middot; ${escapeHtml(headerBadgeLabel)}
     </div>
     <div style="padding:22px 20px;">
       <h2 style="margin:0 0 8px 0;font-size:20px;">${

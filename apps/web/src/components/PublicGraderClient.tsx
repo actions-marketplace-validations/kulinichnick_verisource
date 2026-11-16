@@ -590,27 +590,29 @@ export function PublicGraderClient(): React.ReactElement {
                 }}
               >
                 <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-                  Activate your private Admin Console for{' '}
+                  Try the private Admin Console on{' '}
                   <strong style={{ color: 'var(--vs-ink)' }}>
                     {result.hostname}
                   </strong>{' '}
-                  — 100% of the $19 pass credits toward any monthly plan within 7
-                  days.
+                  free for 7 days ($0.00 due today · cancel in 1 click), or grab
+                  a $19 one-time pass with zero recurring billing.
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                   <Link
-                    href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
+                    href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
                       result.hostname
                     )}`}
                     className="vs-btn"
                   >
-                    Activate Full Audit + Fixes — $19
+                    Start 7-Day Free Trial ($0 Today) →
                   </Link>
                   <Link
-                    href={`/pricing?domain=${encodeURIComponent(result.hostname)}`}
+                    href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
+                      result.hostname
+                    )}`}
                     className="vs-btn vs-btn-secondary"
                   >
-                    Monthly Console Plans ($49+) →
+                    Or $19 One-Time Audit Pass
                   </Link>
                 </div>
               </div>

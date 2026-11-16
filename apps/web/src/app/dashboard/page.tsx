@@ -20,6 +20,7 @@ export default async function DashboardPage({
     tab?: string;
     upgraded?: string;
     credit_applied?: string;
+    trial?: string;
   }>;
 }): Promise<React.ReactElement> {
   const [params, reqHeaders, reqCookies] = await Promise.all([
@@ -155,6 +156,7 @@ export default async function DashboardPage({
       initialTab={params.tab}
       upgradedPlan={params.upgraded}
       creditApplied={params.credit_applied === 'true'}
+      trialActive={params.trial === '7d'}
     />
   );
 }

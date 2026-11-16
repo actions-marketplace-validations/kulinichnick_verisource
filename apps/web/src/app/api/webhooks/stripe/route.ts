@@ -13,6 +13,7 @@ import {
   getServiceSupabaseClient,
   mcpLimitForPlan,
   provisionDomainAuditForWorkspace,
+  trialMcpLimitForPlan,
 } from '../../../../lib/data-store';
 
 export const maxDuration = 60;
@@ -90,6 +91,11 @@ export async function POST(request: Request): Promise<NextResponse> {
       }
     }
 
+    const isTrialStart =
+      session.metadata?.trial_days === '7' ||
+      (session.mode === 'subscription' &&
+        session.payment_status === 'no_payment_required');
+
     const patch = {
       plan_tier: planTier,
       billing_cycle: billingCycle,
@@ -97,7 +103,9 @@ export async function POST(request: Request): Promise<NextResponse> {
         typeof session.customer === 'string' ? session.customer : null,
       stripe_subscription_id:
         typeof session.subscription === 'string' ? session.subscription : null,
-      mcp_calls_limit: mcpLimitForPlan(planTier),
+      mcp_calls_limit: isTrialStart
+        ? trialMcpLimitForPlan(planTier)
+        : mcpLimitForPlan(planTier),
       tripwire_paid_at:
         planTier === 'tripwire_19' ? new Date().toISOString() : null,
     };
@@ -178,9 +186,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       let magicLinkUrl: string | null = null;
       if (supabase) {
         try {
+          const trialSuffix = isTrialStart ? '&trial=7d' : '';
           const redirectTarget = targetHostname
-            ? `${appBaseUrl}/dashboard?tab=tab2_fixes&domain=${encodeURIComponent(targetHostname)}`
-            : `${appBaseUrl}/dashboard?tab=tab2_fixes`;
+            ? `${appBaseUrl}/dashboard?tab=tab2_fixes&domain=${encodeURIComponent(targetHostname)}${trialSuffix}`
+            : `${appBaseUrl}/dashboard?tab=tab2_fixes${trialSuffix}`;
           const { data: linkData } = await supabase.auth.admin.generateLink({
             type: 'magiclink',
             email: customerEmail,
@@ -202,6 +211,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           fixCount: provisionedFixCount,
           magicLinkUrl,
           consoleBaseUrl: appBaseUrl,
+          trialDays: isTrialStart ? 7 : 0,
           resendApiKey: process.env.RESEND_API_KEY,
           fromEmail: process.env.ALERT_FROM_EMAIL,
         });
@@ -229,21 +239,56 @@ export async function POST(request: Request): Promise<NextResponse> {
           { status: 500 }
         );
       }
+    } else {
+      const store = getLocalMockStore();
+      if (store.profile.stripe_customer_id === customerId) {
+        store.profile.plan_tier = 'free';
+        store.profile.mcp_calls_limit = 5;
+        store.profile.stripe_subscription_id = null;
+      }
     }
   } else if (event.type === 'invoice.paid') {
     const invoice = event.data.object as Stripe.Invoice;
     const customerId =
       typeof invoice.customer === 'string' ? invoice.customer : null;
-    if (customerId && supabase) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ mcp_calls_used_this_month: 0 })
-        .eq('stripe_customer_id', customerId);
-      if (error) {
-        return NextResponse.json(
-          { error: 'QUOTA_RESET_FAILED' },
-          { status: 500 }
-        );
+    const amountPaid =
+      typeof invoice.amount_paid === 'number' ? invoice.amount_paid : 0;
+
+    if (customerId && amountPaid > 0) {
+      if (supabase) {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('plan_tier')
+          .eq('stripe_customer_id', customerId)
+          .maybeSingle();
+
+        const nextLimit = existingProfile?.plan_tier
+          ? mcpLimitForPlan(existingProfile.plan_tier)
+          : undefined;
+
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            mcp_calls_used_this_month: 0,
+            ...(typeof nextLimit === 'number'
+              ? { mcp_calls_limit: nextLimit }
+              : {}),
+          })
+          .eq('stripe_customer_id', customerId);
+        if (error) {
+          return NextResponse.json(
+            { error: 'QUOTA_RESET_FAILED' },
+            { status: 500 }
+          );
+        }
+      } else {
+        const store = getLocalMockStore();
+        if (store.profile.stripe_customer_id === customerId) {
+          store.profile.mcp_calls_used_this_month = 0;
+          store.profile.mcp_calls_limit = mcpLimitForPlan(
+            store.profile.plan_tier
+          );
+        }
       }
     }
   }

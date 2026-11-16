@@ -45,7 +45,7 @@ export default function TermsPage(): React.ReactElement {
           }}
         >
           <h2 style={{ margin: '0 0 8px 0', fontSize: '17px' }}>
-            1. Subscriptions &amp; 7-Day $19 Audit Pass Credit
+            1. Subscriptions, 7-Day Free Trials &amp; $19 Audit Pass Credit
           </h2>
           <p
             style={{
@@ -57,12 +57,17 @@ export default function TermsPage(): React.ReactElement {
           >
             Paid plans are billed in USD via Stripe ($19 one-time Audit Pass,
             $49/mo Starter Brand, $99/mo Pro + MCP Engine, and $249/mo Agency
-            White-Label, with 20% discounts on annual commitments). Buyers who
-            purchase the $19 One-Time Audit Pass and upgrade to any recurring
-            subscription under the same account within 7 calendar days receive
-            an automatic single-use $19.00 credit on their first subscription
-            invoice. Subscriptions renew automatically unless canceled prior to
-            renewal via the Stripe Billing Portal.
+            White-Label, with 20% discounts on annual commitments). First-time
+            subscribers selecting a monthly Starter Brand or Pro + MCP Engine
+            plan receive a single 7-calendar-day free trial ($0.00 charged at
+            signup; payment method required; limited to one trial per customer).
+            If not canceled before the 7-day trial window ends via the Stripe
+            Billing Portal, the selected monthly subscription renews
+            automatically at the stated rate. Buyers who prefer zero recurring
+            billing may purchase the $19 One-Time Audit Pass, and if they
+            upgrade to a recurring plan under the same account within 7 calendar
+            days, receive an automatic single-use $19.00 credit on their first
+            subscription invoice in lieu of a trial.
           </p>
         </section>
 

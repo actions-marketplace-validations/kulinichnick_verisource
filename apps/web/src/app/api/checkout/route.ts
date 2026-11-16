@@ -8,9 +8,12 @@ import {
 } from '@verisource/core-geo';
 import {
   getLocalMockStore,
+  isMockOwnerRequest,
+  isPlanEligibleFor7DayTrial,
   mcpLimitForPlan,
   provisionDomainAuditForWorkspace,
   resolveAuthenticatedProfile,
+  trialMcpLimitForPlan,
 } from '../../../lib/data-store';
 
 const VALID_PLANS = new Set<PlanTier>([
@@ -88,6 +91,8 @@ export async function GET(request: Request): Promise<NextResponse> {
   const env = resolveCoreGeoEnv();
   const auth = await resolveAuthenticatedProfile(request, queryToken);
   const store = getLocalMockStore();
+  const isAuthenticatedMockOwner =
+    !env.hasStripe && isMockOwnerRequest(request, queryToken);
 
   const tripwirePaidAt = auth
     ? auth.profile.tripwire_paid_at
@@ -101,6 +106,31 @@ export async function GET(request: Request): Promise<NextResponse> {
       tripwirePaidAt &&
         Date.now() - Date.parse(tripwirePaidAt) <= 7 * 86400 * 1000
     );
+
+  const hasPriorBillingHistory = auth
+    ? Boolean(
+        (auth.profile.stripe_customer_id &&
+          !auth.profile.stripe_customer_id.startsWith('cus_demo_')) ||
+          auth.profile.stripe_subscription_id ||
+          auth.profile.tripwire_paid_at
+      )
+    : isAuthenticatedMockOwner
+      ? Boolean(
+          (store.profile.stripe_customer_id &&
+            !store.profile.stripe_customer_id.startsWith('cus_demo_')) ||
+            (store.profile.stripe_subscription_id &&
+              !store.profile.stripe_subscription_id.startsWith('sub_demo_')) ||
+            store.profile.tripwire_paid_at
+        )
+      : !env.hasStripe
+        ? Boolean(store.profile.tripwire_paid_at)
+        : false;
+
+  const isEligibleFor7DayTrial =
+    isPlanEligibleFor7DayTrial(rawPlan, cycle) &&
+    !isEligibleFor19Credit &&
+    !hasPriorBillingHistory &&
+    url.searchParams.get('trial') !== '0';
 
   // Live Stripe Checkout Session when STRIPE_SECRET_KEY is configured
   if (env.hasStripe && env.stripeSecretKey) {
@@ -131,6 +161,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     const successDest = new URL('/dashboard', url.origin);
     successDest.searchParams.set('upgraded', rawPlan);
     successDest.searchParams.set('credit_applied', String(isEligibleFor19Credit));
+    if (isEligibleFor7DayTrial) {
+      successDest.searchParams.set('trial', '7d');
+    }
     if (safeHostname) {
       successDest.searchParams.set('domain', safeHostname);
       successDest.searchParams.set('tab', 'tab2_fixes');
@@ -144,6 +177,20 @@ export async function GET(request: Request): Promise<NextResponse> {
 
     const baseSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: isOneTime ? 'payment' : 'subscription',
+      ...(isEligibleFor7DayTrial
+        ? {
+            payment_method_collection: 'always',
+            subscription_data: {
+              trial_period_days: 7,
+              metadata: {
+                ...(auth ? { user_id: auth.profile.id } : {}),
+                plan_tier: rawPlan,
+                billing_cycle: cycle,
+                trial_days: '7',
+              },
+            },
+          }
+        : {}),
       line_items: [
         {
           quantity: 1,
@@ -168,6 +215,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         billing_cycle: cycle,
         domain: safeHostname ?? '',
         audit_slug: safeSlug,
+        trial_days: isEligibleFor7DayTrial ? '7' : '0',
       },
       success_url: successDest.toString(),
       cancel_url: cancelDest.toString(),
@@ -205,7 +253,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   // Zero-Key Local Mock Checkout Simulation
   store.profile.plan_tier = rawPlan;
   store.profile.billing_cycle = cycle;
-  store.profile.mcp_calls_limit = mcpLimitForPlan(rawPlan);
+  store.profile.mcp_calls_limit = isEligibleFor7DayTrial
+    ? trialMcpLimitForPlan(rawPlan)
+    : mcpLimitForPlan(rawPlan);
   if (rawPlan === 'tripwire_19') {
     store.profile.tripwire_paid_at = new Date().toISOString();
   } else if (isEligibleFor19Credit) {
@@ -229,6 +279,9 @@ export async function GET(request: Request): Promise<NextResponse> {
   dest.searchParams.set('upgraded', rawPlan);
   if (isEligibleFor19Credit) {
     dest.searchParams.set('credit_applied', 'true');
+  }
+  if (isEligibleFor7DayTrial) {
+    dest.searchParams.set('trial', '7d');
   }
   if (safeHostname) {
     dest.searchParams.set('domain', safeHostname);
