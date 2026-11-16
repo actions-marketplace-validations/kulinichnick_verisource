@@ -44,6 +44,7 @@ import {
   MCP_CLIENT_APP_OPTIONS,
   buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
+  buildProspectCtaClickAlert,
   buildProspectOpenAlert,
   buildPublicAiPromptTeaser,
   buildShopifyCustomerEventsPixel,
@@ -63,6 +64,7 @@ import {
   dispatchHallucinationDriftEmail,
   dispatchMagicLinkSignInEmail,
   dispatchPostPurchaseWelcomeEmail,
+  dispatchProspectCtaClickEmail,
   dispatchProspectOpenEmail,
   dispatchTrialActivationNudgeEmail,
   dispatchWeeklyExecutiveDigestEmail,
@@ -3413,4 +3415,70 @@ test('M68 summarizePitchEngagementCounts, filterAndRankPitchReports & buildLiveF
     gradeArtifactQuality(extFollowUp.prompt.content).breakdown.lexicon_filter,
     2.0
   );
+});
+
+test('M69 buildProspectCtaClickAlert, dispatchProspectCtaClickEmail & cta_clicked engagement filter pass >= 9.5/10 Critic', async () => {
+  const alert = buildProspectCtaClickAlert({
+    prospectBrandName: 'Summit Dental <Group>',
+    prospectDomain: 'summitdental.com',
+    shareSlug: 'summit-dental-audit',
+    visibilityScore: 41,
+    hallucinationCount: 2,
+    viewsCount: 3,
+    ctaClicksCount: 1,
+    agencyCtaUrl: 'https://cal.com/apex-geo/strategy',
+    topGap: 'Missing LocalBusiness JSON-LD and /agents.md pricing truth.',
+    agencyBrandName: 'Apex GEO Advisory',
+  });
+  assert.ok(alert.quality.score >= 9.5);
+  assert.ok(alert.subject.includes('[Booking CTA Clicked]'));
+  assert.ok(alert.html.includes('Summit Dental &lt;Group&gt;'));
+  assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(alert.text));
+  assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(alert.text));
+
+  const dryRun = await dispatchProspectCtaClickEmail({
+    recipientEmail: 'partner@apexgeo.io',
+    prospectBrandName: 'Summit Dental',
+    prospectDomain: 'summitdental.com',
+    shareSlug: 'summit-dental-audit',
+    visibilityScore: 41,
+    hallucinationCount: 2,
+    viewsCount: 2,
+    ctaClicksCount: 1,
+    agencyCtaUrl: 'https://cal.com/apex-geo/strategy',
+  });
+  assert.equal(dryRun.mode, 'preview_dry_run');
+  assert.ok(dryRun.qualityScore >= 9.5);
+
+  const reports = [
+    { ...PATIENT_ZERO_PITCH_REPORT, id: 'c-0', share_slug: 'views-only', views_count: 4 },
+    {
+      ...PATIENT_ZERO_PITCH_REPORT,
+      id: 'c-1',
+      share_slug: 'clicked-once',
+      views_count: 1,
+      summary_payload: {
+        ...PATIENT_ZERO_PITCH_REPORT.summary_payload,
+        cta_clicks_count: 1,
+      },
+    },
+    {
+      ...PATIENT_ZERO_PITCH_REPORT,
+      id: 'c-2',
+      share_slug: 'clicked-twice',
+      views_count: 2,
+      summary_payload: {
+        ...PATIENT_ZERO_PITCH_REPORT.summary_payload,
+        cta_clicks_count: 2,
+      },
+    },
+  ];
+  const counts = summarizePitchEngagementCounts(reports);
+  assert.equal(counts.ctaClickedCount, 2);
+  assert.equal(counts.openedCount, 3);
+
+  const clickedOnly = filterAndRankPitchReports(reports, 'cta_clicked');
+  assert.equal(clickedOnly.length, 2);
+  assert.equal(clickedOnly[0]?.share_slug, 'clicked-twice');
+  assert.equal(clickedOnly[1]?.share_slug, 'clicked-once');
 });

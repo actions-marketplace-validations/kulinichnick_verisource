@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import {
+  dispatchProspectCtaClickEmail,
   dispatchProspectOpenEmail,
   isAutomatedPreviewBot,
 } from '@verisource/core-geo';
 import {
   getAuditViewDedupMap,
+  recordVerifiedPitchCtaClick,
   recordVerifiedPitchOpen,
 } from '../../../lib/data-store';
 
-const DEDUP_WINDOW_MS = 30 * 60 * 1000;
+const VIEW_DEDUP_WINDOW_MS = 30 * 60 * 1000;
+const CTA_DEDUP_WINDOW_MS = 10 * 60 * 1000;
 
 function extractHostname(rawUrl?: string | null): string | null {
   if (!rawUrl) return null;
@@ -21,11 +24,25 @@ function extractHostname(rawUrl?: string | null): string | null {
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = (await request.json()) as { slug?: string };
+    const body = (await request.json()) as {
+      slug?: string;
+      event_type?: string;
+    };
     const slug = body.slug?.trim() ?? '';
     if (!slug || !/^[a-z0-9-]{3,120}$/i.test(slug)) {
       return NextResponse.json(
         { error: 'INVALID_SLUG', message: 'Malformed audit report slug.' },
+        { status: 400 }
+      );
+    }
+
+    const eventType = (body.event_type ?? 'view').trim();
+    if (eventType !== 'view' && eventType !== 'cta_click') {
+      return NextResponse.json(
+        {
+          error: 'INVALID_EVENT_TYPE',
+          message: 'Unsupported event_type. Expected view or cta_click.',
+        },
         { status: 400 }
       );
     }
@@ -41,7 +58,8 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json(
         {
           error: 'ORIGIN_MISMATCH',
-          message: 'Audit view telemetry requires a same-origin browser request.',
+          message:
+            'Audit engagement telemetry requires a same-origin browser request.',
         },
         { status: 403 }
       );
@@ -59,7 +77,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       request.headers.get('cf-connecting-ip') ??
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
       '127.0.0.1';
-    const dedupKey = `${ip}:${slug.toLowerCase()}`;
+    const dedupKey =
+      eventType === 'cta_click'
+        ? `${ip}:cta:${slug.toLowerCase()}`
+        : `${ip}:${slug.toLowerCase()}`;
     const dedupMap = getAuditViewDedupMap();
     const existingExpiry = dedupMap.get(dedupKey);
     const now = Date.now();
@@ -67,6 +88,81 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({
         counted: false,
         reason: 'deduplicated_window',
+      });
+    }
+
+    if (eventType === 'cta_click') {
+      const clicked = await recordVerifiedPitchCtaClick(slug);
+      if (!clicked) {
+        return NextResponse.json(
+          { error: 'NOT_FOUND', message: 'Audit report not found or expired.' },
+          { status: 404 }
+        );
+      }
+
+      dedupMap.set(dedupKey, now + CTA_DEDUP_WINDOW_MS);
+
+      const { report, ctaClicksCount, ownerEmail } = clicked;
+      let alertMode: 'live_resend' | 'preview_dry_run' | 'skipped_milestone' =
+        'skipped_milestone';
+      let alertQualityScore: number | null = null;
+
+      if (ctaClicksCount === 1 || ctaClicksCount === 3) {
+        const fallbackRecipient =
+          process.env.ALERT_FALLBACK_EMAIL?.trim() || null;
+        const targetEmail =
+          ownerEmail && ownerEmail !== 'demo@verisource.dev'
+            ? ownerEmail
+            : fallbackRecipient;
+
+        if (targetEmail) {
+          try {
+            const dispatched = await dispatchProspectCtaClickEmail({
+              recipientEmail: targetEmail,
+              prospectBrandName: report.prospect_brand_name,
+              prospectDomain: report.prospect_domain,
+              shareSlug: report.share_slug,
+              visibilityScore: report.visibility_score,
+              hallucinationCount: report.hallucination_count,
+              viewsCount: report.views_count,
+              ctaClicksCount,
+              agencyCtaUrl: report.agency_cta_url,
+              topGap: report.summary_payload.top_gaps[0],
+              agencyBrandName: report.agency_brand_name,
+              resendApiKey: process.env.RESEND_API_KEY,
+              fromEmail: process.env.ALERT_FROM_EMAIL,
+            });
+            alertMode = dispatched.mode;
+            alertQualityScore = dispatched.qualityScore;
+          } catch {
+            // Never fail telemetry if external email provider times out
+          }
+        } else if (!process.env.RESEND_API_KEY) {
+          const dryRun = await dispatchProspectCtaClickEmail({
+            recipientEmail: ownerEmail ?? 'demo@verisource.dev',
+            prospectBrandName: report.prospect_brand_name,
+            prospectDomain: report.prospect_domain,
+            shareSlug: report.share_slug,
+            visibilityScore: report.visibility_score,
+            hallucinationCount: report.hallucination_count,
+            viewsCount: report.views_count,
+            ctaClicksCount,
+            agencyCtaUrl: report.agency_cta_url,
+            topGap: report.summary_payload.top_gaps[0],
+            agencyBrandName: report.agency_brand_name,
+          });
+          alertMode = dryRun.mode;
+          alertQualityScore = dryRun.qualityScore;
+        }
+      }
+
+      return NextResponse.json({
+        counted: true,
+        event_type: 'cta_click',
+        cta_clicks_count: ctaClicksCount,
+        views_count: report.views_count,
+        alert_mode: alertMode,
+        alert_quality_score: alertQualityScore,
       });
     }
 
@@ -78,7 +174,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    dedupMap.set(dedupKey, now + DEDUP_WINDOW_MS);
+    dedupMap.set(dedupKey, now + VIEW_DEDUP_WINDOW_MS);
 
     const { report, ownerEmail } = opened;
     let alertMode: 'live_resend' | 'preview_dry_run' | 'skipped_milestone' =
@@ -129,6 +225,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return NextResponse.json({
       counted: true,
+      event_type: 'view',
       views_count: report.views_count,
       alert_mode: alertMode,
     });

@@ -6,6 +6,7 @@ import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
 import { AuditViewTracker } from '../../../components/AuditViewTracker';
 import { CopyAuditBriefButton } from '../../../components/CopyAuditBriefButton';
 import { PrintAuditBriefButton } from '../../../components/PrintAuditBriefButton';
+import { TrackedAuditCtaLink } from '../../../components/TrackedAuditCtaLink';
 import { fetchPublicPitchBySlug } from '../../../lib/data-store';
 
 export const dynamic = 'force-dynamic';
@@ -130,15 +131,13 @@ export default async function AgencyPitchReportPage({
         >
           <CopyAuditBriefButton slug={slug} />
           <PrintAuditBriefButton />
-          <a
+          <TrackedAuditCtaLink
+            slug={slug}
             href={ctaUrl}
-            target={ctaUrl.startsWith('http') ? '_blank' : undefined}
-            rel={ctaUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-            className="vs-btn"
-            style={{ background: brandColor, borderColor: brandColor }}
+            brandColor={brandColor}
           >
             Book 15-Min Fix Review with {agencyName} →
-          </a>
+          </TrackedAuditCtaLink>
         </div>
       </div>
 
@@ -667,15 +666,13 @@ export default async function AgencyPitchReportPage({
           className="vs-no-print"
           style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}
         >
-          <a
+          <TrackedAuditCtaLink
+            slug={slug}
             href={ctaUrl}
-            target={ctaUrl.startsWith('http') ? '_blank' : undefined}
-            rel={ctaUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
-            className="vs-btn"
-            style={{ background: brandColor, borderColor: brandColor }}
+            brandColor={brandColor}
           >
             Schedule Implementation Call
-          </a>
+          </TrackedAuditCtaLink>
           {isVerisourceDirect ? (
             <>
               <a

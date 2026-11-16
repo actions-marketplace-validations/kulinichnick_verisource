@@ -109,6 +109,8 @@ export type PitchSummaryPayload = {
     whyItMatters: string;
     howToFix: string;
   }>;
+  cta_clicks_count?: number;
+  last_cta_clicked_at?: string;
 };
 
 export type ProfileRow = {

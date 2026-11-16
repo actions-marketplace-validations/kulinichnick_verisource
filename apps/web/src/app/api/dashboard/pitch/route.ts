@@ -375,11 +375,21 @@ export async function PATCH(request: Request): Promise<NextResponse> {
         ? null
         : new Date(Date.now() + ttlDays * 86400 * 1000).toISOString();
 
+    const preservedPayload = {
+      ...audit.pitchSummaryPayload,
+      ...(existing.summary_payload?.cta_clicks_count !== undefined
+        ? { cta_clicks_count: existing.summary_payload.cta_clicks_count }
+        : {}),
+      ...(existing.summary_payload?.last_cta_clicked_at
+        ? { last_cta_clicked_at: existing.summary_payload.last_cta_clicked_at }
+        : {}),
+    };
+
     const updatedFields = {
       prospect_brand_name: audit.brandName || existing.prospect_brand_name,
       visibility_score: audit.visibilityScore,
       hallucination_count: audit.allHallucinations.length,
-      summary_payload: audit.pitchSummaryPayload,
+      summary_payload: preservedPayload,
       expires_at: nextExpiresAt,
     };
 

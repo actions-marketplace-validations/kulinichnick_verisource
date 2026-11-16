@@ -411,10 +411,15 @@ export function buildImplementationBundleMarkdown(params: {
     .trim();
 }
 
-export type PitchEngagementFilter = 'all' | 'opened_hot' | 'awaiting_open';
+export type PitchEngagementFilter =
+  | 'all'
+  | 'cta_clicked'
+  | 'opened_hot'
+  | 'awaiting_open';
 
 export interface PitchEngagementCounts {
   allCount: number;
+  ctaClickedCount: number;
   openedCount: number;
   hotCount: number;
   awaitingOpenCount: number;
@@ -423,15 +428,20 @@ export interface PitchEngagementCounts {
 export function summarizePitchEngagementCounts(
   reports: AgencyPitchReportRow[]
 ): PitchEngagementCounts {
+  let ctaClickedCount = 0;
   let openedCount = 0;
   let hotCount = 0;
   let awaitingOpenCount = 0;
 
   for (const r of reports) {
     const views = Math.max(0, r.views_count ?? 0);
-    if (views >= 1) {
+    const clicks = Math.max(0, r.summary_payload?.cta_clicks_count ?? 0);
+    if (clicks >= 1) {
+      ctaClickedCount += 1;
+    }
+    if (views >= 1 || clicks >= 1) {
       openedCount += 1;
-      if (views >= 3) hotCount += 1;
+      if (views >= 3 || clicks >= 1) hotCount += 1;
     } else {
       awaitingOpenCount += 1;
     }
@@ -439,6 +449,7 @@ export function summarizePitchEngagementCounts(
 
   return {
     allCount: reports.length,
+    ctaClickedCount,
     openedCount,
     hotCount,
     awaitingOpenCount,
@@ -449,14 +460,38 @@ export function filterAndRankPitchReports(
   reports: AgencyPitchReportRow[],
   filter: PitchEngagementFilter
 ): AgencyPitchReportRow[] {
+  if (filter === 'cta_clicked') {
+    return reports
+      .filter((r) => (r.summary_payload?.cta_clicks_count ?? 0) >= 1)
+      .slice()
+      .sort(
+        (a, b) =>
+          (b.summary_payload?.cta_clicks_count ?? 0) -
+            (a.summary_payload?.cta_clicks_count ?? 0) ||
+          (b.views_count ?? 0) - (a.views_count ?? 0)
+      );
+  }
   if (filter === 'opened_hot') {
     return reports
-      .filter((r) => (r.views_count ?? 0) >= 1)
+      .filter(
+        (r) =>
+          (r.views_count ?? 0) >= 1 ||
+          (r.summary_payload?.cta_clicks_count ?? 0) >= 1
+      )
       .slice()
-      .sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0));
+      .sort(
+        (a, b) =>
+          (b.summary_payload?.cta_clicks_count ?? 0) -
+            (a.summary_payload?.cta_clicks_count ?? 0) ||
+          (b.views_count ?? 0) - (a.views_count ?? 0)
+      );
   }
   if (filter === 'awaiting_open') {
-    return reports.filter((r) => (r.views_count ?? 0) <= 0);
+    return reports.filter(
+      (r) =>
+        (r.views_count ?? 0) <= 0 &&
+        (r.summary_payload?.cta_clicks_count ?? 0) <= 0
+    );
   }
   return reports;
 }

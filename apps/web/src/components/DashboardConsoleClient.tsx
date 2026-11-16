@@ -2356,11 +2356,13 @@ export function DashboardConsoleClient(props: {
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download =
-      pitchEngagementFilter === 'opened_hot'
-        ? 'verisource-opened-prospects.csv'
-        : pitchEngagementFilter === 'awaiting_open'
-          ? 'verisource-awaiting-open-followup.csv'
-          : 'verisource-outreach-batch.csv';
+      pitchEngagementFilter === 'cta_clicked'
+        ? 'verisource-cta-clicked-deals.csv'
+        : pitchEngagementFilter === 'opened_hot'
+          ? 'verisource-opened-prospects.csv'
+          : pitchEngagementFilter === 'awaiting_open'
+            ? 'verisource-awaiting-open-followup.csv'
+            : 'verisource-outreach-batch.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -2385,11 +2387,13 @@ export function DashboardConsoleClient(props: {
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download =
-      pitchEngagementFilter === 'opened_hot'
-        ? 'verisource-opened-prospects-playbook.md'
-        : pitchEngagementFilter === 'awaiting_open'
-          ? 'verisource-awaiting-open-playbook.md'
-          : 'verisource-outreach-playbook.md';
+      pitchEngagementFilter === 'cta_clicked'
+        ? 'verisource-cta-clicked-deals-playbook.md'
+        : pitchEngagementFilter === 'opened_hot'
+          ? 'verisource-opened-prospects-playbook.md'
+          : pitchEngagementFilter === 'awaiting_open'
+            ? 'verisource-awaiting-open-playbook.md'
+            : 'verisource-outreach-playbook.md';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -8603,6 +8607,10 @@ export function DashboardConsoleClient(props: {
                             label: `All (${pitchEngagementCounts.allCount})`,
                           },
                           {
+                            id: 'cta_clicked',
+                            label: `CTA Clicked (${pitchEngagementCounts.ctaClickedCount})`,
+                          },
+                          {
                             id: 'opened_hot',
                             label:
                               pitchEngagementCounts.hotCount > 0
@@ -8653,11 +8661,13 @@ export function DashboardConsoleClient(props: {
                             color: 'var(--vs-ink-secondary)',
                           }}
                         >
-                          {pitchEngagementFilter === 'opened_hot'
-                            ? 'No prospect opens recorded yet. Send Touch 1 (Day 0) below — human opens on /audit/[slug] appear here automatically.'
-                            : pitchEngagementFilter === 'awaiting_open'
-                              ? 'Every minted prospect link has already been opened at least once.'
-                              : 'Mint your first white-label /audit/[slug] link on the left.'}
+                          {pitchEngagementFilter === 'cta_clicked'
+                            ? 'No booking CTA clicks recorded yet. When a prospect clicks your calendar link on /audit/[slug], it logs here and triggers an email alert.'
+                            : pitchEngagementFilter === 'opened_hot'
+                              ? 'No prospect opens recorded yet. Send Touch 1 (Day 0) below — human opens on /audit/[slug] appear here automatically.'
+                              : pitchEngagementFilter === 'awaiting_open'
+                                ? 'Every minted prospect link has already been opened at least once.'
+                                : 'Mint your first white-label /audit/[slug] link on the left.'}
                         </td>
                       </tr>
                     ) : null}
@@ -8680,19 +8690,33 @@ export function DashboardConsoleClient(props: {
                           </td>
                           <td className="vs-mono">{r.visibility_score}/100</td>
                           <td>
-                            {r.views_count >= 3 ? (
-                              <StatusBadge tone="pass">
-                                HOT · {r.views_count} VIEWS
-                              </StatusBadge>
-                            ) : r.views_count >= 1 ? (
-                              <StatusBadge tone="pass">
-                                OPENED · {r.views_count}x
-                              </StatusBadge>
-                            ) : (
-                              <StatusBadge>
-                                {isGuided ? 'UNOPENED' : 'SENT · 0'}
-                              </StatusBadge>
-                            )}
+                            <div
+                              style={{
+                                display: 'inline-flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                                gap: '4px',
+                              }}
+                            >
+                              {(r.summary_payload?.cta_clicks_count ?? 0) >= 1 ? (
+                                <StatusBadge tone="pass">
+                                  CTA CLICKED · {r.summary_payload.cta_clicks_count}x
+                                </StatusBadge>
+                              ) : null}
+                              {r.views_count >= 3 ? (
+                                <StatusBadge tone="pass">
+                                  HOT · {r.views_count} VIEWS
+                                </StatusBadge>
+                              ) : r.views_count >= 1 ? (
+                                <StatusBadge tone="pass">
+                                  OPENED · {r.views_count}x
+                                </StatusBadge>
+                              ) : (r.summary_payload?.cta_clicks_count ?? 0) === 0 ? (
+                                <StatusBadge>
+                                  {isGuided ? 'UNOPENED' : 'SENT · 0'}
+                                </StatusBadge>
+                              ) : null}
+                            </div>
                           </td>
                           <td style={{ whiteSpace: 'nowrap' }}>
                             <div

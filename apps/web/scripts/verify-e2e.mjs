@@ -3299,7 +3299,91 @@ async function run() {
         'Expected Chrome MV3 Side Panel bundle to include ✓ Verify Live Fixes and Copy Follow-Up Prompt'
       );
     }
-    console.log('✔ [65/65] M68 Step 03 Agency Prospect Engagement Filter Pills & Chrome MV3 Side Panel Verify Live Fixes Parity verified!');
+    console.log('✔ [65/66] M68 Step 03 Agency Prospect Engagement Filter Pills & Chrome MV3 Side Panel Verify Live Fixes Parity verified!');
+
+    // 64. M69 White-Label /audit/[slug] High-Intent CTA Click Telemetry & Instant Agency Deal Alert (/api/audit-view cta_click + Step 03 CTA CLICKED Badge)
+    const badEventAuditRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'invalid_event',
+      }),
+    });
+    assert.equal(badEventAuditRes.status, 400);
+
+    const botCtaClickRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'User-Agent': 'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'cta_click',
+      }),
+    });
+    assert.equal(botCtaClickRes.status, 200);
+    const botCtaClickJson = await botCtaClickRes.json();
+    assert.equal(botCtaClickJson.counted, false);
+
+    const humanCtaClickRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.144',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'cta_click',
+      }),
+    });
+    assert.equal(humanCtaClickRes.status, 200);
+    const humanCtaClickJson = await humanCtaClickRes.json();
+    assert.equal(humanCtaClickJson.counted, true);
+    assert.equal(humanCtaClickJson.event_type, 'cta_click');
+    assert.equal(humanCtaClickJson.cta_clicks_count, 1);
+    assert.equal(humanCtaClickJson.alert_mode, 'preview_dry_run');
+    assert.ok(humanCtaClickJson.alert_quality_score >= 9.5);
+
+    const dupCtaClickRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.144',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'cta_click',
+      }),
+    });
+    assert.equal(dupCtaClickRes.status, 200);
+    const dupCtaClickJson = await dupCtaClickRes.json();
+    assert.equal(dupCtaClickJson.counted, false);
+    assert.equal(dupCtaClickJson.reason, 'deduplicated_window');
+
+    const m69Step3AfterClickHtml = await fetch(
+      `${BASE}/dashboard?tab=tab3_offsite`,
+      { headers: OWNER_HEADERS }
+    ).then((r) => r.text());
+    assert.ok(
+      m69Step3AfterClickHtml.includes('CTA Clicked (1)') &&
+        m69Step3AfterClickHtml.includes('CTA CLICKED'),
+      'Expected Step 03 Pitch Ledger to display CTA Clicked (1) filter pill and CTA CLICKED badge after booking click'
+    );
+    console.log('✔ [66/66] M69 White-Label /audit/[slug] CTA Click Telemetry, Deal Alert (>= 9.5/10), Dedup & Step 03 CTA CLICKED Badge verified!');
   } finally {
     server.kill();
   }
