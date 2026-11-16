@@ -24,6 +24,7 @@ import {
   computeShopifyCheckoutKey,
   evaluateCommerceAttributeReadiness,
   evaluatePublishedCitationPage,
+  filterAndRankPitchReports,
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
   getWebsitePlatformMeta,
@@ -33,6 +34,7 @@ import {
   resolveInitialDomainScoreDeltas,
   summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
+  summarizePitchEngagementCounts,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type AiRemediationTargetEnv,
@@ -45,6 +47,7 @@ import {
   type LiveFixVerificationReport,
   type McpApiKeyRow,
   type McpClientAppId,
+  type PitchEngagementFilter,
   type PlainDiagnosisActionTarget,
   type ProfileRow,
   type QualityRubricBreakdown,
@@ -2324,20 +2327,40 @@ export function DashboardConsoleClient(props: {
     URL.revokeObjectURL(url);
   }
 
+  const [pitchEngagementFilter, setPitchEngagementFilter] =
+    useState<PitchEngagementFilter>('all');
+
+  const pitchEngagementCounts = summarizePitchEngagementCounts(
+    data.pitchReports
+  );
+  const filteredPitchReports = filterAndRankPitchReports(
+    data.pitchReports,
+    pitchEngagementFilter
+  );
+
   function handleExportOutreachCsv() {
-    if (data.pitchReports.length === 0) return;
+    const exportSource =
+      filteredPitchReports.length > 0
+        ? filteredPitchReports
+        : data.pitchReports;
+    if (exportSource.length === 0) return;
     const origin =
       typeof window !== 'undefined'
         ? window.location.origin
         : 'https://verisource.dev';
-    const csvContent = buildBatchOutreachCsv(data.pitchReports, origin);
+    const csvContent = buildBatchOutreachCsv(exportSource, origin);
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8',
     });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'verisource-outreach-batch.csv';
+    anchor.download =
+      pitchEngagementFilter === 'opened_hot'
+        ? 'verisource-opened-prospects.csv'
+        : pitchEngagementFilter === 'awaiting_open'
+          ? 'verisource-awaiting-open-followup.csv'
+          : 'verisource-outreach-batch.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -2345,19 +2368,28 @@ export function DashboardConsoleClient(props: {
   }
 
   function handleExportOutreachPlaybook() {
-    if (data.pitchReports.length === 0) return;
+    const exportSource =
+      filteredPitchReports.length > 0
+        ? filteredPitchReports
+        : data.pitchReports;
+    if (exportSource.length === 0) return;
     const origin =
       typeof window !== 'undefined'
         ? window.location.origin
         : 'https://verisource.dev';
-    const playbook = buildBatchOutreachMarkdown(data.pitchReports, origin);
+    const playbook = buildBatchOutreachMarkdown(exportSource, origin);
     const blob = new Blob([playbook.content], {
       type: 'text/markdown;charset=utf-8',
     });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = 'verisource-outreach-playbook.md';
+    anchor.download =
+      pitchEngagementFilter === 'opened_hot'
+        ? 'verisource-opened-prospects-playbook.md'
+        : pitchEngagementFilter === 'awaiting_open'
+          ? 'verisource-awaiting-open-playbook.md'
+          : 'verisource-outreach-playbook.md';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -8539,6 +8571,67 @@ export function DashboardConsoleClient(props: {
                     </div>
                   ) : null}
                 </div>
+
+                {data.pitchReports.length > 0 ? (
+                  <div
+                    style={{
+                      padding: '8px 16px',
+                      borderBottom: '1px solid var(--vs-border)',
+                      background: 'var(--vs-surface-warm)',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                    }}
+                  >
+                    <span
+                      className="vs-eyebrow"
+                      style={{ color: 'var(--vs-ink-secondary)' }}
+                    >
+                      FILTER BY PROSPECT OPENS:
+                    </span>
+                    <div
+                      role="group"
+                      aria-label="Filter pitch reports by prospect engagement"
+                      className="vs-pill-group"
+                    >
+                      {(
+                        [
+                          {
+                            id: 'all',
+                            label: `All (${pitchEngagementCounts.allCount})`,
+                          },
+                          {
+                            id: 'opened_hot',
+                            label:
+                              pitchEngagementCounts.hotCount > 0
+                                ? `Opened by Prospect (${pitchEngagementCounts.openedCount} · ${pitchEngagementCounts.hotCount} Hot)`
+                                : `Opened by Prospect (${pitchEngagementCounts.openedCount})`,
+                          },
+                          {
+                            id: 'awaiting_open',
+                            label: `Awaiting Open (${pitchEngagementCounts.awaitingOpenCount})`,
+                          },
+                        ] as const
+                      ).map((pill) => {
+                        const active = pitchEngagementFilter === pill.id;
+                        return (
+                          <button
+                            key={pill.id}
+                            type="button"
+                            className="vs-pill-btn vs-pill-btn-sm"
+                            data-active={active ? 'true' : 'false'}
+                            onClick={() => setPitchEngagementFilter(pill.id)}
+                          >
+                            {pill.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 <table className="vs-table">
                   <thead>
                     <tr>
@@ -8550,7 +8643,25 @@ export function DashboardConsoleClient(props: {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.pitchReports.map((r) => {
+                    {filteredPitchReports.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          style={{
+                            padding: '16px',
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {pitchEngagementFilter === 'opened_hot'
+                            ? 'No prospect opens recorded yet. Send Touch 1 (Day 0) below — human opens on /audit/[slug] appear here automatically.'
+                            : pitchEngagementFilter === 'awaiting_open'
+                              ? 'Every minted prospect link has already been opened at least once.'
+                              : 'Mint your first white-label /audit/[slug] link on the left.'}
+                        </td>
+                      </tr>
+                    ) : null}
+                    {filteredPitchReports.map((r) => {
                       const isSelected =
                         selectedPitchReport?.share_slug === r.share_slug;
                       return (

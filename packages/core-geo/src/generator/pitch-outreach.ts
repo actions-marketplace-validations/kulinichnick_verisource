@@ -410,3 +410,53 @@ export function buildImplementationBundleMarkdown(params: {
     .join('\n')
     .trim();
 }
+
+export type PitchEngagementFilter = 'all' | 'opened_hot' | 'awaiting_open';
+
+export interface PitchEngagementCounts {
+  allCount: number;
+  openedCount: number;
+  hotCount: number;
+  awaitingOpenCount: number;
+}
+
+export function summarizePitchEngagementCounts(
+  reports: AgencyPitchReportRow[]
+): PitchEngagementCounts {
+  let openedCount = 0;
+  let hotCount = 0;
+  let awaitingOpenCount = 0;
+
+  for (const r of reports) {
+    const views = Math.max(0, r.views_count ?? 0);
+    if (views >= 1) {
+      openedCount += 1;
+      if (views >= 3) hotCount += 1;
+    } else {
+      awaitingOpenCount += 1;
+    }
+  }
+
+  return {
+    allCount: reports.length,
+    openedCount,
+    hotCount,
+    awaitingOpenCount,
+  };
+}
+
+export function filterAndRankPitchReports(
+  reports: AgencyPitchReportRow[],
+  filter: PitchEngagementFilter
+): AgencyPitchReportRow[] {
+  if (filter === 'opened_hot') {
+    return reports
+      .filter((r) => (r.views_count ?? 0) >= 1)
+      .slice()
+      .sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0));
+  }
+  if (filter === 'awaiting_open') {
+    return reports.filter((r) => (r.views_count ?? 0) <= 0);
+  }
+  return reports;
+}

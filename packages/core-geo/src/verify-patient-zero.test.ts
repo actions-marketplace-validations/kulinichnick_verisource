@@ -34,6 +34,7 @@ import {
   buildFreeAuditSummaryAlert,
   buildHallucinationDriftAlert,
   buildImplementationBundleMarkdown,
+  buildLiveFixVerificationFromSummary,
   buildLocalServiceBatchCsv,
   buildLocalServiceOutreachSequence,
   buildLocalServicePlaybookMarkdown,
@@ -71,7 +72,9 @@ import {
   evaluatePublishedCitationPage,
   evaluateTrackerInstallation,
   evaluateTrialLifecycleStage,
+  filterAndRankPitchReports,
   resolveSafeExternalCitationUrl,
+  summarizePitchEngagementCounts,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
   extractCleanCategoryTopic,
@@ -3324,4 +3327,90 @@ test('M66 resolveSafeExternalCitationUrl & evaluateOffSiteCitationMention enforc
     assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
     assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
   }
+});
+
+test('M68 summarizePitchEngagementCounts, filterAndRankPitchReports & buildLiveFixVerificationFromSummary work deterministically (>= 9.5/10)', () => {
+  const sampleReports = [
+    { ...PATIENT_ZERO_PITCH_REPORT, id: 'p-0', share_slug: 'unopened-1', views_count: 0 },
+    { ...PATIENT_ZERO_PITCH_REPORT, id: 'p-1', share_slug: 'opened-once', views_count: 1 },
+    { ...PATIENT_ZERO_PITCH_REPORT, id: 'p-2', share_slug: 'hot-five', views_count: 5 },
+    { ...PATIENT_ZERO_PITCH_REPORT, id: 'p-3', share_slug: 'unopened-2', views_count: 0 },
+  ];
+
+  const counts = summarizePitchEngagementCounts(sampleReports);
+  assert.equal(counts.allCount, 4);
+  assert.equal(counts.openedCount, 2);
+  assert.equal(counts.hotCount, 1);
+  assert.equal(counts.awaitingOpenCount, 2);
+
+  const openedSorted = filterAndRankPitchReports(sampleReports, 'opened_hot');
+  assert.equal(openedSorted.length, 2);
+  assert.equal(openedSorted[0]?.share_slug, 'hot-five');
+  assert.equal(openedSorted[1]?.share_slug, 'opened-once');
+
+  const awaiting = filterAndRankPitchReports(sampleReports, 'awaiting_open');
+  assert.equal(awaiting.length, 2);
+  assert.ok(awaiting.every((r) => r.views_count === 0));
+
+  // Extension Side Panel live verification adapter
+  const partialSummary = {
+    domainUrl: 'https://summitdental.com',
+    hostname: 'summitdental.com',
+    brandName: 'Summit Dental',
+    industryVertical: 'dental_group' as const,
+    visibilityScore: 54,
+    accuracyScore: 100,
+    isShopify: false,
+    detectedPlatform: 'webflow' as const,
+    detectedPlatformLabel: 'Webflow',
+    shopifyMcpStatus: 'unavailable' as const,
+    agentsMdStatus: 'missing' as const,
+    llmsTxtStatus: 'missing' as const,
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: true,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    jsonLdCount: 2,
+    samplePromptResult: {
+      promptText: 'Best dental implant clinic',
+      aiEngine: 'chatgpt',
+      brandMentioned: true,
+      competitorsMentioned: ['BrightSmile'],
+      citedSourceUrlsBlurred: [],
+      hallucinationDetected: false,
+    },
+    upgradeUrl: 'https://verisource.dev/pricing',
+  };
+
+  const extVerify = buildLiveFixVerificationFromSummary(partialSummary);
+  assert.equal(extVerify.detectedPlatform, 'webflow');
+  assert.equal(extVerify.checks.filter((c) => c.live).length, 2);
+  assert.ok(extVerify.appliedFixTypes.includes('json_ld_schema'));
+
+  const extFollowUp = buildFollowUpVerificationAiPrompt({
+    domain: {
+      brand_name: 'Summit Dental',
+      domain_url: 'https://summitdental.com',
+      is_shopify: false,
+      brand_truth_sheet: PATIENT_ZERO_DOMAINS[0]!.brand_truth_sheet,
+      visibility_score: 54,
+      accuracy_score: 100,
+    },
+    verification: extVerify,
+    fixes: PATIENT_ZERO_FIXES.filter(
+      (f) => f.domain_id === PATIENT_ZERO_DOMAINS[0]!.id
+    ),
+    targetEnv: 'webflow_cms',
+  });
+  assert.equal(extFollowUp.liveCount, 2);
+  assert.equal(extFollowUp.remainingCount, 2);
+  assert.ok(extFollowUp.prompt.score >= 9.5);
+  assert.equal(
+    gradeArtifactQuality(extFollowUp.prompt.content).breakdown.lexicon_filter,
+    2.0
+  );
 });

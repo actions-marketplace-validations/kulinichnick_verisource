@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Stripe from 'stripe';
@@ -3262,7 +3263,43 @@ async function run() {
         gtm2AgentsMd.includes('https://verisource.dev/compare/profound-alternative'),
       'Expected /sitemap.xml, /llms.txt, and /agents.md to include Sprint GTM-2 comparison, guide, and free-tool routes'
     );
-    console.log('✔ [64/64] M67 (Sprint GTM-2) 13 Comparison/Guide/Tool SEO Routes, /api/tools/check (400 SSRF/200 Cache) & IndexNow RFC (401/200) verified!');
+    console.log('✔ [64/65] M67 (Sprint GTM-2) 13 Comparison/Guide/Tool SEO Routes, /api/tools/check (400 SSRF/200 Cache) & IndexNow RFC (401/200) verified!');
+
+    // 63. M68 Agency Prospect Engagement Filter Pills (Step 03) & Chrome MV3 Side Panel 1-Click Verify Live Fixes Parity
+    assert.ok(
+      m42Tab3Html.includes('FILTER BY PROSPECT OPENS:') &&
+        m42Tab3Html.includes('Opened by Prospect') &&
+        m42Tab3Html.includes('Awaiting Open'),
+      'Expected Step 03 Agency Pitch Ledger to include FILTER BY PROSPECT OPENS tactile pills'
+    );
+
+    const extChunksDir = path.resolve(
+      webDir,
+      '..',
+      'extension',
+      '.output',
+      'chrome-mv3',
+      'chunks'
+    );
+    if (fs.existsSync(extChunksDir)) {
+      const sidepanelChunkFile = fs
+        .readdirSync(extChunksDir)
+        .find((f) => f.startsWith('sidepanel-') && f.endsWith('.js'));
+      assert.ok(
+        sidepanelChunkFile,
+        'Expected built sidepanel-*.js chunk in apps/extension/.output/chrome-mv3/chunks'
+      );
+      const sidepanelJs = fs.readFileSync(
+        path.join(extChunksDir, sidepanelChunkFile),
+        'utf8'
+      );
+      assert.ok(
+        sidepanelJs.includes('✓ Verify Live Fixes') &&
+          sidepanelJs.includes('Copy Follow-Up Prompt'),
+        'Expected Chrome MV3 Side Panel bundle to include ✓ Verify Live Fixes and Copy Follow-Up Prompt'
+      );
+    }
+    console.log('✔ [65/65] M68 Step 03 Agency Prospect Engagement Filter Pills & Chrome MV3 Side Panel Verify Live Fixes Parity verified!');
   } finally {
     server.kill();
   }

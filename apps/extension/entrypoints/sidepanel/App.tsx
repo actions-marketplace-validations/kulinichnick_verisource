@@ -6,7 +6,9 @@ import {
   buildCitationAnswerPageBundle,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
+  buildFollowUpVerificationAiPrompt,
   buildImplementationBundleMarkdown,
+  buildLiveFixVerificationFromSummary,
   buildPlainEnglishSiteDiagnosis,
   evaluateCommerceAttributeReadiness,
   generateGeoFixBundle,
@@ -18,6 +20,7 @@ import {
   summarizeEngineCitationShare,
   type AiRemediationTargetEnv,
   type FullGeoAuditResult,
+  type LiveFixVerificationReport,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
 import {
@@ -84,6 +87,10 @@ export default function App(): React.ReactElement {
   const [copiedAiPrompt, setCopiedAiPrompt] = useState(false);
   const [copiedRivalPagePrompt, setCopiedRivalPagePrompt] = useState(false);
   const [copiedTrackerPrompt, setCopiedTrackerPrompt] = useState(false);
+  const [verifyingLiveFixes, setVerifyingLiveFixes] = useState(false);
+  const [liveVerificationReport, setLiveVerificationReport] =
+    useState<LiveFixVerificationReport | null>(null);
+  const [copiedFollowUpPrompt, setCopiedFollowUpPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -116,6 +123,8 @@ export default function App(): React.ReactElement {
       setLoading(true);
       setErrorMessage(null);
       setStatusMessage(null);
+      setLiveVerificationReport(null);
+      setCopiedFollowUpPrompt(false);
 
       try {
         const fullAudit = await runFullGeoAudit({
@@ -1177,6 +1186,88 @@ export default function App(): React.ReactElement {
                   <button
                     type="button"
                     className="vs-btn vs-btn-secondary"
+                    disabled={verifyingLiveFixes}
+                    style={{ padding: '5px 9px', fontSize: '11px' }}
+                    onClick={async () => {
+                      setVerifyingLiveFixes(true);
+                      setErrorMessage(null);
+                      setCopiedFollowUpPrompt(false);
+                      const originToQuery = workspaceOrigin.replace(/\/$/, '');
+                      try {
+                        const apiRes = await fetch(
+                          `${originToQuery}/api/grader`,
+                          {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              domain: audit.hostname,
+                              forceRefresh: true,
+                            }),
+                            signal: AbortSignal.timeout(7500),
+                          }
+                        );
+                        if (!apiRes.ok) {
+                          const errJson = (await apiRes
+                            .json()
+                            .catch(() => ({}))) as { message?: string };
+                          setErrorMessage(
+                            errJson.message ??
+                              'Unable to refresh live verification right now.'
+                          );
+                          return;
+                        }
+                        const liveSummary =
+                          (await apiRes.json()) as ReadinessScanSummary;
+                        const report =
+                          buildLiveFixVerificationFromSummary(liveSummary);
+                        setLiveVerificationReport(report);
+                        setAudit((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                visibilityScore: liveSummary.visibilityScore,
+                                accuracyScore: liveSummary.accuracyScore,
+                                probe: {
+                                  ...prev.probe,
+                                  robotsAiBotStatus:
+                                    liveSummary.robotsAiBotStatus,
+                                  llmsTxtStatus: liveSummary.llmsTxtStatus,
+                                  detectedPlatform:
+                                    liveSummary.detectedPlatform ??
+                                    prev.probe.detectedPlatform,
+                                },
+                                shopify: {
+                                  ...prev.shopify,
+                                  isShopify: liveSummary.isShopify,
+                                  shopifyMcpStatus:
+                                    liveSummary.shopifyMcpStatus,
+                                  agentsMdStatus: liveSummary.agentsMdStatus,
+                                },
+                              }
+                            : prev
+                        );
+                        const passed = report.checks.filter(
+                          (c) => c.live
+                        ).length;
+                        setStatusMessage(
+                          `Verified ${passed}/4 checks live on ${report.hostname} (${liveSummary.visibilityScore}/100 Visibility)`
+                        );
+                      } catch {
+                        setErrorMessage(
+                          `Could not reach ${originToQuery}/api/grader to verify live fixes.`
+                        );
+                      } finally {
+                        setVerifyingLiveFixes(false);
+                      }
+                    }}
+                  >
+                    {verifyingLiveFixes
+                      ? 'Checking...'
+                      : '✓ Verify Live Fixes'}
+                  </button>
+                  <button
+                    type="button"
+                    className="vs-btn vs-btn-secondary"
                     style={{ padding: '5px 9px', fontSize: '11px' }}
                     onClick={() => {
                       const md = buildImplementationBundleMarkdown({
@@ -1212,6 +1303,147 @@ export default function App(): React.ReactElement {
                   </button>
                 </div>
               </div>
+
+              {liveVerificationReport ? (
+                (() => {
+                  const appliedSet = new Set(
+                    liveVerificationReport.appliedFixTypes
+                  );
+                  const followUpBundle = buildFollowUpVerificationAiPrompt({
+                    domain: {
+                      brand_name: audit.brandName,
+                      domain_url: audit.domainUrl,
+                      is_shopify: audit.shopify.isShopify,
+                      brand_truth_sheet: audit.brandTruthSheet,
+                      visibility_score: audit.visibilityScore,
+                      accuracy_score: audit.accuracyScore,
+                    },
+                    verification: liveVerificationReport,
+                    fixes: audit.fixes.map((f) => ({
+                      fix_type: f.fixType,
+                      title: f.title,
+                      content_payload: f.contentPayload,
+                      is_applied: appliedSet.has(f.fixType),
+                      natural_quality_score: f.naturalQualityScore,
+                    })),
+                    targetEnv: selectedPromptEnv,
+                  });
+                  return (
+                    <div
+                      className="vs-card"
+                      style={{
+                        padding: '10px 12px',
+                        background: followUpBundle.allVerified
+                          ? 'var(--vs-pass-bg)'
+                          : 'var(--vs-surface)',
+                        borderColor: followUpBundle.allVerified
+                          ? 'var(--vs-pass-border)'
+                          : 'var(--vs-border-strong)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '6px',
+                          flexWrap: 'wrap',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <StatusBadge
+                          tone={followUpBundle.allVerified ? 'pass' : 'warn'}
+                        >
+                          {`${followUpBundle.liveCount}/4 VERIFIED LIVE`}
+                        </StatusBadge>
+                        {!followUpBundle.allVerified ? (
+                          <button
+                            type="button"
+                            className="vs-btn vs-btn-secondary"
+                            style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                            onClick={() => {
+                              if (
+                                typeof navigator !== 'undefined' &&
+                                navigator.clipboard?.writeText
+                              ) {
+                                void navigator.clipboard.writeText(
+                                  followUpBundle.prompt.content
+                                );
+                              }
+                              setCopiedFollowUpPrompt(true);
+                              setTimeout(
+                                () => setCopiedFollowUpPrompt(false),
+                                2400
+                              );
+                            }}
+                          >
+                            {copiedFollowUpPrompt
+                              ? '✓ Follow-Up Copied'
+                              : `Copy Follow-Up Prompt (${followUpBundle.remainingCount} Left)`}
+                          </button>
+                        ) : null}
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '5px',
+                        }}
+                      >
+                        {followUpBundle.checkGuidance.map((chk) => (
+                          <div
+                            key={chk.id}
+                            style={{
+                              padding: '5px 7px',
+                              borderRadius: '4px',
+                              background: 'var(--vs-surface-subtle)',
+                              border: '1px solid var(--vs-border)',
+                              fontSize: '11px',
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <strong>
+                                {chk.live ? '✓ ' : '○ '}
+                                {chk.label}
+                              </strong>
+                              <span
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '10px',
+                                  color: chk.live
+                                    ? 'var(--vs-pass-fg)'
+                                    : 'var(--vs-warn-fg)',
+                                }}
+                              >
+                                {chk.live ? 'LIVE' : 'PENDING'}
+                              </span>
+                            </div>
+                            {!chk.live ? (
+                              <div
+                                style={{
+                                  marginTop: '3px',
+                                  color: 'var(--vs-ink-secondary)',
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {chk.troubleshootingTip}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : null}
 
               {commerceReadiness ? (
                 <div className="vs-card" style={{ padding: '10px 12px' }}>

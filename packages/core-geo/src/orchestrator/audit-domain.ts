@@ -1148,6 +1148,102 @@ export async function verifyLiveFixDeployment(
   };
 }
 
+export function buildLiveFixVerificationFromSummary(
+  summary: ReadinessScanSummary
+): LiveFixVerificationReport {
+  const jsonLdLive = summary.jsonLdCount >= 2;
+  const llmsLive = summary.llmsTxtStatus === 'present';
+  const agentsLive = summary.agentsMdStatus === 'custom_enriched';
+  const crawlersOpen =
+    !summary.robotsAiBotStatus.waf_blocked &&
+    summary.robotsAiBotStatus.GPTBot &&
+    summary.robotsAiBotStatus['OAI-SearchBot'] &&
+    summary.robotsAiBotStatus.PerplexityBot &&
+    summary.robotsAiBotStatus.ClaudeBot;
+
+  const appliedFixTypes: FixType[] = [];
+  if (jsonLdLive) {
+    appliedFixTypes.push('json_ld_schema', 'fanout_faq_block');
+  }
+  if (llmsLive) {
+    appliedFixTypes.push('llms_txt');
+  }
+  if (agentsLive) {
+    appliedFixTypes.push(
+      summary.isShopify ? 'shopify_agents_liquid' : 'agents_md'
+    );
+  }
+
+  const resolvedPlatform: WebsitePlatformId = summary.isShopify
+    ? 'shopify'
+    : summary.detectedPlatform ?? 'nextjs_custom';
+  const resolvedPlatformLabel =
+    summary.detectedPlatformLabel ??
+    getWebsitePlatformMeta(resolvedPlatform).displayName;
+
+  const checks: LiveFixCheckItem[] = [
+    {
+      id: 'json_ld',
+      label: 'JSON-LD Entity + FAQ Graph',
+      live: jsonLdLive,
+      detail: jsonLdLive
+        ? `${summary.jsonLdCount} schema.org nodes live`
+        : summary.jsonLdCount === 1
+          ? '1 schema.org node found — add FAQPage graph'
+          : 'No application/ld+json blocks detected on homepage',
+    },
+    {
+      id: 'llms_txt',
+      label: 'Canonical /llms.txt',
+      live: llmsLive,
+      detail: llmsLive
+        ? 'HTTP 200 Markdown index verified at /llms.txt'
+        : 'Missing or soft-404 at /llms.txt',
+    },
+    {
+      id: 'agents_md',
+      label: summary.isShopify
+        ? 'Shopify /agents.md & AI Facts'
+        : 'Canonical /agents.md',
+      live: agentsLive,
+      detail: agentsLive
+        ? 'Custom brand truth & pricing verified'
+        : summary.agentsMdStatus === 'default_boilerplate'
+          ? 'Generic platform boilerplate — publish custom truth override'
+          : 'No /agents.md or alternate Markdown link detected',
+    },
+    {
+      id: 'crawler_waf',
+      label: 'AI Bot & Edge WAF Access',
+      live: crawlersOpen,
+      detail: crawlersOpen
+        ? 'GPTBot, OAI-SearchBot, PerplexityBot & ClaudeBot allowed (HTTP 200)'
+        : summary.robotsAiBotStatus.waf_blocked
+          ? 'Edge WAF challenge (403/429) blocking simulated AI bots'
+          : 'One or more AI crawlers disallowed in robots.txt',
+    },
+  ];
+
+  return {
+    domainUrl: summary.domainUrl,
+    hostname: summary.hostname,
+    brandName: summary.brandName,
+    checkedAt: new Date().toISOString(),
+    isShopify: summary.isShopify,
+    detectedPlatform: resolvedPlatform,
+    detectedPlatformLabel: resolvedPlatformLabel,
+    shopifyMcpStatus: summary.shopifyMcpStatus,
+    agentsMdStatus: summary.agentsMdStatus,
+    llmsTxtStatus: summary.llmsTxtStatus,
+    robotsAiBotStatus: summary.robotsAiBotStatus,
+    jsonLdCount: summary.jsonLdCount,
+    hasFaqSchema: jsonLdLive,
+    crawlerReadability: summary.crawlerReadability,
+    appliedFixTypes,
+    checks,
+  };
+}
+
 export interface EngineCitationShareItem {
   aiEngine: 'chatgpt' | 'gemini' | 'perplexity';
   engineLabel: string;
