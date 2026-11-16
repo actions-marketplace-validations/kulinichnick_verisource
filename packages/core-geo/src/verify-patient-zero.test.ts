@@ -67,6 +67,7 @@ import {
   enforceQualityGate95,
   evaluateCommerceAttributeReadiness,
   evaluatePublishedCitationPage,
+  evaluateTrackerInstallation,
   evaluateTrialLifecycleStage,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
@@ -3103,4 +3104,108 @@ test('M63 buildMcpClientSetupBundle supports all 5 MCP clients, 3 key states, va
   assert.equal(unmintedBundle.keyState, 'unminted_placeholder');
   assert.ok(unmintedBundle.configSnippet.includes('vs_live_MINT_KEY_ABOVE'));
   assert.ok(unmintedBundle.starterAgentPrompt.includes('yourcompany.com'));
+});
+
+test('M64 evaluateTrackerInstallation detects verified_live, token_mismatch, Shopify sandbox telemetry, and CMS not_installed_yet (>= 9.5/10)', () => {
+  const token = 'aaaaaaaa-1111-4000-8000-000000000001';
+  const snippet = buildAiAttributionSnippet({
+    trackingPixelToken: token,
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+  const shopifySnippet = buildShopifyCustomerEventsPixel({
+    trackingPixelToken: token,
+    checkoutKey: 'e2b962fabcc3dc0ef625ae83',
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+
+  // 1. Verified live in <head>
+  const liveRes = evaluateTrackerInstallation({
+    hostname: 'mosaicroasters.com',
+    brandName: 'Mosaic Coffee Roasters',
+    trackingPixelToken: token,
+    isShopify: true,
+    detectedPlatform: 'shopify',
+    httpStatus: 200,
+    rawHtml: `<!doctype html><html><head>${snippet}</head><body><h1>Mosaic</h1></body></html>`,
+    attributionEvents: [],
+    browserPixelSnippet: snippet,
+    shopifyCheckoutPixel: shopifySnippet,
+  });
+  assert.equal(liveRes.overallStatus, 'verified_live');
+  assert.equal(liveRes.browserPixelLive, true);
+  assert.equal(liveRes.foreignTokenMismatch, false);
+  assert.ok(liveRes.followUpInstallPrompt.score >= 9.5);
+
+  // 2. Wrong domain token mismatch (e.g., agency pasted Client A's snippet on Client B)
+  const foreignSnippet = buildAiAttributionSnippet({
+    trackingPixelToken: 'bbbbbbbb-2222-4000-8000-000000000099',
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+  const mismatchRes = evaluateTrackerInstallation({
+    hostname: 'summitdental.com',
+    brandName: 'Summit Dental',
+    trackingPixelToken: token,
+    isShopify: false,
+    detectedPlatform: 'wordpress',
+    httpStatus: 200,
+    rawHtml: `<!doctype html><html><head>${foreignSnippet}</head><body><h1>Summit</h1></body></html>`,
+    attributionEvents: [],
+    browserPixelSnippet: snippet,
+  });
+  assert.equal(mismatchRes.overallStatus, 'token_mismatch');
+  assert.equal(mismatchRes.foreignTokenMismatch, true);
+  assert.ok(mismatchRes.followUpInstallPrompt.content.includes(token));
+  assert.ok(mismatchRes.followUpInstallPrompt.score >= 9.5);
+
+  // 3. Shopify Customer Events sandbox active (events flowing without raw theme.liquid <script>)
+  const sandboxRes = evaluateTrackerInstallation({
+    hostname: 'mosaicroasters.com',
+    brandName: 'Mosaic Coffee Roasters',
+    trackingPixelToken: token,
+    isShopify: true,
+    detectedPlatform: 'shopify',
+    httpStatus: 200,
+    rawHtml: '<!doctype html><html><head><title>Mosaic</title></head><body></body></html>',
+    attributionEvents: [
+      {
+        id: 'ev-1',
+        domain_id: 'd-1',
+        event_type: 'ai_referral_conversion',
+        source_engine: 'chatgpt.com',
+        landing_path: '/checkouts/thank-you',
+        conversion_value_usd: 42.5,
+        created_at: '2026-11-16T00:00:00Z',
+      },
+    ],
+    browserPixelSnippet: snippet,
+    shopifyCheckoutPixel: shopifySnippet,
+  });
+  assert.equal(sandboxRes.overallStatus, 'telemetry_active_sandbox');
+  assert.equal(sandboxRes.conversionEventsCount, 1);
+  assert.ok(sandboxRes.followUpInstallPrompt.score >= 9.5);
+
+  // 4. Not installed yet on Webflow
+  const missingRes = evaluateTrackerInstallation({
+    hostname: 'acmecloud.io',
+    brandName: 'Acme Cloud',
+    trackingPixelToken: token,
+    isShopify: false,
+    detectedPlatform: 'webflow',
+    httpStatus: 200,
+    rawHtml: '<!doctype html><html><head><title>Acme</title></head><body></body></html>',
+    attributionEvents: [],
+    browserPixelSnippet: snippet,
+  });
+  assert.equal(missingRes.overallStatus, 'not_installed_yet');
+  assert.ok(
+    missingRes.cmsTroubleshootingHint.includes('Publish to Selected Domains')
+  );
+  assert.ok(missingRes.followUpInstallPrompt.score >= 9.5);
+
+  for (const r of [liveRes, mismatchRes, sandboxRes, missingRes]) {
+    const combined = `${r.statusHeadline} ${r.cmsTroubleshootingHint}\n${r.followUpInstallPrompt.content}`;
+    assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+    assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+    assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
+  }
 });

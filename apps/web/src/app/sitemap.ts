@@ -16,6 +16,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: 'https://verisource.dev/tutorial',
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
       url: 'https://verisource.dev/agencies',
       lastModified: now,
       changeFrequency: 'weekly',

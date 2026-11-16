@@ -351,6 +351,29 @@ export function DashboardConsoleClient(props: {
   const [rivalXrayReport, setRivalXrayReport] =
     useState<CompetitorTechnicalXrayReport | null>(null);
   const [copiedOvertakePrompt, setCopiedOvertakePrompt] = useState(false);
+  const [verifyingTracker, setVerifyingTracker] = useState(false);
+  const [copiedTrackerFollowUpPrompt, setCopiedTrackerFollowUpPrompt] =
+    useState(false);
+  const [trackerVerifyResult, setTrackerVerifyResult] = useState<{
+    hostname: string;
+    httpStatus: number | null;
+    detectedPlatform: WebsitePlatformId;
+    detectedPlatformLabel: string;
+    browserPixelLive: boolean;
+    foreignTokenMismatch: boolean;
+    referralEventsCount: number;
+    conversionEventsCount: number;
+    botCrawlEventsCount: number;
+    overallStatus:
+      | 'verified_live'
+      | 'telemetry_active_sandbox'
+      | 'token_mismatch'
+      | 'not_installed_yet'
+      | 'unreachable';
+    statusHeadline: string;
+    cmsTroubleshootingHint: string;
+    promptContent: string;
+  } | null>(null);
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
     subject: string;
@@ -615,6 +638,8 @@ export function DashboardConsoleClient(props: {
     setRivalXrayInput('');
     setRivalXrayReport(null);
     setCopiedOvertakePrompt(false);
+    setTrackerVerifyResult(null);
+    setCopiedTrackerFollowUpPrompt(false);
     if (initialValidEnv && !appliedInitialEnvRef.current) {
       appliedInitialEnvRef.current = true;
       setAiPromptTargetEnv(initialValidEnv);
@@ -2335,6 +2360,78 @@ export function DashboardConsoleClient(props: {
 
   const [copiedAnalyticsPrompt, setCopiedAnalyticsPrompt] = useState(false);
   const [sendingTrialGuide, setSendingTrialGuide] = useState(false);
+
+  async function handleVerifyLiveTracker() {
+    if (!activeDomain) return;
+    setVerifyingTracker(true);
+    setBannerError(null);
+    setCopiedTrackerFollowUpPrompt(false);
+    try {
+      const res = await fetch('/api/dashboard/verify-tracker', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ domain_id: activeDomain.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        report?: {
+          hostname: string;
+          httpStatus: number | null;
+          detectedPlatform: WebsitePlatformId;
+          detectedPlatformLabel: string;
+          browserPixelLive: boolean;
+          foreignTokenMismatch: boolean;
+          referralEventsCount: number;
+          conversionEventsCount: number;
+          botCrawlEventsCount: number;
+          overallStatus:
+            | 'verified_live'
+            | 'telemetry_active_sandbox'
+            | 'token_mismatch'
+            | 'not_installed_yet'
+            | 'unreachable';
+          statusHeadline: string;
+          cmsTroubleshootingHint: string;
+        };
+        promptContent?: string;
+      };
+      if (!res.ok || json.error || !json.report) {
+        setBannerError(
+          json.message ?? 'Unable to verify live tracker installation.'
+        );
+      } else {
+        setTrackerVerifyResult({
+          ...json.report,
+          promptContent: json.promptContent ?? '',
+        });
+        if (typeof document !== 'undefined') {
+          setTimeout(() => {
+            document
+              .getElementById('vs-tracker-verify-result')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 60);
+        }
+      }
+    } catch {
+      setBannerError('Network error while checking live tracker installation.');
+    } finally {
+      setVerifyingTracker(false);
+    }
+  }
+
+  async function handleCopyTrackerFollowUpPrompt() {
+    if (!trackerVerifyResult?.promptContent) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(trackerVerifyResult.promptContent);
+      }
+      setCopiedTrackerFollowUpPrompt(true);
+      setTimeout(() => setCopiedTrackerFollowUpPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
 
   async function handleSendTrialQuickstartEmail() {
     setSendingTrialGuide(true);
@@ -4700,6 +4797,19 @@ export function DashboardConsoleClient(props: {
 
                     <button
                       type="button"
+                      disabled={verifyingTracker}
+                      onClick={() => void handleVerifyLiveTracker()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                      title="Inspect your live homepage HTML and recorded attribution ledger to verify whether the optional AI visitor pixel is installed"
+                    >
+                      {verifyingTracker
+                        ? 'Checking Site...'
+                        : '✓ Verify Tracker Live'}
+                    </button>
+
+                    <button
+                      type="button"
                       disabled={sendingTestBotPing}
                       onClick={() => void handleSendTestBotPing()}
                       className="vs-btn vs-btn-secondary"
@@ -4712,6 +4822,129 @@ export function DashboardConsoleClient(props: {
                     </button>
                   </div>
                 </div>
+
+                {trackerVerifyResult ? (
+                  <div
+                    id="vs-tracker-verify-result"
+                    style={{
+                      margin: '10px 14px 12px 14px',
+                      padding: '12px 14px',
+                      borderRadius: '6px',
+                      background:
+                        trackerVerifyResult.overallStatus === 'verified_live'
+                          ? 'var(--vs-pass-bg)'
+                          : trackerVerifyResult.overallStatus ===
+                              'token_mismatch'
+                            ? 'var(--vs-crit-bg)'
+                            : 'var(--vs-surface-warm)',
+                      border: `1px solid ${
+                        trackerVerifyResult.overallStatus === 'verified_live'
+                          ? 'var(--vs-pass-border)'
+                          : trackerVerifyResult.overallStatus ===
+                              'token_mismatch'
+                            ? 'var(--vs-crit-border)'
+                            : 'var(--vs-border-strong)'
+                      }`,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <StatusBadge
+                          tone={
+                            trackerVerifyResult.overallStatus ===
+                            'verified_live'
+                              ? 'pass'
+                              : trackerVerifyResult.overallStatus ===
+                                    'token_mismatch' ||
+                                  trackerVerifyResult.overallStatus ===
+                                    'unreachable'
+                                ? 'critical'
+                                : 'warn'
+                          }
+                        >
+                          {trackerVerifyResult.overallStatus === 'verified_live'
+                            ? 'TRACKER VERIFIED LIVE'
+                            : trackerVerifyResult.overallStatus ===
+                                'telemetry_active_sandbox'
+                              ? 'SANDBOX TELEMETRY ACTIVE'
+                              : trackerVerifyResult.overallStatus ===
+                                  'token_mismatch'
+                                ? 'WRONG DOMAIN TOKEN'
+                                : trackerVerifyResult.overallStatus ===
+                                    'unreachable'
+                                  ? 'SITE UNREACHABLE'
+                                  : 'NOT PUBLISHED YET'}
+                        </StatusBadge>
+                        <span
+                          className="vs-mono"
+                          style={{
+                            fontSize: '11.5px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          PLATFORM:{' '}
+                          {trackerVerifyResult.detectedPlatformLabel.toUpperCase()}{' '}
+                          · HTTP {trackerVerifyResult.httpStatus ?? 'ERR'}
+                        </span>
+                      </div>
+
+                      {trackerVerifyResult.promptContent ? (
+                        <button
+                          type="button"
+                          onClick={() => void handleCopyTrackerFollowUpPrompt()}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        >
+                          {copiedTrackerFollowUpPrompt
+                            ? '✓ Tracker Prompt Copied'
+                            : trackerVerifyResult.overallStatus ===
+                                'token_mismatch'
+                              ? 'Copy Token Fix Prompt'
+                              : trackerVerifyResult.overallStatus ===
+                                  'verified_live'
+                                ? 'Copy Checkout Pixel Prompt'
+                                : `Copy ${trackerVerifyResult.detectedPlatformLabel} Tracker Prompt`}
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: '12.5px',
+                        fontWeight: 600,
+                        color: 'var(--vs-ink)',
+                        marginBottom: '4px',
+                      }}
+                    >
+                      {trackerVerifyResult.statusHeadline}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-secondary)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {trackerVerifyResult.cmsTroubleshootingHint}
+                    </div>
+                  </div>
+                ) : null}
 
                 {(() => {
                   const filteredEvents = domainAttribution.filter((ev) => {
@@ -4885,16 +5118,35 @@ export function DashboardConsoleClient(props: {
                           you.
                         </span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => void handleCopyAnalyticsInstallPrompt()}
-                        className="vs-btn"
-                        style={{ padding: '7px 13px', fontSize: '12px' }}
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                        }}
                       >
-                        {copiedAnalyticsPrompt
-                          ? '✓ Tracker AI Prompt Copied!'
-                          : 'Copy AI Prompt to Install Tracker'}
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleCopyAnalyticsInstallPrompt()}
+                          className="vs-btn"
+                          style={{ padding: '7px 13px', fontSize: '12px' }}
+                        >
+                          {copiedAnalyticsPrompt
+                            ? '✓ Tracker AI Prompt Copied!'
+                            : 'Copy AI Prompt to Install Tracker'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={verifyingTracker}
+                          onClick={() => void handleVerifyLiveTracker()}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '7px 12px', fontSize: '12px' }}
+                        >
+                          {verifyingTracker
+                            ? 'Checking Site...'
+                            : '✓ Verify Tracker Live'}
+                        </button>
+                      </div>
                     </div>
                   ) : null}
 

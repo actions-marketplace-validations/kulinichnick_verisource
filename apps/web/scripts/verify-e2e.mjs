@@ -2915,7 +2915,153 @@ async function run() {
       'verified_workspace_ledger'
     );
     assert.equal(workspaceLedgerVerifyJson.readyForPaidTools, true);
-    console.log('✔ [60/60] M63 Step 03 5-Client MCP Connection Hub & /api/dashboard/mcp-keys/verify (401/400/200 raw + ledger + revoked) verified!');
+    console.log('✔ [60/61] M63 Step 03 5-Client MCP Connection Hub & /api/dashboard/mcp-keys/verify (401/400/200 raw + ledger + revoked) verified!');
+
+    // 59. M64 Closed-Loop AI Attribution Tracker Verifier (/api/dashboard/verify-tracker: 401/400/404/200 + Step 01 Verify Tracker Live CTA)
+    assert.ok(
+      m42Tab1Html.includes('✓ Verify Tracker Live'),
+      'Expected Step 01 Live Agent Crawl & Referral Ledger to include ✓ Verify Tracker Live button'
+    );
+
+    const unauthTrackerRes = await fetch(
+      `${BASE}/api/dashboard/verify-tracker`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain_id: '11111111-1111-4000-8000-000000000001',
+        }),
+      }
+    );
+    assert.equal(unauthTrackerRes.status, 401);
+
+    const missingDomTrackerRes = await fetch(
+      `${BASE}/api/dashboard/verify-tracker`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({}),
+      }
+    );
+    assert.equal(missingDomTrackerRes.status, 400);
+
+    const unknownDomTrackerRes = await fetch(
+      `${BASE}/api/dashboard/verify-tracker`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({
+          domain_id: '00000000-0000-4000-8000-999999999999',
+        }),
+      }
+    );
+    assert.equal(unknownDomTrackerRes.status, 404);
+
+    const validTrackerRes = await fetch(
+      `${BASE}/api/dashboard/verify-tracker`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({
+          domain_id: '11111111-1111-4000-8000-000000000001',
+        }),
+      }
+    );
+    assert.equal(validTrackerRes.status, 200);
+    const validTrackerJson = await validTrackerRes.json();
+    assert.equal(validTrackerJson.ok, true);
+    assert.equal(validTrackerJson.report.detectedPlatform, 'shopify');
+    assert.ok(validTrackerJson.promptScore >= 9.5);
+    assert.equal(
+      (validTrackerJson.promptContent.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in M64 verify-tracker promptContent'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(validTrackerJson.promptContent) &&
+        !PLAIN_ENGLISH_JARGON.test(validTrackerJson.promptContent),
+      'Found /10 or plain-English jargon in M64 verify-tracker promptContent'
+    );
+    console.log('✔ [61/62] M64 Closed-Loop AI Attribution Tracker Verifier (/api/dashboard/verify-tracker 401/400/404/200 >= 9.5/10 + Step 01 CTA) verified!');
+
+    // 60. M65 (Sprint GTM-1): Interactive 90s Product Tour (/tutorial), 7-CMS Setup Guides & Founding Partner Rate Lock
+    const tutorialRes = await fetch(`${BASE}/tutorial`);
+    assert.equal(tutorialRes.status, 200);
+    const tutorialHtml = await tutorialRes.text();
+    assert.ok(
+      tutorialHtml.includes('Test-drive the Verisource Console in 90 seconds') &&
+        tutorialHtml.includes('Business Owner · No Coding') &&
+        tutorialHtml.includes('SEO &amp; Web Agency · White-Label') &&
+        tutorialHtml.includes('Developer &amp; Growth Eng · /mcp') &&
+        tutorialHtml.includes('Exact setup steps for your website platform') &&
+        tutorialHtml.includes('"@type":"HowTo"'),
+      'Expected /tutorial to render 3 persona tracks, 7-CMS setup guides, and HowTo JSON-LD'
+    );
+    assert.ok(
+      !tutorialHtml.includes('aurearoasters') &&
+        !tutorialHtml.includes('mosaicroasters') &&
+        !tutorialHtml.includes('Aurea Coffee') &&
+        !tutorialHtml.includes('Mosaic Coffee'),
+      'Expected zero coffee-store echoes on /tutorial'
+    );
+    const strippedTutorial = tutorialHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedTutorial.match(BANNED_LEXICON) ?? []).length,
+      0,
+      `Found banned lexicon on /tutorial: ${(strippedTutorial.match(BANNED_LEXICON) ?? []).join(', ')}`
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(strippedTutorial) &&
+        !PLAIN_ENGLISH_JARGON.test(strippedTutorial),
+      'Found /10 or plain-English jargon on /tutorial'
+    );
+    assert.ok(
+      !/\bbeta\b/i.test(strippedTutorial),
+      'Expected zero Beta launch-mode labels on /tutorial'
+    );
+
+    const gtmGuestPricingHtml = await (await fetch(`${BASE}/pricing`)).text();
+    assert.ok(
+      gtmGuestPricingHtml.includes('FOUNDING PARTNER RATE LOCK') &&
+        !/\bbeta\b/i.test(
+          gtmGuestPricingHtml
+            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<[^>]+>/g, ' ')
+        ),
+      'Expected guest /pricing to render Founding Partner Rate Lock with zero Beta labels'
+    );
+
+    const gtmPaidPricingHtml = await (
+      await fetch(`${BASE}/pricing`, {
+        headers: OWNER_HEADERS,
+      })
+    ).text();
+    assert.ok(
+      !gtmPaidPricingHtml.includes('FOUNDING PARTNER RATE LOCK'),
+      'Expected active subscriber /pricing view to suppress acquisition Founding Partner banner'
+    );
+
+    const gtmAgenciesHtml = await (await fetch(`${BASE}/agencies`)).text();
+    assert.ok(
+      gtmAgenciesHtml.includes('FOUNDING AGENCY PARTNER COHORT') &&
+        gtmAgenciesHtml.includes('Interactive Agency Tour'),
+      'Expected /agencies to render Founding Agency Partner Cohort banner and Interactive Agency Tour CTA'
+    );
+
+    const gtmSitemapXml = await (await fetch(`${BASE}/sitemap.xml`)).text();
+    const gtmLlmsTxt = await (await fetch(`${BASE}/llms.txt`)).text();
+    const gtmAgentsMd = await (await fetch(`${BASE}/agents.md`)).text();
+    assert.ok(
+      gtmSitemapXml.includes('https://verisource.dev/tutorial') &&
+        gtmLlmsTxt.includes('https://verisource.dev/tutorial') &&
+        gtmAgentsMd.includes('https://verisource.dev/tutorial'),
+      'Expected /sitemap.xml, /llms.txt, and /agents.md to include https://verisource.dev/tutorial'
+    );
+    console.log('✔ [62/62] M65 (Sprint GTM-1) Interactive 90s Product Tour (/tutorial), 7-CMS Setup Guides & Founding Partner Rate Lock verified!');
   } finally {
     server.kill();
   }

@@ -113,8 +113,8 @@ export function SiteHeaderClient(): React.ReactElement {
           </nav>
         ) : (
           <nav className="vs-nav-links" aria-label="Primary navigation">
-            <Link href="/#how-it-works" className="vs-nav-link">
-              How It Works
+            <Link href="/tutorial" className="vs-nav-link">
+              Interactive Tour
             </Link>
             <Link href="/#platform" className="vs-nav-link">
               Inside Console

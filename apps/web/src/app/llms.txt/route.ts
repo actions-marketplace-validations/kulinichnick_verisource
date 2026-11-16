@@ -5,6 +5,7 @@ const LLMS_TXT_BODY = `# Verisource — B2B Generative Engine Optimization (GEO)
 > Verisource audits brand visibility and factual accuracy across ChatGPT, Google Gemini, and Perplexity, auto-detects 7 website platforms (Shopify, WordPress, Webflow, Wix, Squarespace, Framer, and Custom Code / Next.js), generates syntax-validated on-site fixes and 1-Click AI Fix Prompts (JSON-LD, /llms.txt, /agents.md, /ai-facts, Shopify templates/agents.md.liquid), tracks AI referral checkout revenue, and serves a monetized stateless Streamable HTTP MCP server at https://mcp.verisource.dev/mcp.
 
 Canonical Web Console: https://verisource.dev
+Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial
 Pricing & Plans: https://verisource.dev/pricing
 Sample White-Label Client Audits: https://verisource.dev/sample-audit
 Agency White-Label Overview: https://verisource.dev/agencies

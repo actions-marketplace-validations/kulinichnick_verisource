@@ -89,9 +89,9 @@ export default function HomePage(): React.ReactElement {
               <a href="#grader" className="vs-btn">
                 Scan My Website Free ↓
               </a>
-              <a href="#how-it-works" className="vs-btn vs-btn-secondary">
-                See How It Works (3 Steps)
-              </a>
+              <Link href="/tutorial" className="vs-btn vs-btn-secondary">
+                Interactive 90s Tour →
+              </Link>
               <Link href="/dashboard" className="vs-btn vs-btn-secondary">
                 Subscriber Sign In →
               </Link>
@@ -177,9 +177,18 @@ export default function HomePage(): React.ReactElement {
                 assistant you already use.
               </p>
             </div>
-            <StatusBadge tone="pass">
-              WORKS WITH CHATGPT · CLAUDE · ANTIGRAVITY · CURSOR · SHOPIFY
-            </StatusBadge>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+              <StatusBadge tone="pass">
+                WORKS WITH CHATGPT · CLAUDE · ANTIGRAVITY · CURSOR · SHOPIFY
+              </StatusBadge>
+              <Link
+                href="/tutorial"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '7px 12px', fontSize: '12px' }}
+              >
+                Open Interactive 5-Step Sandbox →
+              </Link>
+            </div>
           </div>
 
           <div className="vs-card" style={{ overflow: 'hidden' }}>

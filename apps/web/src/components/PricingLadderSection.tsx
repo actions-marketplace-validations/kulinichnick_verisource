@@ -566,6 +566,59 @@ export function PricingLadderSection(props: {
         </div>
       </div>
 
+      {!isPaidAccount ? (
+        <div
+          className="vs-guided-banner"
+          style={{
+            marginBottom: '20px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ maxWidth: '820px' }}>
+            <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
+              PRODUCTION V1.0 · FOUNDING PARTNER RATE LOCK (FIRST 30 WORKSPACES)
+            </div>
+            <div
+              style={{
+                fontSize: '13.5px',
+                lineHeight: 1.55,
+                color: 'var(--vs-ink-secondary)',
+              }}
+            >
+              Lock permanent Founding Partner pricing on{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                Starter ($49/mo)
+              </strong>
+              ,{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                Pro + MCP ($99/mo, standard $149/mo)
+              </strong>
+              , or{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                Agency White-Label ($249/mo, standard $349/mo)
+              </strong>{' '}
+              for as long as your workspace stays active—including a{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                $0.00 due today 7-day trial
+              </strong>{' '}
+              on monthly Starter &amp; Pro and founder-reviewed onboarding on
+              your first 3 Agency client sites.
+            </div>
+          </div>
+          <Link
+            href="/tutorial"
+            className="vs-btn vs-btn-secondary"
+            style={{ padding: '7px 12px', fontSize: '12px' }}
+          >
+            Test 90s Interactive Tour →
+          </Link>
+        </div>
+      ) : null}
+
       {safeHostname ? (
         <div
           className="vs-guided-banner"

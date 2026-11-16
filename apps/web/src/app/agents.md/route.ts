@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Specification
 
 Canonical Origin: https://verisource.dev
+Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
 Sample Client Audits: https://verisource.dev/sample-audit
 Agency Partner Architecture: https://verisource.dev/agencies
 Visual Quickstart & Playground: https://verisource.dev/mcp-guide

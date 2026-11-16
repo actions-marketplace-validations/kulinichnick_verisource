@@ -170,6 +170,12 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                   Annual Plan ($199/mo · Save 20%)
                 </a>
                 <Link
+                  href="/tutorial"
+                  className="vs-btn vs-btn-secondary"
+                >
+                  Interactive Agency Tour →
+                </Link>
+                <Link
                   href="/#grader"
                   className="vs-btn vs-btn-secondary"
                 >
@@ -184,6 +190,40 @@ export default function AgenciesPartnerPage(): React.ReactElement {
       </section>
 
       <div className="vs-container">
+        <div
+          className="vs-guided-banner"
+          style={{
+            marginBottom: '36px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ maxWidth: '820px' }}>
+            <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
+              FOUNDING AGENCY PARTNER COHORT · FIRST 30 AGENCIES LOCK $249/MO FOR LIFE
+            </div>
+            <div
+              style={{
+                fontSize: '13.5px',
+                lineHeight: 1.56,
+                color: 'var(--vs-ink-secondary)',
+              }}
+            >
+              Lock <strong style={{ color: 'var(--vs-ink)' }}>$249/mo</strong>{' '}
+              ($199/mo annual, standard $349/mo) across 15 client slots
+              permanently—plus a complimentary{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                founder-verified setup &amp; white-label pitch check on your
+                first 3 client domains
+              </strong>
+              .
+            </div>
+          </div>
+          <StatusBadge tone="pass">FOUNDING PARTNER RATE ACTIVE</StatusBadge>
+        </div>
         {/* Retainer Margin & Unit Economics Ledger */}
         <section style={{ marginBottom: '54px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
