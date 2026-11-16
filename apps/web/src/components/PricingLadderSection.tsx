@@ -11,6 +11,7 @@ import {
   type RecommendedRemediationEnv,
 } from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
+import { PricingRoiCalculatorClient } from './PricingRoiCalculatorClient';
 
 const VALID_PROMPT_ENV_LABELS: Record<RecommendedRemediationEnv, string> = {
   coding_agent: 'CODING AGENT',
@@ -890,6 +891,14 @@ export function PricingLadderSection(props: {
           </div>
         </div>
       )}
+
+      {!isPaidAccount ? (
+        <PricingRoiCalculatorClient
+          annual={annual}
+          domainParam={domainParam}
+          envParam={envParam}
+        />
+      ) : null}
     </section>
   );
 }

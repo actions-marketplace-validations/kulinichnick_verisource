@@ -734,21 +734,29 @@ export function PublicGraderClient(): React.ReactElement {
                     </div>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                      <Link
-                        href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
+                      <a
+                        href={`/api/checkout?plan=pro_99&cycle=monthly&domain=${encodeURIComponent(
                           result.hostname
                         )}&env=${encodeURIComponent(selectedPromptEnv)}`}
                         className="vs-btn"
                       >
                         Start 7-Day Free Trial &amp; Get My AI Prompt ($0 Today) →
-                      </Link>
-                      <Link
-                        href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
+                      </a>
+                      <a
+                        href={`/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
                           result.hostname
                         )}&env=${encodeURIComponent(selectedPromptEnv)}`}
                         className="vs-btn vs-btn-secondary"
                       >
                         Or $19 One-Time Audit Pass
+                      </a>
+                      <Link
+                        href={`/pricing?domain=${encodeURIComponent(
+                          result.hostname
+                        )}&env=${encodeURIComponent(selectedPromptEnv)}`}
+                        className="vs-btn vs-btn-secondary"
+                      >
+                        Compare Plans
                       </Link>
                     </div>
                   </div>

@@ -403,13 +403,21 @@ export function FreeSeoToolClient(props: {
               >
                 Full 3-Engine Scan (Free) →
               </Link>
-              <Link
-                href={`/pricing?domain=${encodeURIComponent(
+              <a
+                href={`/api/checkout?plan=pro_99&cycle=monthly&domain=${encodeURIComponent(
                   result.hostname
                 )}&env=${encodeURIComponent(result.recommendedEnv)}`}
                 className="vs-btn"
               >
                 Get 1-Click AI Fix Prompt ($0 Trial) →
+              </a>
+              <Link
+                href={`/pricing?domain=${encodeURIComponent(
+                  result.hostname
+                )}&env=${encodeURIComponent(result.recommendedEnv)}`}
+                className="vs-btn vs-btn-secondary"
+              >
+                Compare Plans
               </Link>
             </div>
           </div>

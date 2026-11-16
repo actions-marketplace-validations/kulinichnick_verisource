@@ -727,3 +727,169 @@ export function buildSubscriberReferralBundle(input: {
     peerShareNote: enforceQualityGate95(rawShareText),
   };
 }
+
+export type AiRoiVerticalPresetId =
+  | 'b2b_saas'
+  | 'shopify_d2c'
+  | 'local_services'
+  | 'seo_agency';
+
+export interface AiRoiVerticalPreset {
+  id: AiRoiVerticalPresetId;
+  label: string;
+  recommendedPlan: 'starter_49' | 'pro_99' | 'agency_249';
+  defaultMonthlyAiVisits: number;
+  minVisits: number;
+  maxVisits: number;
+  visitStep: number;
+  defaultCustomerValueUsd: number;
+  minValueUsd: number;
+  maxValueUsd: number;
+  valueStepUsd: number;
+  aiConversionPct: number;
+  organicBaselineConversionPct: number;
+}
+
+export const AI_ROI_VERTICAL_PRESETS: readonly AiRoiVerticalPreset[] = [
+  {
+    id: 'b2b_saas',
+    label: 'B2B SaaS · $99/mo',
+    recommendedPlan: 'pro_99',
+    defaultMonthlyAiVisits: 60,
+    minVisits: 10,
+    maxVisits: 500,
+    visitStep: 10,
+    defaultCustomerValueUsd: 1200,
+    minValueUsd: 200,
+    maxValueUsd: 10000,
+    valueStepUsd: 100,
+    aiConversionPct: 14.8,
+    organicBaselineConversionPct: 2.2,
+  },
+  {
+    id: 'shopify_d2c',
+    label: 'Shopify & D2C · $49/mo',
+    recommendedPlan: 'starter_49',
+    defaultMonthlyAiVisits: 220,
+    minVisits: 40,
+    maxVisits: 2000,
+    visitStep: 20,
+    defaultCustomerValueUsd: 95,
+    minValueUsd: 25,
+    maxValueUsd: 600,
+    valueStepUsd: 5,
+    aiConversionPct: 15.2,
+    organicBaselineConversionPct: 2.4,
+  },
+  {
+    id: 'local_services',
+    label: 'Dental / Legal / Local · $99/mo',
+    recommendedPlan: 'pro_99',
+    defaultMonthlyAiVisits: 35,
+    minVisits: 10,
+    maxVisits: 300,
+    visitStep: 5,
+    defaultCustomerValueUsd: 2800,
+    minValueUsd: 500,
+    maxValueUsd: 15000,
+    valueStepUsd: 250,
+    aiConversionPct: 15.0,
+    organicBaselineConversionPct: 2.3,
+  },
+  {
+    id: 'seo_agency',
+    label: 'SEO & Web Agency · $249/mo',
+    recommendedPlan: 'agency_249',
+    defaultMonthlyAiVisits: 40,
+    minVisits: 10,
+    maxVisits: 250,
+    visitStep: 5,
+    defaultCustomerValueUsd: 1800,
+    minValueUsd: 750,
+    maxValueUsd: 5000,
+    valueStepUsd: 250,
+    aiConversionPct: 14.5,
+    organicBaselineConversionPct: 2.1,
+  },
+] as const;
+
+export interface AiSearchRoiProjection {
+  presetId: AiRoiVerticalPresetId;
+  recommendedPlan: 'starter_49' | 'pro_99' | 'agency_249';
+  planMonthlyCostUsd: number;
+  monthlyAiVisits: number;
+  customerValueUsd: number;
+  aiConversionPct: number;
+  organicBaselineConversionPct: number;
+  projectedAiCustomersPerMonth: number;
+  organicEquivalentCustomersPerMonth: number;
+  projectedMonthlyAiRevenueUsd: number;
+  projectedAnnualAiRevenueUsd: number;
+  roiMultiple: number;
+  monthsCoveredBySingleCustomer: number;
+}
+
+export function computeAiSearchRoiProjection(input: {
+  presetId: AiRoiVerticalPresetId;
+  monthlyAiVisits?: number;
+  customerValueUsd?: number;
+  annualBilling?: boolean;
+}): AiSearchRoiProjection {
+  const preset =
+    AI_ROI_VERTICAL_PRESETS.find((p) => p.id === input.presetId) ??
+    AI_ROI_VERTICAL_PRESETS[0]!;
+
+  const monthlyAiVisits = Math.max(
+    1,
+    Math.round(input.monthlyAiVisits ?? preset.defaultMonthlyAiVisits)
+  );
+  const customerValueUsd = Math.max(
+    10,
+    Math.round(input.customerValueUsd ?? preset.defaultCustomerValueUsd)
+  );
+
+  const planMonthlyCostUsd =
+    preset.recommendedPlan === 'starter_49'
+      ? input.annualBilling
+        ? 39
+        : 49
+      : preset.recommendedPlan === 'pro_99'
+        ? input.annualBilling
+          ? 79
+          : 99
+        : input.annualBilling
+          ? 199
+          : 249;
+
+  const projectedAiCustomersPerMonth =
+    Math.round(monthlyAiVisits * (preset.aiConversionPct / 100) * 10) / 10;
+  const organicEquivalentCustomersPerMonth =
+    Math.round(
+      monthlyAiVisits * (preset.organicBaselineConversionPct / 100) * 10
+    ) / 10;
+
+  const projectedMonthlyAiRevenueUsd = Math.round(
+    projectedAiCustomersPerMonth * customerValueUsd
+  );
+  const projectedAnnualAiRevenueUsd = projectedMonthlyAiRevenueUsd * 12;
+  const roiMultiple =
+    Math.round((projectedMonthlyAiRevenueUsd / planMonthlyCostUsd) * 10) / 10;
+  const monthsCoveredBySingleCustomer =
+    Math.round((customerValueUsd / planMonthlyCostUsd) * 10) / 10;
+
+  return {
+    presetId: preset.id,
+    recommendedPlan: preset.recommendedPlan,
+    planMonthlyCostUsd,
+    monthlyAiVisits,
+    customerValueUsd,
+    aiConversionPct: preset.aiConversionPct,
+    organicBaselineConversionPct: preset.organicBaselineConversionPct,
+    projectedAiCustomersPerMonth,
+    organicEquivalentCustomersPerMonth,
+    projectedMonthlyAiRevenueUsd,
+    projectedAnnualAiRevenueUsd,
+    roiMultiple,
+    monthsCoveredBySingleCustomer,
+  };
+}

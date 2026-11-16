@@ -4118,7 +4118,44 @@ async function run() {
         m78IndexNow.submittedCount >= 28,
       'Expected /sitemap.xml, /llms.txt, /agents.md, and 28-URL /api/indexnow to include new JSON-LD validator & guide routes'
     );
-    console.log('✔ [75/75] M78 Free 3-Pillar JSON-LD & FAQPage Validator, Protocol Guide, /mcp-guide + /sample-audit JSON-LD & 28-URL IndexNow Parity verified!');
+    console.log('✔ [75/76] M78 Free 3-Pillar JSON-LD & FAQPage Validator, Protocol Guide, /mcp-guide + /sample-audit JSON-LD & 28-URL IndexNow Parity verified!');
+
+    // 74. M79 Zero-Hop Direct Grader/Tool Checkout + Guest /pricing Interactive AI Conversion Payback Calculator & WebPage/FAQPage JSON-LD
+    assert.ok(
+      pageClientJs.includes('/api/checkout?plan=pro_99&cycle=monthly&domain=') &&
+        pageClientJs.includes('/api/checkout?plan=tripwire_19&cycle=one_time&domain='),
+      'Expected PublicGraderClient on / to wire zero-hop direct /api/checkout links for 7-day trial and $19 pass'
+    );
+    assert.ok(
+      gtmGuestPricingHtml.includes('id="vs-pricing-roi-calculator"') &&
+        gtmGuestPricingHtml.includes('AI CITATION CONVERSION PAYBACK CALCULATOR') &&
+        gtmGuestPricingHtml.includes('BILLING, TRIAL &amp; OWNERSHIP FAQ') &&
+        gtmGuestPricingHtml.includes('"@type":"WebPage"') &&
+        gtmGuestPricingHtml.includes('"@type":"FAQPage"') &&
+        gtmGuestPricingHtml.includes('https://verisource.dev/pricing'),
+      'Expected guest /pricing to render Interactive AI ROI Calculator, Billing FAQ, canonical URL, and WebPage + FAQPage JSON-LD'
+    );
+    assert.ok(
+      !gtmPaidPricingHtml.includes('id="vs-pricing-roi-calculator"') &&
+        !gtmPaidPricingHtml.includes('BILLING, TRIAL &amp; OWNERSHIP FAQ'),
+      'Expected active subscriber /pricing view to suppress acquisition ROI calculator and trial FAQ'
+    );
+    const strippedGuestPricing = gtmGuestPricingHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedGuestPricing.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on guest /pricing'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(strippedGuestPricing) &&
+        !PLAIN_ENGLISH_JARGON.test(strippedGuestPricing) &&
+        !/\bbeta\b/i.test(strippedGuestPricing),
+      'Found /10, plain-English, or Beta jargon on guest /pricing'
+    );
+    console.log('✔ [76/76] M79 Zero-Hop Direct Grader/Tool Checkout, /pricing Interactive AI Conversion Calculator & WebPage/FAQPage JSON-LD verified!');
   } finally {
     server.kill();
   }

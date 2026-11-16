@@ -44,10 +44,12 @@ import {
   buildMcpClientSetupBundle,
   buildMcpDiscoveryManifest,
   MCP_CLIENT_APP_OPTIONS,
+  AI_ROI_VERTICAL_PRESETS,
   buildAffiliateConversionAlert,
   buildPartnerOnboardingAlert,
   buildShopifyThemeExtensionBundle,
   buildWordPressConnectorPluginPhp,
+  computeAiSearchRoiProjection,
   computePartnerCommissionBreakdown,
   deriveWorkspacePartnerSlug,
   dispatchPartnerOnboardingEmail,
@@ -4082,4 +4084,41 @@ test('M78 inspectJsonLdAiReadiness classifies empty, partial Organization-only, 
   assert.ok(!/aurearoasters|mosaicroasters/i.test(gtmSrc));
   assert.ok(!/\bbeta\b/i.test(gtmSrc));
   assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(gtmSrc));
+});
+
+test('M79 computeAiSearchRoiProjection computes deterministic 6x+ AI conversion asymmetry across all 4 vertical presets & billing cycles', () => {
+  assert.equal(AI_ROI_VERTICAL_PRESETS.length, 4);
+
+  for (const preset of AI_ROI_VERTICAL_PRESETS) {
+    const monthlyProj = computeAiSearchRoiProjection({
+      presetId: preset.id,
+      annualBilling: false,
+    });
+    const annualProj = computeAiSearchRoiProjection({
+      presetId: preset.id,
+      annualBilling: true,
+    });
+
+    assert.ok(
+      monthlyProj.projectedAiCustomersPerMonth >
+        monthlyProj.organicEquivalentCustomersPerMonth * 5,
+      `Expected >5x AI buyer conversion advantage for ${preset.id}`
+    );
+    assert.ok(monthlyProj.projectedMonthlyAiRevenueUsd > monthlyProj.planMonthlyCostUsd);
+    assert.ok(monthlyProj.roiMultiple > 10);
+    assert.ok(annualProj.planMonthlyCostUsd < monthlyProj.planMonthlyCostUsd);
+    assert.ok(annualProj.roiMultiple > monthlyProj.roiMultiple);
+  }
+
+  // Dental/Legal single $2,800 case covers 28.3 months of $99/mo Pro
+  const localProj = computeAiSearchRoiProjection({
+    presetId: 'local_services',
+    monthlyAiVisits: 20,
+    customerValueUsd: 2800,
+    annualBilling: false,
+  });
+  assert.equal(localProj.planMonthlyCostUsd, 99);
+  assert.equal(localProj.projectedAiCustomersPerMonth, 3);
+  assert.equal(localProj.projectedMonthlyAiRevenueUsd, 8400);
+  assert.equal(localProj.monthsCoveredBySingleCustomer, 28.3);
 });
