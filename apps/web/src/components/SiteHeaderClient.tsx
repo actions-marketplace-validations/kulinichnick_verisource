@@ -2,12 +2,79 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+const RESOURCE_MENU_ITEMS: ReadonlyArray<{
+  href: string;
+  label: string;
+  sublabel: string;
+}> = [
+  {
+    href: '/benchmarks/ai-search-readiness-2026',
+    label: '2026 AI Readiness Study',
+    sublabel: '40-domain live HTTPS dataset',
+  },
+  {
+    href: '/tools',
+    label: 'Free Protocol Validators',
+    sublabel: '/llms.txt, GPTBot WAF & Shopify UCP',
+  },
+  {
+    href: '/templates',
+    label: '7-CMS Starter Templates',
+    sublabel: 'Copy-paste /agents.md & JSON-LD',
+  },
+  {
+    href: '/connectors',
+    label: 'WordPress & Shopify Bridges',
+    sublabel: 'Plugin & OS 2.0 App Embed',
+  },
+  {
+    href: '/compare',
+    label: 'Platform Comparisons',
+    sublabel: 'vs. Profound, Otterly, Peec & AthenaHQ',
+  },
+  {
+    href: '/guides',
+    label: 'Engineering Setup Guides',
+    sublabel: 'Shopify UCP & /ai-facts specs',
+  },
+  {
+    href: '/partners',
+    label: '25% Partner Program',
+    sublabel: 'Recurring Stripe referral payouts',
+  },
+];
 
 export function SiteHeaderClient(): React.ReactElement {
   const pathname = usePathname() ?? '/';
-  const isConsoleRoute = pathname === '/dashboard' || pathname.startsWith('/dashboard/');
+  const isConsoleRoute =
+    pathname === '/dashboard' || pathname.startsWith('/dashboard/');
   const isAuthRoute = pathname === '/login' || pathname.startsWith('/login/');
+
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    setMobileOpen(false);
+    if (dropdownRef.current) {
+      dropdownRef.current.open = false;
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent): void {
+      if (
+        dropdownRef.current?.open &&
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        dropdownRef.current.open = false;
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   return (
     <header
@@ -20,6 +87,7 @@ export function SiteHeaderClient(): React.ReactElement {
         position: 'sticky',
         top: 0,
         zIndex: 40,
+        maxWidth: '100%',
       }}
     >
       <div className="vs-container vs-header-inner">
@@ -27,8 +95,8 @@ export function SiteHeaderClient(): React.ReactElement {
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            flexWrap: 'wrap',
+            gap: '10px',
+            minWidth: 0,
           }}
         >
           <Link
@@ -54,6 +122,7 @@ export function SiteHeaderClient(): React.ReactElement {
                 height: '18px',
                 background: 'var(--vs-ink)',
                 borderRadius: '4px',
+                flexShrink: 0,
               }}
             >
               <span
@@ -78,7 +147,7 @@ export function SiteHeaderClient(): React.ReactElement {
           ) : (
             <Link
               href="/mcp-guide"
-              className="vs-badge"
+              className="vs-badge vs-header-mcp-pill"
               style={{ textDecoration: 'none' }}
               title="View 30-second Claude, Cursor, Windsurf & Antigravity setup guide"
             >
@@ -112,35 +181,159 @@ export function SiteHeaderClient(): React.ReactElement {
             </Link>
           </nav>
         ) : (
-          <nav className="vs-nav-links" aria-label="Primary navigation">
-            <Link href="/tutorial" className="vs-nav-link">
-              Interactive Tour
-            </Link>
-            <Link href="/#platform" className="vs-nav-link">
-              Inside Console
-            </Link>
-            <Link href="/agencies" className="vs-nav-link">
-              Agencies
-            </Link>
-            <Link href="/mcp-guide" className="vs-nav-link">
-              Developers (/mcp)
-            </Link>
-            <Link href="/pricing" className="vs-nav-link">
-              Pricing
-            </Link>
-            <Link
-              href="/dashboard"
-              className="vs-nav-link"
-              style={{ fontWeight: 600, color: 'var(--vs-ink)' }}
+          <>
+            <nav
+              className="vs-nav-links vs-desktop-nav"
+              aria-label="Primary navigation"
             >
-              Sign In
-            </Link>
-            <Link href="/#grader" className="vs-btn">
-              Audit Your Site →
-            </Link>
-          </nav>
+              <Link href="/tutorial" className="vs-nav-link">
+                Interactive Tour
+              </Link>
+
+              <details ref={dropdownRef} className="vs-nav-dropdown">
+                <summary className="vs-nav-link">Resources ▾</summary>
+                <div className="vs-nav-dropdown-panel">
+                  {RESOURCE_MENU_ITEMS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="vs-nav-dropdown-item"
+                      onClick={() => {
+                        if (dropdownRef.current) {
+                          dropdownRef.current.open = false;
+                        }
+                      }}
+                    >
+                      <div style={{ fontSize: '13px', fontWeight: 600 }}>
+                        {item.label}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '11.5px',
+                          color: 'var(--vs-ink-muted)',
+                        }}
+                      >
+                        {item.sublabel}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </details>
+
+              <Link href="/agencies" className="vs-nav-link">
+                Agencies
+              </Link>
+              <Link href="/mcp-guide" className="vs-nav-link">
+                Developers (/mcp)
+              </Link>
+              <Link href="/pricing" className="vs-nav-link">
+                Pricing
+              </Link>
+              <Link
+                href="/dashboard"
+                className="vs-nav-link"
+                style={{ fontWeight: 600, color: 'var(--vs-ink)' }}
+              >
+                Sign In
+              </Link>
+              <Link href="/#grader" className="vs-btn">
+                Audit Your Site →
+              </Link>
+            </nav>
+
+            <div className="vs-mobile-header-actions">
+              <Link
+                href="/#grader"
+                className="vs-btn"
+                style={{ padding: '7px 11px', fontSize: '12px' }}
+              >
+                Audit Site →
+              </Link>
+              <button
+                type="button"
+                className="vs-pill-btn vs-pill-btn-sm"
+                data-active={mobileOpen ? 'true' : 'false'}
+                aria-expanded={mobileOpen}
+                aria-label="Toggle site navigation menu"
+                onClick={() => setMobileOpen((prev) => !prev)}
+              >
+                {mobileOpen ? '✕ Close' : 'Menu'}
+              </button>
+            </div>
+          </>
         )}
       </div>
+
+      {!isConsoleRoute && !isAuthRoute && (
+        <div
+          className="vs-mobile-nav-drawer"
+          data-open={mobileOpen ? 'true' : 'false'}
+        >
+          <div className="vs-container">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: '8px',
+                marginBottom: '12px',
+              }}
+            >
+              {[
+                { href: '/tutorial', label: 'Interactive Tour' },
+                { href: '/pricing', label: 'Pricing & Plans' },
+                { href: '/agencies', label: 'Agencies ($249/mo)' },
+                { href: '/mcp-guide', label: 'Developers (/mcp)' },
+                {
+                  href: '/benchmarks/ai-search-readiness-2026',
+                  label: '2026 Readiness Study',
+                },
+                { href: '/tools', label: 'Free Validators' },
+                { href: '/templates', label: '7-CMS Templates' },
+                { href: '/connectors', label: 'WP & Shopify Bridges' },
+                { href: '/compare', label: 'Platform Comparisons' },
+                { href: '/partners', label: '25% Partner Hub' },
+              ].map((navItem) => (
+                <Link
+                  key={navItem.href}
+                  href={navItem.href}
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    padding: '9px 11px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-warm)',
+                    color: 'var(--vs-ink)',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  {navItem.label}
+                </Link>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <Link
+                href="/dashboard"
+                className="vs-btn vs-btn-secondary"
+                style={{ flex: 1, padding: '9px 12px', fontSize: '12.5px' }}
+                onClick={() => setMobileOpen(false)}
+              >
+                Subscriber Sign In
+              </Link>
+              <Link
+                href="/#grader"
+                className="vs-btn"
+                style={{ flex: 1, padding: '9px 12px', fontSize: '12.5px' }}
+                onClick={() => setMobileOpen(false)}
+              >
+                Audit Your Site →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

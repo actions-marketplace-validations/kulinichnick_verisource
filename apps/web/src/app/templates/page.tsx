@@ -125,7 +125,7 @@ export default function CmsTemplatesPage(): React.ReactElement {
         <CmsTemplatesExplorerClient />
 
         {/* Server-Rendered 7-CMS Placement Reference Table for Non-JS AI Crawlers */}
-        <div className="vs-card vs-table-wrap" style={{ marginBottom: '36px' }}>
+        <div className="vs-card" style={{ marginBottom: '36px', overflow: 'hidden' }}>
           <div
             style={{
               padding: '14px 18px',
@@ -155,7 +155,8 @@ export default function CmsTemplatesPage(): React.ReactElement {
             </Link>
           </div>
 
-          <table className="vs-table">
+          <div className="vs-table-wrap">
+            <table className="vs-table">
             <thead>
               <tr>
                 <th>Platform</th>
@@ -193,7 +194,8 @@ export default function CmsTemplatesPage(): React.ReactElement {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <GtmDomainScanHandoff />

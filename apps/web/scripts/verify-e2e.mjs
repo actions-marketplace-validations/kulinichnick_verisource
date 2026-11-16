@@ -3723,7 +3723,29 @@ async function run() {
         m72IndexNow.submittedCount >= 26,
       'Expected /sitemap.xml, /llms.txt, /agents.md, and 26-URL /api/indexnow to include /partners and /connectors'
     );
-    console.log('✔ [69/69] M72 (Sprint GTM-6) 25% Recurring Partner Engine (/partners + /r/[code] + /api/partners/apply) & WordPress/Shopify Connectors (/connectors) verified!');
+    console.log('✔ [69/70] M72 (Sprint GTM-6) 25% Recurring Partner Engine (/partners + /r/[code] + /api/partners/apply) & WordPress/Shopify Connectors (/connectors) verified!');
+
+    // 68. M73 Post-GTM Live Visual & Mobile Conversion Polish (Resources Popover, Mobile Nav Drawer, & .vs-stack Zero-Overflow Grid Containment)
+    assert.ok(
+      homeAfterHtml.includes('vs-nav-dropdown') &&
+        homeAfterHtml.includes('Resources ▾') &&
+        homeAfterHtml.includes('vs-mobile-nav-drawer') &&
+        homeAfterHtml.includes('href="/benchmarks/ai-search-readiness-2026"') &&
+        homeAfterHtml.includes('href="/connectors"') &&
+        homeAfterHtml.includes('href="/partners"'),
+      'Expected public header to include Resources ▾ dropdown, mobile navigation drawer, and top-level links to GTM hubs'
+    );
+    assert.ok(
+      !unauthDashHtml.includes('Resources ▾') &&
+        !loginHtml.includes('Resources ▾'),
+      'Expected /dashboard and /login headers to suppress marketing Resources ▾ dropdown'
+    );
+    assert.ok(
+      connectorsHtml.includes('vs-stack') &&
+        benchmarkStudyHtml.includes('vs-stack'),
+      'Expected /connectors and /benchmarks/ai-search-readiness-2026 to use .vs-stack minmax(0, 1fr) overflow lock'
+    );
+    console.log('✔ [70/70] M73 Post-GTM Header Resources Popover, Mobile Nav Drawer & Zero-Overflow Grid Containment verified!');
   } finally {
     server.kill();
   }

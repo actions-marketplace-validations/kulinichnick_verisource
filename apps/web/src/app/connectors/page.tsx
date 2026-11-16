@@ -126,7 +126,7 @@ export default function ConnectorsPage(): React.ReactElement {
         <ConnectorBridgesClient />
 
         {/* Server-Rendered Connector Comparison Matrix */}
-        <div className="vs-card vs-table-wrap" style={{ marginBottom: '36px' }}>
+        <div className="vs-card" style={{ marginBottom: '36px', overflow: 'hidden' }}>
           <div
             style={{
               padding: '14px 18px',
@@ -156,7 +156,8 @@ export default function ConnectorsPage(): React.ReactElement {
             </Link>
           </div>
 
-          <table className="vs-table">
+          <div className="vs-table-wrap">
+            <table className="vs-table">
             <thead>
               <tr>
                 <th>Connector Bridge</th>
@@ -187,7 +188,8 @@ export default function ConnectorsPage(): React.ReactElement {
                 <td>Theme App Embed survives Dawn &amp; theme updates</td>
               </tr>
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <GtmDomainScanHandoff />

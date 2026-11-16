@@ -126,7 +126,7 @@ export default function PartnersPage(): React.ReactElement {
         <PartnerHubClient />
 
         {/* Server-Rendered Tier Payout Matrix */}
-        <div className="vs-card vs-table-wrap" style={{ marginBottom: '36px' }}>
+        <div className="vs-card" style={{ marginBottom: '36px', overflow: 'hidden' }}>
           <div
             style={{
               padding: '14px 18px',
@@ -156,7 +156,8 @@ export default function PartnersPage(): React.ReactElement {
             </Link>
           </div>
 
-          <table className="vs-table">
+          <div className="vs-table-wrap">
+            <table className="vs-table">
             <thead>
               <tr>
                 <th>Plan Tier</th>
@@ -207,7 +208,8 @@ export default function PartnersPage(): React.ReactElement {
                 </td>
               </tr>
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <GtmDomainScanHandoff />

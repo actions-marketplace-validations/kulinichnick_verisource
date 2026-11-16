@@ -84,9 +84,18 @@ main {
 }
 
 .vs-container {
+  width: 100%;
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 24px;
+}
+
+.vs-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .vs-arch-backdrop {
@@ -347,7 +356,9 @@ main {
 
 /* Data Tables */
 .vs-table-wrap {
+  display: block;
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -426,6 +437,8 @@ main {
   line-height: 1.58;
   padding: 14px 16px;
   margin: 0;
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   border-bottom-left-radius: 7px;
   border-bottom-right-radius: 7px;
@@ -467,6 +480,78 @@ main {
 
 .vs-nav-link:hover {
   color: var(--vs-ink);
+}
+
+/* Desktop Resources Popover & Mobile Navigation Drawer */
+.vs-nav-dropdown {
+  position: relative;
+}
+
+.vs-nav-dropdown > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.vs-nav-dropdown > summary::-webkit-details-marker {
+  display: none;
+}
+
+.vs-nav-dropdown-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: -12px;
+  width: 288px;
+  background: var(--vs-surface);
+  border: 1px solid var(--vs-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgba(10, 14, 23, 0.12);
+  padding: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  z-index: 60;
+}
+
+.vs-nav-dropdown-item {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--vs-ink);
+  transition: background 120ms ease;
+}
+
+.vs-nav-dropdown-item:hover {
+  background: var(--vs-surface-warm);
+}
+
+.vs-mobile-header-actions {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.vs-mobile-nav-drawer {
+  display: none;
+}
+
+@media (max-width: 920px) {
+  .vs-desktop-nav {
+    display: none !important;
+  }
+  .vs-header-mcp-pill {
+    display: none !important;
+  }
+  .vs-mobile-header-actions {
+    display: inline-flex;
+  }
+  .vs-mobile-nav-drawer[data-open="true"] {
+    display: block;
+    border-top: 1px solid var(--vs-border);
+    background: var(--vs-surface);
+    padding: 14px 0 18px 0;
+  }
 }
 
 .vs-hero-grid {

@@ -90,7 +90,7 @@ export function PartnerHubClient(): React.ReactElement {
   }
 
   return (
-    <div style={{ display: 'grid', gap: '28px', marginBottom: '36px' }}>
+    <div className="vs-stack" style={{ gap: '28px', marginBottom: '36px' }}>
       {/* Interactive 25% Recurring Commission Calculator */}
       <div className="vs-card" style={{ overflow: 'hidden' }}>
         <div

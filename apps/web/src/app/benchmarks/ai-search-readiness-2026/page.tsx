@@ -182,15 +182,7 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
 
       <div className="vs-container">
         {/* Top 4-Metric Ledger Strip */}
-        <div
-          className="vs-grid-4"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '14px',
-            marginBottom: '34px',
-          }}
-        >
+        <div className="vs-grid-4" style={{ marginBottom: '34px' }}>
           <div className="vs-card">
             <MetricLedgerCell
               label="Custom /llms.txt"
@@ -222,7 +214,7 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
         </div>
 
         {/* Server-Rendered Cross-Vertical Matrix Table */}
-        <div className="vs-card vs-table-wrap" style={{ marginBottom: '36px' }}>
+        <div className="vs-card" style={{ marginBottom: '36px', overflow: 'hidden' }}>
           <div
             style={{
               padding: '14px 18px',
@@ -246,7 +238,8 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
             </span>
           </div>
 
-          <table className="vs-table">
+          <div className="vs-table-wrap">
+            <table className="vs-table">
             <thead>
               <tr>
                 <th>Industry Cohort</th>
@@ -303,7 +296,8 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
                 <td className="vs-mono">2/40 (5.0%)</td>
               </tr>
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         {/* 4 Key Architectural Findings (2-Column Editorial Grid) */}
@@ -322,13 +316,7 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
             Four protocol gaps separating cited brands from invisible domains
           </h2>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '16px',
-            }}
-          >
+          <div className="vs-grid-2">
             {BENCHMARK_KEY_FINDINGS.map((finding) => (
               <div
                 key={finding.id}
@@ -459,7 +447,7 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
             Common questions about the 2026 AI Search Readiness dataset
           </h2>
 
-          <div style={{ display: 'grid', gap: '12px' }}>
+          <div className="vs-stack" style={{ gap: '12px' }}>
             {BENCHMARK_FAQS.map((faq) => (
               <div
                 key={faq.question}

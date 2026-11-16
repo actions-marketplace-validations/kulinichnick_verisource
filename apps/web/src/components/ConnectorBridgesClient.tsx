@@ -124,7 +124,7 @@ export function ConnectorBridgesClient(): React.ReactElement {
       </div>
 
       {selected === 'wordpress' ? (
-        <div style={{ display: 'grid', gap: '16px' }}>
+        <div className="vs-stack">
           <CodeArtifactCard
             title="verisource-geo-connector.php (Single-File WordPress Plugin)"
             fileHint="wp-content/plugins/verisource-geo-connector/verisource-geo-connector.php"
@@ -141,7 +141,7 @@ export function ConnectorBridgesClient(): React.ReactElement {
           />
         </div>
       ) : (
-        <div style={{ display: 'grid', gap: '16px' }}>
+        <div className="vs-stack">
           <CodeArtifactCard
             title={shopifyBundle.liquidBlockFilename}
             fileHint="extensions/verisource-ai-truth/blocks/verisource-ai-truth.liquid"
