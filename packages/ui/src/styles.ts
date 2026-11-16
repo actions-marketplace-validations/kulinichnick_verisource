@@ -257,6 +257,65 @@ html, body {
   color: var(--vs-ink-secondary);
 }
 
+/* Progressive Disclosure Accordions (Clean <details> + <summary>) */
+.vs-disclosure {
+  border: 1px solid var(--vs-border);
+  border-radius: 8px;
+  background: var(--vs-surface);
+  overflow: hidden;
+}
+
+.vs-disclosure > summary.vs-disclosure-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 13px 16px;
+  background: var(--vs-surface-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  user-select: none;
+  transition: background 120ms ease;
+}
+
+.vs-disclosure > summary.vs-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+.vs-disclosure > summary.vs-disclosure-summary:hover {
+  background: var(--vs-surface-warm);
+}
+
+.vs-disclosure[open] > summary.vs-disclosure-summary {
+  border-bottom: 1px solid var(--vs-border);
+}
+
+.vs-disclosure-pill {
+  font-family: var(--vs-mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 4px;
+  border: 1px solid var(--vs-border-strong);
+  background: var(--vs-surface);
+  color: var(--vs-ink);
+  white-space: nowrap;
+}
+
+.vs-disclosure-pill::before {
+  content: '+ Show ';
+}
+
+.vs-disclosure[open] > summary.vs-disclosure-summary .vs-disclosure-pill::before {
+  content: '− Hide ';
+}
+
+.vs-disclosure-body {
+  padding: 16px;
+  background: var(--vs-surface);
+}
+
 /* Data Tables */
 .vs-table-wrap {
   width: 100%;

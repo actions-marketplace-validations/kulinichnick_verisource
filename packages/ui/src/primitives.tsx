@@ -294,7 +294,7 @@ export function ThreeTabShell(props: {
           ? 'Brand Health & AI Mistakes'
           : 'Visibility, Hallucinations & ROI',
       sub: isGuided
-        ? 'What AI says, wrong claims & bot access'
+        ? 'Plain-English site issues & real prices'
         : 'Share of Voice, Watchdog & Bot WAF',
     },
     {
@@ -302,13 +302,13 @@ export function ThreeTabShell(props: {
       index: '02',
       label: props.compact
         ? isGuided
-          ? 'Website Fixes'
+          ? '1-Click AI Fixes'
           : 'On-Site Fixes'
         : isGuided
-          ? 'Copy-Paste Website Fixes'
+          ? '1-Click AI Prompt & Site Fixes'
           : 'One-Click On-Site Fixes',
       sub: isGuided
-        ? 'Ready-to-paste code for your site or Shopify'
+        ? 'Copy 1 prompt into your AI (no coding)'
         : 'Validated JSON-LD, /llms.txt & Shopify UCP',
     },
     {
@@ -319,10 +319,10 @@ export function ThreeTabShell(props: {
           ? 'Rivals & Reports'
           : 'Fanouts & MCP'
         : isGuided
-          ? 'Competitors, Client Links & Sync'
+          ? 'Competitors & Client Reports'
           : 'Citations, Pitch Mode & MCP',
       sub: isGuided
-        ? 'Where rivals get cited & shareable client links'
+        ? 'Beat rivals & share branded client links'
         : 'Query Fanouts, 60s Pitch URL & /mcp Keys',
     },
   ];

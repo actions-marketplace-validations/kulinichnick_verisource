@@ -19,7 +19,9 @@ import {
   buildAgencyPartnerOutreachSequence,
   buildAgencyPartnerPlaybookMarkdown,
   buildAgencyPitchPayload,
+  buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
+  buildAnalyticsInstallAiPrompt,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildCitationAnswerPageBundle,
@@ -32,6 +34,7 @@ import {
   buildLocalServiceOutreachSequence,
   buildLocalServicePlaybookMarkdown,
   buildMcpDiscoveryManifest,
+  buildPlainEnglishSiteDiagnosis,
   buildPostPurchaseWelcomeAlert,
   buildProspectOpenAlert,
   buildShopifyCustomerEventsPixel,
@@ -2182,4 +2185,89 @@ test('M51 Source-Category-Aware Off-Site Citation Acquisition Engine & Playbook 
   assert.ok(playbook.score >= 9.5);
   assert.ok(playbook.content.includes('Off-Site AI Citation Acquisition Playbook'));
   assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(playbook.content));
+});
+
+test('M52 Plain-English Site Diagnosis & 1-Click Analytics Install AI Prompt translate technical issues cleanly (>= 9.5/10, 0 jargon leaks)', () => {
+  const brokenDiagnosis = buildPlainEnglishSiteDiagnosis({
+    brandName: 'Acme Roofing',
+    hostname: 'acmeroofing.com',
+    visibilityScore: 34,
+    accuracyScore: 62,
+    robotsAiBotStatus: {
+      GPTBot: false,
+      'OAI-SearchBot': true,
+      PerplexityBot: false,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    llmsTxtStatus: 'missing',
+    agentsMdStatus: 'missing',
+    jsonLdCount: 0,
+    crawlerReadability: {
+      status: 'csr_js_trap',
+      rawHtmlBytes: 42000,
+      visibleTextChars: 112,
+      visibleWordCount: 18,
+      estimatedTokens: 24,
+      signalToHtmlPct: 0.4,
+      hasSemanticLandmarks: false,
+      detectedCsrShell: true,
+      summary: 'Empty SPA shell',
+    },
+    hallucinationCount: 2,
+    brandMentionedInSample: false,
+    topRivals: ['Apex Exteriors', 'Summit Roof Co'],
+  });
+
+  assert.equal(brokenDiagnosis.issueCount, 5);
+  assert.equal(brokenDiagnosis.issues[0]?.id, 'bots_blocked');
+  assert.equal(brokenDiagnosis.issues[1]?.id, 'js_blank_page');
+  assert.equal(brokenDiagnosis.issues[2]?.id, 'wrong_ai_facts');
+  assert.equal(brokenDiagnosis.issues[3]?.id, 'missing_ai_files');
+  assert.equal(brokenDiagnosis.issues[4]?.id, 'rivals_shortlisted_ahead');
+
+  for (const issue of brokenDiagnosis.issues) {
+    const combined = `${issue.whatIsWrong} ${issue.whyItMatters} ${issue.howToFixPlain}`;
+    const graded = gradeArtifactQuality(combined);
+    assert.equal(graded.breakdown.lexicon_filter, 2.0, `Banned word in ${issue.id}`);
+    assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(combined));
+  }
+
+  const healthyDiagnosis = buildPlainEnglishSiteDiagnosis({
+    brandName: 'Verisource',
+    hostname: 'verisource.dev',
+    visibilityScore: 94,
+    accuracyScore: 100,
+    robotsAiBotStatus: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: true,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    llmsTxtStatus: 'present',
+    agentsMdStatus: 'custom_enriched',
+    jsonLdCount: 2,
+    hallucinationCount: 0,
+    brandMentionedInSample: true,
+    topRivals: [],
+  });
+  assert.equal(healthyDiagnosis.issueCount, 0);
+  assert.equal(healthyDiagnosis.issues[0]?.id, 'all_core_healthy');
+
+  const pixel = buildAiAttributionSnippet({
+    trackingPixelToken: '11111111-2222-4000-8000-333333333333',
+    ingestionUrl: 'https://verisource.dev/api/pixel',
+  });
+  const trackerPrompt = buildAnalyticsInstallAiPrompt({
+    brandName: 'Acme Roofing',
+    hostname: 'acmeroofing.com',
+    isShopify: false,
+    browserPixelSnippet: pixel,
+  });
+  assert.ok(trackerPrompt.score >= 9.5);
+  assert.ok(trackerPrompt.content.includes('https://verisource.dev/api/pixel'));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(trackerPrompt.content));
 });

@@ -1,27 +1,12 @@
 import Link from 'next/link';
 import React from 'react';
-import {
-  buildAiAttributionSnippet,
-  buildEdgeBotCrawlerSnippet,
-} from '@verisource/core-geo';
-import { CodeArtifactCard, StatusBadge } from '@verisource/ui';
+import { StatusBadge } from '@verisource/ui';
 import { HeroSignalSchematic } from '../components/HeroSignalSchematic';
 import { PlatformModulesShowcase } from '../components/PlatformModulesShowcase';
 import { PricingLadderSection } from '../components/PricingLadderSection';
 import { PublicGraderClient } from '../components/PublicGraderClient';
 
 export default function HomePage(): React.ReactElement {
-  const samplePixel = buildAiAttributionSnippet({
-    trackingPixelToken: 'YOUR-DOMAIN-PIXEL-UUID',
-    ingestionUrl: 'https://verisource.dev/api/pixel',
-  });
-
-  const sampleEdgeCrawlerSnippet = buildEdgeBotCrawlerSnippet({
-    trackingPixelToken: 'YOUR-DOMAIN-PIXEL-UUID',
-    checkoutKey: 'YOUR_24_CHAR_SERVER_KEY',
-    ingestionUrl: 'https://verisource.dev/api/pixel',
-  });
-
   return (
     <div>
       {/* Profound-Caliber Editorial AI Search Platform Hero */}
@@ -47,7 +32,7 @@ export default function HomePage(): React.ReactElement {
               <StatusBadge tone="pass">
                 CHATGPT · PERPLEXITY · GEMINI · CLAUDE
               </StatusBadge>
-              <StatusBadge>ACTION CONSOLE + /MCP SERVER</StatusBadge>
+              <StatusBadge>NO CODING REQUIRED · 1-CLICK AI PROMPT</StatusBadge>
               <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
             </div>
 
@@ -65,7 +50,7 @@ export default function HomePage(): React.ReactElement {
                 className="vs-display-serif"
                 style={{ fontSize: '1.08em', fontWeight: 400 }}
               >
-                And ship the fixes agents read.
+                And let your own AI fix your site.
               </span>
             </h1>
 
@@ -75,20 +60,21 @@ export default function HomePage(): React.ReactElement {
                 lineHeight: 1.62,
                 color: 'var(--vs-ink-secondary)',
                 margin: '0 0 24px 0',
-                maxWidth: '590px',
+                maxWidth: '600px',
               }}
             >
-              40%–58% of B2B and commerce discovery now happens inside AI answer
-              engines, where referred buyers convert at{' '}
+              40%–58% of buyers now ask ChatGPT, Perplexity, and Google Gemini
+              who to hire or buy from—and AI-referred visitors convert at{' '}
               <strong className="vs-mono">14.2%–15.9%</strong> vs. Google
               organic&rsquo;s <strong className="vs-mono">1.76%–2.8%</strong>.
-              Passive GEO trackers charge $245–$499+/mo just to show charts.
-              Verisource measures your Share-of-Voice, flags hallucinated
-              pricing, and generates syntax-validated{' '}
-              <code className="vs-mono">JSON-LD</code>,{' '}
-              <code className="vs-mono">/llms.txt</code>, and{' '}
-              <code className="vs-mono">/agents.md</code> fixes inside your
-              private Admin Console.
+              Verisource scans your website, explains in plain English why
+              competitors get recommended instead (or where AI quotes wrong
+              prices), and gives you{' '}
+              <strong style={{ color: 'var(--vs-ink)' }}>
+                one ready-made prompt to paste into ChatGPT, Claude, Antigravity,
+                Cursor, or Shopify
+              </strong>{' '}
+              to fix everything on your site.
             </p>
 
             <div
@@ -101,10 +87,10 @@ export default function HomePage(): React.ReactElement {
               }}
             >
               <a href="#grader" className="vs-btn">
-                Audit Your Website Free ↓
+                Scan My Website Free ↓
               </a>
-              <a href="#platform" className="vs-btn vs-btn-secondary">
-                Explore Platform Modules
+              <a href="#how-it-works" className="vs-btn vs-btn-secondary">
+                See How It Works (3 Steps)
               </a>
               <Link href="/dashboard" className="vs-btn vs-btn-secondary">
                 Subscriber Sign In →
@@ -126,19 +112,19 @@ export default function HomePage(): React.ReactElement {
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   01
                 </strong>{' '}
-                Test your site free below
+                Scan your site &amp; see plain-English issues
               </span>
               <span>
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   02
                 </strong>{' '}
-                Activate your private Console
+                Copy 1 Verisource prompt into your AI tool
               </span>
               <span>
                 <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
                   03
                 </strong>{' '}
-                Deploy &amp; verify live AI fixes
+                Verify live fixes &amp; win buyer shortlists
               </span>
             </div>
           </div>
@@ -148,8 +134,219 @@ export default function HomePage(): React.ReactElement {
       </section>
 
       <div className="vs-container">
-        {/* Customer Tests Their Own Domain — Limited Free Preview */}
+        {/* Customer Tests Their Own Domain — Plain-English Free Diagnosis */}
         <PublicGraderClient />
+
+        {/* Calm 3-Step Workflow: How Business Owners Use Verisource Without Coding */}
+        <section id="how-it-works" style={{ marginTop: '64px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              gap: '14px',
+              marginBottom: '18px',
+            }}
+          >
+            <div style={{ maxWidth: '720px' }}>
+              <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+                HOW VERISOURCE WORKS · BUILT FOR BUSINESS OWNERS &amp; TEAMS
+              </div>
+              <h2
+                style={{
+                  fontSize: 'clamp(24px, 2.8vw, 30px)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.025em',
+                  margin: '0 0 8px 0',
+                }}
+              >
+                Get recommended by AI search in 3 steps—without touching raw code.
+              </h2>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '14.5px',
+                  lineHeight: 1.58,
+                  color: 'var(--vs-ink-secondary)',
+                }}
+              >
+                You don&rsquo;t need to be an SEO specialist or software
+                engineer. Verisource finds every problem holding your business
+                back in AI search and hands you a single prompt for whatever AI
+                assistant you already use.
+              </p>
+            </div>
+            <StatusBadge tone="pass">
+              WORKS WITH CHATGPT · CLAUDE · ANTIGRAVITY · CURSOR · SHOPIFY
+            </StatusBadge>
+          </div>
+
+          <div className="vs-card" style={{ overflow: 'hidden' }}>
+            <div className="vs-ledger-strip-3">
+              <div style={{ padding: '22px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                    STEP 01 · DIAGNOSE
+                  </span>
+                  <StatusBadge>60 SECONDS</StatusBadge>
+                </div>
+                <h3
+                  style={{
+                    fontSize: '16.5px',
+                    fontWeight: 700,
+                    margin: '0 0 8px 0',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  See why AI skips your business (or states wrong prices)
+                </h3>
+                <p
+                  style={{
+                    margin: '0 0 12px 0',
+                    fontSize: '13.5px',
+                    lineHeight: 1.55,
+                    color: 'var(--vs-ink-secondary)',
+                  }}
+                >
+                  Enter your website URL. Verisource checks real buyer questions
+                  across ChatGPT, Gemini, and Perplexity, flags invented pricing
+                  claims, and explains in everyday English what is missing on
+                  your site.
+                </p>
+                <div
+                  className="vs-mono"
+                  style={{
+                    fontSize: '11.5px',
+                    color: 'var(--vs-ink-muted)',
+                    paddingTop: '10px',
+                    borderTop: '1px solid var(--vs-border)',
+                  }}
+                >
+                  Checks: Real Prices · Bot Access · Competitor Shortlists
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '22px',
+                  background: 'var(--vs-surface-warm)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                    STEP 02 · COPY 1 AI PROMPT
+                  </span>
+                  <StatusBadge tone="pass">ZERO MANUAL CODING</StatusBadge>
+                </div>
+                <h3
+                  style={{
+                    fontSize: '16.5px',
+                    fontWeight: 700,
+                    margin: '0 0 8px 0',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  Paste 1 Verisource prompt into your own AI to fix your site
+                </h3>
+                <p
+                  style={{
+                    margin: '0 0 12px 0',
+                    fontSize: '13.5px',
+                    lineHeight: 1.55,
+                    color: 'var(--vs-ink-secondary)',
+                  }}
+                >
+                  Verisource bundles every needed fix—structured{' '}
+                  <code className="vs-mono">JSON-LD</code> facts,{' '}
+                  <code className="vs-mono">/llms.txt</code>,{' '}
+                  <code className="vs-mono">/agents.md</code>, and crawler
+                  access—into <strong>one ready-to-paste prompt</strong>. Paste
+                  it into Claude, ChatGPT, Antigravity, Cursor, or Lovable and
+                  let your AI apply the changes.
+                </p>
+                <div
+                  className="vs-mono"
+                  style={{
+                    fontSize: '11.5px',
+                    color: 'var(--vs-ink-muted)',
+                    paddingTop: '10px',
+                    borderTop: '1px solid var(--vs-border)',
+                  }}
+                >
+                  Works with: Coding Agents · WordPress/Webflow · Shopify
+                </div>
+              </div>
+
+              <div style={{ padding: '22px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                    STEP 03 · GROW CUSTOMERS
+                  </span>
+                  <StatusBadge>WEEKLY TRACKING</StatusBadge>
+                </div>
+                <h3
+                  style={{
+                    fontSize: '16.5px',
+                    fontWeight: 700,
+                    margin: '0 0 8px 0',
+                    letterSpacing: '-0.015em',
+                  }}
+                >
+                  Verify live fixes, overtake rivals &amp; track AI leads
+                </h3>
+                <p
+                  style={{
+                    margin: '0 0 12px 0',
+                    fontSize: '13.5px',
+                    lineHeight: 1.55,
+                    color: 'var(--vs-ink-secondary)',
+                  }}
+                >
+                  Click <strong>✓ Verify Live Fixes</strong> to confirm your new
+                  AI files are live and watch your Visibility Score climb. Launch
+                  1-click <strong>You vs. Competitor</strong> pages and track
+                  visits &amp; sales coming from ChatGPT and Perplexity.
+                </p>
+                <div
+                  className="vs-mono"
+                  style={{
+                    fontSize: '11.5px',
+                    color: 'var(--vs-ink-muted)',
+                    paddingTop: '10px',
+                    borderTop: '1px solid var(--vs-border)',
+                  }}
+                >
+                  Includes: vs. Rival Page Studio · Reddit/G2 Playbooks · ROI
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Interactive 5-Pillar Platform Showcase (Inspired by Category Leaders, Powered by Action Tools) */}
         <PlatformModulesShowcase />
@@ -167,7 +364,7 @@ export default function HomePage(): React.ReactElement {
               margin: '0 0 8px 0',
             }}
           >
-            Why founders and agencies switch from passive $499/mo trackers.
+            Why business owners and agencies switch from $499/mo chart-only tools.
           </h2>
           <p
             style={{
@@ -178,10 +375,10 @@ export default function HomePage(): React.ReactElement {
               maxWidth: '760px',
             }}
           >
-            Knowing ChatGPT omitted your brand is only half the job. Verisource
-            combines multi-engine visibility analytics with ready-to-paste site
-            remediation and a Streamable HTTP{' '}
-            <code className="vs-mono">/mcp</code> server.
+            Knowing ChatGPT left out your business is useless if you don&rsquo;t
+            know how to fix it. Verisource pairs multi-engine visibility
+            tracking with a 1-click prompt that fixes your site through your own
+            AI tool.
           </p>
 
           <div className="vs-card vs-table-wrap">
@@ -196,52 +393,37 @@ export default function HomePage(): React.ReactElement {
               <tbody>
                 <tr>
                   <td>
-                    <strong>Mention vs. Citation Rate &amp; Sentiment</strong>
+                    <strong>Plain-English Diagnosis &amp; Pricing Check</strong>
                   </td>
                   <td style={{ color: 'var(--vs-ink-secondary)' }}>
-                    Included on mid-to-enterprise tiers
+                    Raw charts &amp; SEO jargon only
                   </td>
                   <td>
                     <StatusBadge tone="pass">INCLUDED ALL PLANS</StatusBadge>{' '}
                     <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      ChatGPT, Perplexity &amp; Gemini + Rival SoV %
+                      ChatGPT, Perplexity &amp; Gemini + wrong-price alerts
                     </span>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <strong>Suggested Funnel Prompts &amp; Source Types</strong>
+                    <strong>1-Click Prompt for Your Own AI Tool</strong>
                   </td>
-                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
-                    Manual setup or enterprise add-on
+                  <td style={{ color: 'var(--vs-crit-fg)' }}>
+                    Not included — hire a developer
                   </td>
                   <td>
-                    <StatusBadge tone="pass">1-CLICK ACTIVATION</StatusBadge>{' '}
+                    <StatusBadge tone="pass">READY TO PASTE</StatusBadge>{' '}
                     <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Discovery, Comparison, Pricing + Reddit/G2/Editorial tags
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>JS Readability + Server Bot Crawl Logs</strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
-                    Enterprise contracts only
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">BUILT IN</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      SSR token density check + Edge{' '}
-                      <code className="vs-mono">ai_bot_crawl</code> logger +
-                      checkout pixel
+                      Paste 1 prompt into ChatGPT, Claude, Antigravity, Cursor,
+                      or Shopify
                     </span>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     <strong>
-                      On-Site Remediation (<code className="vs-mono">JSON-LD</code>
+                      Verified Website AI Files (<code className="vs-mono">JSON-LD</code>
                       , <code className="vs-mono">/llms.txt</code>,{' '}
                       <code className="vs-mono">/agents.md</code>)
                     </strong>
@@ -252,92 +434,56 @@ export default function HomePage(): React.ReactElement {
                   <td>
                     <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>{' '}
                     <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Copy-paste code + Shopify{' '}
-                      <code className="vs-mono">/api/ucp/mcp</code> adapter +
-                      live HTTP verifier
+                      Auto-generated for your business + 1-click live verifier
                     </span>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <strong>1-Click AI Fix Prompt &amp; vs. Rival Page Studio</strong>
+                    <strong>You vs. Competitor Comparison Page Studio</strong>
                   </td>
                   <td style={{ color: 'var(--vs-crit-fg)' }}>
                     Not included — manual copywriting
                   </td>
                   <td>
-                    <StatusBadge tone="pass">READY TO PASTE</StatusBadge>{' '}
+                    <StatusBadge tone="pass">1-CLICK STUDIO</StatusBadge>{' '}
                     <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Master AI prompt + truth-locked{' '}
+                      Truth-locked{' '}
                       <code className="vs-mono">/compare/you-vs-rival</code>{' '}
-                      pages
+                      pages + AI builder prompt
                     </span>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <strong>Autonomous Coding Agent (/mcp) Access</strong>
+                    <strong>Reddit, G2 &amp; Review Citation Playbooks</strong>
+                  </td>
+                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                    Enterprise add-on
+                  </td>
+                  <td>
+                    <StatusBadge tone="pass">1-CLICK ACTIVATION</StatusBadge>{' '}
+                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
+                      Exact sources AI trusts + ready-to-post outreach drafts
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>Optional AI Visitor Tracker &amp; /mcp Server</strong>
                   </td>
                   <td style={{ color: 'var(--vs-crit-fg)' }}>
                     Closed web UI or custom enterprise API
                   </td>
                   <td>
-                    <StatusBadge tone="pass">OFFICIAL MCP REGISTRY</StatusBadge>{' '}
+                    <StatusBadge tone="pass">BUILT IN</StatusBadge>{' '}
                     <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Connect Claude, Cursor, Windsurf &amp; Antigravity in 30s
+                      Track AI-referred sales + connect Cursor &amp; Claude in 30s
                     </span>
                   </td>
                 </tr>
               </tbody>
             </table>
-          </div>
-        </section>
-
-        {/* Agent Analytics: Browser Revenue Pixel + Edge AI Bot Crawler Log */}
-        <section id="agent-analytics" style={{ marginTop: '72px' }}>
-          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            AGENT ANALYTICS · CRAWLER LOGS + BUYER CONVERSIONS
-          </div>
-          <h2
-            style={{
-              fontSize: 'clamp(24px, 2.8vw, 29px)',
-              fontWeight: 700,
-              letterSpacing: '-0.02em',
-              margin: '0 0 8px 0',
-            }}
-          >
-            See every AI bot crawl and every AI-referred customer purchase.
-          </h2>
-          <p
-            style={{
-              fontSize: '14.5px',
-              lineHeight: 1.58,
-              color: 'var(--vs-ink-secondary)',
-              margin: '0 0 18px 0',
-              maxWidth: '740px',
-            }}
-          >
-            Standard analytics tools never execute when{' '}
-            <code className="vs-mono">GPTBot</code> or{' '}
-            <code className="vs-mono">PerplexityBot</code> fetches your pricing
-            page. Subscribers get two lightweight drop-in snippets inside the
-            Console: a 10-line browser checkout pixel and a non-blocking edge
-            middleware logger.
-          </p>
-
-          <div className="vs-grid-2">
-            <CodeArtifactCard
-              title="1. Browser AI Visit & Checkout Revenue Pixel"
-              plainSummary="Attributes human visits and completed orders from chatgpt.com, perplexity.ai, gemini.google.com, and claude.ai."
-              fileHint="Paste before </head> on any site or Shopify Custom Pixel"
-              code={samplePixel}
-            />
-            <CodeArtifactCard
-              title="2. Edge / Middleware AI Bot Crawl Logger"
-              plainSummary="Logs server-side hits from GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, and Google-Extended."
-              fileHint="Drop into Next.js middleware.ts or Cloudflare Worker"
-              code={sampleEdgeCrawlerSnippet}
-            />
           </div>
         </section>
 

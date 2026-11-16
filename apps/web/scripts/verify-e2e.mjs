@@ -2170,7 +2170,28 @@ async function run() {
       m42Tab3Html.includes('Export Citation Playbook (.md)'),
       'Expected Export Citation Playbook (.md) button inside Step 03 Citation Gap Source Leaderboard'
     );
-    console.log('✔ [47/47] M51 Source-Category-Aware Off-Site Citation Acquisition Engine & 1-Click Playbook Exporter verified!');
+    console.log('✔ [47/48] M51 Source-Category-Aware Off-Site Citation Acquisition Engine & 1-Click Playbook Exporter verified!');
+
+    // 46. M52 Non-Pro Plain-English UX Clarity, De-Cluttered Homepage & Progressive Disclosure Accordions
+    assert.ok(
+      homeAfterHtml.includes('HOW VERISOURCE WORKS') &&
+        homeAfterHtml.includes('STEP 02 · COPY 1 AI PROMPT') &&
+        !homeAfterHtml.includes('YOUR-DOMAIN-PIXEL-UUID'),
+      'Expected 3-step How Verisource Works guide on / and zero raw tracking pixel code dumps on /'
+    );
+    assert.ok(
+      m42Tab1Html.includes('PLAIN-ENGLISH SITE DIAGNOSIS') &&
+        m42Tab1Html.includes('Copy AI Prompt to Install Tracker') &&
+        m42Tab1Html.includes('<details class="vs-disclosure">'),
+      'Expected Plain-English Site Diagnosis & collapsed Optional Tracking Codes <details> drawer on Step 01'
+    );
+    assert.ok(
+      m42Tab2Html.includes('RECOMMENDED · NO CODING NEEDED') &&
+        m42Tab2Html.includes('Individual Raw Code Files') &&
+        m42Tab2Html.includes('<details class="vs-disclosure">'),
+      'Expected 1-Click AI Fix Prompt guided flow & collapsed Individual Raw Code Files <details> drawer on Step 02'
+    );
+    console.log('✔ [48/48] M52 Non-Pro Plain-English UX Clarity, De-Cluttered Homepage & Progressive Disclosure verified!');
   } finally {
     server.kill();
   }

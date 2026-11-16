@@ -113,17 +113,17 @@ export function SiteHeaderClient(): React.ReactElement {
           </nav>
         ) : (
           <nav className="vs-nav-links" aria-label="Primary navigation">
+            <Link href="/#how-it-works" className="vs-nav-link">
+              How It Works
+            </Link>
             <Link href="/#platform" className="vs-nav-link">
-              Platform
-            </Link>
-            <Link href="/#agent-analytics" className="vs-nav-link">
-              Agent Analytics
-            </Link>
-            <Link href="/mcp-guide" className="vs-nav-link">
-              MCP Server
+              Inside Console
             </Link>
             <Link href="/agencies" className="vs-nav-link">
               Agencies
+            </Link>
+            <Link href="/mcp-guide" className="vs-nav-link">
+              Developers (/mcp)
             </Link>
             <Link href="/pricing" className="vs-nav-link">
               Pricing

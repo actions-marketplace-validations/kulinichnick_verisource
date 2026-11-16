@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import React, { useEffect, useRef, useState } from 'react';
-import type { ReadinessScanSummary } from '@verisource/core-geo';
+import {
+  buildPlainEnglishSiteDiagnosis,
+  type ReadinessScanSummary,
+} from '@verisource/core-geo';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
 
 function extractSafeGraderHostname(raw: string | null): string | null {
@@ -122,16 +125,37 @@ export function PublicGraderClient(): React.ReactElement {
   const readabilityStatus = result?.crawlerReadability?.status ?? 'ssr_clean';
   const readabilityBadge =
     readabilityStatus === 'csr_js_trap'
-      ? 'JS SHELL TRAP'
+      ? 'BLANK TO AI'
       : readabilityStatus === 'low_signal_bloat'
-        ? 'HTML BLOAT'
-        : 'SSR CLEAN';
+        ? 'NEEDS CLEANUP'
+        : 'READABLE';
   const readabilityTone =
     readabilityStatus === 'csr_js_trap'
       ? 'critical'
       : readabilityStatus === 'low_signal_bloat'
         ? 'warn'
         : 'pass';
+
+  const plainDiagnosis = result
+    ? buildPlainEnglishSiteDiagnosis({
+        brandName: result.brandName,
+        hostname: result.hostname,
+        visibilityScore: result.visibilityScore,
+        accuracyScore: result.accuracyScore,
+        robotsAiBotStatus: result.robotsAiBotStatus,
+        llmsTxtStatus: result.llmsTxtStatus,
+        agentsMdStatus: result.agentsMdStatus,
+        jsonLdCount: result.jsonLdCount,
+        isShopify: result.isShopify,
+        shopifyMcpStatus: result.shopifyMcpStatus,
+        crawlerReadability: result.crawlerReadability,
+        hallucinationCount: result.samplePromptResult.hallucinationDetected
+          ? 1
+          : 0,
+        brandMentionedInSample: result.samplePromptResult.brandMentioned,
+        topRivals: result.samplePromptResult.competitorsMentioned,
+      })
+    : null;
 
   return (
     <div id="grader" className="vs-card" style={{ overflow: 'hidden' }}>
@@ -149,7 +173,7 @@ export function PublicGraderClient(): React.ReactElement {
       >
         <div>
           <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-            FREE AI SEARCH &amp; AGENT READINESS AUDIT (LIMITED PREVIEW)
+            FREE AI SEARCH &amp; AGENT READINESS AUDIT (PLAIN-ENGLISH DIAGNOSIS)
           </div>
           <div
             style={{
@@ -158,14 +182,14 @@ export function PublicGraderClient(): React.ReactElement {
               marginTop: '2px',
             }}
           >
-            Enter your company domain to test live AI bot access, JS crawler
-            readability, and a sample buyer shortlist prompt.
+            Enter your website to see in plain English why AI skips your
+            business—and get a 1-click prompt for your AI tool to fix it.
           </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <StatusBadge tone="pass">NO ACCOUNT REQUIRED</StatusBadge>
-          <StatusBadge>LIVE HTTP + AI PROBE</StatusBadge>
+          <StatusBadge>60-SECOND LIVE SCAN</StatusBadge>
         </div>
       </div>
 
@@ -184,7 +208,7 @@ export function PublicGraderClient(): React.ReactElement {
           className="vs-btn"
           style={{ whiteSpace: 'nowrap', padding: '10px 24px' }}
         >
-          {loading ? 'Running Live Audit...' : 'Run Free AI Audit →'}
+          {loading ? 'Scanning Your Website...' : 'Run Free AI Audit →'}
         </button>
       </form>
 
@@ -209,43 +233,38 @@ export function PublicGraderClient(): React.ReactElement {
         >
           <div style={{ padding: '16px 18px' }}>
             <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
-              01 · AI VISIBILITY SCORE
+              01 · DOES AI RECOMMEND YOU?
             </div>
             <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-              Measures how ChatGPT, Perplexity, and Gemini shortlist your brand
-              against category competitors.
+              Checks whether ChatGPT, Perplexity, and Gemini name your business
+              or send buyers to competitors instead.
             </div>
           </div>
           <div style={{ padding: '16px 18px' }}>
             <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
-              02 · BOT &amp; WAF ACCESS
+              02 · ARE YOUR PRICES RIGHT?
             </div>
             <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-              Tests live HTTP responses for{' '}
-              <code className="vs-mono">GPTBot</code>,{' '}
-              <code className="vs-mono">OAI-SearchBot</code>,{' '}
-              <code className="vs-mono">PerplexityBot</code>, and{' '}
-              <code className="vs-mono">ClaudeBot</code>.
+              Spots where AI invents outdated prices, wrong policies, or
+              missing services that cost you leads.
             </div>
           </div>
           <div style={{ padding: '16px 18px' }}>
             <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
-              03 · JS CRAWLER READABILITY
+              03 · CAN AI READ YOUR SITE?
             </div>
             <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-              Detects empty client-side React/SPA shells that non-JS AI crawlers
-              skip during retrieval.
+              Tests whether AI search bots are blocked by your firewall or
+              stuck on blank JavaScript pages.
             </div>
           </div>
           <div style={{ padding: '16px 18px' }}>
             <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
-              04 · AGENT PROTOCOL FEEDS
+              04 · 1-CLICK PROMPT FOR YOUR AI
             </div>
             <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-              Inspects <code className="vs-mono">JSON-LD</code>,{' '}
-              <code className="vs-mono">/llms.txt</code>,{' '}
-              <code className="vs-mono">/agents.md</code>, and Shopify{' '}
-              <code className="vs-mono">/api/ucp/mcp</code>.
+              Prepares one ready-made prompt you paste into Claude, ChatGPT,
+              Antigravity, or Cursor to fix your site.
             </div>
           </div>
         </div>
@@ -261,362 +280,489 @@ export function PublicGraderClient(): React.ReactElement {
                 value={result.visibilityScore}
                 suffix="/ 100"
                 tone={result.visibilityScore < 50 ? 'warn' : 'pass'}
-                sublabel={`Readiness baseline for ${result.hostname}`}
+                sublabel={`How often AI recommends ${result.brandName}`}
               />
             </div>
             <div>
               <MetricLedgerCell
-                label="Fact Accuracy"
+                label="Price & Fact Accuracy"
                 value={`${result.accuracyScore}%`}
                 tone={result.accuracyScore < 80 ? 'critical' : 'pass'}
                 sublabel={
                   result.samplePromptResult.hallucinationDetected
-                    ? 'Claim mismatch detected in sample prompt'
-                    : 'No pricing mismatch in sample prompt'
+                    ? 'Wrong AI claim spotted in buyer check'
+                    : 'No wrong pricing in sample check'
                 }
               />
             </div>
             <div>
               <MetricLedgerCell
-                label="Crawler Readability"
+                label="Can AI Bots Read It?"
                 value={readabilityBadge}
                 tone={readabilityTone}
                 sublabel={
                   result.crawlerReadability
-                    ? `${result.crawlerReadability.visibleWordCount.toLocaleString('en-US')} words · ~${result.crawlerReadability.estimatedTokens.toLocaleString('en-US')} tokens`
-                    : 'Server-rendered HTML inspected'
+                    ? `AI bots read ${result.crawlerReadability.visibleWordCount.toLocaleString('en-US')} words on homepage`
+                    : 'Homepage text readability checked'
                 }
               />
             </div>
             <div>
               <MetricLedgerCell
-                label="AI Protocol Feeds"
+                label="AI Fact-Sheet Files"
                 value={
-                  result.agentsMdStatus === 'custom_enriched'
-                    ? 'VERIFIED'
-                    : result.agentsMdStatus === 'default_boilerplate'
-                      ? 'BOILERPLATE'
+                  result.agentsMdStatus === 'custom_enriched' &&
+                  result.llmsTxtStatus === 'present' &&
+                  result.jsonLdCount >= 2
+                    ? 'COMPLETE'
+                    : result.agentsMdStatus === 'default_boilerplate' ||
+                        result.llmsTxtStatus === 'present' ||
+                        result.jsonLdCount >= 1
+                      ? 'PARTIAL'
                       : 'MISSING'
                 }
                 tone={
-                  result.agentsMdStatus === 'custom_enriched'
+                  result.agentsMdStatus === 'custom_enriched' &&
+                  result.llmsTxtStatus === 'present' &&
+                  result.jsonLdCount >= 2
                     ? 'pass'
-                    : result.agentsMdStatus === 'default_boilerplate'
+                    : result.agentsMdStatus === 'default_boilerplate' ||
+                        result.llmsTxtStatus === 'present' ||
+                        result.jsonLdCount >= 1
                       ? 'warn'
                       : 'critical'
                 }
-                sublabel={`${result.jsonLdCount} JSON-LD · /llms.txt ${
-                  result.llmsTxtStatus === 'present' ? 'present' : 'missing'
+                sublabel={`Schema (${result.jsonLdCount}) · /llms.txt ${
+                  result.llmsTxtStatus === 'present' ? 'live' : 'missing'
+                } · /agents.md ${
+                  result.agentsMdStatus === 'custom_enriched'
+                    ? 'live'
+                    : 'missing'
                 }`}
               />
             </div>
           </div>
 
-          <div
-            style={{
-              padding: '13px 20px',
-              borderBottom: '1px solid var(--vs-border)',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
-            <span
-              className="vs-mono"
-              style={{
-                fontSize: '11.5px',
-                color: 'var(--vs-ink-muted)',
-                marginRight: '4px',
-              }}
-            >
-              LIVE AI BOT ACCESS:
-            </span>
-            {(
-              [
-                ['GPTBot', result.robotsAiBotStatus.GPTBot],
-                ['OAI-SearchBot', result.robotsAiBotStatus['OAI-SearchBot']],
-                ['PerplexityBot', result.robotsAiBotStatus.PerplexityBot],
-                ['ClaudeBot', result.robotsAiBotStatus.ClaudeBot],
-              ] as const
-            ).map(([bot, allowed]) => (
-              <StatusBadge key={bot} tone={allowed ? 'pass' : 'critical'}>
-                {bot}: {allowed ? '200 ALLOWED' : '403 BLOCKED'}
-              </StatusBadge>
-            ))}
-            {result.robotsAiBotStatus.waf_blocked ? (
-              <StatusBadge tone="critical">WAF CHALLENGE DETECTED</StatusBadge>
-            ) : (
-              <StatusBadge tone="pass">NO WAF BLOCKS</StatusBadge>
-            )}
-            {result.isShopify ? (
-              <StatusBadge
-                tone={
-                  result.shopifyMcpStatus === 'ucp_active' ? 'pass' : 'warn'
-                }
-              >
-                SHOPIFY:{' '}
-                {result.shopifyMcpStatus === 'ucp_active'
-                  ? 'UCP /API/UCP/MCP'
-                  : result.shopifyMcpStatus === 'legacy_mcp_active'
-                    ? 'LEGACY /API/MCP'
-                    : 'CATALOG FEED OFF'}
-              </StatusBadge>
-            ) : null}
-          </div>
-
-          <div style={{ padding: '18px 20px' }}>
-            {result.crawlerReadability ? (
+          <div style={{ padding: '20px' }}>
+            {/* 1. Plain-English Site Diagnosis: What Needs to Be Fixed & Why */}
+            {plainDiagnosis ? (
               <div
                 style={{
-                  marginBottom: '14px',
-                  padding: '10px 14px',
-                  borderRadius: '6px',
+                  marginBottom: '18px',
                   border: '1px solid var(--vs-border)',
-                  background: 'var(--vs-surface-subtle)',
-                  fontSize: '12.5px',
-                  color: 'var(--vs-ink-secondary)',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  background: '#FFFFFF',
                 }}
               >
-                <strong style={{ color: 'var(--vs-ink)' }}>
-                  Agent Readability Check:
-                </strong>{' '}
-                {result.crawlerReadability.summary}
+                <div
+                  style={{
+                    padding: '13px 16px',
+                    background: 'var(--vs-surface-warm)',
+                    borderBottom: '1px solid var(--vs-border)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div>
+                    <div
+                      className="vs-eyebrow"
+                      style={{ color: 'var(--vs-ink)', marginBottom: '2px' }}
+                    >
+                      PLAIN-ENGLISH SITE DIAGNOSIS · WHAT NEEDS TO BE FIXED ON{' '}
+                      {result.hostname.toUpperCase()}
+                    </div>
+                    <strong style={{ fontSize: '14.5px' }}>
+                      {plainDiagnosis.headline}
+                    </strong>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    {cached24h !== null ? (
+                      <StatusBadge tone={cached24h ? 'neutral' : 'pass'}>
+                        {cached24h ? '24H CACHE' : 'FRESH LIVE SCAN'}
+                      </StatusBadge>
+                    ) : null}
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() => void runScan(result.hostname, true)}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      {loading ? 'Scanning...' : '↻ Re-Scan Live'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyScanLink()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      {copiedScanLink ? '✓ Link Copied' : 'Share Audit Link'}
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ padding: '14px 16px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                    }}
+                  >
+                    {plainDiagnosis.issues.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--vs-border)',
+                          background:
+                            item.severity === 'fix_first'
+                              ? 'var(--vs-crit-bg)'
+                              : item.severity === 'healthy'
+                                ? 'var(--vs-pass-bg)'
+                                : 'var(--vs-surface-subtle)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '5px',
+                          }}
+                        >
+                          <StatusBadge
+                            tone={
+                              item.severity === 'fix_first'
+                                ? 'critical'
+                                : item.severity === 'healthy'
+                                  ? 'pass'
+                                  : 'warn'
+                            }
+                          >
+                            {item.badgeLabel}
+                          </StatusBadge>
+                          <strong style={{ fontSize: '13.5px' }}>
+                            {idx + 1}. {item.whatIsWrong}
+                          </strong>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink-secondary)',
+                            lineHeight: 1.5,
+                            marginBottom: '4px',
+                          }}
+                        >
+                          <strong style={{ color: 'var(--vs-ink)' }}>
+                            Why this costs you customers:
+                          </strong>{' '}
+                          {item.whyItMatters}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink-secondary)',
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <strong style={{ color: 'var(--vs-ink)' }}>
+                            How you fix it (no coding):
+                          </strong>{' '}
+                          {item.howToFixPlain}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             ) : null}
 
+            {/* 2. Prominent 1-Click AI Fix Prompt Push (Primary CTA) */}
             <div
               style={{
+                marginBottom: '18px',
+                border: '1px solid var(--vs-ink)',
+                borderRadius: '8px',
+                background: 'var(--vs-surface-warm)',
+                padding: '16px 18px',
                 display: 'flex',
                 flexWrap: 'wrap',
                 alignItems: 'center',
-                gap: '8px',
-                marginBottom: '6px',
+                justifyContent: 'space-between',
+                gap: '14px',
               }}
             >
-              <div className="vs-eyebrow">
-                FREE PREVIEW · 1 OF 35+ BUYER PROMPTS (
-                {result.samplePromptResult.aiEngine.toUpperCase()})
-              </div>
-              <StatusBadge
-                tone={
-                  result.samplePromptResult.fanoutTelemetryType &&
-                  result.samplePromptResult.fanoutTelemetryType !==
-                    'mock_fixture'
-                    ? 'pass'
-                    : 'neutral'
-                }
-              >
-                {result.samplePromptResult.fanoutTelemetryType ===
-                'observed_query'
-                  ? 'LIVE WEB SEARCH · FANOUT OBSERVED'
-                  : result.samplePromptResult.fanoutTelemetryType ===
-                      'cited_source_only'
-                    ? 'LIVE WEB SEARCH · CITED'
-                    : 'SAMPLE SNAPSHOT'}
-              </StatusBadge>
-              {cached24h !== null ? (
-                <StatusBadge tone={cached24h ? 'neutral' : 'pass'}>
-                  {cached24h ? '24H CACHE' : 'FRESH LIVE SCAN'}
-                </StatusBadge>
-              ) : null}
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => void runScan(result.hostname, true)}
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '3px 9px', fontSize: '11.5px' }}
-              >
-                {loading ? 'Probing...' : '↻ Re-Scan Live'}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleCopyScanLink()}
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '3px 9px', fontSize: '11.5px' }}
-              >
-                {copiedScanLink ? '✓ Link Copied' : 'Copy Audit Link'}
-              </button>
-            </div>
-
-            <div
-              style={{
-                fontWeight: 600,
-                fontSize: '15px',
-                marginBottom: '12px',
-              }}
-            >
-              &ldquo;{result.samplePromptResult.promptText}&rdquo;
-            </div>
-
-            <div
-              className="vs-grid-2"
-              style={{
-                padding: '14px 16px',
-                border: '1px solid var(--vs-border)',
-                borderRadius: '6px',
-                background: 'var(--vs-surface-warm)',
-                fontSize: '13px',
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 600, marginBottom: '4px' }}>
-                  Competitors AI Shortlists Alongside {result.brandName}:
+              <div style={{ maxWidth: '670px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '5px',
+                  }}
+                >
+                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                    RECOMMENDED FIX · COPY 1 PROMPT INTO YOUR OWN AI TOOL
+                  </span>
+                  <StatusBadge tone="pass">NO CODING NEEDED</StatusBadge>
                 </div>
-                <div style={{ color: 'var(--vs-ink-secondary)' }}>
-                  {result.samplePromptResult.competitorsMentioned.join(' · ') ||
-                    'Category peers & directories'}
-                </div>
-                {result.samplePromptResult.decompiledFanoutQueries &&
-                result.samplePromptResult.decompiledFanoutQueries.length > 0 ? (
-                  <div style={{ marginTop: '10px' }}>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        marginBottom: '3px',
-                        fontSize: '12px',
-                      }}
-                    >
-                      Observed Engine Sub-Queries:
-                    </div>
-                    {result.samplePromptResult.decompiledFanoutQueries
-                      .slice(0, 2)
-                      .map((q) => (
-                        <div
-                          key={q}
-                          className="vs-mono"
-                          style={{
-                            fontSize: '11.5px',
-                            color: 'var(--vs-ink-secondary)',
-                            marginBottom: '2px',
-                          }}
-                        >
-                          → {q}
-                        </div>
-                      ))}
-                  </div>
-                ) : null}
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, marginBottom: '4px' }}>
-                  Cited Source URLs (Console Required):
-                </div>
-                <div className="vs-mono" style={{ fontSize: '12px' }}>
-                  {result.samplePromptResult.citedSourceUrlsBlurred.map(
-                    (u, idx) => (
-                      <div key={idx} style={{ marginBottom: '2px' }}>
-                        {u.split('/••••••')[0]}/
-                        <span className="vs-blur-token">
-                          exact-source-path-redacted
-                        </span>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Locked Subscriber Console Modules Preview */}
-            <div
-              style={{
-                marginTop: '16px',
-                border: '1px solid var(--vs-border)',
-                borderRadius: '6px',
-                background: '#FFFFFF',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  padding: '10px 16px',
-                  borderBottom: '1px solid var(--vs-border)',
-                  background: 'var(--vs-surface-subtle)',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px',
-                }}
-              >
-                <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-                  GATED IN SUBSCRIBER ADMIN CONSOLE FOR{' '}
-                  {result.hostname.toUpperCase()}
-                </span>
-                <StatusBadge tone="warn">SUBSCRIBER ACCESS REQUIRED</StatusBadge>
-              </div>
-
-              <div className="vs-grid-2" style={{ padding: '14px 16px', gap: '12px' }}>
-                <div style={{ fontSize: '12.5px' }}>
-                  <strong>1. 3-Engine Sentiment &amp; Rival Share-of-Voice</strong>
-                  <div style={{ color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    Full ChatGPT, Gemini &amp; Perplexity Mention vs. Citation Rate
-                    + Brand Truth Watchdog for {result.brandName}.
-                  </div>
-                </div>
-                <div style={{ fontSize: '12.5px' }}>
-                  <strong>2. 8+ Auto-Suggested Buyer Funnel Prompts</strong>
-                  <div style={{ color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    1-click Unbranded Discovery, Comparison, Pricing &amp; Branded
-                    prompts tailored to {result.hostname}.
-                  </div>
-                </div>
-                <div style={{ fontSize: '12.5px' }}>
-                  <strong>3. Unredacted Reddit, G2 &amp; Editorial URLs</strong>
-                  <div style={{ color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    Every exact competitor-feeding article + fact-verified
-                    editorial outreach notes.
-                  </div>
-                </div>
-                <div style={{ fontSize: '12.5px' }}>
-                  <strong>4. 1-Click AI Fix Prompt + Verified Code</strong>
-                  <div style={{ color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    Copy one tailored prompt into Claude, ChatGPT, Antigravity,
-                    or Cursor to fix every issue on {result.hostname}{' '}
-                    automatically.
-                  </div>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  padding: '14px 16px',
-                  borderTop: '1px solid var(--vs-border)',
-                  background: 'var(--vs-surface-warm)',
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-                  Try the private Admin Console on{' '}
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '15.5px',
+                    marginBottom: '5px',
+                  }}
+                >
+                  {plainDiagnosis && plainDiagnosis.issueCount > 0
+                    ? `Let your AI fix all ${plainDiagnosis.issueCount} issue${
+                        plainDiagnosis.issueCount === 1 ? '' : 's'
+                      } on ${result.hostname} automatically`
+                    : `Generate vs.-Competitor pages & track 35+ buyer prompts for ${result.hostname}`}
+                </strong>
+                <div
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--vs-ink-secondary)',
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Inside your private Console, Verisource bundles every fix for{' '}
                   <strong style={{ color: 'var(--vs-ink)' }}>
                     {result.hostname}
                   </strong>{' '}
-                  free for 7 days ($0.00 due today · cancel in 1 click), or grab
-                  a $19 one-time pass with zero recurring billing.
+                  (<code className="vs-mono">JSON-LD</code> business &amp; FAQ
+                  schema, <code className="vs-mono">/llms.txt</code>,{' '}
+                  <code className="vs-mono">/agents.md</code>, and real pricing
+                  rules) into <strong>one ready-made prompt</strong>. Copy it,
+                  paste it into{' '}
+                  <strong>
+                    ChatGPT, Claude, Antigravity, Cursor, Lovable, or Shopify
+                  </strong>
+                  , and your AI updates your site for you.
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                  <Link
-                    href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
-                      result.hostname
-                    )}`}
-                    className="vs-btn"
-                  >
-                    Start 7-Day Free Trial ($0 Today) →
-                  </Link>
-                  <Link
-                    href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
-                      result.hostname
-                    )}`}
-                    className="vs-btn vs-btn-secondary"
-                  >
-                    Or $19 One-Time Audit Pass
-                  </Link>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                <Link
+                  href={`/pricing?plan=pro_99&domain=${encodeURIComponent(
+                    result.hostname
+                  )}`}
+                  className="vs-btn"
+                >
+                  Start 7-Day Free Trial &amp; Get My AI Prompt ($0 Today) →
+                </Link>
+                <Link
+                  href={`/pricing?plan=tripwire_19&domain=${encodeURIComponent(
+                    result.hostname
+                  )}`}
+                  className="vs-btn vs-btn-secondary"
+                >
+                  Or $19 One-Time Audit Pass
+                </Link>
+              </div>
+            </div>
+
+            {/* 3. Sample Buyer Question Preview */}
+            <div
+              style={{
+                marginBottom: '14px',
+                padding: '14px 16px',
+                border: '1px solid var(--vs-border)',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '6px',
+                }}
+              >
+                <div className="vs-eyebrow">
+                  SAMPLE BUYER QUESTION CHECKED ON{' '}
+                  {result.samplePromptResult.aiEngine.toUpperCase()} (1 OF 35+
+                  IN CONSOLE)
+                </div>
+                <StatusBadge
+                  tone={
+                    result.samplePromptResult.brandMentioned ? 'pass' : 'warn'
+                  }
+                >
+                  {result.samplePromptResult.brandMentioned
+                    ? `${result.brandName.toUpperCase()} MENTIONED`
+                    : `${result.brandName.toUpperCase()} LEFT OUT`}
+                </StatusBadge>
+              </div>
+
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: '14.5px',
+                  marginBottom: '10px',
+                }}
+              >
+                &ldquo;{result.samplePromptResult.promptText}&rdquo;
+              </div>
+
+              <div
+                className="vs-grid-2"
+                style={{
+                  padding: '12px 14px',
+                  border: '1px solid var(--vs-border)',
+                  borderRadius: '6px',
+                  background: 'var(--vs-surface-subtle)',
+                  fontSize: '13px',
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                    Competitors AI Recommends Instead / Alongside You:
+                  </div>
+                  <div style={{ color: 'var(--vs-ink-secondary)' }}>
+                    {result.samplePromptResult.competitorsMentioned.join(
+                      ' · '
+                    ) || 'Category peers & review directories'}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                    Articles &amp; Threads AI Trusted (Full URLs in Console):
+                  </div>
+                  <div className="vs-mono" style={{ fontSize: '12px' }}>
+                    {result.samplePromptResult.citedSourceUrlsBlurred.map(
+                      (u, idx) => (
+                        <div key={idx} style={{ marginBottom: '2px' }}>
+                          {u.split('/••••••')[0]}/
+                          <span className="vs-blur-token">
+                            exact-source-path-redacted
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* 4. Optional Progressive Disclosure for Raw Bot & Developer Telemetry */}
+            <details className="vs-disclosure">
+              <summary className="vs-disclosure-summary">
+                <div>
+                  <strong style={{ fontSize: '13px', display: 'block' }}>
+                    Technical Developer Details (AI Bot HTTP Status &amp; HTML
+                    Readability)
+                  </strong>
+                  <span
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Optional — raw crawler checks for engineers (already
+                    summarized in plain English above).
+                  </span>
+                </div>
+                <span className="vs-disclosure-pill">Details</span>
+              </summary>
+
+              <div className="vs-disclosure-body">
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: result.crawlerReadability ? '12px' : 0,
+                  }}
+                >
+                  <span
+                    className="vs-mono"
+                    style={{
+                      fontSize: '11.5px',
+                      color: 'var(--vs-ink-muted)',
+                      marginRight: '4px',
+                    }}
+                  >
+                    LIVE AI BOT ACCESS:
+                  </span>
+                  {(
+                    [
+                      ['GPTBot', result.robotsAiBotStatus.GPTBot],
+                      [
+                        'OAI-SearchBot',
+                        result.robotsAiBotStatus['OAI-SearchBot'],
+                      ],
+                      ['PerplexityBot', result.robotsAiBotStatus.PerplexityBot],
+                      ['ClaudeBot', result.robotsAiBotStatus.ClaudeBot],
+                    ] as const
+                  ).map(([bot, allowed]) => (
+                    <StatusBadge key={bot} tone={allowed ? 'pass' : 'critical'}>
+                      {bot}: {allowed ? '200 ALLOWED' : '403 BLOCKED'}
+                    </StatusBadge>
+                  ))}
+                  {result.robotsAiBotStatus.waf_blocked ? (
+                    <StatusBadge tone="critical">
+                      WAF CHALLENGE DETECTED
+                    </StatusBadge>
+                  ) : (
+                    <StatusBadge tone="pass">NO WAF BLOCKS</StatusBadge>
+                  )}
+                  {result.isShopify ? (
+                    <StatusBadge
+                      tone={
+                        result.shopifyMcpStatus === 'ucp_active'
+                          ? 'pass'
+                          : 'warn'
+                      }
+                    >
+                      SHOPIFY:{' '}
+                      {result.shopifyMcpStatus === 'ucp_active'
+                        ? 'UCP /API/UCP/MCP'
+                        : result.shopifyMcpStatus === 'legacy_mcp_active'
+                          ? 'LEGACY /API/MCP'
+                          : 'CATALOG FEED OFF'}
+                    </StatusBadge>
+                  ) : null}
+                </div>
+
+                {result.crawlerReadability ? (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--vs-border)',
+                      background: 'var(--vs-surface-subtle)',
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      Server HTML Readability:
+                    </strong>{' '}
+                    {result.crawlerReadability.summary}
+                  </div>
+                ) : null}
+              </div>
+            </details>
           </div>
         </>
       )}

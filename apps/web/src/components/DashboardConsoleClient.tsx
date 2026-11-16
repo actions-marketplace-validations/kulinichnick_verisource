@@ -8,6 +8,7 @@ import {
   buildAgencyColdOutreachSequence,
   buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
+  buildAnalyticsInstallAiPrompt,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildCitationAnswerPageBundle,
@@ -15,6 +16,7 @@ import {
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
+  buildPlainEnglishSiteDiagnosis,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
   computeShopifyCheckoutKey,
@@ -37,6 +39,7 @@ import {
   type GeneratedFixRow,
   type LiveFixVerificationReport,
   type McpApiKeyRow,
+  type PlainDiagnosisActionTarget,
   type ProfileRow,
   type QualityRubricBreakdown,
   type ScoreDeltaSummary,
@@ -57,19 +60,40 @@ import {
 function describeFixPlainly(fixType: string): string {
   switch (fixType) {
     case 'json_ld_schema':
-      return 'Hidden fact-sheet code for your website header so AI engines read your real prices, products, and FAQs.';
+      return 'What it is: Hidden business fact-sheet code (JSON-LD) so ChatGPT, Google, and Perplexity read your real prices, products, and FAQs.';
     case 'shopify_agents_liquid':
-      return 'Shopify theme file that gives AI shopping assistants your verified catalog and store rules.';
+      return 'What it is: Shopify theme rulebook that gives AI shopping assistants your verified catalog, prices, and shipping rules.';
     case 'agents_md':
-      return 'Plain-English instruction manual telling AI bots what you sell and what false claims to reject.';
+      return 'What it is: Plain-English instruction manual (/agents.md) telling AI bots what you sell and what false claims to reject.';
     case 'llms_txt':
-      return 'Clean 1-page directory of your key pages and policies built for AI search bots.';
+      return 'What it is: Clean 1-page directory (/llms.txt) of your key pages and policies built specifically for AI search bots.';
     case 'fanout_faq_block':
-      return 'Ready-to-publish Q&A section answering the exact questions buyers ask AI engines.';
+      return 'What it is: Ready-to-publish Q&A section answering the exact questions buyers ask AI engines in your niche.';
     case 'citation_outreach_brief':
-      return 'Short founder note to get your business included in third-party review and comparison articles.';
+      return 'What it is: Short founder note to get your business added to third-party review and comparison articles (not website code).';
     default:
       return 'Verified copy-paste website fix.';
+  }
+}
+
+function whereFixGoesPlainly(fixType: string, isShopify: boolean): string {
+  switch (fixType) {
+    case 'json_ld_schema':
+      return isShopify
+        ? 'Where it goes: Inside layout/theme.liquid before </head> (or let the 1-Click AI Fix Prompt above install it).'
+        : 'Where it goes: Inside your homepage <head> custom code settings (or let the 1-Click AI Fix Prompt above install it).';
+    case 'shopify_agents_liquid':
+      return 'Where it goes: Save as templates/agents.md.liquid in Shopify Online Store -> Themes -> Edit code (or paste the 1-Click AI Prompt above).';
+    case 'agents_md':
+      return 'Where it goes: Publish as a plain text file at yoursite.com/agents.md (or let the 1-Click AI Fix Prompt above create it).';
+    case 'llms_txt':
+      return 'Where it goes: Publish as a plain text file at yoursite.com/llms.txt (or let the 1-Click AI Fix Prompt above create it).';
+    case 'fanout_faq_block':
+      return 'Where it goes: Add to your homepage or /pricing FAQ section (or let the 1-Click AI Fix Prompt above add it).';
+    case 'citation_outreach_brief':
+      return 'Where it goes: Send via email or post on the third-party review source in Step 03 — do NOT paste onto your website.';
+    default:
+      return `Fix Type: ${fixType}`;
   }
 }
 
@@ -1944,6 +1968,39 @@ export function DashboardConsoleClient(props: {
         )
       : null;
 
+  const [copiedAnalyticsPrompt, setCopiedAnalyticsPrompt] = useState(false);
+
+  const estimatedLiveJsonLdCount =
+    (domainFixes.some((f) => f.fix_type === 'json_ld_schema' && f.is_applied)
+      ? 1
+      : 0) +
+    (domainFixes.some((f) => f.fix_type === 'fanout_faq_block' && f.is_applied)
+      ? 1
+      : 0);
+
+  const activePlainDiagnosis = activeDomain
+    ? buildPlainEnglishSiteDiagnosis({
+        brandName: activeDomain.brand_name,
+        hostname: activeDomainHostname,
+        visibilityScore: activeDomain.visibility_score,
+        accuracyScore: activeDomain.accuracy_score,
+        robotsAiBotStatus: activeDomain.robots_ai_bot_status,
+        llmsTxtStatus: activeDomain.llms_txt_status,
+        agentsMdStatus: activeDomain.agents_md_status,
+        jsonLdCount: estimatedLiveJsonLdCount,
+        isShopify: activeDomain.is_shopify,
+        shopifyMcpStatus: activeDomain.shopify_mcp_status,
+        crawlerReadability: activeCrawlerReadability,
+        hallucinationCount: flaggedSnapshots.length,
+        isTruthVerified: activeDomain.brand_truth_sheet.is_user_verified,
+        brandMentionedInSample:
+          domainSnapshots.length > 0
+            ? domainSnapshots.some((s) => s.brand_mentioned)
+            : true,
+        topRivals: detectedRivalNames,
+      })
+    : null;
+
   const pixelSnippet = activeDomain
     ? buildAiAttributionSnippet({
         trackingPixelToken: activeDomain.tracking_pixel_token,
@@ -1967,6 +2024,65 @@ export function DashboardConsoleClient(props: {
         ingestionUrl: 'https://verisource.dev/api/pixel',
       })
     : '';
+
+  const analyticsInstallAiPrompt =
+    activeDomain && pixelSnippet
+      ? buildAnalyticsInstallAiPrompt({
+          brandName: activeDomain.brand_name,
+          hostname: activeDomainHostname,
+          isShopify: activeDomain.is_shopify,
+          browserPixelSnippet: pixelSnippet,
+          shopifyCheckoutPixel: shopifyCheckoutPixel || undefined,
+          edgeCrawlerSnippet: edgeCrawlerSnippet || undefined,
+        })
+      : null;
+
+  async function handleCopyAnalyticsInstallPrompt() {
+    if (!analyticsInstallAiPrompt) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(analyticsInstallAiPrompt.content);
+      }
+      setCopiedAnalyticsPrompt(true);
+      setTimeout(() => setCopiedAnalyticsPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  function handlePlainDiagnosisAction(target: PlainDiagnosisActionTarget) {
+    if (target === 'confirm_truth_step1') {
+      if (typeof document !== 'undefined') {
+        const el = document.getElementById('vs-brand-truth-form');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      return;
+    }
+    if (target === 'copy_ai_fix_prompt_step2') {
+      setActiveTab('tab2_fixes');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+    if (target === 'build_vs_page_step2') {
+      setCitationBlueprintType('vs_competitor');
+      setExpandedCitationPageStudio(true);
+      setActiveTab('tab2_fixes');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+    if (target === 'offsite_citations_step3') {
+      setActiveTab('tab3_offsite');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }
 
   const mcpClientConfigJson = JSON.stringify(
     {
@@ -2945,9 +3061,9 @@ export function DashboardConsoleClient(props: {
           <div>
             {isGuided ? (
               <GuidedExplainerBanner
-                stepLabel="STEP 01 OF 03 · BRAND HEALTH & AI MISTAKES"
-                title="See what AI tells buyers—and correct any invented facts"
-                description="Review ChatGPT, Gemini, and Perplexity answers on the left. Confirm your real prices and delivery rules on the right, then click Save Facts & Update Fixes."
+                stepLabel="STEP 01 OF 03 · WHAT WE FOUND ON YOUR WEBSITE"
+                title="Start here: see what needs to be fixed—then let your AI fix it in Step 02"
+                description="Review your plain-English site diagnosis below, confirm your real prices in 'Your Real Business Facts', and click 'Fix With 1-Click AI Prompt →' to update your site without coding."
                 glossary={[
                   {
                     term: 'AI Visibility',
@@ -2958,8 +3074,8 @@ export function DashboardConsoleClient(props: {
                     meaning: 'Whether AI states your real prices & policies',
                   },
                   {
-                    term: 'GPTBot / PerplexityBot',
-                    meaning: 'AI crawlers reading your pages',
+                    term: '1-Click AI Prompt',
+                    meaning: 'Ready-made prompt you paste into ChatGPT, Claude, or Cursor',
                   },
                 ]}
               />
@@ -3124,6 +3240,164 @@ export function DashboardConsoleClient(props: {
                 )}
               </div>
             </div>
+
+            {/* M52: Plain-English Site Diagnosis & 1-Click Action Plan (Guided Mode) */}
+            {isGuided && activePlainDiagnosis ? (
+              <div
+                className="vs-card"
+                style={{
+                  marginBottom: '22px',
+                  overflow: 'hidden',
+                  border: '1px solid var(--vs-ink)',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '13px 16px',
+                    background: 'var(--vs-surface-warm)',
+                    borderBottom: '1px solid var(--vs-border)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                        marginBottom: '3px',
+                      }}
+                    >
+                      <span
+                        className="vs-eyebrow"
+                        style={{ color: 'var(--vs-ink)' }}
+                      >
+                        PLAIN-ENGLISH SITE DIAGNOSIS · WHAT NEEDS TO BE FIXED ON{' '}
+                        {activeDomainHostname.toUpperCase()}
+                      </span>
+                      <StatusBadge tone="pass">NO CODING NEEDED</StatusBadge>
+                    </div>
+                    <strong style={{ fontSize: '14.5px', display: 'block' }}>
+                      {activePlainDiagnosis.headline}
+                    </strong>
+                    <div
+                      style={{
+                        fontSize: '12.5px',
+                        color: 'var(--vs-ink-secondary)',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {activePlainDiagnosis.plainTakeaway}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handlePlainDiagnosisAction('copy_ai_fix_prompt_step2')
+                    }
+                    className="vs-btn"
+                    style={{ padding: '8px 14px', fontSize: '12.5px' }}
+                  >
+                    Open Step 02: 1-Click AI Fix Prompt →
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    padding: '14px 16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  {activePlainDiagnosis.issues.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background:
+                          item.severity === 'fix_first'
+                            ? 'var(--vs-crit-bg)'
+                            : item.severity === 'healthy'
+                              ? 'var(--vs-pass-bg)'
+                              : 'var(--vs-surface-subtle)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                      }}
+                    >
+                      <div style={{ flex: '1 1 480px' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '4px',
+                          }}
+                        >
+                          <StatusBadge
+                            tone={
+                              item.severity === 'fix_first'
+                                ? 'critical'
+                                : item.severity === 'healthy'
+                                  ? 'pass'
+                                  : 'warn'
+                            }
+                          >
+                            {item.badgeLabel}
+                          </StatusBadge>
+                          <strong style={{ fontSize: '13.5px' }}>
+                            {idx + 1}. {item.whatIsWrong}
+                          </strong>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12.5px',
+                            color: 'var(--vs-ink-secondary)',
+                            lineHeight: 1.48,
+                          }}
+                        >
+                          <strong style={{ color: 'var(--vs-ink)' }}>
+                            Why this costs you customers:
+                          </strong>{' '}
+                          {item.whyItMatters}{' '}
+                          <strong style={{ color: 'var(--vs-ink)' }}>
+                            How to fix:
+                          </strong>{' '}
+                          {item.howToFixPlain}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handlePlainDiagnosisAction(item.actionTarget)
+                        }
+                        className={
+                          item.actionTarget === 'copy_ai_fix_prompt_step2'
+                            ? 'vs-btn'
+                            : 'vs-btn vs-btn-secondary'
+                        }
+                        style={{ padding: '7px 12px', fontSize: '12px' }}
+                      >
+                        {item.actionLabel}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             {/* Engine-by-Engine Citation Share Strip + 1-Click Engine Filter */}
             <div className="vs-card" style={{ marginBottom: '22px', overflow: 'hidden' }}>
@@ -3725,6 +3999,7 @@ export function DashboardConsoleClient(props: {
               </div>
 
               <form
+                id="vs-brand-truth-form"
                 onSubmit={handleVerifyTruthSheet}
                 className="vs-card"
                 style={{ padding: '16px' }}
@@ -3967,368 +4242,10 @@ export function DashboardConsoleClient(props: {
                 </div>
               ) : null}
 
-              {/* M49: Live Sub-Page AI Bot Extraction Inspector (GPTBot & PerplexityBot View) */}
-              <div
-                style={{
-                  marginBottom: '16px',
-                  border: '1px solid var(--vs-border)',
-                  borderRadius: '6px',
-                  overflow: 'hidden',
-                  background: '#FFFFFF',
-                }}
-              >
-                <div
-                  style={{
-                    padding: '11px 14px',
-                    background: 'var(--vs-surface-warm)',
-                    borderBottom: subPageReport
-                      ? '1px solid var(--vs-border)'
-                      : undefined,
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '10px',
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '7px',
-                        flexWrap: 'wrap',
-                        marginBottom: '2px',
-                      }}
-                    >
-                      <span
-                        className="vs-eyebrow"
-                        style={{ color: 'var(--vs-ink)' }}
-                      >
-                        SUB-PAGE AI BOT EXTRACTION INSPECTOR
-                      </span>
-                      <StatusBadge>GPTBOT &amp; PERPLEXITYBOT VIEW</StatusBadge>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        color: 'var(--vs-ink-secondary)',
-                      }}
-                    >
-                      Test any route on{' '}
-                      <code className="vs-mono">{activeDomainHostname}</code>{' '}
-                      (e.g. <code className="vs-mono">/pricing</code>,{' '}
-                      <code className="vs-mono">/compare/...</code>) to see the
-                      exact non-JS HTML text, <code className="vs-mono">&lt;table&gt;</code>{' '}
-                      matrices, and <code className="vs-mono">JSON-LD</code> AI
-                      crawlers extract.
-                    </div>
-                  </div>
-
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      void handleInspectSubPage();
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      flexWrap: 'wrap',
-                      alignItems: 'center',
-                      gap: '6px',
-                    }}
-                  >
-                    {(activeDomain.is_shopify
-                      ? ['/collections/all', '/pages/ai-facts', '/agents.md']
-                      : ['/pricing', '/about', '/agents.md']
-                    ).map((quickPath) => (
-                      <button
-                        key={quickPath}
-                        type="button"
-                        disabled={inspectingSubPage}
-                        onClick={() => void handleInspectSubPage(quickPath)}
-                        className="vs-btn vs-btn-secondary"
-                        style={{ padding: '4px 8px', fontSize: '11px' }}
-                      >
-                        {quickPath}
-                      </button>
-                    ))}
-                    <input
-                      type="text"
-                      value={subPageInput}
-                      onChange={(e) => setSubPageInput(e.target.value)}
-                      placeholder="/pricing or /compare/..."
-                      aria-label="Target path on tracked domain"
-                      className="vs-input"
-                      style={{
-                        width: '185px',
-                        padding: '5px 9px',
-                        fontSize: '12px',
-                        background: '#FFFFFF',
-                      }}
-                    />
-                    <button
-                      type="submit"
-                      disabled={inspectingSubPage}
-                      className="vs-btn"
-                      style={{ padding: '5px 12px', fontSize: '12px' }}
-                    >
-                      {inspectingSubPage
-                        ? 'Probing Route...'
-                        : 'Inspect Bot View →'}
-                    </button>
-                  </form>
-                </div>
-
-                {subPageReport ? (
-                  <div style={{ padding: '12px 14px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '8px',
-                        marginBottom: '10px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
-                        <strong className="vs-mono" style={{ fontSize: '12.5px' }}>
-                          {subPageReport.targetUrl}
-                        </strong>
-                        <StatusBadge
-                          tone={
-                            subPageReport.pageReadinessScore >= 80
-                              ? 'pass'
-                              : subPageReport.pageReadinessScore >= 60
-                                ? 'warn'
-                                : 'critical'
-                          }
-                        >
-                          {`READINESS: ${subPageReport.pageReadinessScore}/100`}
-                        </StatusBadge>
-                        <StatusBadge
-                          tone={subPageReport.gptBotAllowed ? 'pass' : 'critical'}
-                        >
-                          {`GPTBot: ${subPageReport.gptBotStatus ?? 'ERR'}`}
-                        </StatusBadge>
-                        <StatusBadge
-                          tone={
-                            subPageReport.perplexityBotAllowed
-                              ? 'pass'
-                              : 'critical'
-                          }
-                        >
-                          {`PerplexityBot: ${subPageReport.perplexityBotStatus ?? 'ERR'}`}
-                        </StatusBadge>
-                        <StatusBadge>
-                          {`TABLES: ${subPageReport.tableCount} · WORDS: ${subPageReport.readability.visibleWordCount}`}
-                        </StatusBadge>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        <button
-                          type="button"
-                          onClick={() => void handleCopySubPageAiPrompt()}
-                          className="vs-btn"
-                          style={{ padding: '5px 11px', fontSize: '11.5px' }}
-                        >
-                          {copiedSubPagePrompt
-                            ? '✓ Route Prompt Copied!'
-                            : 'Copy AI Prompt to Fix Route'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowSubPageRawStream((prev) => !prev)
-                          }
-                          className="vs-btn vs-btn-secondary"
-                          style={{ padding: '5px 10px', fontSize: '11.5px' }}
-                        >
-                          {showSubPageRawStream
-                            ? 'Hide Bot Text Stream'
-                            : 'View Bot Text Stream'}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns:
-                          'repeat(auto-fit, minmax(180px, 1fr))',
-                        gap: '8px',
-                      }}
-                    >
-                      {subPageReport.checks.map((chk) => (
-                        <div
-                          key={chk.id}
-                          style={{
-                            padding: '8px 10px',
-                            borderRadius: '5px',
-                            border: '1px solid var(--vs-border)',
-                            background: 'var(--vs-surface-subtle)',
-                            fontSize: '11.5px',
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: '4px',
-                              marginBottom: '3px',
-                            }}
-                          >
-                            <strong>{chk.label}</strong>
-                            <StatusBadge tone={chk.passed ? 'pass' : 'warn'}>
-                              {chk.passed ? 'PASS' : 'FIX'}
-                            </StatusBadge>
-                          </div>
-                          <div style={{ color: 'var(--vs-ink-secondary)' }}>
-                            {chk.detail}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {showSubPageRawStream ? (
-                      <div style={{ marginTop: '12px' }}>
-                        <CodeArtifactCard
-                          title={`Non-JS Bot Extracted Stream (${subPageReport.pathname})`}
-                          fileHint={`Literal DOM text extracted by GPTBot & PerplexityBot from ${subPageReport.targetUrl}`}
-                          code={subPageReport.botExtractedPreview}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '10px',
-                  marginBottom: '12px',
-                }}
-              >
-                <span style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
-                  {attributionTab === 'browser_pixel'
-                    ? 'Track human AI-referred visits and checkout conversions from ChatGPT, Perplexity, Gemini, and Claude.'
-                    : 'Log verified server/edge crawls from GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, and Google-Extended.'}
-                </span>
-                <div
-                  role="group"
-                  aria-label="Attribution snippet mode"
-                  style={{
-                    display: 'inline-flex',
-                    border: '1px solid var(--vs-border)',
-                    borderRadius: '6px',
-                    padding: '2px',
-                    background: 'var(--vs-surface-subtle)',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setAttributionTab('browser_pixel')}
-                    style={{
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px 10px',
-                      borderRadius: '4px',
-                      fontSize: '11.5px',
-                      fontWeight: 600,
-                      background:
-                        attributionTab === 'browser_pixel'
-                          ? 'var(--vs-ink)'
-                          : 'transparent',
-                      color:
-                        attributionTab === 'browser_pixel'
-                          ? '#FFFFFF'
-                          : 'var(--vs-ink-secondary)',
-                    }}
-                  >
-                    Browser Revenue Pixel (10 Lines)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAttributionTab('edge_crawler')}
-                    style={{
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: '4px 10px',
-                      borderRadius: '4px',
-                      fontSize: '11.5px',
-                      fontWeight: 600,
-                      background:
-                        attributionTab === 'edge_crawler'
-                          ? 'var(--vs-ink)'
-                          : 'transparent',
-                      color:
-                        attributionTab === 'edge_crawler'
-                          ? '#FFFFFF'
-                          : 'var(--vs-ink-secondary)',
-                    }}
-                  >
-                    Edge AI Bot Crawl Logger
-                  </button>
-                </div>
-              </div>
-
-              {attributionTab === 'browser_pixel' ? (
-                <>
-                  <CodeArtifactCard
-                    title={`10-Line Attribution Pixel (${activeDomain.brand_name})`}
-                    plainSummary={
-                      isGuided
-                        ? 'Paste once into your site header to track visits coming from ChatGPT, Perplexity, Gemini, and Claude.'
-                        : undefined
-                    }
-                    fileHint="Paste before </head> in layout/theme.liquid for AI referral visits"
-                    code={pixelSnippet}
-                  />
-
-                  {shopifyCheckoutPixel ? (
-                    <div style={{ marginTop: '14px' }}>
-                      <CodeArtifactCard
-                        title={`Shopify Customer Events Checkout Pixel (${activeDomain.brand_name})`}
-                        plainSummary={
-                          isGuided
-                            ? 'Tracks exact checkout order dollars from AI shoppers inside Shopify Admin -> Settings -> Customer events.'
-                            : undefined
-                        }
-                        fileHint="Shopify Admin -> Settings -> Customer events -> Add custom pixel (tracks checkout_completed USD)"
-                        code={shopifyCheckoutPixel}
-                      />
-                    </div>
-                  ) : null}
-                </>
-              ) : (
-                <CodeArtifactCard
-                  title={`Edge / Next.js Middleware AI Bot Crawl Logger (${activeDomain.brand_name})`}
-                  plainSummary={
-                    isGuided
-                      ? 'Optional server middleware snippet that logs real GPTBot, PerplexityBot, ClaudeBot, and Google-Extended hits without slowing page loads.'
-                      : undefined
-                  }
-                  fileHint="Paste into middleware.ts or Cloudflare Worker fetch() — authenticated via HMAC-SHA256 checkout_key"
-                  code={edgeCrawlerSnippet}
-                />
-              )}
-
               {/* Live Agent Crawl & AI Referral Event Ledger */}
               <div
                 style={{
-                  marginTop: '16px',
+                  marginBottom: '16px',
                   border: '1px solid var(--vs-border)',
                   borderRadius: '6px',
                   overflow: 'hidden',
@@ -4462,9 +4379,10 @@ export function DashboardConsoleClient(props: {
                           color: 'var(--vs-ink-secondary)',
                         }}
                       >
-                        No telemetry events recorded in this filter yet. Paste
-                        the pixel or Edge Bot Crawl Logger above, or click{' '}
-                        <strong>⚡ Send Test Bot Ping</strong> to verify live
+                        No AI visitor or bot crawl events recorded yet. Open the
+                        optional tracker drawer below if you want to measure
+                        clicks from ChatGPT &amp; Perplexity, or click{' '}
+                        <strong>⚡ Send Test Bot Ping</strong> to test live
                         ingestion.
                       </div>
                     );
@@ -4546,6 +4464,449 @@ export function DashboardConsoleClient(props: {
                   );
                 })()}
               </div>
+
+              {/* M52 Progressive Disclosure: Optional Analytics Tracking Codes & Sub-Page Bot Inspector */}
+              <details className="vs-disclosure" open={!isGuided}>
+                <summary className="vs-disclosure-summary">
+                  <div style={{ maxWidth: '780px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        flexWrap: 'wrap',
+                        marginBottom: '2px',
+                      }}
+                    >
+                      <strong style={{ fontSize: '13.5px' }}>
+                        Optional: Website Visitor Tracking Codes &amp; Page Bot
+                        Tester
+                      </strong>
+                      <StatusBadge>OPTIONAL ANALYTICS</StatusBadge>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '12.5px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      What these codes are for: works like Google Analytics so
+                      you can count visitors and sales coming from ChatGPT &amp;
+                      Perplexity.{' '}
+                      <strong style={{ color: 'var(--vs-ink)' }}>
+                        You do NOT need these codes to fix your AI rankings
+                      </strong>{' '}
+                      (go to Step 02 for your 1-Click AI Fix Prompt).
+                    </div>
+                  </div>
+                  <span className="vs-disclosure-pill">Tracking Codes</span>
+                </summary>
+
+                <div className="vs-disclosure-body">
+                  {/* 1-Click AI Prompt to Install Analytics Tracker (No Manual Coding) */}
+                  {analyticsInstallAiPrompt ? (
+                    <div
+                      style={{
+                        marginBottom: '16px',
+                        padding: '12px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background: 'var(--vs-surface-warm)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                      }}
+                    >
+                      <div style={{ maxWidth: '680px', fontSize: '12.5px' }}>
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          Want to track ChatGPT &amp; Perplexity visitors without
+                          touching code?
+                        </strong>{' '}
+                        <span style={{ color: 'var(--vs-ink-secondary)' }}>
+                          Click the button on the right to copy an AI prompt,
+                          then paste it into ChatGPT, Claude, Antigravity,
+                          Cursor, or Shopify so your AI installs the tracker for
+                          you.
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyAnalyticsInstallPrompt()}
+                        className="vs-btn"
+                        style={{ padding: '7px 13px', fontSize: '12px' }}
+                      >
+                        {copiedAnalyticsPrompt
+                          ? '✓ Tracker AI Prompt Copied!'
+                          : 'Copy AI Prompt to Install Tracker'}
+                      </button>
+                    </div>
+                  ) : null}
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '12.5px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      {attributionTab === 'browser_pixel'
+                        ? 'Code #1 (For Everyone): Counts human visitors and completed orders arriving from ChatGPT, Perplexity, Gemini, and Claude.'
+                        : 'Code #2 (Developers Only): Server middleware snippet that logs raw GPTBot & PerplexityBot hits.'}
+                    </span>
+                    <div
+                      role="group"
+                      aria-label="Attribution snippet mode"
+                      style={{
+                        display: 'inline-flex',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '6px',
+                        padding: '2px',
+                        background: 'var(--vs-surface-subtle)',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setAttributionTab('browser_pixel')}
+                        style={{
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          background:
+                            attributionTab === 'browser_pixel'
+                              ? 'var(--vs-ink)'
+                              : 'transparent',
+                          color:
+                            attributionTab === 'browser_pixel'
+                              ? '#FFFFFF'
+                              : 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        Browser Revenue Pixel (10 Lines)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAttributionTab('edge_crawler')}
+                        style={{
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px 10px',
+                          borderRadius: '4px',
+                          fontSize: '11.5px',
+                          fontWeight: 600,
+                          background:
+                            attributionTab === 'edge_crawler'
+                              ? 'var(--vs-ink)'
+                              : 'transparent',
+                          color:
+                            attributionTab === 'edge_crawler'
+                              ? '#FFFFFF'
+                              : 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        Edge AI Bot Crawl Logger
+                      </button>
+                    </div>
+                  </div>
+
+                  {attributionTab === 'browser_pixel' ? (
+                    <>
+                      <CodeArtifactCard
+                        title={`10-Line Attribution Pixel (${activeDomain.brand_name})`}
+                        plainSummary="What it does: Counts human visitors & leads sent by ChatGPT, Perplexity, Gemini, and Claude."
+                        fileHint="Where it goes: Paste once before </head> in your site header (or use 'Copy AI Prompt to Install Tracker' above)"
+                        code={pixelSnippet}
+                      />
+
+                      {shopifyCheckoutPixel ? (
+                        <div style={{ marginTop: '14px' }}>
+                          <CodeArtifactCard
+                            title={`Shopify Customer Events Checkout Pixel (${activeDomain.brand_name})`}
+                            plainSummary="What it does: Records exact dollar amounts of completed Shopify orders coming from AI search."
+                            fileHint="Where it goes: Shopify Admin -> Settings -> Customer events -> Add custom pixel"
+                            code={shopifyCheckoutPixel}
+                          />
+                        </div>
+                      ) : null}
+                    </>
+                  ) : (
+                    <CodeArtifactCard
+                      title={`Edge / Next.js Middleware AI Bot Crawl Logger (${activeDomain.brand_name})`}
+                      plainSummary="What it does (Developers Only): Logs server-side crawls from GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot."
+                      fileHint="Where it goes: Next.js middleware.ts or Cloudflare Worker fetch() — skip if using WordPress/Wix/Webflow"
+                      code={edgeCrawlerSnippet}
+                    />
+                  )}
+
+                  {/* M49: Live Sub-Page AI Bot Extraction Inspector (GPTBot & PerplexityBot View) */}
+                  <div
+                    style={{
+                      marginTop: '16px',
+                      border: '1px solid var(--vs-border)',
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      background: '#FFFFFF',
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: '11px 14px',
+                        background: 'var(--vs-surface-warm)',
+                        borderBottom: subPageReport
+                          ? '1px solid var(--vs-border)'
+                          : undefined,
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '7px',
+                            flexWrap: 'wrap',
+                            marginBottom: '2px',
+                          }}
+                        >
+                          <span
+                            className="vs-eyebrow"
+                            style={{ color: 'var(--vs-ink)' }}
+                          >
+                            SUB-PAGE AI BOT EXTRACTION INSPECTOR
+                          </span>
+                          <StatusBadge>
+                            GPTBOT &amp; PERPLEXITYBOT VIEW
+                          </StatusBadge>
+                        </div>
+                        <div
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          Test any sub-page on{' '}
+                          <code className="vs-mono">{activeDomainHostname}</code>{' '}
+                          (e.g. <code className="vs-mono">/pricing</code>,{' '}
+                          <code className="vs-mono">/compare/...</code>) to see
+                          the exact text and tables AI bots read.
+                        </div>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          void handleInspectSubPage();
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        {(activeDomain.is_shopify
+                          ? ['/collections/all', '/pages/ai-facts', '/agents.md']
+                          : ['/pricing', '/about', '/agents.md']
+                        ).map((quickPath) => (
+                          <button
+                            key={quickPath}
+                            type="button"
+                            disabled={inspectingSubPage}
+                            onClick={() => void handleInspectSubPage(quickPath)}
+                            className="vs-btn vs-btn-secondary"
+                            style={{ padding: '4px 8px', fontSize: '11px' }}
+                          >
+                            {quickPath}
+                          </button>
+                        ))}
+                        <input
+                          type="text"
+                          value={subPageInput}
+                          onChange={(e) => setSubPageInput(e.target.value)}
+                          placeholder="/pricing or /compare/..."
+                          aria-label="Target path on tracked domain"
+                          className="vs-input"
+                          style={{
+                            width: '185px',
+                            padding: '5px 9px',
+                            fontSize: '12px',
+                            background: '#FFFFFF',
+                          }}
+                        />
+                        <button
+                          type="submit"
+                          disabled={inspectingSubPage}
+                          className="vs-btn"
+                          style={{ padding: '5px 12px', fontSize: '12px' }}
+                        >
+                          {inspectingSubPage
+                            ? 'Probing Route...'
+                            : 'Inspect Bot View →'}
+                        </button>
+                      </form>
+                    </div>
+
+                    {subPageReport ? (
+                      <div style={{ padding: '12px 14px' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px',
+                            marginBottom: '10px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <strong
+                              className="vs-mono"
+                              style={{ fontSize: '12.5px' }}
+                            >
+                              {subPageReport.targetUrl}
+                            </strong>
+                            <StatusBadge
+                              tone={
+                                subPageReport.pageReadinessScore >= 80
+                                  ? 'pass'
+                                  : subPageReport.pageReadinessScore >= 60
+                                    ? 'warn'
+                                    : 'critical'
+                              }
+                            >
+                              {`READINESS: ${subPageReport.pageReadinessScore}/100`}
+                            </StatusBadge>
+                            <StatusBadge
+                              tone={
+                                subPageReport.gptBotAllowed ? 'pass' : 'critical'
+                              }
+                            >
+                              {`GPTBot: ${subPageReport.gptBotStatus ?? 'ERR'}`}
+                            </StatusBadge>
+                            <StatusBadge
+                              tone={
+                                subPageReport.perplexityBotAllowed
+                                  ? 'pass'
+                                  : 'critical'
+                              }
+                            >
+                              {`PerplexityBot: ${subPageReport.perplexityBotStatus ?? 'ERR'}`}
+                            </StatusBadge>
+                            <StatusBadge>
+                              {`TABLES: ${subPageReport.tableCount} · WORDS: ${subPageReport.readability.visibleWordCount}`}
+                            </StatusBadge>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              gap: '6px',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => void handleCopySubPageAiPrompt()}
+                              className="vs-btn"
+                              style={{ padding: '5px 11px', fontSize: '11.5px' }}
+                            >
+                              {copiedSubPagePrompt
+                                ? '✓ Route Prompt Copied!'
+                                : 'Copy AI Prompt to Fix Route'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setShowSubPageRawStream((prev) => !prev)
+                              }
+                              className="vs-btn vs-btn-secondary"
+                              style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                            >
+                              {showSubPageRawStream
+                                ? 'Hide Bot Text Stream'
+                                : 'View Bot Text Stream'}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns:
+                              'repeat(auto-fit, minmax(180px, 1fr))',
+                            gap: '8px',
+                          }}
+                        >
+                          {subPageReport.checks.map((chk) => (
+                            <div
+                              key={chk.id}
+                              style={{
+                                padding: '8px 10px',
+                                borderRadius: '5px',
+                                border: '1px solid var(--vs-border)',
+                                background: 'var(--vs-surface-subtle)',
+                                fontSize: '11.5px',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '4px',
+                                  marginBottom: '3px',
+                                }}
+                              >
+                                <strong>{chk.label}</strong>
+                                <StatusBadge tone={chk.passed ? 'pass' : 'warn'}>
+                                  {chk.passed ? 'PASS' : 'FIX'}
+                                </StatusBadge>
+                              </div>
+                              <div style={{ color: 'var(--vs-ink-secondary)' }}>
+                                {chk.detail}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {showSubPageRawStream ? (
+                          <div style={{ marginTop: '12px' }}>
+                            <CodeArtifactCard
+                              title={`Non-JS Bot Extracted Stream (${subPageReport.pathname})`}
+                              fileHint={`Literal DOM text extracted by GPTBot & PerplexityBot from ${subPageReport.targetUrl}`}
+                              code={subPageReport.botExtractedPreview}
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </details>
             </div>
           </div>
         ) : null}
@@ -4554,21 +4915,21 @@ export function DashboardConsoleClient(props: {
           <div>
             {isGuided ? (
               <GuidedExplainerBanner
-                stepLabel="STEP 02 OF 03 · COPY-PASTE WEBSITE FIXES"
-                title="Publish verified facts onto your website"
-                description="Click Download Full Fix Bundle (.md) to hand one ready-to-use file to your web designer, or click Copy Code on any block below."
+                stepLabel="STEP 02 OF 03 · 1-CLICK PROMPT FOR YOUR AI (NO CODING NEEDED)"
+                title="Fastest way to fix your website: copy 1 Verisource prompt into your AI tool"
+                description="You do NOT need to copy-paste individual code files below. Simply pick your AI tool inside the first box, click 'Copy Prompt for My AI', paste it into ChatGPT, Claude, Antigravity, Cursor, or Shopify, and click '✓ Verify Live Fixes' when done."
                 glossary={[
+                  {
+                    term: '1-Click AI Prompt',
+                    meaning: 'One ready-made prompt that installs every fix below automatically',
+                  },
                   {
                     term: 'JSON-LD',
                     meaning: 'Hidden fact-sheet code AI & search engines read',
                   },
                   {
-                    term: '/agents.md',
-                    meaning: 'Instruction rulebook for AI shopping assistants',
-                  },
-                  {
-                    term: '/llms.txt',
-                    meaning: 'Quick-read 1-page directory of your website',
+                    term: '/agents.md & /llms.txt',
+                    meaning: 'Official business rulebook & directory for AI bots',
                   },
                 ]}
               />
@@ -4586,7 +4947,7 @@ export function DashboardConsoleClient(props: {
               >
                 <div
                   style={{
-                    padding: '14px 18px',
+                    padding: '16px 18px',
                     background: 'var(--vs-surface-warm)',
                     borderBottom: expandedAiFixPrompt
                       ? '1px solid var(--vs-border)'
@@ -4622,18 +4983,21 @@ export function DashboardConsoleClient(props: {
                           1-CLICK AI FIX PROMPT · CLAUDE · CHATGPT · ANTIGRAVITY · CURSOR
                         </span>
                         <StatusBadge tone="pass">
+                          RECOMMENDED · NO CODING NEEDED
+                        </StatusBadge>
+                        <StatusBadge tone="pass">
                           SYNTAX &amp; TRUTH VERIFIED
                         </StatusBadge>
                       </div>
                       <strong
                         style={{
                           display: 'block',
-                          fontSize: '15px',
+                          fontSize: '15.5px',
                           marginBottom: '4px',
                         }}
                       >
                         {isGuided
-                          ? `Copy one prompt and let your AI fix ${activeDomain.brand_name} automatically`
+                          ? `Start here: copy 1 prompt and let your AI fix ${activeDomain.brand_name} automatically`
                           : `Master Remediation Prompt for ${activeDomainHostname}`}
                       </strong>
                       <div
@@ -4643,14 +5007,15 @@ export function DashboardConsoleClient(props: {
                           lineHeight: 1.5,
                         }}
                       >
-                        Bundles every issue Verisource found on{' '}
+                        Verisource bundled every fix for{' '}
                         <code className="vs-mono">{activeDomainHostname}</code>{' '}
-                        (crawler access, JS readability, hallucinated claims,
-                        and syntax-validated <code className="vs-mono">JSON-LD</code> +{' '}
+                        (bot access, page readability, your real prices, and
+                        ready-to-publish <code className="vs-mono">JSON-LD</code> +{' '}
                         <code className="vs-mono">/agents.md</code> +{' '}
-                        <code className="vs-mono">/llms.txt</code> code) into a
-                        single zero-hallucination prompt for whatever AI tool you
-                        use.
+                        <code className="vs-mono">/llms.txt</code> files) into{' '}
+                        <strong>one prompt</strong>. Paste it into whatever AI
+                        tool you use—your AI either edits your site directly or
+                        walks you through exact clicks.
                       </div>
                     </div>
 
@@ -4666,7 +5031,7 @@ export function DashboardConsoleClient(props: {
                         type="button"
                         onClick={() => void handleCopyAiRemediationPrompt()}
                         className="vs-btn"
-                        style={{ padding: '8px 15px', fontSize: '12.5px' }}
+                        style={{ padding: '10px 18px', fontSize: '13px' }}
                       >
                         {copiedAiFixPrompt
                           ? '✓ Copied — Paste Into Your AI!'
@@ -4674,9 +5039,21 @@ export function DashboardConsoleClient(props: {
                       </button>
                       <button
                         type="button"
+                        onClick={() => void handleVerifyLiveFixes()}
+                        disabled={verifyingFixes}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '9px 13px', fontSize: '12px' }}
+                        title="Click after your AI publishes the changes to verify they are live"
+                      >
+                        {verifyingFixes
+                          ? 'Checking Site...'
+                          : '✓ Verify Live Fixes'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={handleDownloadAiRemediationPrompt}
                         className="vs-btn vs-btn-secondary"
-                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                        style={{ padding: '9px 12px', fontSize: '12px' }}
                       >
                         ↓ Prompt (.md)
                       </button>
@@ -4686,7 +5063,7 @@ export function DashboardConsoleClient(props: {
                           setExpandedAiFixPrompt((prev) => !prev)
                         }
                         className="vs-btn vs-btn-secondary"
-                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                        style={{ padding: '9px 12px', fontSize: '12px' }}
                       >
                         {expandedAiFixPrompt
                           ? 'Hide Prompt'
@@ -4694,6 +5071,46 @@ export function DashboardConsoleClient(props: {
                       </button>
                     </div>
                   </div>
+
+                  {isGuided ? (
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns:
+                          'repeat(auto-fit, minmax(210px, 1fr))',
+                        gap: '8px',
+                        padding: '10px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background: '#FFFFFF',
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      <div>
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          ① Pick your AI tool below:
+                        </strong>{' '}
+                        Choose Coding Agent, ChatGPT / Claude Web (for
+                        WordPress, Webflow, Wix), or Shopify.
+                      </div>
+                      <div>
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          ② Paste into your AI:
+                        </strong>{' '}
+                        Click <strong>Copy Prompt for My AI</strong> above and
+                        paste it into a new chat with your AI.
+                      </div>
+                      <div>
+                        <strong style={{ color: 'var(--vs-ink)' }}>
+                          ③ Confirm live uplift:
+                        </strong>{' '}
+                        Once published, click{' '}
+                        <strong>✓ Verify Live Fixes</strong> to confirm your
+                        higher AI Visibility Score.
+                      </div>
+                    </div>
+                  ) : null}
 
                   <div
                     style={{
@@ -5472,28 +5889,84 @@ export function DashboardConsoleClient(props: {
               </div>
             ) : null}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              {domainFixes.map((fix) => (
-                <CodeArtifactCard
-                  key={fix.id}
-                  title={fix.title}
-                  plainSummary={
-                    isGuided ? describeFixPlainly(fix.fix_type) : undefined
-                  }
-                  fileHint={`Fix Type: ${fix.fix_type}`}
-                  code={fix.content_payload}
-                  statusBadge={
-                    fix.fix_type === 'citation_outreach_brief'
-                      ? { label: 'OFF-SITE OUTREACH DRAFT', tone: 'neutral' }
-                      : fix.is_applied
-                        ? { label: 'LIVE ON SITE', tone: 'pass' }
-                        : { label: 'READY TO PUBLISH', tone: 'neutral' }
-                  }
-                  qualityScore={Number(fix.natural_quality_score)}
-                  qualityBreakdown={fix.quality_rubric_breakdown}
-                />
-              ))}
-            </div>
+            {/* M52 Progressive Disclosure: Explain & Collapse Raw Individual Code Files in Guided Mode */}
+            <details className="vs-disclosure" open={!isGuided}>
+              <summary className="vs-disclosure-summary">
+                <div style={{ maxWidth: '800px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                      marginBottom: '2px',
+                    }}
+                  >
+                    <strong style={{ fontSize: '13.5px' }}>
+                      Individual Raw Code Files ({domainFixes.length} files) —
+                      Optional Manual Copy-Paste
+                    </strong>
+                    <StatusBadge>ALREADY IN YOUR AI PROMPT ABOVE</StatusBadge>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    What these codes at the bottom are for: these are the exact{' '}
+                    <code className="vs-mono">JSON-LD</code>,{' '}
+                    <code className="vs-mono">/llms.txt</code>, and{' '}
+                    <code className="vs-mono">/agents.md</code> files bundled
+                    inside your <strong>1-Click AI Fix Prompt</strong> above.{' '}
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      Only open this drawer if you or a web developer want to
+                      copy-paste files manually without an AI tool.
+                    </strong>
+                  </div>
+                </div>
+                <span className="vs-disclosure-pill">Raw Code Files</span>
+              </summary>
+
+              <div className="vs-disclosure-body">
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '18px',
+                  }}
+                >
+                  {domainFixes.map((fix) => (
+                    <CodeArtifactCard
+                      key={fix.id}
+                      title={fix.title}
+                      plainSummary={describeFixPlainly(fix.fix_type)}
+                      fileHint={
+                        isGuided
+                          ? whereFixGoesPlainly(
+                              fix.fix_type,
+                              activeDomain.is_shopify
+                            )
+                          : `Fix Type: ${fix.fix_type}`
+                      }
+                      code={fix.content_payload}
+                      statusBadge={
+                        fix.fix_type === 'citation_outreach_brief'
+                          ? {
+                              label: 'OFF-SITE OUTREACH DRAFT',
+                              tone: 'neutral',
+                            }
+                          : fix.is_applied
+                            ? { label: 'LIVE ON SITE', tone: 'pass' }
+                            : { label: 'READY TO PUBLISH', tone: 'neutral' }
+                      }
+                      qualityScore={Number(fix.natural_quality_score)}
+                      qualityBreakdown={fix.quality_rubric_breakdown}
+                    />
+                  ))}
+                </div>
+              </div>
+            </details>
           </div>
         ) : null}
 
