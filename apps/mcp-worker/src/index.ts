@@ -7,6 +7,7 @@ import {
 import {
   buildAiRemediationMasterPrompt,
   buildCitationAnswerPageBundle,
+  buildCitationGapActionPlaybookMarkdown,
   buildExecutiveAuditReportMarkdown,
   buildMcpDiscoveryManifest,
   buildTargetedCitationOutreachDraft,
@@ -261,7 +262,10 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
               hostname: audit.hostname,
               coreOffering: audit.brandTruthSheet.core_offering,
               pricingSummary: audit.brandTruthSheet.verified_pricing_summary,
+              shippingOrServiceArea:
+                audit.brandTruthSheet.shipping_or_service_area,
               sourceHost: source.sourceHost,
+              sourceCategory: source.sourceCategory,
               targetUrl: source.urls[0]!,
               enginesCiting: source.enginesCiting,
               rivalsFed: source.rivalsFed,
@@ -279,6 +283,15 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
             };
           });
 
+        const citationActionPlaybook = buildCitationGapActionPlaybookMarkdown({
+          brandName: audit.brandName,
+          hostname: audit.hostname,
+          coreOffering: audit.brandTruthSheet.core_offering,
+          pricingSummary: audit.brandTruthSheet.verified_pricing_summary,
+          shippingOrServiceArea: audit.brandTruthSheet.shipping_or_service_area,
+          rankedSources: rankedCitationSources,
+        });
+
         const payload = {
           domain: audit.domainUrl,
           brand_name: audit.brandName,
@@ -290,6 +303,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           ranked_citation_sources: rankedCitationSources,
           suggested_funnel_prompts: suggestedFunnelPrompts,
           targeted_outreach_drafts: targetedOutreachDrafts,
+          citation_action_playbook_markdown: citationActionPlaybook.content,
           engine_snapshots: audit.scanResults.map((s) => ({
             prompt: s.promptText,
             engine: s.aiEngine,

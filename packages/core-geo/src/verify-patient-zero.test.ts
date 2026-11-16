@@ -23,6 +23,7 @@ import {
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildCitationAnswerPageBundle,
+  buildCitationGapActionPlaybookMarkdown,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildHallucinationDriftAlert,
@@ -2087,4 +2088,98 @@ test('M50 Competitor Technical X-Ray blocks SSRF + self-domain & computes 6-dime
   assert.ok(
     !/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(xray.aiOvertakePrompt.content)
   );
+});
+
+test('M51 Source-Category-Aware Off-Site Citation Acquisition Engine & Playbook Exporter pass >= 9.5/10 across UGC, Directory, Competitor & Editorial channels', () => {
+  const ugcDraft = buildTargetedCitationOutreachDraft({
+    brandName: 'Resend',
+    hostname: 'resend.com',
+    coreOffering: 'Developer transactional email API',
+    pricingSummary: 'Pro starts at $20/mo for 50,000 emails',
+    sourceHost: 'reddit.com',
+    sourceCategory: 'ugc_community',
+    targetUrl: 'https://www.reddit.com/r/nextjs/comments/1abc/transactional_email/',
+    enginesCiting: ['chatgpt', 'perplexity'],
+    rivalsFed: ['Postmark', 'SendGrid'],
+  });
+  assert.ok(ugcDraft.score >= 9.5);
+  assert.ok(ugcDraft.content.includes('Disclosure: I work on Resend'));
+  assert.ok(!ugcDraft.content.includes('editorial team'));
+
+  const dirDraft = buildTargetedCitationOutreachDraft({
+    brandName: 'Resend',
+    hostname: 'resend.com',
+    coreOffering: 'Developer transactional email API',
+    pricingSummary: 'Pro starts at $20/mo for 50,000 emails',
+    sourceHost: 'g2.com',
+    sourceCategory: 'review_directory',
+    targetUrl: 'https://www.g2.com/categories/transactional-email',
+    enginesCiting: ['perplexity'],
+    rivalsFed: ['Postmark'],
+  });
+  assert.ok(dirDraft.score >= 9.5);
+  assert.ok(dirDraft.content.includes('Zero Incentives'));
+
+  const compDraft = buildTargetedCitationOutreachDraft({
+    brandName: 'Resend',
+    hostname: 'resend.com',
+    coreOffering: 'Developer transactional email API',
+    pricingSummary: 'Pro starts at $20/mo for 50,000 emails',
+    sourceHost: 'postmarkapp.com',
+    sourceCategory: 'competitor_site',
+    targetUrl: 'https://postmarkapp.com/compare/sendgrid-alternative',
+    enginesCiting: ['chatgpt'],
+    rivalsFed: ['Postmark'],
+  });
+  assert.ok(compDraft.score >= 9.5);
+  assert.ok(compDraft.content.includes('Do not email postmarkapp.com'));
+  assert.ok(compDraft.content.includes('/compare/resend-vs-postmarkapp'));
+
+  const edDraft = buildTargetedCitationOutreachDraft({
+    brandName: 'Resend',
+    hostname: 'resend.com',
+    coreOffering: 'Developer transactional email API',
+    pricingSummary: 'Pro starts at $20/mo for 50,000 emails',
+    sourceHost: 'techcrunch.com',
+    sourceCategory: 'editorial_media',
+    targetUrl: 'https://techcrunch.com/2026/05/email-apis/',
+    enginesCiting: ['gemini'],
+    rivalsFed: ['Postmark'],
+  });
+  assert.ok(edDraft.score >= 9.5);
+  assert.ok(edDraft.content.includes('Subject: Factual spec update for techcrunch.com'));
+
+  const playbook = buildCitationGapActionPlaybookMarkdown({
+    brandName: 'Resend',
+    hostname: 'resend.com',
+    coreOffering: 'Developer transactional email API',
+    pricingSummary: 'Pro starts at $20/mo for 50,000 emails',
+    rankedSources: [
+      {
+        sourceHost: 'reddit.com',
+        ownership: 'citation_gap',
+        sourceCategory: 'ugc_community',
+        sourceCategoryLabel: 'UGC / Community',
+        recommendedAction: 'Post disclosed founder thread reply.',
+        enginesCiting: ['chatgpt'],
+        citationCount: 2,
+        rivalsFed: ['Postmark'],
+        urls: ['https://www.reddit.com/r/nextjs/comments/1abc/transactional_email/'],
+      },
+      {
+        sourceHost: 'g2.com',
+        ownership: 'citation_gap',
+        sourceCategory: 'review_directory',
+        sourceCategoryLabel: 'Review Directory',
+        recommendedAction: 'Sync G2 listing and request candid reviews.',
+        enginesCiting: ['perplexity'],
+        citationCount: 1,
+        rivalsFed: ['Postmark'],
+        urls: ['https://www.g2.com/categories/transactional-email'],
+      },
+    ],
+  });
+  assert.ok(playbook.score >= 9.5);
+  assert.ok(playbook.content.includes('Off-Site AI Citation Acquisition Playbook'));
+  assert.ok(!/9\.5\s*\/\s*10|QUALITY GATE|Critic/i.test(playbook.content));
 });

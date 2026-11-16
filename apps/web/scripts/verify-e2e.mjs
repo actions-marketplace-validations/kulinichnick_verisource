@@ -2163,7 +2163,14 @@ async function run() {
       loginHtml.includes('Start 7-Day Free Trial ($0 Today)'),
       'Expected updated 7-Day Free Trial CTA on /login'
     );
-    console.log('✔ [46/46] M50 Live Competitor Technical X-Ray (401/400 SSRF/400 Self-Domain/200 Diff + 1h Cache) & /login Trial CTA verified!');
+    console.log('✔ [46/47] M50 Live Competitor Technical X-Ray (401/400 SSRF/400 Self-Domain/200 Diff + 1h Cache) & /login Trial CTA verified!');
+
+    // 45. M51 Source-Category-Aware Off-Site Citation Acquisition Engine & 1-Click Playbook Exporter on Step 03
+    assert.ok(
+      m42Tab3Html.includes('Export Citation Playbook (.md)'),
+      'Expected Export Citation Playbook (.md) button inside Step 03 Citation Gap Source Leaderboard'
+    );
+    console.log('✔ [47/47] M51 Source-Category-Aware Off-Site Citation Acquisition Engine & 1-Click Playbook Exporter verified!');
   } finally {
     server.kill();
   }

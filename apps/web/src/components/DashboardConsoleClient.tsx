@@ -11,6 +11,7 @@ import {
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildCitationAnswerPageBundle,
+  buildCitationGapActionPlaybookMarkdown,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
@@ -744,12 +745,44 @@ export function DashboardConsoleClient(props: {
           hostname: activeDomainHostname,
           coreOffering: activeDomain.brand_truth_sheet.core_offering,
           pricingSummary: activeDomain.brand_truth_sheet.verified_pricing_summary,
+          shippingOrServiceArea:
+            activeDomain.brand_truth_sheet.shipping_or_service_area,
           sourceHost: activeOutreachTarget.sourceHost,
+          sourceCategory: activeOutreachTarget.sourceCategory,
           targetUrl: activeOutreachTarget.urls[0],
           enginesCiting: activeOutreachTarget.enginesCiting,
           rivalsFed: activeOutreachTarget.rivalsFed,
         })
       : null;
+
+  function handleExportCitationGapPlaybook() {
+    if (!activeDomain) return;
+    const playbook = buildCitationGapActionPlaybookMarkdown({
+      brandName: activeDomain.brand_name,
+      hostname: activeDomainHostname,
+      coreOffering: activeDomain.brand_truth_sheet.core_offering,
+      pricingSummary: activeDomain.brand_truth_sheet.verified_pricing_summary,
+      shippingOrServiceArea:
+        activeDomain.brand_truth_sheet.shipping_or_service_area,
+      rankedSources: rankedCitationSources,
+    });
+    const hostSlug =
+      activeDomainHostname.replace(/[^a-z0-9.-]/g, '') || 'domain';
+    const blob = new Blob([playbook.content], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${hostSlug}-offsite-citation-playbook.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setBannerSuccess(
+      `Exported Off-Site Citation Acquisition Playbook as ${hostSlug}-offsite-citation-playbook.md.`
+    );
+  }
 
   async function handleCopyCitationSourceUrl(url: string) {
     try {
@@ -5735,52 +5768,70 @@ export function DashboardConsoleClient(props: {
                 <div
                   style={{
                     display: 'inline-flex',
-                    border: '1px solid var(--vs-border)',
-                    borderRadius: '5px',
-                    padding: '2px',
-                    background: '#FFFFFF',
-                    gap: '2px',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '8px',
                   }}
                 >
-                  {(
-                    [
-                      {
-                        id: 'all',
-                        label: `All Sources (${rankedCitationSources.length})`,
-                      },
-                      {
-                        id: 'citation_gap',
-                        label: `Citation Gaps (${citationGapCount})`,
-                      },
-                      {
-                        id: 'co_cited_or_owned',
-                        label: `Co-Cited / Owned (${
-                          rankedCitationSources.length - citationGapCount
-                        })`,
-                      },
-                    ] as const
-                  ).map((pill) => {
-                    const active = citationSourceFilter === pill.id;
-                    return (
-                      <button
-                        key={pill.id}
-                        type="button"
-                        onClick={() => setCitationSourceFilter(pill.id)}
-                        style={{
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px 10px',
-                          borderRadius: '4px',
-                          fontSize: '11.5px',
-                          fontWeight: 600,
-                          background: active ? 'var(--vs-ink)' : 'transparent',
-                          color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
-                        }}
-                      >
-                        {pill.label}
-                      </button>
-                    );
-                  })}
+                  <button
+                    type="button"
+                    onClick={handleExportCitationGapPlaybook}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                    title="Export channel-specific Reddit, Directory, Competitor & Editorial playbooks as Markdown"
+                  >
+                    ↓ Export Citation Playbook (.md)
+                  </button>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      border: '1px solid var(--vs-border)',
+                      borderRadius: '5px',
+                      padding: '2px',
+                      background: '#FFFFFF',
+                      gap: '2px',
+                    }}
+                  >
+                    {(
+                      [
+                        {
+                          id: 'all',
+                          label: `All Sources (${rankedCitationSources.length})`,
+                        },
+                        {
+                          id: 'citation_gap',
+                          label: `Citation Gaps (${citationGapCount})`,
+                        },
+                        {
+                          id: 'co_cited_or_owned',
+                          label: `Co-Cited / Owned (${
+                            rankedCitationSources.length - citationGapCount
+                          })`,
+                        },
+                      ] as const
+                    ).map((pill) => {
+                      const active = citationSourceFilter === pill.id;
+                      return (
+                        <button
+                          key={pill.id}
+                          type="button"
+                          onClick={() => setCitationSourceFilter(pill.id)}
+                          style={{
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px 10px',
+                            borderRadius: '4px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            background: active ? 'var(--vs-ink)' : 'transparent',
+                            color: active ? '#FFFFFF' : 'var(--vs-ink-secondary)',
+                          }}
+                        >
+                          {pill.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -5961,29 +6012,94 @@ export function DashboardConsoleClient(props: {
                 <div
                   style={{
                     display: 'flex',
+                    flexWrap: 'wrap',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    gap: '8px',
                     marginBottom: '8px',
                   }}
                 >
                   <span style={{ fontSize: '12.5px', fontWeight: 600 }}>
-                    Targeted Editorial Inclusion Note —{' '}
-                    <span className="vs-mono">{activeOutreachTarget.sourceHost}</span>
+                    {activeOutreachTarget.sourceCategory === 'ugc_community'
+                      ? 'Disclosed First-Party Community Reply — '
+                      : activeOutreachTarget.sourceCategory ===
+                          'review_directory'
+                        ? 'Review Directory Profile & Customer Request Kit — '
+                        : activeOutreachTarget.sourceCategory ===
+                            'competitor_site'
+                          ? 'Competitor Citation Counter-Playbook — '
+                          : 'Targeted Editorial Inclusion Note — '}
+                    <span className="vs-mono">
+                      {activeOutreachTarget.sourceHost}
+                    </span>
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCitationSourceHost(null)}
-                    className="vs-btn vs-btn-secondary"
-                    style={{ padding: '3px 9px', fontSize: '11.5px' }}
-                  >
-                    Close Draft
-                  </button>
+                  <div style={{ display: 'inline-flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {activeOutreachTarget.sourceCategory ===
+                    'competitor_site' ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void handleRunCompetitorXray(
+                              activeOutreachTarget.sourceHost
+                            )
+                          }
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '3px 9px', fontSize: '11.5px' }}
+                        >
+                          X-Ray Competitor →
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCitationBlueprintType('vs_competitor');
+                            setCustomCitationRival(
+                              activeOutreachTarget.rivalsFed[0] ||
+                                activeOutreachTarget.sourceHost
+                            );
+                            setExpandedCitationPageStudio(true);
+                            setActiveTab('tab2_fixes');
+                          }}
+                          className="vs-btn"
+                          style={{ padding: '3px 9px', fontSize: '11.5px' }}
+                        >
+                          Build Counter-Page in Step 02 →
+                        </button>
+                      </>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCitationSourceHost(null)}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '3px 9px', fontSize: '11.5px' }}
+                    >
+                      Close Draft
+                    </button>
+                  </div>
                 </div>
                 <CodeArtifactCard
-                  title={`Editorial Spec Update (${activeOutreachTarget.sourceHost})`}
+                  title={
+                    activeOutreachTarget.sourceCategory === 'ugc_community'
+                      ? `Disclosed Founder Thread Reply (${activeOutreachTarget.sourceHost})`
+                      : activeOutreachTarget.sourceCategory ===
+                          'review_directory'
+                        ? `Directory Sync & Customer Review Kit (${activeOutreachTarget.sourceHost})`
+                        : activeOutreachTarget.sourceCategory ===
+                            'competitor_site'
+                          ? `Competitor Displacement Plan (${activeOutreachTarget.sourceHost})`
+                          : `Editorial Spec Update (${activeOutreachTarget.sourceHost})`
+                  }
                   plainSummary={
                     isGuided
-                      ? 'Short, polite 4-sentence note sharing your verified /agents.md fact sheet with the author of this cited article.'
+                      ? activeOutreachTarget.sourceCategory === 'ugc_community'
+                        ? 'Transparent first-party founder reply sharing verified /agents.md facts in this buyer thread.'
+                        : activeOutreachTarget.sourceCategory ===
+                            'review_directory'
+                          ? 'Sync your directory listing with /agents.md and invite candid, non-incentivized customer reviews.'
+                          : activeOutreachTarget.sourceCategory ===
+                              'competitor_site'
+                            ? 'Publish a structured comparison route in Step 02 to win queries currently citing this rival.'
+                            : 'Short, polite 4-sentence note sharing your verified /agents.md fact sheet with the article author.'
                       : undefined
                   }
                   fileHint={`Cited URL: ${activeOutreachTarget.urls[0] ?? activeOutreachTarget.sourceHost}`}

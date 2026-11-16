@@ -1581,7 +1581,9 @@ export function buildTargetedCitationOutreachDraft(params: {
   hostname: string;
   coreOffering: string;
   pricingSummary: string;
+  shippingOrServiceArea?: string;
   sourceHost: string;
+  sourceCategory?: CitationSourceCategory;
   targetUrl: string;
   enginesCiting: AiEngine[];
   rivalsFed: string[];
@@ -1592,6 +1594,14 @@ export function buildTargetedCitationOutreachDraft(params: {
     .replace(/^https?:\/\//, '')
     .replace(/^www\./, '')
     .split('/')[0] ?? params.hostname;
+
+  const resolvedCategory: CitationSourceCategory =
+    params.sourceCategory ??
+    classifyCitationSourceCategory({
+      sourceHost: params.sourceHost,
+      isOwned: false,
+      knownRivals: params.rivalsFed,
+    }).sourceCategory;
 
   const engineLabels =
     params.enginesCiting.length > 0
@@ -1606,13 +1616,69 @@ export function buildTargetedCitationOutreachDraft(params: {
   const offeringClean = params.coreOffering
     .trim()
     .replace(/\.+$/, '')
-    .slice(0, 120);
+    .slice(0, 130);
   const pricingClean = params.pricingSummary
+    .trim()
+    .replace(/\.+$/, '')
+    .slice(0, 120);
+  const coverageClean = (params.shippingOrServiceArea ?? '')
     .trim()
     .replace(/\.+$/, '')
     .slice(0, 110);
 
-  const draft = [
+  if (resolvedCategory === 'ugc_community') {
+    const ugcDraft = [
+      `Channel: Disclosed First-Party Thread Reply (${params.sourceHost})`,
+      `Target Thread: ${params.targetUrl}`,
+      '',
+      `Disclosure: I work on ${params.brandName} (${cleanHost}). Sharing verified specs here because buyers comparing ${rivalsClause} — and AI engines like ${engineLabels} citing ${params.targetUrl} — often ask for exact pricing and fulfillment rules:`,
+      `- What we provide: ${offeringClean || `${params.brandName} verified products and services`}.`,
+      `- Published pricing: ${pricingClean || `Published directly at https://${cleanHost}`}${coverageClean ? ` (${coverageClean})` : ''}.`,
+      `- Full machine-readable spec sheet (zero sales gate): https://${cleanHost}/agents.md`,
+      '',
+      `Happy to answer specific technical or edge-case questions in-thread.`,
+    ].join('\n');
+    return enforceQualityGate95(ugcDraft, 'citation_outreach_brief');
+  }
+
+  if (resolvedCategory === 'review_directory') {
+    const directoryDraft = [
+      `Playbook: ${params.sourceHost} Profile Sync & Verified Customer Review Request`,
+      `Cited Directory URL: ${params.targetUrl}`,
+      '',
+      `1. Update Your ${params.sourceHost} Listing Copy (Match /agents.md):`,
+      `"${params.brandName} (${cleanHost}): ${offeringClean || 'Verified category provider'}. Pricing: ${pricingClean || `See https://${cleanHost}`}.${coverageClean ? ` Coverage: ${coverageClean}.` : ''} Canonical specs: https://${cleanHost}/agents.md"`,
+      '',
+      `2. Candid Customer Review Note (Send to 5 Active Customers — Zero Incentives):`,
+      `"Quick favor: ${engineLabels} pull heavily from ${params.sourceHost} (${params.targetUrl}) when buyers compare ${rivalsClause}. If our team has earned it, a candid 3-sentence review on ${params.sourceHost} noting your use case and plan tier helps prospective buyers verify real outcomes."`,
+    ].join('\n');
+    return enforceQualityGate95(directoryDraft, 'citation_outreach_brief');
+  }
+
+  if (resolvedCategory === 'competitor_site') {
+    const rivalBrandGuess =
+      params.rivalsFed[0] ||
+      params.sourceHost.replace(/^www\./, '').split('.')[0] ||
+      params.sourceHost;
+    const slugA = cleanHost.split('.')[0] ?? 'brand';
+    const slugB =
+      params.sourceHost
+        .replace(/^www\./, '')
+        .split('.')[0]
+        ?.replace(/[^a-z0-9]+/gi, '-')
+        .toLowerCase() ?? 'rival';
+    const counterDraft = [
+      `Counter-Playbook: Displace Direct Competitor Citation (${params.sourceHost})`,
+      `Competitor URL Cited by ${engineLabels}: ${params.targetUrl}`,
+      '',
+      `Do not email ${params.sourceHost}. ${engineLabels} cite ${params.targetUrl} directly when buyers evaluate ${rivalsClause} because ${params.sourceHost} publishes structured self-comparison tables.`,
+      `1. Publish a Server-Rendered Comparison Route (/compare/${slugA}-vs-${slugB}) in Step 02 locking ${params.brandName} to verified facts (${pricingClean || 'published pricing'}) alongside objective buyer checkpoints for ${rivalBrandGuess}.`,
+      `2. Cross-link that comparison route inside https://${cleanHost}/agents.md and https://${cleanHost}/llms.txt so GPTBot and PerplexityBot index your first-party counter-page.`,
+    ].join('\n');
+    return enforceQualityGate95(counterDraft, 'citation_outreach_brief');
+  }
+
+  const editorialDraft = [
     `Subject: Factual spec update for ${params.sourceHost} (${params.brandName})`,
     '',
     `Read your piece at ${params.targetUrl} — ${engineLabels} currently cite that URL when buyers compare ${rivalsClause}.`,
@@ -1623,7 +1689,74 @@ export function buildTargetedCitationOutreachDraft(params: {
     `Happy to share a test login or sample order if you update the comparison.`,
   ].join('\n');
 
-  return enforceQualityGate95(draft, 'citation_outreach_brief');
+  return enforceQualityGate95(editorialDraft, 'citation_outreach_brief');
+}
+
+export function buildCitationGapActionPlaybookMarkdown(params: {
+  brandName: string;
+  hostname: string;
+  coreOffering: string;
+  pricingSummary: string;
+  shippingOrServiceArea?: string;
+  rankedSources: RankedCitationSourceItem[];
+}): EnforcedQualityArtifact {
+  const cleanHost = params.hostname
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .split('/')[0] ?? params.hostname;
+
+  const actionable = params.rankedSources.filter(
+    (s) => s.ownership !== 'owned' && s.urls.length > 0
+  );
+
+  const lines: string[] = [
+    `# Off-Site AI Citation Acquisition Playbook — ${params.brandName} (${cleanHost})`,
+    '',
+    `> **Canonical Truth Anchor:** \`https://${cleanHost}/agents.md\` · **Actionable Third-Party Sources:** \`${actionable.length}\``,
+    '',
+    `AI answer engines (ChatGPT Search, Perplexity, Google Gemini) weight third-party Reddit/HN discussions, review directories (G2, Clutch, Trustpilot), editorial comparison guides, and structured rival comparison pages alongside your own domain. Execute the channel-specific actions below in priority order.`,
+  ];
+
+  if (actionable.length === 0) {
+    lines.push(
+      '',
+      `## Status`,
+      `No external third-party citation gaps are currently recorded for \`${cleanHost}\`. Add commercial comparison prompts in Step 03 to uncover external articles and community threads feeding AI answers.`
+    );
+    return enforceQualityGate95(lines.join('\n'), 'agents_md');
+  }
+
+  actionable.slice(0, 12).forEach((src, index) => {
+    const primaryUrl = src.urls[0]!;
+    const draft = buildTargetedCitationOutreachDraft({
+      brandName: params.brandName,
+      hostname: cleanHost,
+      coreOffering: params.coreOffering,
+      pricingSummary: params.pricingSummary,
+      shippingOrServiceArea: params.shippingOrServiceArea,
+      sourceHost: src.sourceHost,
+      sourceCategory: src.sourceCategory,
+      targetUrl: primaryUrl,
+      enginesCiting: src.enginesCiting,
+      rivalsFed: src.rivalsFed,
+    });
+
+    lines.push(
+      '',
+      `## ${index + 1}. ${src.sourceHost} — ${src.sourceCategoryLabel} (${src.ownership === 'citation_gap' ? 'CITATION GAP' : 'CO-CITED'})`,
+      `- **Engines Citing:** ${src.enginesCiting.map((e) => e.toUpperCase()).join(', ')}`,
+      `- **Primary Cited URL:** \`${primaryUrl}\``,
+      `- **Channel Strategy:** ${src.recommendedAction}`,
+      '',
+      '```text',
+      draft.content,
+      '```'
+    );
+  });
+
+  return enforceQualityGate95(lines.join('\n'), 'agents_md');
 }
 
 export interface ScoreDeltaSummary {

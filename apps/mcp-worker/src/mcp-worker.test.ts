@@ -252,12 +252,19 @@ test('Paid tools enforce Bearer token & Pro/Agency plan tier, and meter 10 live 
       quality_score: number;
       draft_markdown: string;
     }>;
+    citation_action_playbook_markdown?: string;
   };
   assert.equal(gapsPayload.credits_charged, 1);
   assert.equal(gapsPayload.credits_remaining, 988);
   assert.equal(gapsPayload.engine_citation_share.length, 3);
   assert.ok(gapsPayload.ranked_citation_sources.length >= 1);
   assert.ok(gapsPayload.targeted_outreach_drafts.length >= 1);
+  assert.ok(
+    gapsPayload.citation_action_playbook_markdown?.includes(
+      'Off-Site AI Citation Acquisition Playbook'
+    ),
+    'Expected get_citation_gaps_and_fanouts to include citation_action_playbook_markdown'
+  );
   assert.ok(
     gapsPayload.targeted_outreach_drafts.every(
       (d) =>
