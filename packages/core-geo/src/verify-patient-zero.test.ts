@@ -16,6 +16,7 @@ import {
   buildAgencyPartnerOutreachSequence,
   buildAgencyPartnerPlaybookMarkdown,
   buildAgencyPitchPayload,
+  buildAiRemediationMasterPrompt,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildEdgeBotCrawlerSnippet,
@@ -1782,4 +1783,87 @@ test('M44 Enriched buildAgencyPitchPayload populates Mention/Citation %, Sentime
   );
   assert.equal(enrichedPitch.crawler_readability_status, 'ssr_clean');
   assert.equal(enrichedPitch.crawler_signal_pct, 22.5);
+});
+
+test('M45 1-Click AI Remediation Master Prompt Generator passes >= 9.5/10 Critic across coding_agent, chat_assistant & shopify_liquid modes', () => {
+  const baseDomain = {
+    brand_name: 'Resend',
+    domain_url: 'https://resend.com',
+    is_shopify: false,
+    shopify_mcp_status: 'unavailable' as const,
+    agents_md_status: 'missing' as const,
+    llms_txt_status: 'missing' as const,
+    robots_ai_bot_status: {
+      GPTBot: true,
+      'OAI-SearchBot': true,
+      PerplexityBot: false,
+      ClaudeBot: true,
+      'Google-Extended': true,
+      waf_blocked: false,
+    },
+    brand_truth_sheet: {
+      is_user_verified: true,
+      core_offering: 'Developer transactional email API and React Email SDK.',
+      verified_pricing_summary: 'Free up to 3,000 emails/mo; Pro starts at $20/mo.',
+      shipping_or_service_area: 'Global cloud API across US, EU, and APAC.',
+      key_differentiators: ['React Email templates'],
+      discontinued_or_false_claims_to_flag: ['Does NOT offer $10/mo unlimited sending'],
+    },
+    visibility_score: 54,
+    accuracy_score: 76,
+  };
+
+  const sampleFixes = [
+    {
+      fix_type: 'json_ld_schema' as const,
+      title: 'SoftwareApplication + FAQPage JSON-LD',
+      content_payload: '{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Resend"}',
+      is_applied: false,
+      natural_quality_score: 9.8,
+    },
+    {
+      fix_type: 'agents_md' as const,
+      title: 'Canonical /agents.md Truth Rulebook',
+      content_payload: '# Resend Verified AI Truth\n\n- Pro starts at $20/mo.',
+      is_applied: false,
+      natural_quality_score: 9.8,
+    },
+  ];
+
+  const codingPrompt = buildAiRemediationMasterPrompt({
+    domain: baseDomain,
+    fixes: sampleFixes,
+    crawlerReadability: {
+      status: 'csr_js_trap',
+      rawHtmlBytes: 8200,
+      visibleTextChars: 110,
+      visibleWordCount: 18,
+      signalToHtmlPct: 1.3,
+      estimatedTokens: 30,
+      hasSemanticLandmarks: false,
+      detectedCsrShell: true,
+      summary: 'Detected CSR shell.',
+    },
+    targetEnv: 'coding_agent',
+  });
+  assert.ok(codingPrompt.score >= 9.5, `Expected >= 9.5, got ${codingPrompt.score}`);
+  assert.ok(codingPrompt.content.includes('Principal Full-Stack & Technical SEO Engineer'));
+  assert.ok(codingPrompt.content.includes('PerplexityBot'));
+  assert.ok(codingPrompt.content.includes('JS RENDERING TRAP'));
+  assert.ok(codingPrompt.content.includes('SoftwareApplication + FAQPage JSON-LD'));
+
+  const chatPrompt = buildAiRemediationMasterPrompt({
+    domain: baseDomain,
+    fixes: sampleFixes,
+    targetEnv: 'chat_assistant',
+  });
+  assert.ok(chatPrompt.score >= 9.5);
+  assert.ok(chatPrompt.content.includes('WordPress, Webflow, Framer'));
+
+  const shopifyPrompt = buildAiRemediationMasterPrompt({
+    domain: { ...baseDomain, is_shopify: true },
+    fixes: sampleFixes,
+  });
+  assert.ok(shopifyPrompt.score >= 9.5);
+  assert.ok(shopifyPrompt.content.includes('Online Store 2.0 theme'));
 });

@@ -5,6 +5,7 @@ import {
   type McpRequestContext,
 } from '@modelcontextprotocol/server';
 import {
+  buildAiRemediationMasterPrompt,
   buildExecutiveAuditReportMarkdown,
   buildMcpDiscoveryManifest,
   buildTargetedCitationOutreachDraft,
@@ -486,6 +487,30 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           crawlerReadability: audit.probe.crawlerReadability ?? null,
         });
 
+        const remediationPrompt = buildAiRemediationMasterPrompt({
+          domain: {
+            brand_name: audit.brandName,
+            domain_url: audit.domainUrl,
+            is_shopify: audit.shopify.isShopify,
+            shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+            agents_md_status: audit.shopify.agentsMdStatus,
+            llms_txt_status: audit.probe.llmsTxtStatus,
+            robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+            brand_truth_sheet: audit.brandTruthSheet,
+            visibility_score: audit.visibilityScore,
+            accuracy_score: audit.accuracyScore,
+          },
+          fixes: audit.fixes.map((f) => ({
+            fix_type: f.fixType,
+            title: f.title,
+            content_payload: f.contentPayload,
+            is_applied: false,
+            natural_quality_score: f.naturalQualityScore,
+          })),
+          snapshots: audit.scanResults,
+          crawlerReadability: audit.probe.crawlerReadability ?? null,
+        });
+
         const payload = {
           domain: audit.domainUrl,
           brand_name: audit.brandName,
@@ -494,6 +519,8 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           served_from_cache: servedFromCache,
           credits_charged: gate.creditsCharged,
           credits_remaining: gate.creditsRemaining,
+          ai_remediation_prompt: remediationPrompt.content,
+          ai_remediation_prompt_score: remediationPrompt.score,
           executive_audit_report_markdown: executiveReport.content,
           executive_audit_quality_score: executiveReport.score,
           fixes: audit.fixes,

@@ -7,6 +7,7 @@ import {
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
   buildAiAttributionSnippet,
+  buildAiRemediationMasterPrompt,
   buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildEdgeBotCrawlerSnippet,
@@ -25,6 +26,7 @@ import {
   summarizeEngineCitationShare,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
+  type AiRemediationTargetEnv,
   type CitationSnapshotRow,
   type CrawlerReadabilityReport,
   type DomainRow,
@@ -253,6 +255,10 @@ export function DashboardConsoleClient(props: {
     'all' | 'bot_crawls' | 'human_referrals'
   >('all');
   const [sendingTestBotPing, setSendingTestBotPing] = useState(false);
+  const [aiPromptTargetEnv, setAiPromptTargetEnv] =
+    useState<AiRemediationTargetEnv>('coding_agent');
+  const [copiedAiFixPrompt, setCopiedAiFixPrompt] = useState(false);
+  const [expandedAiFixPrompt, setExpandedAiFixPrompt] = useState(false);
   const [lastAlertPreview, setLastAlertPreview] = useState<{
     kind?: 'drift' | 'weekly_digest';
     subject: string;
@@ -439,7 +445,12 @@ export function DashboardConsoleClient(props: {
     setSelectedEngineFilter('all');
     setCitationSourceFilter('all');
     setSelectedCitationSourceHost(null);
-  }, [activeDomain?.id]);
+    setCopiedAiFixPrompt(false);
+    setExpandedAiFixPrompt(false);
+    setAiPromptTargetEnv(
+      activeDomain?.is_shopify ? 'shopify_liquid' : 'coding_agent'
+    );
+  }, [activeDomain?.id, activeDomain?.is_shopify]);
 
   useEffect(() => {
     if (!activeDomain) return;
@@ -592,6 +603,16 @@ export function DashboardConsoleClient(props: {
     ? evaluateCommerceAttributeReadiness({
         domain: activeDomain,
         fixes: domainFixes,
+      })
+    : null;
+
+  const aiRemediationMasterPrompt = activeDomain
+    ? buildAiRemediationMasterPrompt({
+        domain: activeDomain,
+        fixes: domainFixes,
+        snapshots: domainSnapshots,
+        crawlerReadability: activeCrawlerReadability,
+        targetEnv: aiPromptTargetEnv,
       })
     : null;
 
@@ -1094,6 +1115,36 @@ export function DashboardConsoleClient(props: {
     } finally {
       setSendingTestBotPing(false);
     }
+  }
+
+  async function handleCopyAiRemediationPrompt() {
+    if (!aiRemediationMasterPrompt) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(aiRemediationMasterPrompt.content);
+      }
+      setCopiedAiFixPrompt(true);
+      setTimeout(() => setCopiedAiFixPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
+  }
+
+  function handleDownloadAiRemediationPrompt() {
+    if (!aiRemediationMasterPrompt) return;
+    const hostSlug =
+      activeDomainHostname.replace(/[^a-z0-9.-]/g, '') || 'domain';
+    const blob = new Blob([aiRemediationMasterPrompt.content], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${hostSlug}-ai-remediation-prompt.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   async function handleVerifyTruthSheet(e: React.FormEvent) {
@@ -3844,6 +3895,217 @@ export function DashboardConsoleClient(props: {
                   },
                 ]}
               />
+            ) : null}
+
+            {/* 1-Click AI Remediation Master Prompt (Claude · ChatGPT · Antigravity · Cursor) */}
+            {aiRemediationMasterPrompt ? (
+              <div
+                className="vs-card"
+                style={{
+                  marginBottom: '20px',
+                  overflow: 'hidden',
+                  border: '1px solid var(--vs-ink)',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '14px 18px',
+                    background: 'var(--vs-surface-warm)',
+                    borderBottom: expandedAiFixPrompt
+                      ? '1px solid var(--vs-border)'
+                      : undefined,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ maxWidth: '720px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          flexWrap: 'wrap',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <span
+                          className="vs-eyebrow"
+                          style={{ color: 'var(--vs-ink)' }}
+                        >
+                          1-CLICK AI FIX PROMPT · CLAUDE · CHATGPT · ANTIGRAVITY · CURSOR
+                        </span>
+                        <StatusBadge tone="pass">
+                          {`${aiRemediationMasterPrompt.score} / 10 CRITIC VERIFIED`}
+                        </StatusBadge>
+                      </div>
+                      <strong
+                        style={{
+                          display: 'block',
+                          fontSize: '15px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        {isGuided
+                          ? `Copy one prompt and let your AI fix ${activeDomain.brand_name} automatically`
+                          : `Master Remediation Prompt for ${activeDomainHostname}`}
+                      </strong>
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        Bundles every issue Verisource found on{' '}
+                        <code className="vs-mono">{activeDomainHostname}</code>{' '}
+                        (crawler access, JS readability, hallucinated claims,
+                        and Critic-verified <code className="vs-mono">JSON-LD</code> +{' '}
+                        <code className="vs-mono">/agents.md</code> +{' '}
+                        <code className="vs-mono">/llms.txt</code> code) into a
+                        single zero-hallucination prompt for whatever AI tool you
+                        use.
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => void handleCopyAiRemediationPrompt()}
+                        className="vs-btn"
+                        style={{ padding: '8px 15px', fontSize: '12.5px' }}
+                      >
+                        {copiedAiFixPrompt
+                          ? '✓ Copied — Paste Into Your AI!'
+                          : 'Copy Prompt for My AI'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleDownloadAiRemediationPrompt}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                      >
+                        ↓ Prompt (.md)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedAiFixPrompt((prev) => !prev)
+                        }
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '8px 12px', fontSize: '12px' }}
+                      >
+                        {expandedAiFixPrompt
+                          ? 'Hide Prompt'
+                          : 'Inspect Full Prompt'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <span
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11px',
+                        color: 'var(--vs-ink-muted)',
+                      }}
+                    >
+                      TARGET AI TOOL:
+                    </span>
+                    <div
+                      role="group"
+                      aria-label="Target AI environment"
+                      style={{
+                        display: 'inline-flex',
+                        flexWrap: 'wrap',
+                        border: '1px solid var(--vs-border)',
+                        borderRadius: '6px',
+                        padding: '2px',
+                        background: '#FFFFFF',
+                        gap: '2px',
+                      }}
+                    >
+                      {(
+                        [
+                          {
+                            id: 'coding_agent',
+                            label:
+                              'Coding Agent (Antigravity · Claude · Cursor)',
+                          },
+                          {
+                            id: 'chat_assistant',
+                            label: 'ChatGPT / Claude Web (CMS & No-Code)',
+                          },
+                          {
+                            id: 'shopify_liquid',
+                            label: 'Shopify Theme (Liquid)',
+                          },
+                        ] as const
+                      ).map((opt) => {
+                        const active = aiPromptTargetEnv === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setAiPromptTargetEnv(opt.id)}
+                            style={{
+                              border: 'none',
+                              cursor: 'pointer',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              fontSize: '11.5px',
+                              fontWeight: 600,
+                              background: active
+                                ? 'var(--vs-ink)'
+                                : 'transparent',
+                              color: active
+                                ? '#FFFFFF'
+                                : 'var(--vs-ink-secondary)',
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {expandedAiFixPrompt ? (
+                  <div style={{ padding: '14px 18px', background: '#FFFFFF' }}>
+                    <CodeArtifactCard
+                      title={`Master AI Remediation Prompt (${activeDomain.brand_name})`}
+                      fileHint="Paste directly into Antigravity, Claude Code, ChatGPT, Cursor, Windsurf, or Lovable"
+                      code={aiRemediationMasterPrompt.content}
+                      qualityScore={aiRemediationMasterPrompt.score}
+                      qualityBreakdown={aiRemediationMasterPrompt.breakdown}
+                    />
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {/* Shopify Native Adapter Callout */}

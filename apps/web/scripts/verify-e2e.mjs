@@ -1685,7 +1685,29 @@ async function run() {
       0,
       'Found banned lexicon on M44 enriched /audit/[slug]'
     );
-    console.log('✔ [40/40] M44 Enriched /audit/[slug] Rival SoV + Categorized Sources & Tab 1 Live Agent Crawl Ledger verified!');
+    console.log('✔ [40/41] M44 Enriched /audit/[slug] Rival SoV + Categorized Sources & Tab 1 Live Agent Crawl Ledger verified');
+
+    // 39. M45 1-Click AI Remediation Master Prompt Generator (Claude · ChatGPT · Antigravity · Cursor) on Tab 2
+    assert.ok(
+      m42Tab2Html.includes(
+        '1-CLICK AI FIX PROMPT · CLAUDE · CHATGPT · ANTIGRAVITY · CURSOR'
+      ) &&
+        m42Tab2Html.includes('Copy Prompt for My AI') &&
+        m42Tab2Html.includes('Coding Agent (Antigravity · Claude · Cursor)') &&
+        m42Tab2Html.includes('ChatGPT / Claude Web (CMS &amp; No-Code)') &&
+        m42Tab2Html.includes('Shopify Theme (Liquid)'),
+      'Expected 1-Click AI Fix Prompt card with 3 AI environment pills and Copy Prompt for My AI button on Tab 2'
+    );
+    const strippedM45Tab2 = m42Tab2Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM45Tab2.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Tab 2 1-Click AI Fix Prompt view'
+    );
+    console.log('✔ [41/41] M45 1-Click AI Remediation Prompt Generator (Claude · ChatGPT · Antigravity · Cursor) verified!');
   } finally {
     server.kill();
   }

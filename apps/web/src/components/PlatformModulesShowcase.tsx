@@ -449,6 +449,17 @@ export function PlatformModulesShowcase(): React.ReactElement {
                         <StatusBadge tone="pass">9.8 / 10 VERIFIED</StatusBadge>
                       </td>
                     </tr>
+                    <tr>
+                      <td>
+                        <strong>1-Click AI Fix Prompt</strong> (Claude · ChatGPT · Antigravity)
+                      </td>
+                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                        Master Remediation Prompt
+                      </td>
+                      <td>
+                        <StatusBadge tone="pass">9.9 / 10 VERIFIED</StatusBadge>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

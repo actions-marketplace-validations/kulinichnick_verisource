@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   buildAiAttributionSnippet,
+  buildAiRemediationMasterPrompt,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildImplementationBundleMarkdown,
@@ -73,6 +74,7 @@ export default function App(): React.ReactElement {
   const [attributionMode, setAttributionMode] = useState<
     'browser_pixel' | 'edge_crawler'
   >('browser_pixel');
+  const [copiedAiPrompt, setCopiedAiPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -965,42 +967,87 @@ export default function App(): React.ReactElement {
                   {audit.fixes.length} Ready-to-Paste Fix
                   {audit.fixes.length === 1 ? '' : 'es'}
                 </span>
-                <button
-                  type="button"
-                  className="vs-btn vs-btn-secondary"
-                  style={{ padding: '5px 10px', fontSize: '11.5px' }}
-                  onClick={() => {
-                    const md = buildImplementationBundleMarkdown({
-                      domain: {
-                        brand_name: audit.brandName,
-                        domain_url: audit.domainUrl,
-                        is_shopify: audit.shopify.isShopify,
-                        shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-                        visibility_score: audit.visibilityScore,
-                        accuracy_score: audit.accuracyScore,
-                      },
-                      fixes: audit.fixes.map((f) => ({
-                        title: f.title,
-                        fix_type: f.fixType,
-                        content_payload: f.contentPayload,
-                        natural_quality_score: f.naturalQualityScore,
-                      })),
-                    });
-                    const blob = new Blob([md], {
-                      type: 'text/markdown;charset=utf-8',
-                    });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${audit.hostname}-verisource-geo-bundle.md`;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  ↓ Download All (.md)
-                </button>
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="vs-btn"
+                    style={{ padding: '5px 10px', fontSize: '11px' }}
+                    onClick={() => {
+                      const promptArtifact = buildAiRemediationMasterPrompt({
+                        domain: {
+                          brand_name: audit.brandName,
+                          domain_url: audit.domainUrl,
+                          is_shopify: audit.shopify.isShopify,
+                          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                          agents_md_status: audit.shopify.agentsMdStatus,
+                          llms_txt_status: audit.probe.llmsTxtStatus,
+                          robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+                          brand_truth_sheet: audit.brandTruthSheet,
+                          visibility_score: audit.visibilityScore,
+                          accuracy_score: audit.accuracyScore,
+                        },
+                        fixes: audit.fixes.map((f) => ({
+                          fix_type: f.fixType,
+                          title: f.title,
+                          content_payload: f.contentPayload,
+                          is_applied: false,
+                          natural_quality_score: f.naturalQualityScore,
+                        })),
+                        snapshots: audit.scanResults,
+                        crawlerReadability:
+                          audit.probe.crawlerReadability ?? null,
+                      });
+                      if (
+                        typeof navigator !== 'undefined' &&
+                        navigator.clipboard?.writeText
+                      ) {
+                        void navigator.clipboard.writeText(
+                          promptArtifact.content
+                        );
+                      }
+                      setCopiedAiPrompt(true);
+                      setTimeout(() => setCopiedAiPrompt(false), 2400);
+                    }}
+                  >
+                    {copiedAiPrompt ? '✓ Prompt Copied' : 'Copy AI Fix Prompt'}
+                  </button>
+                  <button
+                    type="button"
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '5px 9px', fontSize: '11px' }}
+                    onClick={() => {
+                      const md = buildImplementationBundleMarkdown({
+                        domain: {
+                          brand_name: audit.brandName,
+                          domain_url: audit.domainUrl,
+                          is_shopify: audit.shopify.isShopify,
+                          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                          visibility_score: audit.visibilityScore,
+                          accuracy_score: audit.accuracyScore,
+                        },
+                        fixes: audit.fixes.map((f) => ({
+                          title: f.title,
+                          fix_type: f.fixType,
+                          content_payload: f.contentPayload,
+                          natural_quality_score: f.naturalQualityScore,
+                        })),
+                      });
+                      const blob = new Blob([md], {
+                        type: 'text/markdown;charset=utf-8',
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${audit.hostname}-verisource-geo-bundle.md`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    ↓ Bundle (.md)
+                  </button>
+                </div>
               </div>
 
               {audit.fixes.map((fix, idx) => (

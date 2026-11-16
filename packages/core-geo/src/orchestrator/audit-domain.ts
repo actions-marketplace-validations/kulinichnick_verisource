@@ -2236,3 +2236,216 @@ export function buildExecutiveAuditReportMarkdown(params: {
 
   return enforceQualityGate95(lines.join('\n'), 'agents_md');
 }
+
+export type AiRemediationTargetEnv =
+  | 'coding_agent'
+  | 'chat_assistant'
+  | 'shopify_liquid';
+
+export function buildAiRemediationMasterPrompt(params: {
+  domain: Pick<
+    DomainRow,
+    | 'brand_name'
+    | 'domain_url'
+    | 'is_shopify'
+    | 'shopify_mcp_status'
+    | 'agents_md_status'
+    | 'llms_txt_status'
+    | 'robots_ai_bot_status'
+    | 'brand_truth_sheet'
+    | 'visibility_score'
+    | 'accuracy_score'
+  >;
+  fixes: Array<
+    Pick<
+      GeneratedFixRow,
+      | 'fix_type'
+      | 'title'
+      | 'content_payload'
+      | 'is_applied'
+      | 'natural_quality_score'
+    >
+  >;
+  snapshots?: SnapshotOrScanItem[];
+  crawlerReadability?: CrawlerReadabilityReport | null;
+  targetEnv?: AiRemediationTargetEnv;
+}): EnforcedQualityArtifact {
+  const { domain, fixes } = params;
+  const mode: AiRemediationTargetEnv =
+    params.targetEnv ?? (domain.is_shopify ? 'shopify_liquid' : 'coding_agent');
+
+  const cleanHost =
+    domain.domain_url
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/^www\./, '')
+      .split('/')[0] ?? domain.domain_url;
+
+  const normalizedSnaps = (params.snapshots ?? []).map(normalizeSnapshotLike);
+  const allHallucinations = normalizedSnaps.flatMap(
+    (s) => s.hallucinationDetails
+  );
+  const commerce = evaluateCommerceAttributeReadiness({ domain, fixes });
+
+  const blockedBots: string[] = [];
+  if (!domain.robots_ai_bot_status.GPTBot) blockedBots.push('GPTBot');
+  if (!domain.robots_ai_bot_status['OAI-SearchBot']) {
+    blockedBots.push('OAI-SearchBot');
+  }
+  if (!domain.robots_ai_bot_status.PerplexityBot) {
+    blockedBots.push('PerplexityBot');
+  }
+  if (!domain.robots_ai_bot_status.ClaudeBot) blockedBots.push('ClaudeBot');
+  if (!domain.robots_ai_bot_status['Google-Extended']) {
+    blockedBots.push('Google-Extended');
+  }
+
+  const onSiteFixes = fixes.filter(
+    (f) => f.fix_type !== 'citation_outreach_brief'
+  );
+  const pendingFixes = onSiteFixes.filter((f) => !f.is_applied);
+  const fixesToInclude = pendingFixes.length > 0 ? pendingFixes : onSiteFixes;
+
+  const roleHeader =
+    mode === 'shopify_liquid'
+      ? `Act as a Senior Shopify Liquid & Technical SEO Engineer working on the Online Store 2.0 theme for **${domain.brand_name}** (\`https://${cleanHost}\`). Apply every AI Search & Agent Readiness fix below without altering existing visual styling, cart drawers, or checkout flows.`
+      : mode === 'chat_assistant'
+        ? `Act as my Senior Web Implementation Engineer for **${domain.brand_name}** (\`https://${cleanHost}\`). If I have not told you which CMS or platform powers my site yet (WordPress, Webflow, Framer, Squarespace, Wix, Shopify, Next.js, or custom HTML), ask me first—then give me exact step-by-step instructions to publish every verified fix block below.`
+        : `Act as a Principal Full-Stack & Technical SEO Engineer working directly inside my codebase for **${domain.brand_name}** (\`https://${cleanHost}\`). First inspect my repository structure to detect the framework (Next.js App Router, Pages Router, Astro, Remix, SvelteKit, Nuxt, or static HTML), then implement every AI Search & Agent Readiness fix below without changing existing UI layouts or breaking the build.`;
+
+  const lines: string[] = [
+    `# AI Search & Agent Remediation Prompt — ${domain.brand_name} (${cleanHost})`,
+    '',
+    roleHeader,
+    '',
+    `## 1. Strict Non-Hallucination Rules`,
+    `- Use **ONLY** the verified Brand Truth facts below. Do **NOT** invent prices, discounts, free-shipping thresholds, locations, or features.`,
+    `- **Core Offering:** ${domain.brand_truth_sheet.core_offering || `${domain.brand_name} products and services.`}`,
+    `- **Verified Pricing:** ${domain.brand_truth_sheet.verified_pricing_summary || 'Refer strictly to live published pricing on site.'}`,
+    `- **Fulfillment / Coverage:** ${domain.brand_truth_sheet.shipping_or_service_area || 'Refer strictly to live published coverage terms.'}`,
+  ];
+
+  if (domain.brand_truth_sheet.discontinued_or_false_claims_to_flag.length > 0) {
+    lines.push(
+      `- **Explicit Exclusions (Never Claim These):** ${domain.brand_truth_sheet.discontinued_or_false_claims_to_flag.join(' | ')}`
+    );
+  }
+
+  lines.push(
+    '',
+    `## 2. Issues Found on https://${cleanHost} (Current Score: ${domain.visibility_score}/100 Visibility · ${domain.accuracy_score}% Accuracy)`
+  );
+
+  if (blockedBots.length > 0 || domain.robots_ai_bot_status.waf_blocked) {
+    lines.push(
+      `- **[CRITICAL · CRAWLER ACCESS]** Blocked AI bots detected: \`${blockedBots.join(', ') || 'Edge WAF HTTP 403'}\`. Update \`robots.txt\` so \`GPTBot\`, \`OAI-SearchBot\`, \`PerplexityBot\`, \`ClaudeBot\`, and \`Google-Extended\` have \`Allow: /\` on public marketing/catalog pages (keep \`/admin\`, \`/account\`, and \`/checkout\` disallowed).`
+    );
+  } else {
+    lines.push(
+      `- **[PASS · CRAWLER ACCESS]** \`GPTBot\`, \`OAI-SearchBot\`, \`PerplexityBot\`, \`ClaudeBot\`, and \`Google-Extended\` are allowed. Do not add restrictive wildcard blocks to \`robots.txt\`.`
+    );
+  }
+
+  if (params.crawlerReadability) {
+    if (params.crawlerReadability.status === 'csr_js_trap') {
+      lines.push(
+        `- **[CRITICAL · JS RENDERING TRAP]** Homepage currently returns a client-side JS shell (\`${params.crawlerReadability.visibleWordCount}\` visible words, \`${params.crawlerReadability.signalToHtmlPct}%\` signal density). Non-JS AI crawlers skip empty \`<div id="root">\` shells. Render core H1/H2 headings, product/service copy, and pricing in server-rendered HTML (\`SSR\`/\`SSG\`).`
+      );
+    } else if (params.crawlerReadability.status === 'low_signal_bloat') {
+      lines.push(
+        `- **[WARN · HTML SIGNAL DENSITY]** Raw HTML has \`${params.crawlerReadability.signalToHtmlPct}%\` text-to-markup density. Keep core entity facts, pricing, and FAQs inside semantic \`<main>\`, \`<article>\`, and \`<section>\` landmarks.`
+      );
+    }
+  }
+
+  if (allHallucinations.length > 0) {
+    for (const h of allHallucinations.slice(0, 5)) {
+      lines.push(
+        `- **[${h.severity.toUpperCase()} · FALSE AI CLAIM TO CORRECT]** AI engines currently tell buyers: *"${h.claim_text}"* -> Correct on-site copy and schema to state: **${h.verified_truth}**.`
+      );
+    }
+  }
+
+  const missingAttrs = commerce.attributes.filter((a) => !a.liveOnSite);
+  if (missingAttrs.length > 0) {
+    lines.push(
+      `- **[AI SHOPPING & OFFER GAPS]** Missing live signals (${missingAttrs.length}/${commerce.totalCount}): ${missingAttrs.map((a) => a.label).join('; ')}.`
+    );
+  }
+
+  lines.push('', `## 3. Exact Verified Artifacts to Implement`);
+
+  if (blockedBots.length > 0) {
+    lines.push(
+      '',
+      `### Step A — Allow AI Search Crawlers in \`robots.txt\``,
+      'Append or merge these rules into `/robots.txt`:',
+      '```txt',
+      ...['GPTBot', 'OAI-SearchBot', 'PerplexityBot', 'ClaudeBot', 'Google-Extended'].flatMap(
+        (bot) => [`User-agent: ${bot}`, 'Allow: /', '']
+      ),
+      `Sitemap: https://${cleanHost}/sitemap.xml`,
+      '```'
+    );
+  }
+
+  fixesToInclude.forEach((fix, idx) => {
+    const stepNum = idx + 1;
+    let placementInstruction = '';
+    let codeFenceLang = 'markdown';
+
+    switch (fix.fix_type) {
+      case 'json_ld_schema':
+        codeFenceLang = 'json';
+        placementInstruction =
+          mode === 'shopify_liquid'
+            ? `Inject inside \`layout/theme.liquid\` immediately before \`</head>\` wrapped in \`<script type="application/ld+json">...</script>\`.`
+            : `Render in the root document \`<head>\` (e.g. \`app/layout.tsx\`, \`index.html\`, or CMS Header Code) inside \`<script type="application/ld+json">\`.`;
+        break;
+      case 'llms_txt':
+        codeFenceLang = 'markdown';
+        placementInstruction =
+          mode === 'shopify_liquid'
+            ? `Serve at \`https://${cleanHost}/llms.txt\` via edge route or publish at \`/pages/llms\` with a URL redirect from \`/llms.txt\`.`
+            : `Create a static file or route at \`/llms.txt\` (\`public/llms.txt\` or \`app/llms.txt/route.ts\`) returning \`Content-Type: text/plain; charset=utf-8\`.`;
+        break;
+      case 'shopify_agents_liquid':
+        codeFenceLang = 'liquid';
+        placementInstruction = `Save as \`templates/agents.md.liquid\` (or publish verified facts at \`/pages/ai-facts\`) and add \`<link rel="alternate" type="text/markdown" href="/pages/ai-facts" title="${domain.brand_name} Verified AI Truth" />\` inside \`layout/theme.liquid\` \`<head>\`.`;
+        break;
+      case 'agents_md':
+        codeFenceLang = 'markdown';
+        placementInstruction = `Serve at \`https://${cleanHost}/agents.md\` (\`public/agents.md\` or \`app/agents.md/route.ts\` with \`Content-Type: text/markdown; charset=utf-8\`) and add \`<link rel="alternate" type="text/markdown" href="/agents.md" />\` in \`<head>\`.`;
+        break;
+      case 'fanout_faq_block':
+        codeFenceLang = 'markdown';
+        placementInstruction = `Add these Answer-First buyer Q&As to a visible FAQ section on the homepage or pricing page so visible copy matches the \`FAQPage\` JSON-LD graph.`;
+        break;
+      default:
+        codeFenceLang = 'markdown';
+        placementInstruction = `Publish this verified artifact on \`https://${cleanHost}\`.`;
+    }
+
+    lines.push(
+      '',
+      `### Artifact ${stepNum}: ${fix.title} ${fix.is_applied ? '(Already Live — Verify Integrity)' : '(Pending — Implement Now)'}`,
+      `**Where to place it:** ${placementInstruction}`,
+      `\`\`\`${codeFenceLang}`,
+      fix.content_payload.trim(),
+      `\`\`\``
+    );
+  });
+
+  lines.push(
+    '',
+    `## 4. Verification Checklist Before Finishing`,
+    `1. Validate every \`application/ld+json\` payload with \`JSON.parse()\` to guarantee valid JSON syntax.`,
+    mode === 'chat_assistant'
+      ? `2. Tell me the exact URLs to test in my browser (\`https://${cleanHost}/\`, \`https://${cleanHost}/llms.txt\`, \`https://${cleanHost}/agents.md\`) once I paste each block.`
+      : `2. Run the project typecheck/build command to confirm zero regressions, and verify \`/llms.txt\`, \`/agents.md\`, and homepage \`JSON-LD\` resolve with HTTP \`200\`.`,
+    `3. Confirm zero unverified pricing or discontinued product claims appear anywhere in the added code.`
+  );
+
+  return enforceQualityGate95(lines.join('\n'), 'agents_md');
+}

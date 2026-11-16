@@ -568,10 +568,11 @@ export function PublicGraderClient(): React.ReactElement {
                   </div>
                 </div>
                 <div style={{ fontSize: '12.5px' }}>
-                  <strong>4. Copy-Paste JSON-LD, /llms.txt &amp; /agents.md</strong>
+                  <strong>4. 1-Click AI Fix Prompt + Verified Code</strong>
                   <div style={{ color: 'var(--vs-ink-secondary)', marginTop: '2px' }}>
-                    Ready-to-publish schema, AI Shopping attribute checks, and
-                    1-click live HTTP verification.
+                    Copy one tailored prompt into Claude, ChatGPT, Antigravity,
+                    or Cursor to fix every issue on {result.hostname}{' '}
+                    automatically.
                   </div>
                 </div>
               </div>
