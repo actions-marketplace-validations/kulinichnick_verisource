@@ -1,9 +1,10 @@
 import React from 'react';
 
 /**
- * Zero-Lag Inline Architectural SVG Signal Schematic (< 3.5 KB, 0 JS timers).
- * Uses GPU-friendly CSS stroke-dashoffset & opacity keyframes defined in @verisource/ui
- * and honors @media (prefers-reduced-motion: reduce).
+ * Zero-Lag Inline Architectural SVG Signal Schematic (0 JS timers).
+ * Renders a spacious landscape schematic on desktop/tablet (> 640px) and a
+ * native 1:1 portrait vertical flow on mobile (<= 640px) via pure CSS so text
+ * never clips or touches card borders on iOS Safari or Android Chrome.
  */
 export function HeroSignalSchematic(): React.ReactElement {
   return (
@@ -14,52 +15,48 @@ export function HeroSignalSchematic(): React.ReactElement {
         background: 'var(--vs-surface)',
       }}
     >
-      <div
-        style={{
-          padding: '10px 14px',
-          borderBottom: '1px solid var(--vs-border)',
-          background: 'var(--vs-surface-subtle)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-        }}
-      >
+      <div className="vs-schematic-header">
         <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
           FIG 01 · HOW VERISOURCE PROTECTS YOUR BRAND
         </span>
         <span
           className="vs-mono"
-          style={{ fontSize: '10.5px', color: 'var(--vs-pass-fg)', fontWeight: 600 }}
+          style={{
+            fontSize: '10.5px',
+            color: 'var(--vs-pass-fg)',
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+          }}
         >
           ● LIVE VERIFICATION LOOP
         </span>
       </div>
 
-      <div style={{ padding: '14px 14px 10px 14px', background: 'var(--vs-surface)' }}>
+      <div style={{ padding: '14px 12px 10px 12px', background: 'var(--vs-surface)' }}>
+        {/* Desktop & Tablet Landscape Schematic (> 640px) */}
         <svg
-          viewBox="0 0 500 308"
+          className="vs-schematic-desktop"
+          viewBox="0 0 560 308"
           width="100%"
           role="img"
-          aria-label="Animated diagram showing buyer questions from ChatGPT, Google Gemini, and Perplexity flowing through the Verisource Truth Engine to catch false pricing claims and publish verified website code fixes."
-          style={{ display: 'block', height: 'auto' }}
+          aria-label="Animated diagram showing buyer questions from ChatGPT, Google Gemini, and Perplexity flowing through the Verisource Truth Gate to catch false pricing claims and publish verified website code fixes."
         >
-          {/* Subtle Architectural Registration Marks */}
+          {/* Architectural Registration Crosshairs */}
           <g stroke="#E5E2DA" strokeWidth="1">
-            <line x1="16" y1="24" x2="28" y2="24" />
-            <line x1="22" y1="18" x2="22" y2="30" />
-            <line x1="472" y1="24" x2="484" y2="24" />
-            <line x1="478" y1="18" x2="478" y2="30" />
-            <line x1="16" y1="284" x2="28" y2="284" />
-            <line x1="22" y1="278" x2="22" y2="290" />
-            <line x1="472" y1="284" x2="484" y2="284" />
-            <line x1="478" y1="278" x2="478" y2="290" />
+            <line x1="16" y1="22" x2="28" y2="22" />
+            <line x1="22" y1="16" x2="22" y2="28" />
+            <line x1="532" y1="22" x2="544" y2="22" />
+            <line x1="538" y1="16" x2="538" y2="28" />
+            <line x1="16" y1="286" x2="28" y2="286" />
+            <line x1="22" y1="280" x2="22" y2="292" />
+            <line x1="532" y1="286" x2="544" y2="286" />
+            <line x1="538" y1="280" x2="538" y2="292" />
           </g>
 
           {/* Column Captions */}
           <text
             x="18"
-            y="46"
+            y="44"
             fill="#686D78"
             fontSize="9.5"
             fontFamily="var(--vs-mono)"
@@ -69,8 +66,8 @@ export function HeroSignalSchematic(): React.ReactElement {
             1. BUYERS ASK AI
           </text>
           <text
-            x="248"
-            y="46"
+            x="266"
+            y="44"
             textAnchor="middle"
             fill="#686D78"
             fontSize="9.5"
@@ -81,8 +78,8 @@ export function HeroSignalSchematic(): React.ReactElement {
             2. TRUTH AUDIT
           </text>
           <text
-            x="336"
-            y="46"
+            x="362"
+            y="44"
             fill="#686D78"
             fontSize="9.5"
             fontFamily="var(--vs-mono)"
@@ -92,30 +89,30 @@ export function HeroSignalSchematic(): React.ReactElement {
             3. VERIFIED OUTCOME
           </text>
 
-          {/* Base Hairline Tracks: AI Engines -> Verisource Core */}
+          {/* Inbound Tracks: AI Engines -> Dedicated Truth Gate Pins */}
           <path
-            d="M 136 86 C 178 86, 178 156, 210 156"
+            d="M 166 86 C 194 86, 194 140, 222 140"
             fill="none"
             stroke="#DDD9CE"
             strokeWidth="1.25"
           />
           <path
-            d="M 136 156 L 210 156"
+            d="M 166 156 L 222 156"
             fill="none"
             stroke="#DDD9CE"
             strokeWidth="1.25"
           />
           <path
-            d="M 136 226 C 178 226, 178 156, 210 156"
+            d="M 166 226 C 194 226, 194 172, 222 172"
             fill="none"
             stroke="#DDD9CE"
             strokeWidth="1.25"
           />
 
-          {/* Animated Signal Pulses Along Inbound Bezier Curves */}
+          {/* Inbound Animated Signal Pulses */}
           <path
             className="vs-signal-path"
-            d="M 136 86 C 178 86, 178 156, 210 156"
+            d="M 166 86 C 194 86, 194 140, 222 140"
             fill="none"
             stroke="#0A0E17"
             strokeWidth="1.8"
@@ -123,7 +120,7 @@ export function HeroSignalSchematic(): React.ReactElement {
           />
           <path
             className="vs-signal-path vs-signal-path-delay-1"
-            d="M 136 156 L 210 156"
+            d="M 166 156 L 222 156"
             fill="none"
             stroke="#0A0E17"
             strokeWidth="1.8"
@@ -131,30 +128,30 @@ export function HeroSignalSchematic(): React.ReactElement {
           />
           <path
             className="vs-signal-path vs-signal-path-delay-2"
-            d="M 136 226 C 178 226, 178 156, 210 156"
+            d="M 166 226 C 194 226, 194 172, 222 172"
             fill="none"
             stroke="#0A0E17"
             strokeWidth="1.8"
             strokeLinecap="round"
           />
 
-          {/* Outbound Base Tracks: Verisource Core -> Caught Claim & Verified Fix */}
+          {/* Outbound Tracks: Truth Gate -> Flagged Claim & Verified Fix */}
           <path
-            d="M 286 140 C 312 140, 310 98, 336 98"
+            d="M 310 140 C 336 140, 336 97, 362 97"
             fill="none"
             stroke="#FECACA"
-            strokeWidth="1.35"
+            strokeWidth="1.4"
             strokeDasharray="3 3"
           />
           <path
-            d="M 286 172 C 312 172, 310 216, 336 216"
+            d="M 310 172 C 336 172, 336 214, 362 214"
             fill="none"
             stroke="#A7F3D0"
             strokeWidth="1.5"
           />
           <path
             className="vs-signal-path-out"
-            d="M 286 172 C 312 172, 310 216, 336 216"
+            d="M 310 172 C 336 172, 336 214, 362 214"
             fill="none"
             stroke="#065F46"
             strokeWidth="2"
@@ -162,18 +159,18 @@ export function HeroSignalSchematic(): React.ReactElement {
           />
 
           {/* Left Engine Node 1: ChatGPT */}
-          <g transform="translate(18, 66)">
+          <g transform="translate(18, 65)">
             <rect
-              width="118"
-              height="40"
+              width="148"
+              height="42"
               rx="6"
               fill="#FAF9F6"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <circle cx="16" cy="20" r="3.5" fill="#0A0E17" />
+            <circle cx="15" cy="21" r="3.5" fill="#0A0E17" />
             <text
-              x="27"
+              x="26"
               y="18"
               fill="#0A0E17"
               fontSize="11"
@@ -183,29 +180,29 @@ export function HeroSignalSchematic(): React.ReactElement {
               ChatGPT
             </text>
             <text
-              x="27"
-              y="31"
+              x="26"
+              y="32"
               fill="#686D78"
               fontSize="9.5"
               fontFamily="var(--vs-mono)"
             >
-              “Best vendor for X?”
+              “Best vendor?”
             </text>
           </g>
 
           {/* Left Engine Node 2: Google Gemini */}
-          <g transform="translate(18, 136)">
+          <g transform="translate(18, 135)">
             <rect
-              width="118"
-              height="40"
+              width="148"
+              height="42"
               rx="6"
               fill="#FAF9F6"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <circle cx="16" cy="20" r="3.5" fill="#0A0E17" />
+            <circle cx="15" cy="21" r="3.5" fill="#0A0E17" />
             <text
-              x="27"
+              x="26"
               y="18"
               fill="#0A0E17"
               fontSize="11"
@@ -215,29 +212,29 @@ export function HeroSignalSchematic(): React.ReactElement {
               Google Gemini
             </text>
             <text
-              x="27"
-              y="31"
+              x="26"
+              y="32"
               fill="#686D78"
               fontSize="9.5"
               fontFamily="var(--vs-mono)"
             >
-              “Enterprise SLA?”
+              “True pricing?”
             </text>
           </g>
 
           {/* Left Engine Node 3: Perplexity */}
-          <g transform="translate(18, 206)">
+          <g transform="translate(18, 205)">
             <rect
-              width="118"
-              height="40"
+              width="148"
+              height="42"
               rx="6"
               fill="#FAF9F6"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <circle cx="16" cy="20" r="3.5" fill="#0A0E17" />
+            <circle cx="15" cy="21" r="3.5" fill="#0A0E17" />
             <text
-              x="27"
+              x="26"
               y="18"
               fill="#0A0E17"
               fontSize="11"
@@ -247,40 +244,39 @@ export function HeroSignalSchematic(): React.ReactElement {
               Perplexity
             </text>
             <text
-              x="27"
-              y="31"
+              x="26"
+              y="32"
               fill="#686D78"
               fontSize="9.5"
               fontFamily="var(--vs-mono)"
             >
-              “Compare pricing”
+              “Compare plans”
             </text>
           </g>
 
-          {/* Center Monolith: Verisource Truth Engine */}
-          <g transform="translate(210, 106)">
+          {/* Center Monolith: Verisource Truth Gate */}
+          <g transform="translate(222, 106)">
             <rect
               className="vs-pulse-ring"
               x="-5"
               y="-5"
-              width="86"
+              width="98"
               height="110"
               rx="11"
               fill="none"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <rect width="76" height="100" rx="8" fill="#0A0E17" />
-            {/* Crisp Architectural Diamond Emblem */}
+            <rect width="88" height="100" rx="8" fill="#0A0E17" />
             <polygon
-              points="38,20 50,32 38,44 26,32"
+              points="44,20 56,32 44,44 32,32"
               fill="none"
               stroke="#FAF9F6"
               strokeWidth="1.5"
             />
-            <circle cx="38" cy="32" r="2.5" fill="#A7F3D0" />
+            <circle cx="44" cy="32" r="2.5" fill="#A7F3D0" />
             <text
-              x="38"
+              x="44"
               y="64"
               textAnchor="middle"
               fill="#FFFFFF"
@@ -292,7 +288,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               VERISOURCE
             </text>
             <text
-              x="38"
+              x="44"
               y="78"
               textAnchor="middle"
               fill="#A3A8B4"
@@ -304,18 +300,18 @@ export function HeroSignalSchematic(): React.ReactElement {
           </g>
 
           {/* Right Output Card 1: Flagged AI Mistake */}
-          <g transform="translate(336, 66)">
+          <g transform="translate(362, 64)">
             <rect
-              width="148"
-              height="64"
+              width="180"
+              height="66"
               rx="6"
               fill="#FEF2F2"
               stroke="#FECACA"
               strokeWidth="1"
             />
             <text
-              x="11"
-              y="18"
+              x="12"
+              y="19"
               fill="#991B1B"
               fontSize="9"
               fontFamily="var(--vs-mono)"
@@ -325,40 +321,40 @@ export function HeroSignalSchematic(): React.ReactElement {
               ✕ FLAGGED AI CLAIM
             </text>
             <text
-              x="11"
-              y="36"
+              x="12"
+              y="37"
               fill="#0A0E17"
               fontSize="10.5"
               fontFamily="var(--vs-sans)"
               fontWeight="600"
               textDecoration="line-through"
             >
-              “$19/mo unlimited seats”
+              “$19/mo unlimited”
             </text>
             <text
-              x="11"
-              y="51"
+              x="12"
+              y="53"
               fill="#991B1B"
-              fontSize="9.5"
+              fontSize="9.2"
               fontFamily="var(--vs-mono)"
             >
-              Alerted before buyers bounce
+              Caught before lead loss
             </text>
           </g>
 
           {/* Right Output Card 2: Published Website Fix */}
-          <g transform="translate(336, 178)">
+          <g transform="translate(362, 176)">
             <rect
-              width="148"
-              height="74"
+              width="180"
+              height="76"
               rx="6"
               fill="#ECFDF5"
               stroke="#A7F3D0"
               strokeWidth="1"
             />
             <text
-              x="11"
-              y="18"
+              x="12"
+              y="19"
               fill="#065F46"
               fontSize="9"
               fontFamily="var(--vs-mono)"
@@ -368,8 +364,8 @@ export function HeroSignalSchematic(): React.ReactElement {
               ✓ PUBLISHED SITE FIX
             </text>
             <text
-              x="11"
-              y="36"
+              x="12"
+              y="37"
               fill="#0A0E17"
               fontSize="11"
               fontFamily="var(--vs-sans)"
@@ -378,8 +374,8 @@ export function HeroSignalSchematic(): React.ReactElement {
               Verified $49/mo+ Tiers
             </text>
             <text
-              x="11"
-              y="52"
+              x="12"
+              y="53"
               fill="#065F46"
               fontSize="9.5"
               fontFamily="var(--vs-mono)"
@@ -387,13 +383,307 @@ export function HeroSignalSchematic(): React.ReactElement {
               JSON-LD + /agents.md
             </text>
             <text
-              x="11"
-              y="65"
+              x="12"
+              y="67"
               fill="#3A3F4B"
               fontSize="9"
               fontFamily="var(--vs-mono)"
             >
               48 → 91 / 100 readiness
+            </text>
+          </g>
+        </svg>
+
+        {/* Mobile Portrait Vertical Schematic (<= 640px — Native 1:1 Legibility) */}
+        <svg
+          className="vs-schematic-mobile"
+          viewBox="0 0 340 330"
+          width="100%"
+          role="img"
+          aria-label="Vertical mobile diagram showing ChatGPT, Gemini, and Perplexity flowing into the Verisource Truth Gate and outputting caught pricing mistakes and verified website fixes."
+        >
+          <text
+            x="170"
+            y="16"
+            textAnchor="middle"
+            fill="#686D78"
+            fontSize="9.5"
+            fontFamily="var(--vs-mono)"
+            fontWeight="600"
+            letterSpacing="0.06em"
+          >
+            1. BUYERS ASK AI SEARCH
+          </text>
+
+          {/* Row 1: 3 Equal Engine Cards */}
+          <g transform="translate(8, 26)">
+            <rect width="102" height="48" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+            <text
+              x="51"
+              y="20"
+              textAnchor="middle"
+              fill="#0A0E17"
+              fontSize="11"
+              fontFamily="var(--vs-sans)"
+              fontWeight="700"
+            >
+              ChatGPT
+            </text>
+            <text
+              x="51"
+              y="36"
+              textAnchor="middle"
+              fill="#686D78"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              “Best vendor?”
+            </text>
+          </g>
+
+          <g transform="translate(119, 26)">
+            <rect width="102" height="48" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+            <text
+              x="51"
+              y="20"
+              textAnchor="middle"
+              fill="#0A0E17"
+              fontSize="11"
+              fontFamily="var(--vs-sans)"
+              fontWeight="700"
+            >
+              Gemini
+            </text>
+            <text
+              x="51"
+              y="36"
+              textAnchor="middle"
+              fill="#686D78"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              “True pricing?”
+            </text>
+          </g>
+
+          <g transform="translate(230, 26)">
+            <rect width="102" height="48" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+            <text
+              x="51"
+              y="20"
+              textAnchor="middle"
+              fill="#0A0E17"
+              fontSize="11"
+              fontFamily="var(--vs-sans)"
+              fontWeight="700"
+            >
+              Perplexity
+            </text>
+            <text
+              x="51"
+              y="36"
+              textAnchor="middle"
+              fill="#686D78"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              “Compare plans”
+            </text>
+          </g>
+
+          {/* Vertical Inbound Tracks + Pulses */}
+          <path
+            d="M 59 74 C 59 100, 140 96, 140 120"
+            fill="none"
+            stroke="#DDD9CE"
+            strokeWidth="1.25"
+          />
+          <path
+            d="M 170 74 L 170 120"
+            fill="none"
+            stroke="#DDD9CE"
+            strokeWidth="1.25"
+          />
+          <path
+            d="M 281 74 C 281 100, 200 96, 200 120"
+            fill="none"
+            stroke="#DDD9CE"
+            strokeWidth="1.25"
+          />
+
+          <path
+            className="vs-signal-path"
+            d="M 59 74 C 59 100, 140 96, 140 120"
+            fill="none"
+            stroke="#0A0E17"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <path
+            className="vs-signal-path vs-signal-path-delay-1"
+            d="M 170 74 L 170 120"
+            fill="none"
+            stroke="#0A0E17"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <path
+            className="vs-signal-path vs-signal-path-delay-2"
+            d="M 281 74 C 281 100, 200 96, 200 120"
+            fill="none"
+            stroke="#0A0E17"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+
+          {/* Row 2: Center Verisource Truth Gate */}
+          <g transform="translate(52, 120)">
+            <rect
+              className="vs-pulse-ring"
+              x="-4"
+              y="-4"
+              width="244"
+              height="66"
+              rx="11"
+              fill="none"
+              stroke="#CFCBC0"
+            />
+            <rect width="236" height="58" rx="8" fill="#0A0E17" />
+            <polygon
+              points="30,17 41,29 30,41 19,29"
+              fill="none"
+              stroke="#FAF9F6"
+              strokeWidth="1.5"
+            />
+            <circle cx="30" cy="29" r="2.5" fill="#A7F3D0" />
+            <text
+              x="52"
+              y="26"
+              fill="#FFFFFF"
+              fontSize="9.8"
+              fontFamily="var(--vs-mono)"
+              fontWeight="700"
+              letterSpacing="0.04em"
+            >
+              2. VERISOURCE TRUTH GATE
+            </text>
+            <text
+              x="52"
+              y="42"
+              fill="#A3A8B4"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              Checks prices · 1-click AI fix
+            </text>
+          </g>
+
+          {/* Vertical Outbound Tracks */}
+          <path
+            d="M 136 178 C 136 202, 86 200, 86 222"
+            fill="none"
+            stroke="#FECACA"
+            strokeWidth="1.4"
+            strokeDasharray="3 3"
+          />
+          <path
+            d="M 204 178 C 204 202, 254 200, 254 222"
+            fill="none"
+            stroke="#A7F3D0"
+            strokeWidth="1.5"
+          />
+          <path
+            className="vs-signal-path-out"
+            d="M 204 178 C 204 202, 254 200, 254 222"
+            fill="none"
+            stroke="#065F46"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+
+          {/* Row 3: Outcome Pair */}
+          <g transform="translate(8, 222)">
+            <rect width="156" height="96" rx="6" fill="#FEF2F2" stroke="#FECACA" />
+            <text
+              x="11"
+              y="20"
+              fill="#991B1B"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+              fontWeight="700"
+            >
+              ✕ FLAGGED CLAIM
+            </text>
+            <text
+              x="11"
+              y="40"
+              fill="#0A0E17"
+              fontSize="10.2"
+              fontFamily="var(--vs-sans)"
+              fontWeight="600"
+              textDecoration="line-through"
+            >
+              “$19/mo unlimited”
+            </text>
+            <text
+              x="11"
+              y="60"
+              fill="#991B1B"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              Wrong price caught
+            </text>
+            <text
+              x="11"
+              y="76"
+              fill="#991B1B"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              before buyers bounce
+            </text>
+          </g>
+
+          <g transform="translate(176, 222)">
+            <rect width="156" height="96" rx="6" fill="#ECFDF5" stroke="#A7F3D0" />
+            <text
+              x="11"
+              y="20"
+              fill="#065F46"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+              fontWeight="700"
+            >
+              ✓ PUBLISHED FIX
+            </text>
+            <text
+              x="11"
+              y="40"
+              fill="#0A0E17"
+              fontSize="10.2"
+              fontFamily="var(--vs-sans)"
+              fontWeight="700"
+            >
+              True $49/mo+ Tiers
+            </text>
+            <text
+              x="11"
+              y="60"
+              fill="#065F46"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              JSON-LD + /agents.md
+            </text>
+            <text
+              x="11"
+              y="76"
+              fill="#3A3F4B"
+              fontSize="8.8"
+              fontFamily="var(--vs-mono)"
+            >
+              48 → 91 / 100 score
             </text>
           </g>
         </svg>
@@ -408,7 +698,7 @@ export function HeroSignalSchematic(): React.ReactElement {
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '8px',
+          gap: '6px 10px',
           fontSize: '11.5px',
           color: 'var(--vs-ink-secondary)',
         }}
@@ -417,7 +707,10 @@ export function HeroSignalSchematic(): React.ReactElement {
           <strong>Easy-to-Use Guided Mode</strong> +{' '}
           <strong className="vs-mono">Pro /mcp Mode</strong> built in
         </span>
-        <span className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)' }}>
+        <span
+          className="vs-mono"
+          style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', whiteSpace: 'nowrap' }}
+        >
           SVG · 0 ms lag
         </span>
       </div>

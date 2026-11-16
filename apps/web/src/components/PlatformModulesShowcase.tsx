@@ -116,21 +116,9 @@ export function PlatformModulesShowcase(): React.ReactElement {
         </Link>
       </div>
 
-      <div
-        className="vs-card"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
-          overflow: 'hidden',
-        }}
-      >
+      <div className="vs-card vs-showcase-grid">
         {/* Left Selector Rail */}
-        <div
-          style={{
-            borderRight: '1px solid var(--vs-border)',
-            background: 'var(--vs-surface-subtle)',
-          }}
-        >
+        <div className="vs-showcase-rail">
           {PILLARS.map((pillar, index) => {
             const isSelected = pillar.id === active.id;
             return (
@@ -266,42 +254,44 @@ export function PlatformModulesShowcase(): React.ReactElement {
                     0 PRICING HALLUCINATIONS
                   </span>
                 </div>
-                <table className="vs-table" style={{ fontSize: '12.5px' }}>
-                  <thead>
-                    <tr>
-                      <th>Answer Engine</th>
-                      <th>Mention Rate</th>
-                      <th>Citation Rate</th>
-                      <th>Framing</th>
-                    </tr>
-                  </thead>
-                  <tbody className="vs-mono">
-                    <tr>
-                      <td>ChatGPT Search</td>
-                      <td>86%</td>
-                      <td>64%</td>
-                      <td>
-                        <StatusBadge tone="pass">RECOMMENDED #1</StatusBadge>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Perplexity Agent</td>
-                      <td>92%</td>
-                      <td>85%</td>
-                      <td>
-                        <StatusBadge tone="pass">CITED FOOTNOTE #1</StatusBadge>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Google Gemini</td>
-                      <td>79%</td>
-                      <td>57%</td>
-                      <td>
-                        <StatusBadge>LISTED #2</StatusBadge>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="vs-table-wrap">
+                  <table className="vs-table" style={{ fontSize: '12.5px' }}>
+                    <thead>
+                      <tr>
+                        <th>Answer Engine</th>
+                        <th>Mention Rate</th>
+                        <th>Citation Rate</th>
+                        <th>Framing</th>
+                      </tr>
+                    </thead>
+                    <tbody className="vs-mono">
+                      <tr>
+                        <td>ChatGPT Search</td>
+                        <td>86%</td>
+                        <td>64%</td>
+                        <td>
+                          <StatusBadge tone="pass">RECOMMENDED #1</StatusBadge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Perplexity Agent</td>
+                        <td>92%</td>
+                        <td>85%</td>
+                        <td>
+                          <StatusBadge tone="pass">CITED FOOTNOTE #1</StatusBadge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Google Gemini</td>
+                        <td>79%</td>
+                        <td>57%</td>
+                        <td>
+                          <StatusBadge>LISTED #2</StatusBadge>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : null}
 
@@ -313,53 +303,55 @@ export function PlatformModulesShowcase(): React.ReactElement {
                   overflow: 'hidden',
                 }}
               >
-                <table className="vs-table" style={{ fontSize: '12.5px' }}>
-                  <thead>
-                    <tr>
-                      <th>Auto-Suggested Buyer Prompt</th>
-                      <th>Funnel Stage</th>
-                      <th>Top Cited Source Type</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        &ldquo;Best B2B workflow platforms with transparent API
-                        pricing&rdquo;
-                      </td>
-                      <td>
-                        <StatusBadge tone="pass">DISCOVERY · UNBRANDED</StatusBadge>
-                      </td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        reddit.com (UGC) · g2.com (Directory)
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        &ldquo;YourBrand vs RivalCloud: SLA, pricing tiers &amp;
-                        SOC2&rdquo;
-                      </td>
-                      <td>
-                        <StatusBadge>COMPARISON · SHORTLIST</StatusBadge>
-                      </td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        rivalcloud.io (Competitor Site)
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        &ldquo;YourBrand enterprise seat limits and annual
-                        billing&rdquo;
-                      </td>
-                      <td>
-                        <StatusBadge tone="warn">PRICING &amp; FIT</StatusBadge>
-                      </td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        yourbrand.com/agents.md (Owned)
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="vs-table-wrap">
+                  <table className="vs-table" style={{ fontSize: '12.5px' }}>
+                    <thead>
+                      <tr>
+                        <th>Auto-Suggested Buyer Prompt</th>
+                        <th>Funnel Stage</th>
+                        <th>Top Cited Source Type</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          &ldquo;Best B2B workflow platforms with transparent API
+                          pricing&rdquo;
+                        </td>
+                        <td>
+                          <StatusBadge tone="pass">DISCOVERY · UNBRANDED</StatusBadge>
+                        </td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          reddit.com (UGC) · g2.com (Directory)
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          &ldquo;YourBrand vs RivalCloud: SLA, pricing tiers &amp;
+                          SOC2&rdquo;
+                        </td>
+                        <td>
+                          <StatusBadge>COMPARISON · SHORTLIST</StatusBadge>
+                        </td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          rivalcloud.io (Competitor Site)
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          &ldquo;YourBrand enterprise seat limits and annual
+                          billing&rdquo;
+                        </td>
+                        <td>
+                          <StatusBadge tone="warn">PRICING &amp; FIT</StatusBadge>
+                        </td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          yourbrand.com/agents.md (Owned)
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : null}
 
@@ -394,6 +386,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                     background: '#FFFFFF',
                     border: '1px solid var(--vs-border)',
                     borderRadius: '4px',
+                    overflowWrap: 'anywhere',
                   }}
                 >
                   <div>[ai_bot_crawl] PerplexityBot → /pricing (HTTP 200)</div>
@@ -413,66 +406,68 @@ export function PlatformModulesShowcase(): React.ReactElement {
                   overflow: 'hidden',
                 }}
               >
-                <table className="vs-table" style={{ fontSize: '12.5px' }}>
-                  <thead>
-                    <tr>
-                      <th>Commerce &amp; Offer Attribute</th>
-                      <th>Generated Artifact</th>
-                      <th>Validation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Plan Tiers / SKU OfferCatalog</td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        application/ld+json
-                      </td>
-                      <td>
-                        <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Negative SKU &amp; Policy Guardrails</td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        /agents.md + agents.md.liquid
-                      </td>
-                      <td>
-                        <StatusBadge tone="pass">TRUTH LOCKED</StatusBadge>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Canonical Retrieval Directory</td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        /llms.txt + FAQPage Graph
-                      </td>
-                      <td>
-                        <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>1-Click AI Fix Prompt</strong> (Claude · ChatGPT · Antigravity)
-                      </td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        Master Remediation Prompt
-                      </td>
-                      <td>
-                        <StatusBadge tone="pass">READY TO PASTE</StatusBadge>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <strong>Rival Comparison &amp; Buyer Guide Studio</strong>
-                      </td>
-                      <td className="vs-mono" style={{ fontSize: '11.5px' }}>
-                        /compare/brand-vs-rival + FAQPage
-                      </td>
-                      <td>
-                        <StatusBadge tone="pass">BRAND TRUTH LOCKED</StatusBadge>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="vs-table-wrap">
+                  <table className="vs-table" style={{ fontSize: '12.5px' }}>
+                    <thead>
+                      <tr>
+                        <th>Commerce &amp; Offer Attribute</th>
+                        <th>Generated Artifact</th>
+                        <th>Validation</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Plan Tiers / SKU OfferCatalog</td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          application/ld+json
+                        </td>
+                        <td>
+                          <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Negative SKU &amp; Policy Guardrails</td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          /agents.md + agents.md.liquid
+                        </td>
+                        <td>
+                          <StatusBadge tone="pass">TRUTH LOCKED</StatusBadge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Canonical Retrieval Directory</td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          /llms.txt + FAQPage Graph
+                        </td>
+                        <td>
+                          <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <strong>1-Click AI Fix Prompt</strong> (Claude · ChatGPT · Antigravity)
+                        </td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          Master Remediation Prompt
+                        </td>
+                        <td>
+                          <StatusBadge tone="pass">READY TO PASTE</StatusBadge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <strong>Rival Comparison &amp; Buyer Guide Studio</strong>
+                        </td>
+                        <td className="vs-mono" style={{ fontSize: '11.5px' }}>
+                          /compare/brand-vs-rival + FAQPage
+                        </td>
+                        <td>
+                          <StatusBadge tone="pass">BRAND TRUTH LOCKED</StatusBadge>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : null}
 
@@ -505,6 +500,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                     background: '#FFFFFF',
                     border: '1px solid var(--vs-border)',
                     borderRadius: '4px',
+                    overflowWrap: 'anywhere',
                   }}
                 >
                   <div>POST https://mcp.verisource.dev/mcp</div>

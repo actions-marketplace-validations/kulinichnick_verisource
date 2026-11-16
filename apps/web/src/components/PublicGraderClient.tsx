@@ -206,7 +206,7 @@ export function PublicGraderClient(): React.ReactElement {
           type="submit"
           disabled={loading}
           className="vs-btn"
-          style={{ whiteSpace: 'nowrap', padding: '10px 24px' }}
+          style={{ padding: '10px 24px', flexShrink: 0 }}
         >
           {loading ? 'Scanning Your Website...' : 'Run Free AI Audit →'}
         </button>

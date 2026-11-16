@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Sample White-Label Client Audits & Outbound Playbook | Verisource',
   description:
-    'Inspect live 3-engine white-label /audit/[slug] client briefs (ChatGPT, Gemini & Perplexity) across B2B SaaS, Agencies, and Local Services.',
+    'Inspect live 3-engine white-label /audit/[slug] client briefs (ChatGPT, Gemini & Perplexity) with auto-detected CMS badges and easy-to-follow Business Impact action plans.',
   alternates: {
     canonical: 'https://verisource.dev/sample-audit',
   },
@@ -34,6 +34,28 @@ const FALLBACK_COHORT_REPORTS: AgencyPitchReportRow[] = [
     agency_primary_color_snapshot: '#0A0E17',
     agency_cta_url_snapshot: 'https://verisource.dev/pricing',
     summary_payload: {
+      detected_platform: 'nextjs_custom',
+      detected_platform_label: 'Custom / Next.js',
+      business_impact_items: [
+        {
+          severity: 'fix_first',
+          badgeLabel: 'FIX FIRST · WRONG PRICING',
+          whatIsWrong: 'AI search quotes a non-existent $10/mo unlimited email tier',
+          whyItMatters:
+            'AI-referred visitors convert at 14.2%–15.9%, yet buyers bounce when checkout shows $20/mo for 50,000 emails instead of $10/mo unlimited.',
+          howToFix:
+            'Publish /agents.md and OfferCatalog JSON-LD locking verified Pro and Scale API tiers via 1-Click AI Fix Prompt.',
+        },
+        {
+          severity: 'high_impact',
+          badgeLabel: 'HIGH IMPACT · RIVAL CITATIONS',
+          whatIsWrong: 'Reddit and G2 comparison threads outrank owned docs on commercial prompts',
+          whyItMatters:
+            'Postmark and SendGrid capture footnote links when unbranded buyers ask ChatGPT and Perplexity to compare transactional email APIs.',
+          howToFix:
+            'Ship a truth-locked comparison page (/compare/resend-vs-postmark) with FAQPage schema.',
+        },
+      ],
       top_gaps: [
         'Missing canonical /agents.md pricing and API tier guardrail file.',
         'Third-party Reddit and G2 comparison threads outrank owned docs on commercial queries.',
@@ -69,6 +91,19 @@ const FALLBACK_COHORT_REPORTS: AgencyPitchReportRow[] = [
     agency_primary_color_snapshot: '#0A0E17',
     agency_cta_url_snapshot: 'https://verisource.dev/pricing',
     summary_payload: {
+      detected_platform: 'wordpress',
+      detected_platform_label: 'WordPress',
+      business_impact_items: [
+        {
+          severity: 'high_impact',
+          badgeLabel: 'HIGH IMPACT · MISSING AI FILES',
+          whatIsWrong: 'Missing /llms.txt and /agents.md retainer scope files on WordPress',
+          whyItMatters:
+            'Clutch directories and third-party agency roundups answer for your brand when B2B CMOs shortlist content agencies in Perplexity.',
+          howToFix:
+            'Paste the WordPress WPCode / RankMath 1-Click AI Fix Prompt to publish ProfessionalService JSON-LD and /agents.md.',
+        },
+      ],
       top_gaps: [
         'Missing /llms.txt machine-readable agency scope and retainer overview.',
         'Clutch and editorial agency listicles dominate unbranded B2B SEO prompts.',
@@ -97,6 +132,19 @@ const FALLBACK_COHORT_REPORTS: AgencyPitchReportRow[] = [
     agency_primary_color_snapshot: '#0A0E17',
     agency_cta_url_snapshot: 'https://verisource.dev/pricing',
     summary_payload: {
+      detected_platform: 'webflow',
+      detected_platform_label: 'Webflow',
+      business_impact_items: [
+        {
+          severity: 'fix_first',
+          badgeLabel: 'FIX FIRST · POLICY CLAIM',
+          whatIsWrong: 'AI claims studio locations accept all state Medicaid dental plans nationwide',
+          whyItMatters:
+            'Patients arrive expecting unsupported Medicaid coverage instead of accepted PPO dental plans across metro studios.',
+          howToFix:
+            'Publish Webflow Custom Code Dentist + LocalBusiness JSON-LD and /ai-facts insurance guardrails.',
+        },
+      ],
       top_gaps: [
         'Missing /agents.md insurance and studio membership policy guardrails.',
         'Zocdoc and Yelp directories capture top Perplexity footnote slots.',
@@ -151,6 +199,7 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
     featuredReport,
     'https://verisource.dev'
   );
+  const specimenImpact = FALLBACK_COHORT_REPORTS[0]!.summary_payload.business_impact_items!;
 
   return (
     <div>
@@ -172,8 +221,8 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
             }}
           >
             <StatusBadge tone="pass">PURE WHITE-LABEL ISOLATION</StatusBadge>
-            <StatusBadge>BATCH CSV + PLAYBOOK EXPORT</StatusBadge>
-            <StatusBadge>PRINT / SAVE PDF READY</StatusBadge>
+            <StatusBadge>7-PLATFORM AUTO-CMS DETECTION</StatusBadge>
+            <StatusBadge>EASY-TO-USE ACTION PLAN + PDF</StatusBadge>
           </div>
 
           <h1
@@ -205,9 +254,15 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
             }}
           >
             SEO, web design, and digital PR agencies use Console Batch Mode to
-            audit up to 10 prospect domains in parallel, mint white-label{' '}
-            <code className="vs-mono">/audit/[slug]</code> scorecards with their
-            own logo and calendar link, and export a ready-to-send outreach CSV.
+            audit up to 10 prospect domains in parallel, detect each client&rsquo;s
+            website builder (<code className="vs-mono">Shopify</code>,{' '}
+            <code className="vs-mono">WordPress</code>,{' '}
+            <code className="vs-mono">Webflow</code>,{' '}
+            <code className="vs-mono">Wix</code>,{' '}
+            <code className="vs-mono">Squarespace</code>,{' '}
+            <code className="vs-mono">Framer</code>, or custom code), and mint
+            white-label <code className="vs-mono">/audit/[slug]</code> briefs
+            with an easy-to-follow Business Impact action plan.
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -225,6 +280,110 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
       </section>
 
       <div className="vs-container">
+        {/* Specimen Preview: What Decision-Makers See Inside Every /audit/[slug] Brief */}
+        <section style={{ marginBottom: '44px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            INSIDE EVERY SHAREABLE /AUDIT/[SLUG] BRIEF
+          </div>
+          <h2
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 14px 0',
+            }}
+          >
+            Decision-makers see what is wrong, why it costs leads, and how to fix it.
+          </h2>
+
+          <div className="vs-card" style={{ overflow: 'hidden' }}>
+            <div
+              style={{
+                padding: '13px 16px',
+                background: 'var(--vs-surface-warm)',
+                borderBottom: '1px solid var(--vs-border)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              }}
+            >
+              <div>
+                <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                  SITE DIAGNOSIS &amp; BUSINESS IMPACT · WHAT TO FIX FIRST
+                </div>
+                <strong style={{ fontSize: '14px' }}>
+                  Auto-generated for every prospect URL alongside your agency booking CTA
+                </strong>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <StatusBadge tone="pass">PLATFORM: AUTO-DETECTED CMS</StatusBadge>
+                <StatusBadge>1-CLICK AI FIX PROMPT READY</StatusBadge>
+              </div>
+            </div>
+
+            <div className="vs-grid-2" style={{ padding: '16px' }}>
+              {specimenImpact.map((item, index) => (
+                <div
+                  key={item.whatIsWrong}
+                  style={{
+                    padding: '14px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--vs-border)',
+                    background:
+                      item.severity === 'fix_first'
+                        ? 'var(--vs-crit-bg)'
+                        : 'var(--vs-surface-subtle)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <StatusBadge
+                      tone={item.severity === 'fix_first' ? 'critical' : 'warn'}
+                    >
+                      {item.badgeLabel}
+                    </StatusBadge>
+                    <strong style={{ fontSize: '13.5px' }}>
+                      {index + 1}. {item.whatIsWrong}
+                    </strong>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-secondary)',
+                      lineHeight: 1.5,
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      Business impact:
+                    </strong>{' '}
+                    {item.whyItMatters}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-secondary)',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <strong style={{ color: 'var(--vs-ink)' }}>Fix:</strong>{' '}
+                    {item.howToFix}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section style={{ marginBottom: '52px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
             LIVE MULTI-VERTICAL BENCHMARK COHORT

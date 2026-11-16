@@ -16,7 +16,7 @@ import { AgencyRoiCalculator } from '../../components/AgencyRoiCalculator';
 export const metadata: Metadata = {
   title: 'White-Label GEO & AI Search Audits for Agencies | Verisource',
   description:
-    'Mint branded 60-second /audit/[slug] client scorecards with your agency logo, filter Slackbot opens, and close $1,500–$3,000/mo GEO retainers on 15 client sites ($249/mo).',
+    'Mint branded 60-second /audit/[slug] client scorecards with auto-detected CMS badges, Business Impact action plans, and your agency logo ($249/mo for 15 sites).',
   alternates: {
     canonical: 'https://verisource.dev/agencies',
   },
@@ -27,25 +27,25 @@ const AGENCY_WORKFLOW_STEPS = [
     step: '01',
     title: 'Paste up to 10 prospect domains in Batch Mode',
     detail:
-      'Tab 3 Batch Mode audits up to 10 Shopify, B2B SaaS, or local service websites in parallel—probing GPTBot, OAI-SearchBot, PerplexityBot, and ClaudeBot WAF rules plus live ChatGPT, Gemini, and Perplexity citations.',
+      'Step 03 Batch Mode audits up to 10 websites in parallel—auto-detecting Shopify, WordPress, Webflow, Wix, Squarespace, Framer, or custom stacks while probing GPTBot, PerplexityBot, and live ChatGPT, Gemini, and Perplexity citations.',
   },
   {
     step: '02',
-    title: 'Share pure white-label /audit/[slug] scorecards',
+    title: 'Share pure white-label /audit/[slug] Business Impact briefs',
     detail:
-      'Every client report carries your agency logo, hex accent bar, and calendar booking button. Global Verisource navigation is stripped automatically at the CSS root, and prospects can save a clean executive PDF.',
+      'Every client report carries your agency logo, hex accent bar, calendar booking button, and an easy-to-use Site Diagnosis & Business Impact card that explains why missing AI facts cost 14.2%–15.9% converting leads—with zero Verisource chrome.',
   },
   {
     step: '03',
     title: 'Follow up on verified human open alerts',
     detail:
-      'Slackbot, LinkedInBot, and email preview crawlers are filtered out. When a real prospect opens their brief (1x) or shares it internally (3x), an instant alert hits your agency inbox.',
+      'Slackbot, LinkedInBot, and email preview crawlers are filtered out. When a real prospect opens their brief (1x) or forwards it internally (3x), an instant alert hits your agency inbox.',
   },
   {
     step: '04',
-    title: 'Ship syntax-validated client fixes in one click',
+    title: 'Fulfill retainers in 15 minutes via 1-Click AI Fix Prompts',
     detail:
-      'Export ready-to-paste schema.org JSON-LD, /llms.txt, /agents.md, and Shopify templates/agents.md.liquid overrides—or connect Claude Desktop, Cursor, and Antigravity via 5,000 monthly /mcp credits.',
+      'Copy a platform-tailored 1-Click AI Fix Prompt (WordPress WPCode, Webflow Custom Code, Wix/Squarespace/Framer /ai-facts, Shopify Liquid, or Coding Agent)—or automate across repos with 5,000 monthly /mcp credits.',
   },
 ];
 
@@ -63,6 +63,8 @@ export default function AgenciesPartnerPage(): React.ReactElement {
     agency_primary_color_snapshot: '#0A0E17',
     agency_cta_url_snapshot: 'https://cal.com/northstar/ai-audit',
     summary_payload: {
+      detected_platform: 'webflow',
+      detected_platform_label: 'Webflow',
       top_gaps: [
         'AI retrieval crawlers (PerplexityBot) encounter edge WAF HTTP 403 restrictions.',
         'Missing /llms.txt machine-readable entity and pricing summary.',
@@ -116,7 +118,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
               >
                 <StatusBadge tone="pass">AGENCY WHITE-LABEL · $249/MO</StatusBadge>
                 <StatusBadge>15 CLIENT WEBSITES ($16.60/SITE)</StatusBadge>
-                <StatusBadge>5,000 /MCP CREDITS</StatusBadge>
+                <StatusBadge>7-PLATFORM AUTO-CMS + 5,000 /MCP CR</StatusBadge>
               </div>
 
               <h1
@@ -146,13 +148,12 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                   maxWidth: '580px',
                 }}
               >
-                SEO, web design, digital PR, and Shopify Plus agencies use
-                Verisource to pitch AI search visibility with concrete proof—not
-                generic slide decks. Mint 60-second branded{' '}
-                <code className="vs-mono">/audit/[slug]</code> scorecards, export
-                ready-to-send CSV campaigns, and deliver verified{' '}
-                <code className="vs-mono">JSON-LD</code> and{' '}
-                <code className="vs-mono">/agents.md</code> fixes.
+                SEO, web design, digital PR, and Shopify agencies use Verisource
+                to pitch AI search visibility with concrete proof—not slide
+                decks. Mint 60-second branded{' '}
+                <code className="vs-mono">/audit/[slug]</code> scorecards that
+                auto-detect the prospect&rsquo;s CMS, explain business impact
+                without jargon, and fulfill fixes in one AI prompt.
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -169,7 +170,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                   Annual Plan ($199/mo · Save 20%)
                 </a>
                 <Link
-                  href="/#audit"
+                  href="/#grader"
                   className="vs-btn vs-btn-secondary"
                 >
                   Test Free Website Audit →
@@ -242,7 +243,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
               margin: '0 0 18px 0',
             }}
           >
-            From cold prospect list to deployed client schema in four steps.
+            From cold prospect list to deployed client fixes in four steps.
           </h2>
 
           <div className="vs-grid-2">
@@ -285,6 +286,56 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                 </p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Supported Client CMS & Fulfillment Matrix */}
+        <section style={{ marginBottom: '54px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            7-PLATFORM AUTO-DETECTED CLIENT DELIVERY
+          </div>
+          <h2
+            style={{
+              fontSize: '25px',
+              fontWeight: 700,
+              letterSpacing: '-0.025em',
+              margin: '0 0 14px 0',
+            }}
+          >
+            Fulfill any client website stack—even builders without root file access.
+          </h2>
+
+          <div className="vs-card" style={{ padding: '18px 20px' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '12px',
+              }}
+            >
+              <StatusBadge tone="pass">SHOPIFY (/API/UCP/MCP + LIQUID)</StatusBadge>
+              <StatusBadge tone="pass">WORDPRESS (WPCODE / RANKMATH / YOAST)</StatusBadge>
+              <StatusBadge tone="pass">WEBFLOW (CUSTOM CODE + 301 REDIRECTS)</StatusBadge>
+              <StatusBadge tone="pass">WIX · SQUARESPACE · FRAMER (/AI-FACTS)</StatusBadge>
+              <StatusBadge tone="pass">NEXT.JS &amp; CUSTOM REPOS (CODING AGENTS)</StatusBadge>
+            </div>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '13.5px',
+                lineHeight: 1.6,
+                color: 'var(--vs-ink-secondary)',
+              }}
+            >
+              Every minted <code className="vs-mono">/audit/[slug]</code> link
+              stamps the prospect&rsquo;s detected platform in the header so your
+              account executive knows their stack before the call—and Step 02
+              generates a tailored <strong>1-Click AI Fix Prompt</strong> for
+              that exact builder (including{' '}
+              <code className="vs-mono">/ai-facts</code> verification for Wix,
+              Squarespace, Webflow, and Framer sites).
+            </p>
           </div>
         </section>
 

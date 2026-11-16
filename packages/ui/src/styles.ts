@@ -40,6 +40,9 @@ html {
 html, body {
   margin: 0;
   padding: 0;
+  max-width: 100%;
+  overflow-x: clip;
+  overscroll-behavior-x: none;
   background: var(--vs-canvas);
   color: var(--vs-ink);
   font-family: var(--vs-sans);
@@ -48,6 +51,11 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+main {
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .vs-mono {
@@ -94,6 +102,8 @@ html, body {
   border: 1px solid var(--vs-border);
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(10, 14, 23, 0.03);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .vs-btn {
@@ -104,7 +114,9 @@ html, body {
   font-family: var(--vs-sans);
   font-size: 13.5px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.25;
+  text-align: center;
+  max-width: 100%;
   padding: 10.5px 16px;
   border-radius: 6px;
   border: 1px solid var(--vs-accent);
@@ -172,6 +184,7 @@ html, body {
   background: var(--vs-surface-subtle);
   color: var(--vs-ink-secondary);
   white-space: nowrap;
+  max-width: 100%;
 }
 
 .vs-badge-pass {
@@ -195,6 +208,8 @@ html, body {
 /* Segmented Guided / Pro UX Mode Switch */
 .vs-mode-switch {
   display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
   align-items: center;
   padding: 2px;
   border-radius: 6px;
@@ -211,7 +226,7 @@ html, body {
   font-family: var(--vs-sans);
   font-size: 12px;
   font-weight: 600;
-  line-height: 1;
+  line-height: 1.25;
   padding: 6px 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -229,7 +244,7 @@ html, body {
   box-shadow: 0 1px 2px rgba(10, 14, 23, 0.08);
 }
 
-/* Plain-English Guided Explainer Card */
+/* Easy-to-Use Guided Explainer Card */
 .vs-guided-banner {
   background: var(--vs-surface-warm);
   border: 1px solid var(--vs-border);
@@ -465,6 +480,50 @@ html, body {
   gap: 18px;
 }
 
+.vs-showcase-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  overflow: hidden;
+}
+
+.vs-showcase-rail {
+  border-right: 1px solid var(--vs-border);
+  background: var(--vs-surface-subtle);
+}
+
+.vs-hero-grid > *,
+.vs-grid-4 > *,
+.vs-grid-2 > *,
+.vs-grid-split > *,
+.vs-showcase-grid > *,
+.vs-ledger-strip-4 > *,
+.vs-ledger-strip-3 > * {
+  min-width: 0;
+}
+
+.vs-schematic-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--vs-border);
+  background: var(--vs-surface-subtle);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.vs-schematic-desktop {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.vs-schematic-mobile {
+  display: none;
+  width: 100%;
+  height: auto;
+}
+
 .vs-grader-form {
   padding: 16px 20px;
   border-bottom: 1px solid var(--vs-border);
@@ -583,6 +642,13 @@ html, body {
   .vs-grid-split {
     grid-template-columns: minmax(0, 1fr);
   }
+  .vs-showcase-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .vs-showcase-rail {
+    border-right: none;
+    border-bottom: 1px solid var(--vs-border);
+  }
   .vs-ledger-strip-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -600,7 +666,13 @@ html, body {
   .vs-container {
     padding: 0 16px;
   }
+  .vs-header-inner {
+    gap: 8px 12px;
+  }
   .vs-nav-links {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
     gap: 12px;
     font-size: 12.5px;
     flex-wrap: nowrap;
@@ -614,6 +686,15 @@ html, body {
   .vs-nav-links::-webkit-scrollbar {
     display: none;
   }
+  .vs-badge {
+    white-space: normal;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .vs-mode-btn {
+    white-space: normal;
+    text-align: center;
+  }
   .vs-card {
     max-width: 100%;
     box-sizing: border-box;
@@ -624,6 +705,10 @@ html, body {
   }
   .vs-grader-form {
     flex-direction: column;
+  }
+  .vs-grader-form .vs-btn {
+    width: 100%;
+    white-space: normal !important;
   }
   .vs-grid-2,
   .vs-grid-4 {
@@ -651,6 +736,15 @@ html, body {
   }
   .vs-tab-trigger {
     padding: 10px 9px;
+  }
+}
+
+@media (max-width: 640px) {
+  .vs-schematic-desktop {
+    display: none;
+  }
+  .vs-schematic-mobile {
+    display: block;
   }
 }
 

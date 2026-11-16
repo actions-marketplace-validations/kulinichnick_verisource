@@ -268,7 +268,9 @@ export default function RootLayout({
               >
                 Terms
               </Link>
-              <span>Endpoint: https://mcp.verisource.dev/mcp</span>
+              <span style={{ overflowWrap: 'anywhere' }}>
+                Endpoint: https://mcp.verisource.dev/mcp
+              </span>
             </div>
           </div>
         </footer>

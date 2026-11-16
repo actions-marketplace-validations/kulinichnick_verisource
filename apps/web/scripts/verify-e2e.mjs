@@ -2319,7 +2319,61 @@ async function run() {
         `Found banned lexicon on ${routeLabel}`
       );
     }
-    console.log('✔ [51/51] M55 Easy-to-Use Wording Polish (0 "plain English" leaks) & /audit/[slug] Business Impact + CMS Upgrade verified!');
+    console.log('✔ [51/52] M55 Easy-to-Use Wording Polish (0 "plain English" leaks) & /audit/[slug] Business Impact + CMS Upgrade verified!');
+
+    // 50. M56 Mobile Horizontal Scroll Lock, Dual-Orientation SVG Schematics & /sample-audit + /agencies Showcase Upgrade
+    assert.ok(
+      homeAfterHtml.includes('overflow-x: clip') &&
+        homeAfterHtml.includes('overscroll-behavior-x: none') &&
+        homeAfterHtml.includes('vs-schematic-desktop') &&
+        homeAfterHtml.includes('vs-schematic-mobile'),
+      'Expected horizontal overflow-x: clip lock and dual-orientation SVG schematic classes on /'
+    );
+    assert.ok(
+      agenciesHtml.includes('vs-schematic-desktop') &&
+        agenciesHtml.includes('vs-schematic-mobile') &&
+        agenciesHtml.includes('7-PLATFORM AUTO-DETECTED CLIENT DELIVERY') &&
+        agenciesHtml.includes('href="/#grader"'),
+      'Expected dual-orientation SVG schematic, 7-Platform CMS delivery matrix, and /#grader link on /agencies'
+    );
+    assert.ok(
+      mcpGuideHtml.includes('vs-schematic-desktop') &&
+        mcpGuideHtml.includes('vs-schematic-mobile'),
+      'Expected dual-orientation SVG schematic on /mcp-guide'
+    );
+    assert.ok(
+      sampleAuditHtml.includes('INSIDE EVERY SHAREABLE /AUDIT/[SLUG] BRIEF') &&
+        sampleAuditHtml.includes(
+          'SITE DIAGNOSIS &amp; BUSINESS IMPACT · WHAT TO FIX FIRST'
+        ) &&
+        sampleAuditHtml.includes('CMS:'),
+      'Expected Business Impact specimen preview and CMS badges on /sample-audit'
+    );
+    for (const [showcaseLabel, showcaseRaw] of [
+      ['/sample-audit', sampleAuditHtml],
+      ['/agencies', agenciesHtml],
+    ]) {
+      const showcaseVisible = showcaseRaw
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.ok(
+        !PLAIN_ENGLISH_JARGON.test(showcaseVisible),
+        `Expected zero "plain English" phrasing on ${showcaseLabel}`
+      );
+      assert.ok(
+        !/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(
+          showcaseVisible
+        ),
+        `Expected zero /10 or Critic jargon on ${showcaseLabel}`
+      );
+      assert.equal(
+        (showcaseVisible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${showcaseLabel}`
+      );
+    }
+    console.log('✔ [52/52] M56 Mobile Horizontal Scroll Lock, Dual-Orientation SVG Schematics & /sample-audit + /agencies Showcase Upgrade verified!');
   } finally {
     server.kill();
   }
