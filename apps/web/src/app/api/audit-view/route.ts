@@ -2,16 +2,19 @@ import { NextResponse } from 'next/server';
 import {
   dispatchProspectCtaClickEmail,
   dispatchProspectOpenEmail,
+  dispatchProspectPdfExportEmail,
   isAutomatedPreviewBot,
 } from '@verisource/core-geo';
 import {
   getAuditViewDedupMap,
   recordVerifiedPitchCtaClick,
   recordVerifiedPitchOpen,
+  recordVerifiedPitchPdfExport,
 } from '../../../lib/data-store';
 
 const VIEW_DEDUP_WINDOW_MS = 30 * 60 * 1000;
 const CTA_DEDUP_WINDOW_MS = 10 * 60 * 1000;
+const PDF_EXPORT_DEDUP_WINDOW_MS = 10 * 60 * 1000;
 
 function extractHostname(rawUrl?: string | null): string | null {
   if (!rawUrl) return null;
@@ -37,11 +40,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const eventType = (body.event_type ?? 'view').trim();
-    if (eventType !== 'view' && eventType !== 'cta_click') {
+    if (
+      eventType !== 'view' &&
+      eventType !== 'cta_click' &&
+      eventType !== 'pdf_export'
+    ) {
       return NextResponse.json(
         {
           error: 'INVALID_EVENT_TYPE',
-          message: 'Unsupported event_type. Expected view or cta_click.',
+          message:
+            'Unsupported event_type. Expected view, cta_click, or pdf_export.',
         },
         { status: 400 }
       );
@@ -80,7 +88,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     const dedupKey =
       eventType === 'cta_click'
         ? `${ip}:cta:${slug.toLowerCase()}`
-        : `${ip}:${slug.toLowerCase()}`;
+        : eventType === 'pdf_export'
+          ? `${ip}:pdf:${slug.toLowerCase()}`
+          : `${ip}:${slug.toLowerCase()}`;
     const dedupMap = getAuditViewDedupMap();
     const existingExpiry = dedupMap.get(dedupKey);
     const now = Date.now();
@@ -88,6 +98,81 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json({
         counted: false,
         reason: 'deduplicated_window',
+      });
+    }
+
+    if (eventType === 'pdf_export') {
+      const exported = await recordVerifiedPitchPdfExport(slug);
+      if (!exported) {
+        return NextResponse.json(
+          { error: 'NOT_FOUND', message: 'Audit report not found or expired.' },
+          { status: 404 }
+        );
+      }
+
+      dedupMap.set(dedupKey, now + PDF_EXPORT_DEDUP_WINDOW_MS);
+
+      const { report, pdfExportsCount, ownerEmail } = exported;
+      let alertMode: 'live_resend' | 'preview_dry_run' | 'skipped_milestone' =
+        'skipped_milestone';
+      let alertQualityScore: number | null = null;
+
+      if (pdfExportsCount === 1 || pdfExportsCount === 3) {
+        const fallbackRecipient =
+          process.env.ALERT_FALLBACK_EMAIL?.trim() || null;
+        const targetEmail =
+          ownerEmail && ownerEmail !== 'demo@verisource.dev'
+            ? ownerEmail
+            : fallbackRecipient;
+
+        if (targetEmail) {
+          try {
+            const dispatched = await dispatchProspectPdfExportEmail({
+              recipientEmail: targetEmail,
+              prospectBrandName: report.prospect_brand_name,
+              prospectDomain: report.prospect_domain,
+              shareSlug: report.share_slug,
+              visibilityScore: report.visibility_score,
+              hallucinationCount: report.hallucination_count,
+              viewsCount: report.views_count,
+              pdfExportsCount,
+              agencyCtaUrl: report.agency_cta_url,
+              topGap: report.summary_payload.top_gaps[0],
+              agencyBrandName: report.agency_brand_name,
+              resendApiKey: process.env.RESEND_API_KEY,
+              fromEmail: process.env.ALERT_FROM_EMAIL,
+            });
+            alertMode = dispatched.mode;
+            alertQualityScore = dispatched.qualityScore;
+          } catch {
+            // Never fail telemetry if external email provider times out
+          }
+        } else if (!process.env.RESEND_API_KEY) {
+          const dryRun = await dispatchProspectPdfExportEmail({
+            recipientEmail: ownerEmail ?? 'demo@verisource.dev',
+            prospectBrandName: report.prospect_brand_name,
+            prospectDomain: report.prospect_domain,
+            shareSlug: report.share_slug,
+            visibilityScore: report.visibility_score,
+            hallucinationCount: report.hallucination_count,
+            viewsCount: report.views_count,
+            pdfExportsCount,
+            agencyCtaUrl: report.agency_cta_url,
+            topGap: report.summary_payload.top_gaps[0],
+            agencyBrandName: report.agency_brand_name,
+          });
+          alertMode = dryRun.mode;
+          alertQualityScore = dryRun.qualityScore;
+        }
+      }
+
+      return NextResponse.json({
+        counted: true,
+        event_type: 'pdf_export',
+        pdf_exports_count: pdfExportsCount,
+        views_count: report.views_count,
+        alert_mode: alertMode,
+        alert_quality_score: alertQualityScore,
       });
     }
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React from 'react';
+import { buildWhiteLabelExecutiveBriefMarkdown } from '@verisource/core-geo';
 import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
 import { AuditViewTracker } from '../../../components/AuditViewTracker';
 import { CopyAuditBriefButton } from '../../../components/CopyAuditBriefButton';
@@ -73,6 +74,10 @@ export default async function AgencyPitchReportPage({
   const ctaUrl = /^https?:\/\//i.test(rawCta) ? rawCta : '/pricing';
   const rawLogo = report.agency_logo_url?.trim() ?? '';
   const logoUrl = /^https?:\/\//i.test(rawLogo) ? rawLogo : null;
+  const execBrief = buildWhiteLabelExecutiveBriefMarkdown(report);
+  const auditDateLabel = report.created_at
+    ? report.created_at.slice(0, 10)
+    : '2026';
 
   return (
     <div
@@ -130,7 +135,12 @@ export default async function AgencyPitchReportPage({
           style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}
         >
           <CopyAuditBriefButton slug={slug} />
-          <PrintAuditBriefButton />
+          <PrintAuditBriefButton
+            slug={slug}
+            exportFilename={execBrief.filename}
+            exportMarkdown={execBrief.markdown.content}
+            showMarkdownDownload={true}
+          />
           <TrackedAuditCtaLink
             slug={slug}
             href={ctaUrl}
@@ -696,9 +706,35 @@ export default async function AgencyPitchReportPage({
               </Link>
             </>
           ) : (
-            <PrintAuditBriefButton />
+            <PrintAuditBriefButton slug={slug} />
           )}
         </div>
+      </div>
+
+      {/* Board-Ready Print Handoff Footer (Visible only on printed / saved PDF) */}
+      <div
+        className="vs-print-only"
+        style={{
+          marginTop: '18px',
+          padding: '14px 18px',
+          border: '1px solid var(--vs-border)',
+          borderTop: `3px solid ${brandColor}`,
+          borderRadius: '6px',
+          fontSize: '12px',
+          lineHeight: 1.55,
+        }}
+      >
+        <div style={{ fontWeight: 700, marginBottom: '3px' }}>
+          {`EXECUTIVE BRIEF HANDOFF · PREPARED BY ${agencyName.toUpperCase()}`}
+        </div>
+        <div>
+          {`Evaluated Domain: ${report.prospect_domain} · Audit Date: ${auditDateLabel} · AI Visibility Score: ${report.visibility_score}/100 · Flagged AI Claims: ${report.hallucination_count}`}
+        </div>
+        {/^https?:\/\//i.test(ctaUrl) ? (
+          <div className="vs-mono" style={{ marginTop: '3px', fontWeight: 600 }}>
+            {`Schedule 15-minute implementation review: ${ctaUrl}`}
+          </div>
+        ) : null}
       </div>
     </div>
   );

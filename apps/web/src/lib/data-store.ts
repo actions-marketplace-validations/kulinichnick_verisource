@@ -826,6 +826,119 @@ export async function recordVerifiedPitchCtaClick(slug: string): Promise<{
   };
 }
 
+export async function recordVerifiedPitchPdfExport(slug: string): Promise<{
+  report: PublicPitchReportResult;
+  pdfExportsCount: number;
+  ownerEmail: string | null;
+} | null> {
+  const nowIso = new Date().toISOString();
+  const supabase = getServiceSupabaseClient();
+
+  if (supabase) {
+    const { data: existingRow } = await supabase
+      .from('agency_pitch_reports')
+      .select('*')
+      .eq('share_slug', slug)
+      .maybeSingle();
+
+    if (!existingRow) return null;
+    if (
+      existingRow.expires_at &&
+      new Date(existingRow.expires_at).getTime() <= Date.now()
+    ) {
+      return null;
+    }
+
+    const nextExports =
+      Math.max(0, existingRow.summary_payload?.pdf_exports_count ?? 0) + 1;
+    const nextSummary = {
+      ...existingRow.summary_payload,
+      pdf_exports_count: nextExports,
+      last_pdf_exported_at: nowIso,
+    };
+
+    const { data: updatedRow } = await supabase
+      .from('agency_pitch_reports')
+      .update({ summary_payload: nextSummary })
+      .eq('id', existingRow.id)
+      .select('*')
+      .maybeSingle();
+
+    let ownerEmail: string | null = null;
+    if (existingRow.agency_user_id) {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', existingRow.agency_user_id)
+        .maybeSingle();
+      if (prof?.email) ownerEmail = prof.email;
+    }
+
+    const effective = (updatedRow as AgencyPitchReportRow | null) ?? {
+      ...(existingRow as AgencyPitchReportRow),
+      summary_payload: nextSummary,
+    };
+
+    return {
+      report: {
+        share_slug: effective.share_slug,
+        prospect_domain: effective.prospect_domain,
+        prospect_brand_name: effective.prospect_brand_name,
+        visibility_score: effective.visibility_score,
+        hallucination_count: effective.hallucination_count,
+        agency_brand_name: effective.agency_brand_name_snapshot,
+        agency_logo_url: effective.agency_logo_url_snapshot,
+        agency_primary_color: effective.agency_primary_color_snapshot,
+        agency_cta_url: effective.agency_cta_url_snapshot,
+        summary_payload: effective.summary_payload,
+        views_count: effective.views_count,
+        expires_at: effective.expires_at,
+        created_at: effective.created_at,
+      },
+      pdfExportsCount: nextExports,
+      ownerEmail,
+    };
+  }
+
+  const store = getLocalMockStore();
+  const report = store.pitchReports.find((r) => r.share_slug === slug);
+  if (!report) return null;
+  if (
+    report.expires_at &&
+    new Date(report.expires_at).getTime() <= Date.now()
+  ) {
+    return null;
+  }
+
+  const nextExports =
+    Math.max(0, report.summary_payload?.pdf_exports_count ?? 0) + 1;
+  report.summary_payload = {
+    ...report.summary_payload,
+    pdf_exports_count: nextExports,
+    last_pdf_exported_at: nowIso,
+  };
+
+  return {
+    report: {
+      share_slug: report.share_slug,
+      prospect_domain: report.prospect_domain,
+      prospect_brand_name: report.prospect_brand_name,
+      visibility_score: report.visibility_score,
+      hallucination_count: report.hallucination_count,
+      agency_brand_name: report.agency_brand_name_snapshot,
+      agency_logo_url: report.agency_logo_url_snapshot,
+      agency_primary_color: report.agency_primary_color_snapshot,
+      agency_cta_url: report.agency_cta_url_snapshot,
+      summary_payload: report.summary_payload,
+      views_count: report.views_count,
+      expires_at: report.expires_at,
+      created_at: report.created_at,
+    },
+    pdfExportsCount: nextExports,
+    ownerEmail: store.profile.email,
+  };
+}
+
 export async function provisionDomainAuditForWorkspace(input: {
   domainInput: string;
   customBrandName?: string;

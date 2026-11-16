@@ -111,6 +111,8 @@ export type PitchSummaryPayload = {
   }>;
   cta_clicks_count?: number;
   last_cta_clicked_at?: string;
+  pdf_exports_count?: number;
+  last_pdf_exported_at?: string;
 };
 
 export type ProfileRow = {

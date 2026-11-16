@@ -875,19 +875,41 @@ body:has(.vs-whitelabel-audit-root) .vs-site-chrome {
   display: none !important;
 }
 
+.vs-print-only {
+  display: none;
+}
+
 /* Executive PDF / Print Stylesheet */
 @media print {
+  @page {
+    margin: 12mm;
+  }
   body {
     background: #FFFFFF !important;
     color: #0A0E17 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .vs-site-chrome,
   .vs-no-print {
     display: none !important;
   }
+  .vs-print-only {
+    display: block !important;
+  }
   .vs-container {
     max-width: 100% !important;
     padding: 0 !important;
+  }
+  .vs-ledger-strip-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  .vs-ledger-strip-3 > div {
+    border-right: 1px solid var(--vs-border) !important;
+    border-bottom: none !important;
+  }
+  .vs-ledger-strip-3 > div:last-child {
+    border-right: none !important;
   }
   .vs-card {
     box-shadow: none !important;

@@ -6,6 +6,7 @@ import type {
   AgencyPitchReportRow,
   DomainRow,
   GeneratedFixRow,
+  PitchSummaryPayload,
   QualityRubricBreakdown,
 } from '../db/types.js';
 import { normalizePublicDomain } from '../scanner/bot-waf-prober.js';
@@ -411,6 +412,197 @@ export function buildImplementationBundleMarkdown(params: {
     .trim();
 }
 
+export type PitchBriefReportLike = {
+  share_slug: string;
+  prospect_domain: string;
+  prospect_brand_name: string;
+  visibility_score: number;
+  hallucination_count: number;
+  agency_brand_name?: string | null;
+  agency_brand_name_snapshot?: string | null;
+  agency_cta_url?: string | null;
+  agency_cta_url_snapshot?: string | null;
+  summary_payload: PitchSummaryPayload;
+  created_at?: string;
+};
+
+export interface WhiteLabelExecutiveBriefResult {
+  filename: string;
+  agencyName: string;
+  isWhiteLabelIsolated: boolean;
+  bookingUrl: string | null;
+  markdown: EnforcedQualityArtifact;
+}
+
+export function buildWhiteLabelExecutiveBriefMarkdown(
+  report: PitchBriefReportLike
+): WhiteLabelExecutiveBriefResult {
+  const rawAgency = (
+    report.agency_brand_name ??
+    report.agency_brand_name_snapshot ??
+    ''
+  ).trim();
+  const agencyName = rawAgency || 'Partner GEO Advisory';
+  const isVerisourceDirect = /verisource/i.test(agencyName);
+  const isWhiteLabelIsolated = !isVerisourceDirect;
+
+  const rawDomain = report.prospect_domain.trim();
+  const hostname = rawDomain
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/+$/, '')
+    .toLowerCase();
+  const canonicalOrigin = /^https?:\/\//i.test(rawDomain)
+    ? rawDomain.replace(/\/+$/, '')
+    : `https://${hostname}`;
+
+  const safeSlugHost =
+    hostname.replace(/[^a-z0-9.-]+/gi, '-').replace(/^-+|-+$/g, '') ||
+    'domain';
+  const filename = `${safeSlugHost}-ai-audit-brief.md`;
+
+  const rawCta = (
+    report.agency_cta_url ??
+    report.agency_cta_url_snapshot ??
+    ''
+  ).trim();
+  const bookingUrl = /^https?:\/\//i.test(rawCta)
+    ? rawCta
+    : isVerisourceDirect
+      ? 'https://verisource.dev/pricing'
+      : null;
+
+  const auditDate = report.created_at
+    ? report.created_at.slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
+
+  const rivals =
+    report.summary_payload.competitors_winning.length > 0
+      ? report.summary_payload.competitors_winning.join(', ')
+      : 'Category directories';
+
+  const impactItems =
+    report.summary_payload.business_impact_items &&
+    report.summary_payload.business_impact_items.length > 0
+      ? report.summary_payload.business_impact_items
+      : report.summary_payload.top_gaps.slice(0, 3).map((gap, idx) => ({
+          badgeLabel: idx === 0 ? 'FIX FIRST' : 'HIGH-IMPACT FIX',
+          severity: (idx === 0 ? 'fix_first' : 'high_impact') as
+            | 'fix_first'
+            | 'high_impact',
+          whatIsWrong: gap,
+          whyItMatters:
+            'AI-referred visitors convert at 14.2%–15.9% vs. 1.76%–2.8% for traditional organic search, and answer engines skip pages missing structured machine facts.',
+          howToFix:
+            report.summary_payload.recommended_fixes[idx] ??
+            'Publish syntax-validated schema.org JSON-LD, /llms.txt, and /agents.md fact files on your root origin.',
+        }));
+
+  const impactLines = impactItems.map(
+    (item, idx) =>
+      `${idx + 1}. **[${item.badgeLabel}] ${item.whatIsWrong}**\n   - **Commercial Impact:** ${item.whyItMatters}\n   - **Remediation:** ${item.howToFix}`
+  );
+
+  const hallucinationSection =
+    report.summary_payload.hallucination_examples.length > 0
+      ? [
+          '## Flagged AI Claim Conflicts vs. Verified Brand Truth',
+          ...report.summary_payload.hallucination_examples.map(
+            (h, idx) =>
+              `${idx + 1}. **${h.severity.toUpperCase()} (${h.category.toUpperCase()}) — What AI Engines State:** "${h.claim_text}"\n   - **Verified Website Truth:** ${h.verified_truth}`
+          ),
+          '',
+        ]
+      : [];
+
+  const sovRows = report.summary_payload.head_to_head_sov ?? [];
+  const sourceRows = report.summary_payload.top_citation_sources ?? [];
+  const sovSection =
+    sovRows.length > 0 || sourceRows.length > 0
+      ? [
+          '## Head-to-Head Rival Share of Voice & Citation Sources',
+          ...(report.summary_payload.mention_rate_pct !== undefined
+            ? [
+                `- **Mention Rate:** \`${report.summary_payload.mention_rate_pct}%\` · **Direct Cited URL Rate:** \`${report.summary_payload.citation_rate_pct ?? 0}%\``,
+              ]
+            : []),
+          ...sovRows.map(
+            (row) =>
+              `- **${row.entityName}${row.isTargetBrand ? ' (Evaluated Brand)' : ''}:** \`${row.shareOfVoicePct}%\` Share of Voice (\`${row.mentions}\` engine mentions)`
+          ),
+          ...(sourceRows.length > 0
+            ? [
+                '',
+                '### Third-Party Domains Feeding AI Answers',
+                ...sourceRows.map(
+                  (src) =>
+                    `- **\`${src.sourceHost}\`** (${src.sourceCategoryLabel} · \`${src.ownership.toUpperCase()}\`): ${src.recommendedAction}`
+                ),
+              ]
+            : []),
+          '',
+        ]
+      : [];
+
+  const nextStepLines = isVerisourceDirect
+    ? [
+        '## Next Step — Self-Serve Implementation',
+        'Ready for immediate deployment.',
+        `Publish the validated \`schema.org\` \`JSON-LD\`, root \`/llms.txt\`, and \`/agents.md\` files for ${canonicalOrigin}, or activate automated monitoring at ${bookingUrl ?? 'https://verisource.dev/pricing'}.`,
+      ]
+    : [
+        `## Next Step — Implementation Review with ${agencyName}`,
+        'Prepared for internal stakeholder review.',
+        bookingUrl
+          ? `${agencyName} has prepared the syntax-validated \`schema.org\` \`JSON-LD\`, \`/llms.txt\`, and \`/agents.md\` remediation package for ${canonicalOrigin}—schedule a 15-minute review at ${bookingUrl}.`
+          : `${agencyName} has prepared the syntax-validated \`schema.org\` \`JSON-LD\`, \`/llms.txt\`, and \`/agents.md\` remediation package for ${canonicalOrigin} (Reference ID: \`/audit/${report.share_slug}\`).`,
+      ];
+
+  const draft = [
+    `# Executive AI Search & Claim Audit — ${report.prospect_brand_name} (${hostname})`,
+    '',
+    'Executive retrieval and claim verification brief.',
+    `We tested how ChatGPT, Google Gemini, and Perplexity answer buyer comparison prompts for ${report.prospect_brand_name} (${canonicalOrigin}) and audited live \`GPTBot\`, \`OAI-SearchBot\`, \`PerplexityBot\`, and \`ClaudeBot\` crawler access.`,
+    'AI-referred buyers convert at 14.2%–15.9% compared to 1.76%–2.8% for standard organic search, making verified `schema.org` `JSON-LD`, `/llms.txt`, and `/agents.md` machine facts essential.',
+    '',
+    '## Executive Scorecard',
+    `- **Prepared By:** ${agencyName}`,
+    `- **Evaluated Origin:** ${canonicalOrigin}`,
+    `- **Audit Date:** \`${auditDate}\``,
+    ...(report.summary_payload.detected_platform_label
+      ? [
+          `- **Detected Website Platform:** \`${report.summary_payload.detected_platform_label}\``,
+        ]
+      : []),
+    `- **AI Visibility Score:** \`${report.visibility_score} / 100\``,
+    `- **Wrong AI Claims Flagged:** \`${report.hallucination_count}\``,
+    `- **Competitors Recommended Instead:** ${rivals}`,
+    '',
+    '## Priority Diagnosis & Business Impact',
+    ...impactLines,
+    '',
+    ...hallucinationSection,
+    ...sovSection,
+    '## Technical Gaps & Ready-to-Publish Fixes',
+    '### What Is Holding Your Score Back',
+    ...report.summary_payload.top_gaps.map((g) => `- ${g}`),
+    '',
+    '### Ready-to-Publish Website Fixes',
+    ...report.summary_payload.recommended_fixes.map((f) => `- ${f}`),
+    '',
+    ...nextStepLines,
+  ]
+    .join('\n')
+    .trim();
+
+  return {
+    filename,
+    agencyName,
+    isWhiteLabelIsolated,
+    bookingUrl,
+    markdown: enforceQualityGate95(draft, 'citation_outreach_brief'),
+  };
+}
+
 export type PitchEngagementFilter =
   | 'all'
   | 'cta_clicked'
@@ -420,6 +612,7 @@ export type PitchEngagementFilter =
 export interface PitchEngagementCounts {
   allCount: number;
   ctaClickedCount: number;
+  pdfExportedCount: number;
   openedCount: number;
   hotCount: number;
   awaitingOpenCount: number;
@@ -429,6 +622,7 @@ export function summarizePitchEngagementCounts(
   reports: AgencyPitchReportRow[]
 ): PitchEngagementCounts {
   let ctaClickedCount = 0;
+  let pdfExportedCount = 0;
   let openedCount = 0;
   let hotCount = 0;
   let awaitingOpenCount = 0;
@@ -436,12 +630,16 @@ export function summarizePitchEngagementCounts(
   for (const r of reports) {
     const views = Math.max(0, r.views_count ?? 0);
     const clicks = Math.max(0, r.summary_payload?.cta_clicks_count ?? 0);
+    const pdfExports = Math.max(0, r.summary_payload?.pdf_exports_count ?? 0);
     if (clicks >= 1) {
       ctaClickedCount += 1;
     }
-    if (views >= 1 || clicks >= 1) {
+    if (pdfExports >= 1) {
+      pdfExportedCount += 1;
+    }
+    if (views >= 1 || clicks >= 1 || pdfExports >= 1) {
       openedCount += 1;
-      if (views >= 3 || clicks >= 1) hotCount += 1;
+      if (views >= 3 || clicks >= 1 || pdfExports >= 1) hotCount += 1;
     } else {
       awaitingOpenCount += 1;
     }
@@ -450,6 +648,7 @@ export function summarizePitchEngagementCounts(
   return {
     allCount: reports.length,
     ctaClickedCount,
+    pdfExportedCount,
     openedCount,
     hotCount,
     awaitingOpenCount,
@@ -468,6 +667,8 @@ export function filterAndRankPitchReports(
         (a, b) =>
           (b.summary_payload?.cta_clicks_count ?? 0) -
             (a.summary_payload?.cta_clicks_count ?? 0) ||
+          (b.summary_payload?.pdf_exports_count ?? 0) -
+            (a.summary_payload?.pdf_exports_count ?? 0) ||
           (b.views_count ?? 0) - (a.views_count ?? 0)
       );
   }
@@ -476,13 +677,16 @@ export function filterAndRankPitchReports(
       .filter(
         (r) =>
           (r.views_count ?? 0) >= 1 ||
-          (r.summary_payload?.cta_clicks_count ?? 0) >= 1
+          (r.summary_payload?.cta_clicks_count ?? 0) >= 1 ||
+          (r.summary_payload?.pdf_exports_count ?? 0) >= 1
       )
       .slice()
       .sort(
         (a, b) =>
           (b.summary_payload?.cta_clicks_count ?? 0) -
             (a.summary_payload?.cta_clicks_count ?? 0) ||
+          (b.summary_payload?.pdf_exports_count ?? 0) -
+            (a.summary_payload?.pdf_exports_count ?? 0) ||
           (b.views_count ?? 0) - (a.views_count ?? 0)
       );
   }
@@ -490,7 +694,8 @@ export function filterAndRankPitchReports(
     return reports.filter(
       (r) =>
         (r.views_count ?? 0) <= 0 &&
-        (r.summary_payload?.cta_clicks_count ?? 0) <= 0
+        (r.summary_payload?.cta_clicks_count ?? 0) <= 0 &&
+        (r.summary_payload?.pdf_exports_count ?? 0) <= 0
     );
   }
   return reports;

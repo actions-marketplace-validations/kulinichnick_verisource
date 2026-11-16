@@ -22,6 +22,7 @@ import {
   buildShopifyCustomerEventsPixel,
   buildSubscriberReferralBundle,
   buildTargetedCitationOutreachDraft,
+  buildWhiteLabelExecutiveBriefMarkdown,
   computeShopifyCheckoutKey,
   deriveWorkspacePartnerSlug,
   evaluateCommerceAttributeReadiness,
@@ -1909,6 +1910,26 @@ export function DashboardConsoleClient(props: {
       }, 2000);
     } catch {
       // Ignore clipboard permission errors in restricted contexts
+    }
+  }
+
+  function handleDownloadPitchClientBrief(report: AgencyPitchReportRow): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const built = buildWhiteLabelExecutiveBriefMarkdown(report);
+      const blob = new Blob([built.markdown.content], {
+        type: 'text/markdown;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = built.filename;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Ignore restricted download contexts
     }
   }
 
@@ -8776,7 +8797,12 @@ export function DashboardConsoleClient(props: {
                             >
                               {(r.summary_payload?.cta_clicks_count ?? 0) >= 1 ? (
                                 <StatusBadge tone="pass">
-                                  CTA CLICKED · {r.summary_payload.cta_clicks_count}x
+                                  {`CTA CLICKED · ${r.summary_payload.cta_clicks_count}x`}
+                                </StatusBadge>
+                              ) : null}
+                              {(r.summary_payload?.pdf_exports_count ?? 0) >= 1 ? (
+                                <StatusBadge tone="pass">
+                                  {`PDF SAVED · ${r.summary_payload.pdf_exports_count}x`}
                                 </StatusBadge>
                               ) : null}
                               {r.views_count >= 3 ? (
@@ -8787,7 +8813,10 @@ export function DashboardConsoleClient(props: {
                                 <StatusBadge tone="pass">
                                   OPENED · {r.views_count}x
                                 </StatusBadge>
-                              ) : (r.summary_payload?.cta_clicks_count ?? 0) === 0 ? (
+                              ) : (r.summary_payload?.cta_clicks_count ?? 0) ===
+                                  0 &&
+                                (r.summary_payload?.pdf_exports_count ?? 0) ===
+                                  0 ? (
                                 <StatusBadge>
                                   {isGuided ? 'UNOPENED' : 'SENT · 0'}
                                 </StatusBadge>
@@ -8908,6 +8937,17 @@ export function DashboardConsoleClient(props: {
                       gap: '8px',
                     }}
                   >
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDownloadPitchClientBrief(selectedPitchReport)
+                      }
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                      title="Download white-label Executive Brief (.md) to attach in Slack, Notion, or email"
+                    >
+                      ↓ Client Brief (.md)
+                    </button>
                     {accessToken ||
                     data.mode === 'mock' ||
                     selectedPitchReport.expires_at !== null ? (

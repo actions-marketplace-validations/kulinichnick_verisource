@@ -383,6 +383,15 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       ...(existing.summary_payload?.last_cta_clicked_at
         ? { last_cta_clicked_at: existing.summary_payload.last_cta_clicked_at }
         : {}),
+      ...(existing.summary_payload?.pdf_exports_count !== undefined
+        ? { pdf_exports_count: existing.summary_payload.pdf_exports_count }
+        : {}),
+      ...(existing.summary_payload?.last_pdf_exported_at
+        ? {
+            last_pdf_exported_at:
+              existing.summary_payload.last_pdf_exported_at,
+          }
+        : {}),
     };
 
     const updatedFields = {

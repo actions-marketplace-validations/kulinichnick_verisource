@@ -3841,7 +3841,114 @@ async function run() {
         m69Step3AfterClickHtml.includes('Copy Peer Share Note'),
       'Expected Step 03 Guided Mode to render #vs-subscriber-partner-hub disclosure and tactile share destination pills'
     );
-    console.log('✔ [72/72] M75 Step 03 1-Click Subscriber 25% Partner Referral Hub (#vs-subscriber-partner-hub + /api/dashboard/partner-link 401/400/200) verified!');
+    console.log('✔ [72/73] M75 Step 03 1-Click Subscriber 25% Partner Referral Hub (#vs-subscriber-partner-hub + /api/dashboard/partner-link 401/400/200) verified!');
+
+    // 71. M76 Board-Ready /audit/[slug] Print Handoff Footer, 1-Click White-Label Brief (.md) & Bot-Filtered pdf_export Telemetry + PATCH Preservation
+    assert.ok(
+      m55MintedAuditHtml.includes('↓ Brief (.md)') &&
+        m55MintedAuditHtml.includes('Print / Save PDF') &&
+        m55MintedAuditHtml.includes('vs-print-only') &&
+        m55MintedAuditHtml.includes('EXECUTIVE BRIEF HANDOFF · PREPARED BY') &&
+        m55MintedAuditHtml.includes('-webkit-print-color-adjust: exact'),
+      'Expected white-label /audit/[slug] to render ↓ Brief (.md), Print / Save PDF, .vs-print-only handoff footer, and exact print color stylesheet'
+    );
+
+    const noOriginPdfRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'pdf_export',
+      }),
+    });
+    assert.equal(noOriginPdfRes.status, 403);
+
+    const botPdfRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.211',
+        'User-Agent': 'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'pdf_export',
+      }),
+    });
+    assert.equal(botPdfRes.status, 200);
+    const botPdfJson = await botPdfRes.json();
+    assert.equal(botPdfJson.counted, false);
+    assert.equal(botPdfJson.reason, 'bot_filtered');
+
+    const humanPdfRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.212',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'pdf_export',
+      }),
+    });
+    assert.equal(humanPdfRes.status, 200);
+    const humanPdfJson = await humanPdfRes.json();
+    assert.equal(humanPdfJson.counted, true);
+    assert.equal(humanPdfJson.event_type, 'pdf_export');
+    assert.equal(humanPdfJson.pdf_exports_count, 1);
+    assert.equal(humanPdfJson.alert_mode, 'preview_dry_run');
+    assert.ok(humanPdfJson.alert_quality_score >= 9.5);
+
+    const dupPdfRes = await fetch(`${BASE}/api/audit-view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: BASE,
+        'x-forwarded-for': '198.51.100.212',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36',
+      },
+      body: JSON.stringify({
+        slug: 'mosaic-springfield-audit',
+        event_type: 'pdf_export',
+      }),
+    });
+    assert.equal(dupPdfRes.status, 200);
+    const dupPdfJson = await dupPdfRes.json();
+    assert.equal(dupPdfJson.counted, false);
+    assert.equal(dupPdfJson.reason, 'deduplicated_window');
+
+    const m76PatchRefreshRes = await fetch(`${BASE}/api/dashboard/pitch`, {
+      method: 'PATCH',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ share_slug: 'mosaic-springfield-audit' }),
+    });
+    assert.equal(m76PatchRefreshRes.status, 200);
+    const m76PatchRefreshJson = await m76PatchRefreshRes.json();
+    assert.equal(
+      m76PatchRefreshJson.report.summary_payload.pdf_exports_count,
+      1,
+      'Expected PATCH /api/dashboard/pitch to preserve pdf_exports_count'
+    );
+    assert.equal(
+      m76PatchRefreshJson.report.summary_payload.cta_clicks_count,
+      1,
+      'Expected PATCH /api/dashboard/pitch to preserve cta_clicks_count'
+    );
+
+    const m76Step3Html = await fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+      headers: OWNER_HEADERS,
+    }).then((r) => r.text());
+    assert.ok(
+      m76Step3Html.includes('PDF SAVED · 1x') &&
+        m76Step3Html.includes('↓ Client Brief (.md)'),
+      'Expected Step 03 Agency Pitch Ledger to display PDF SAVED · 1x badge and ↓ Client Brief (.md) button'
+    );
+    console.log('✔ [73/73] M76 Board-Ready /audit/[slug] Print Handoff Footer, White-Label Brief (.md), Bot-Filtered pdf_export Telemetry & Step 03 PDF SAVED Badge verified!');
   } finally {
     server.kill();
   }

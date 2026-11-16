@@ -57,11 +57,13 @@ import {
   buildPostPurchaseWelcomeAlert,
   buildProspectCtaClickAlert,
   buildProspectOpenAlert,
+  buildProspectPdfExportAlert,
   buildPublicAiPromptTeaser,
   buildShopifyCustomerEventsPixel,
   buildTargetedCitationOutreachDraft,
   buildTrialActivationNudgeAlert,
   buildWeeklyExecutiveDigest,
+  buildWhiteLabelExecutiveBriefMarkdown,
   classifyAgentsMdContent,
   classifyCitationSourceCategory,
   classifyIndustryVertical,
@@ -77,6 +79,7 @@ import {
   dispatchPostPurchaseWelcomeEmail,
   dispatchProspectCtaClickEmail,
   dispatchProspectOpenEmail,
+  dispatchProspectPdfExportEmail,
   dispatchTrialActivationNudgeEmail,
   dispatchWeeklyExecutiveDigestEmail,
   enforceQualityGate95,
@@ -3796,4 +3799,121 @@ test('M75 deriveWorkspacePartnerSlug & buildSubscriberReferralBundle generate >=
       assert.ok(!/\bbeta\b/i.test(combined));
     }
   }
+});
+
+test('M76 buildWhiteLabelExecutiveBriefMarkdown, buildProspectPdfExportAlert & pdf_exports_count pass >= 9.5/10 Critic with strict white-label isolation', async () => {
+  const thirdPartyReport = {
+    ...PATIENT_ZERO_PITCH_REPORT,
+    share_slug: 'summit-dental-exec-audit',
+    prospect_domain: 'https://summitdental.com',
+    prospect_brand_name: 'Summit Dental Group',
+    visibility_score: 41,
+    hallucination_count: 1,
+    agency_brand_name_snapshot: 'Northstar Search Studio',
+    agency_cta_url_snapshot: 'https://cal.com/northstar/ai-audit',
+    summary_payload: {
+      ...PATIENT_ZERO_PITCH_REPORT.summary_payload,
+      detected_platform_label: 'Webflow',
+      hallucination_examples: [
+        {
+          claim_text: 'Summit Dental charges $350 for initial consultations.',
+          verified_truth: 'New patient exam and X-ray consultation is $149.',
+          severity: 'high' as const,
+          category: 'pricing' as const,
+        },
+      ],
+    },
+  };
+
+  const wlBrief = buildWhiteLabelExecutiveBriefMarkdown(thirdPartyReport);
+  assert.equal(wlBrief.isWhiteLabelIsolated, true);
+  assert.equal(wlBrief.agencyName, 'Northstar Search Studio');
+  assert.equal(wlBrief.filename, 'summitdental.com-ai-audit-brief.md');
+  assert.equal(wlBrief.bookingUrl, 'https://cal.com/northstar/ai-audit');
+  assert.ok(wlBrief.markdown.score >= 9.5);
+  assert.equal(wlBrief.markdown.breakdown.lexicon_filter, 2.0);
+  assert.ok(wlBrief.markdown.content.includes('Northstar Search Studio'));
+  assert.ok(wlBrief.markdown.content.includes('https://cal.com/northstar/ai-audit'));
+  assert.ok(wlBrief.markdown.content.includes('Webflow'));
+  assert.ok(
+    !/verisource/i.test(wlBrief.markdown.content) &&
+      !/verisource/i.test(wlBrief.filename),
+    'Expected strict white-label isolation (zero Verisource mentions) in third-party Executive Brief'
+  );
+  assert.ok(
+    !/plain[- ]english|\bin english\b|everyday english/i.test(
+      wlBrief.markdown.content
+    )
+  );
+  assert.ok(
+    !/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(
+      wlBrief.markdown.content
+    )
+  );
+  assert.ok(!/\bbeta\b/i.test(wlBrief.markdown.content));
+
+  const directBrief = buildWhiteLabelExecutiveBriefMarkdown({
+    ...thirdPartyReport,
+    agency_brand_name: 'Verisource GEO Advisory',
+    agency_brand_name_snapshot: null,
+    agency_cta_url: null,
+    agency_cta_url_snapshot: null,
+  });
+  assert.equal(directBrief.isWhiteLabelIsolated, false);
+  assert.equal(directBrief.bookingUrl, 'https://verisource.dev/pricing');
+  assert.ok(directBrief.markdown.score >= 9.5);
+
+  const pdfAlert = buildProspectPdfExportAlert({
+    prospectBrandName: 'Summit Dental <Group>',
+    prospectDomain: 'summitdental.com',
+    shareSlug: 'summit-dental-exec-audit',
+    visibilityScore: 41,
+    hallucinationCount: 1,
+    viewsCount: 2,
+    pdfExportsCount: 1,
+    agencyCtaUrl: 'https://cal.com/northstar/ai-audit',
+    topGap: 'Missing LocalBusiness JSON-LD and /agents.md pricing truth.',
+    agencyBrandName: 'Northstar Search Studio',
+  });
+  assert.ok(pdfAlert.quality.score >= 9.5);
+  assert.ok(pdfAlert.subject.includes('[Executive PDF Saved]'));
+  assert.ok(pdfAlert.html.includes('Summit Dental &lt;Group&gt;'));
+
+  const dryRun = await dispatchProspectPdfExportEmail({
+    recipientEmail: 'partner@northstar.io',
+    prospectBrandName: 'Summit Dental Group',
+    prospectDomain: 'summitdental.com',
+    shareSlug: 'summit-dental-exec-audit',
+    visibilityScore: 41,
+    hallucinationCount: 1,
+    viewsCount: 2,
+    pdfExportsCount: 1,
+  });
+  assert.equal(dryRun.mode, 'preview_dry_run');
+  assert.ok(dryRun.qualityScore >= 9.5);
+
+  const engagementSample = [
+    { ...PATIENT_ZERO_PITCH_REPORT, id: 'p-none', share_slug: 'none', views_count: 0 },
+    {
+      ...PATIENT_ZERO_PITCH_REPORT,
+      id: 'p-pdf',
+      share_slug: 'pdf-saved',
+      views_count: 1,
+      summary_payload: {
+        ...PATIENT_ZERO_PITCH_REPORT.summary_payload,
+        pdf_exports_count: 2,
+      },
+    },
+    {
+      ...PATIENT_ZERO_PITCH_REPORT,
+      id: 'p-views',
+      share_slug: 'views-three',
+      views_count: 3,
+    },
+  ];
+  const counts = summarizePitchEngagementCounts(engagementSample);
+  assert.equal(counts.pdfExportedCount, 1);
+  assert.equal(counts.hotCount, 2);
+  const rankedHot = filterAndRankPitchReports(engagementSample, 'opened_hot');
+  assert.equal(rankedHot[0]?.share_slug, 'pdf-saved');
 });
