@@ -2760,7 +2760,67 @@ async function run() {
       }),
     });
     assert.equal(sixthMagicRes.status, 429);
-    console.log('✔ [58/58] M61.2 Tactile Pill Buttons (.vs-pill-btn), Subscriber /pricing Upgrade/Downgrade View & Resend /api/auth/magic-link (403/400/200/429) verified!');
+    console.log('✔ [58/59] M61.2 Tactile Pill Buttons (.vs-pill-btn), Subscriber /pricing Upgrade/Downgrade View & Resend /api/auth/magic-link (403/400/200/429) verified!');
+
+    // 57. M62 Closed-Loop Comparison Page Live Verifier (/api/dashboard/inspect-url studioVerification + Step 02 Verify Page Live CTA)
+    assert.ok(
+      m61Step2Html.includes('✓ Verify Page Live'),
+      'Expected Step 02 Comparison Page Studio to include ✓ Verify Page Live button'
+    );
+
+    const badStudioEnvRes = await fetch(`${BASE}/api/dashboard/inspect-url`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        target_path_or_url: '/pages/aurea-coffee-roasters-vs-mystic-monk-coffee',
+        blueprint_type: 'vs_competitor',
+        rival_name: 'Mystic Monk Coffee',
+        env: 'invalid_xss_env',
+      }),
+    });
+    assert.equal(badStudioEnvRes.status, 400);
+
+    const validStudioVerifyRes = await fetch(
+      `${BASE}/api/dashboard/inspect-url`,
+      {
+        method: 'POST',
+        headers: OWNER_JSON_HEADERS,
+        body: JSON.stringify({
+          domain_id: '11111111-1111-4000-8000-000000000001',
+          target_path_or_url:
+            '/pages/aurea-coffee-roasters-vs-mystic-monk-coffee',
+          blueprint_type: 'vs_competitor',
+          rival_name: 'Mystic Monk Coffee',
+          env: 'shopify_liquid',
+        }),
+      }
+    );
+    assert.equal(validStudioVerifyRes.status, 200);
+    const validStudioVerifyJson = await validStudioVerifyRes.json();
+    assert.ok(validStudioVerifyJson.studioVerification);
+    assert.ok(validStudioVerifyJson.studioVerification.promptScore >= 9.5);
+    assert.ok(
+      validStudioVerifyJson.studioVerification.recommendedPromptToTrack.includes(
+        'Mystic Monk Coffee'
+      )
+    );
+    assert.equal(
+      (
+        validStudioVerifyJson.studioVerification.promptContent.match(
+          BANNED_LEXICON
+        ) ?? []
+      ).length,
+      0,
+      'Found banned lexicon in M62 studioVerification.promptContent'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(
+        validStudioVerifyJson.studioVerification.promptContent
+      ),
+      'Found /10 or Critic jargon in M62 studioVerification.promptContent'
+    );
+    console.log('✔ [59/59] M62 Closed-Loop Comparison Page Live Verifier (/api/dashboard/inspect-url studioVerification >= 9.5/10 + Step 02 Verify Page Live) verified!');
   } finally {
     server.kill();
   }

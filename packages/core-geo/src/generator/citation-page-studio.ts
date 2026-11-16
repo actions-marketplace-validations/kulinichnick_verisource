@@ -4,6 +4,7 @@ import {
 } from '../critic/quality-gate.js';
 import type { DomainRow } from '../db/types.js';
 import type { AiRemediationTargetEnv } from '../orchestrator/audit-domain.js';
+import type { SubPageBotInspectionReport } from '../scanner/subpage-inspector.js';
 
 export type CitationPageBlueprintType =
   | 'vs_competitor'
@@ -355,5 +356,208 @@ export function buildCitationAnswerPageBundle(
     markdownPage,
     faqJsonLd,
     aiBuildPrompt,
+  };
+}
+
+export interface PublishedCitationPageVerification {
+  isLiveHttp200: boolean;
+  allChecksPassed: boolean;
+  passedCount: number;
+  totalCount: number;
+  pageReadinessScore: number;
+  hasComparisonTable: boolean;
+  hasFaqJsonLd: boolean;
+  recommendedPromptToTrack: string;
+  recommendedPromptIntent: 'commercial_comparison' | 'pricing_evaluation';
+  statusHeadline: string;
+  nextActionSummary: string;
+  followUpPagePrompt: EnforcedQualityArtifact;
+}
+
+export function evaluatePublishedCitationPage(params: {
+  domain: Pick<
+    DomainRow,
+    | 'domain_url'
+    | 'brand_name'
+    | 'industry_vertical'
+    | 'is_shopify'
+    | 'shopify_mcp_status'
+    | 'agents_md_status'
+    | 'llms_txt_status'
+    | 'brand_truth_sheet'
+  >;
+  bundle: BuiltCitationAnswerPageBundle;
+  inspection: SubPageBotInspectionReport;
+  targetEnv?: AiRemediationTargetEnv;
+}): PublishedCitationPageVerification {
+  const { domain, bundle, inspection } = params;
+  const brand = domain.brand_name.trim() || inspection.hostname;
+  const mode: AiRemediationTargetEnv =
+    params.targetEnv ?? (domain.is_shopify ? 'shopify_liquid' : 'coding_agent');
+
+  const isLiveHttp200 =
+    inspection.httpStatus !== null &&
+    inspection.httpStatus >= 200 &&
+    inspection.httpStatus < 300;
+  const passedCount = inspection.checks.filter((c) => c.passed).length;
+  const totalCount = inspection.checks.length;
+  const allChecksPassed = isLiveHttp200 && passedCount === totalCount;
+  const hasComparisonTable = inspection.tableCount >= 1;
+  const hasFaqJsonLd = inspection.jsonLdTypes.some(
+    (t) => t.toLowerCase() === 'faqpage'
+  );
+
+  const recommendedPromptToTrack =
+    bundle.blueprintType === 'vs_competitor'
+      ? `${brand} vs ${bundle.rivalLabel}: how do pricing, features, and delivery compare?`
+      : bundle.blueprintType === 'buyer_guide'
+        ? bundle.promptLabel
+        : `What is ${brand}'s current pricing and shipping or service coverage?`;
+
+  const recommendedPromptIntent: 'commercial_comparison' | 'pricing_evaluation' =
+    bundle.blueprintType === 'pricing_truth'
+      ? 'pricing_evaluation'
+      : 'commercial_comparison';
+
+  const publishPlatformHint =
+    mode === 'webflow_cms'
+      ? `Confirm the static page slug matches ${inspection.pathname} in Webflow Designer and click Publish to Selected Domains.`
+      : mode === 'wix_squarespace_framer'
+        ? `Confirm the page URL slug matches ${inspection.pathname} in your builder settings and click Publish (not Draft).`
+        : mode === 'wordpress_cms'
+          ? `Confirm the WordPress page permalink matches ${inspection.pathname}, click Publish, and clear any WP Rocket / LiteSpeed / Cloudflare cache.`
+          : mode === 'shopify_liquid'
+            ? `Confirm the page is published under Shopify Admin -> Online Store -> Pages (${inspection.pathname}) with Visibility set to Visible.`
+            : `Confirm your production deploy finished and ${inspection.targetUrl} returns HTTP 200 in raw server HTML.`;
+
+  if (!isLiveHttp200) {
+    const notLiveLines = [
+      `# Publish Missing AI Citation Route — ${brand} (${inspection.pathname})`,
+      '',
+      `Publish this route live now. Verisource probed \`${inspection.targetUrl}\` with \`GPTBot\` and \`PerplexityBot\` user-agents and received HTTP \`${inspection.httpStatus ?? 'UNREACHABLE'}\`.`,
+      '',
+      `- **Platform Check:** ${publishPlatformHint}`,
+      `- **Target Canonical URL:** \`${inspection.targetUrl}\``,
+      '',
+      `## 1. Verified Page Markdown & Comparison \`<table>\` to Render at \`${inspection.pathname}\``,
+      '```markdown',
+      bundle.markdownPage.content,
+      '```',
+      '',
+      `## 2. Page-Specific \`FAQPage\` JSON-LD to Inject on \`${inspection.pathname}\``,
+      '```json',
+      bundle.faqJsonLd,
+      '```',
+    ];
+
+    return {
+      isLiveHttp200: false,
+      allChecksPassed: false,
+      passedCount,
+      totalCount,
+      pageReadinessScore: inspection.pageReadinessScore,
+      hasComparisonTable,
+      hasFaqJsonLd,
+      recommendedPromptToTrack,
+      recommendedPromptIntent,
+      statusHeadline: `${inspection.pathname} is not live yet (HTTP ${inspection.httpStatus ?? 'UNREACHABLE'}).`,
+      nextActionSummary: `${publishPlatformHint} Or copy the prompt below so your AI creates and publishes ${inspection.pathname} with the table and FAQ schema.`,
+      followUpPagePrompt: enforceQualityGate95(
+        notLiveLines.join('\n'),
+        'agents_md'
+      ),
+    };
+  }
+
+  if (!allChecksPassed) {
+    const missingChecks = inspection.checks.filter((c) => !c.passed);
+    const partialLines = [
+      `# Targeted Follow-Up Fix for Live Route — ${brand} (${inspection.pathname})`,
+      '',
+      `Keep the live URL intact. Verisource confirmed \`${inspection.targetUrl}\` returns HTTP \`${inspection.httpStatus}\` (\`${passedCount}/${totalCount}\` bot extraction checks passing), and needs only the missing items below.`,
+      '',
+      `## 1. Already Passing on \`${inspection.pathname}\` (Do Not Remove)`,
+      ...inspection.checks
+        .filter((c) => c.passed)
+        .map((c) => `- **[KEEP INTACT · LIVE]** **${c.label}:** ${c.detail}`),
+      '',
+      `## 2. Remaining Extraction Gaps to Fix on \`${inspection.pathname}\``,
+      ...missingChecks.map(
+        (c) => `- **[STILL NEEDED]** **${c.label}:** ${c.detail}`
+      ),
+    ];
+
+    if (
+      missingChecks.some(
+        (c) =>
+          c.id === 'structured_table_or_pricing' ||
+          c.id === 'heading_hierarchy' ||
+          c.id === 'ssr_text_density'
+      )
+    ) {
+      partialLines.push(
+        '',
+        `## 3. Verified Server-Rendered Copy & \`<table>\` Matrix for \`${inspection.pathname}\``,
+        '```markdown',
+        bundle.markdownPage.content,
+        '```'
+      );
+    }
+
+    if (missingChecks.some((c) => c.id === 'route_json_ld') || !hasFaqJsonLd) {
+      partialLines.push(
+        '',
+        `## 4. Route-Level \`FAQPage\` JSON-LD for \`${inspection.pathname}\``,
+        `Inject inside \`<script type="application/ld+json">\` on \`${inspection.pathname}\` and validate with \`JSON.parse()\`:`,
+        '```json',
+        bundle.faqJsonLd,
+        '```'
+      );
+    }
+
+    return {
+      isLiveHttp200: true,
+      allChecksPassed: false,
+      passedCount,
+      totalCount,
+      pageReadinessScore: inspection.pageReadinessScore,
+      hasComparisonTable,
+      hasFaqJsonLd,
+      recommendedPromptToTrack,
+      recommendedPromptIntent,
+      statusHeadline: `${inspection.pathname} is live (${passedCount}/${totalCount} AI extraction checks passing).`,
+      nextActionSummary: `Missing on ${inspection.pathname}: ${missingChecks.map((c) => c.label).join(', ')}. Copy the follow-up prompt to finish only those elements.`,
+      followUpPagePrompt: enforceQualityGate95(
+        partialLines.join('\n'),
+        'agents_md'
+      ),
+    };
+  }
+
+  const verifiedLines = [
+    `# All 5 AI Crawler Extraction Checks Verified Live — ${brand} (${inspection.pathname})`,
+    '',
+    `Keep \`${inspection.targetUrl}\` untouched. Both \`GPTBot\` and \`PerplexityBot\` received HTTP \`200\`, extracted \`${inspection.readability.visibleWordCount}\` server-rendered words and \`${inspection.tableCount}\` HTML \`<table>\` matrix, and parsed route-level \`JSON-LD\` (\`${inspection.jsonLdTypes.join(', ')}\`).`,
+    '',
+    `- **Internal Linking Tip:** Ensure \`${inspection.targetUrl}\` is linked from your site footer and listed inside \`/llms.txt\` and \`/agents.md\`.`,
+    `- **Next Step in Verisource:** Track *"${recommendedPromptToTrack}"* across ChatGPT, Gemini, and Perplexity to monitor citation share.`,
+  ];
+
+  return {
+    isLiveHttp200: true,
+    allChecksPassed: true,
+    passedCount,
+    totalCount,
+    pageReadinessScore: inspection.pageReadinessScore,
+    hasComparisonTable,
+    hasFaqJsonLd,
+    recommendedPromptToTrack,
+    recommendedPromptIntent,
+    statusHeadline: `All 5 AI bot extraction checks verified live on ${inspection.pathname}!`,
+    nextActionSummary: `GPTBot and PerplexityBot received HTTP 200, extracted your server-rendered comparison <table>, and verified route-level JSON-LD. Track this buyer prompt across ChatGPT, Gemini, and Perplexity next.`,
+    followUpPagePrompt: enforceQualityGate95(
+      verifiedLines.join('\n'),
+      'agents_md'
+    ),
   };
 }

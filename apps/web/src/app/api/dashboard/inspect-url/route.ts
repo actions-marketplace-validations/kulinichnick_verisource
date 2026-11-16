@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import {
   SubPageInspectionError,
+  buildCitationAnswerPageBundle,
+  evaluatePublishedCitationPage,
   inspectSubPageForAiCrawlers,
+  type AiRemediationTargetEnv,
+  type CitationPageBlueprintType,
   type DomainRow,
 } from '@verisource/core-geo';
 import {
@@ -13,9 +17,24 @@ import {
 
 export const maxDuration = 30;
 
+const ALLOWED_TARGET_ENVS = new Set<AiRemediationTargetEnv>([
+  'coding_agent',
+  'chat_assistant',
+  'shopify_liquid',
+  'wordpress_cms',
+  'webflow_cms',
+  'wix_squarespace_framer',
+]);
+
 const InspectUrlBodySchema = z.object({
   domain_id: z.string().min(8).max(80),
   target_path_or_url: z.string().min(1).max(512),
+  blueprint_type: z
+    .enum(['vs_competitor', 'buyer_guide', 'pricing_truth'])
+    .optional(),
+  rival_name: z.string().max(120).optional(),
+  target_prompt: z.string().max(320).optional(),
+  env: z.string().optional(),
 });
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -72,8 +91,29 @@ export async function POST(request: Request): Promise<NextResponse> {
       );
     }
 
-    const { domain_id: domainId, target_path_or_url: targetPathOrUrl } =
-      parsed.data;
+    const {
+      domain_id: domainId,
+      target_path_or_url: targetPathOrUrl,
+      blueprint_type: blueprintType,
+      rival_name: rivalName,
+      target_prompt: targetPrompt,
+      env: rawEnv,
+    } = parsed.data;
+
+    let validatedEnv: AiRemediationTargetEnv | undefined;
+    if (rawEnv !== undefined) {
+      if (!ALLOWED_TARGET_ENVS.has(rawEnv as AiRemediationTargetEnv)) {
+        return NextResponse.json(
+          {
+            error: 'INVALID_TARGET_ENV',
+            message:
+              'Unsupported AI remediation environment on sub-page verification.',
+          },
+          { status: 400 }
+        );
+      }
+      validatedEnv = rawEnv as AiRemediationTargetEnv;
+    }
 
     let domain: DomainRow | undefined;
     if (access.supabase) {
@@ -107,6 +147,44 @@ export async function POST(request: Request): Promise<NextResponse> {
         brandTruthSheet: domain.brand_truth_sheet,
         isShopify: domain.is_shopify,
       });
+
+      if (blueprintType) {
+        const bundle = buildCitationAnswerPageBundle({
+          domain,
+          blueprintType: blueprintType as CitationPageBlueprintType,
+          rivalName: rivalName ?? null,
+          targetPrompt: targetPrompt ?? null,
+          targetEnv: validatedEnv,
+        });
+        const evaluated = evaluatePublishedCitationPage({
+          domain,
+          bundle,
+          inspection,
+          targetEnv: validatedEnv,
+        });
+
+        return NextResponse.json(
+          {
+            inspection,
+            studioVerification: {
+              isLiveHttp200: evaluated.isLiveHttp200,
+              allChecksPassed: evaluated.allChecksPassed,
+              passedCount: evaluated.passedCount,
+              totalCount: evaluated.totalCount,
+              pageReadinessScore: evaluated.pageReadinessScore,
+              hasComparisonTable: evaluated.hasComparisonTable,
+              hasFaqJsonLd: evaluated.hasFaqJsonLd,
+              recommendedPromptToTrack: evaluated.recommendedPromptToTrack,
+              recommendedPromptIntent: evaluated.recommendedPromptIntent,
+              statusHeadline: evaluated.statusHeadline,
+              nextActionSummary: evaluated.nextActionSummary,
+              promptScore: evaluated.followUpPagePrompt.score,
+              promptContent: evaluated.followUpPagePrompt.content,
+            },
+          },
+          { status: 200 }
+        );
+      }
 
       return NextResponse.json({ inspection }, { status: 200 });
     } catch (err) {

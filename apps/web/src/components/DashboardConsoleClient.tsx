@@ -22,6 +22,7 @@ import {
   buildTargetedCitationOutreachDraft,
   computeShopifyCheckoutKey,
   evaluateCommerceAttributeReadiness,
+  evaluatePublishedCitationPage,
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
   getWebsitePlatformMeta,
@@ -326,6 +327,14 @@ export function DashboardConsoleClient(props: {
   const [copiedCitationPageMd, setCopiedCitationPageMd] = useState(false);
   const [expandedCitationPageStudio, setExpandedCitationPageStudio] =
     useState(false);
+  const [studioCustomVerifyPath, setStudioCustomVerifyPath] = useState('');
+  const [verifyingStudioPage, setVerifyingStudioPage] = useState(false);
+  const [studioPageInspection, setStudioPageInspection] =
+    useState<SubPageBotInspectionReport | null>(null);
+  const [copiedStudioFollowUpPrompt, setCopiedStudioFollowUpPrompt] =
+    useState(false);
+  const [expandedStudioFollowUpPrompt, setExpandedStudioFollowUpPrompt] =
+    useState(false);
   const [subPageInput, setSubPageInput] = useState(
     activeDomain?.is_shopify ? '/collections/all' : '/pricing'
   );
@@ -562,6 +571,10 @@ export function DashboardConsoleClient(props: {
     setCopiedCitationPagePrompt(false);
     setCopiedCitationPageMd(false);
     setExpandedCitationPageStudio(false);
+    setStudioCustomVerifyPath('');
+    setStudioPageInspection(null);
+    setCopiedStudioFollowUpPrompt(false);
+    setExpandedStudioFollowUpPrompt(false);
     setSubPageReport(null);
     setCopiedSubPagePrompt(false);
     setShowSubPageRawStream(false);
@@ -820,6 +833,16 @@ export function DashboardConsoleClient(props: {
         targetEnv: aiPromptTargetEnv,
       })
     : null;
+
+  const activeStudioVerification =
+    activeDomain && activeCitationPageBundle && studioPageInspection
+      ? evaluatePublishedCitationPage({
+          domain: activeDomain,
+          bundle: activeCitationPageBundle,
+          inspection: studioPageInspection,
+          targetEnv: aiPromptTargetEnv,
+        })
+      : null;
 
   const rankedCitationSources = activeDomain
     ? rankCitationGapSources({
@@ -1427,6 +1450,66 @@ export function DashboardConsoleClient(props: {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  async function handleVerifyCitationStudioPage() {
+    if (!activeDomain || !activeCitationPageBundle) return;
+    const targetPath =
+      studioCustomVerifyPath.trim() || activeCitationPageBundle.suggestedPath;
+    setVerifyingStudioPage(true);
+    setBannerError(null);
+    setCopiedStudioFollowUpPrompt(false);
+    try {
+      const res = await fetch('/api/dashboard/inspect-url', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          target_path_or_url: targetPath,
+          blueprint_type: citationBlueprintType,
+          rival_name: effectiveRivalForStudio,
+          target_prompt: effectivePromptForStudio,
+          env: aiPromptTargetEnv,
+        }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        inspection?: SubPageBotInspectionReport;
+      };
+      if (!res.ok || json.error || !json.inspection) {
+        setBannerError(
+          json.message ?? 'Unable to verify published comparison page.'
+        );
+      } else {
+        setStudioPageInspection(json.inspection);
+        const passed = json.inspection.checks.filter((c) => c.passed).length;
+        setBannerSuccess(
+          `Probed ${json.inspection.targetUrl} with GPTBot & PerplexityBot: HTTP ${
+            json.inspection.httpStatus ?? 'ERR'
+          } (${passed}/${json.inspection.checks.length} AI extraction checks live).`
+        );
+      }
+    } catch {
+      setBannerError('Network error while verifying published page.');
+    } finally {
+      setVerifyingStudioPage(false);
+    }
+  }
+
+  async function handleCopyStudioFollowUpPrompt() {
+    if (!activeStudioVerification) return;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(
+          activeStudioVerification.followUpPagePrompt.content
+        );
+      }
+      setCopiedStudioFollowUpPrompt(true);
+      setTimeout(() => setCopiedStudioFollowUpPrompt(false), 2600);
+    } catch {
+      // Ignore clipboard permission denial
+    }
   }
 
   async function handleInspectSubPage(targetOverride?: string) {
@@ -5712,6 +5795,18 @@ export function DashboardConsoleClient(props: {
                       </button>
                       <button
                         type="button"
+                        onClick={() => void handleVerifyCitationStudioPage()}
+                        disabled={verifyingStudioPage}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '8px 13px', fontSize: '12px' }}
+                        title="Check whether your published comparison or buyer-guide route is live and readable by GPTBot & PerplexityBot"
+                      >
+                        {verifyingStudioPage
+                          ? 'Checking Page...'
+                          : '✓ Verify Page Live'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => void handleCopyCitationPageMarkdown()}
                         className="vs-btn vs-btn-secondary"
                         style={{ padding: '8px 12px', fontSize: '12px' }}
@@ -5781,7 +5876,11 @@ export function DashboardConsoleClient(props: {
                             type="button"
                             className="vs-pill-btn vs-pill-btn-sm"
                             data-active={active ? 'true' : 'false'}
-                            onClick={() => setCitationBlueprintType(bp.id)}
+                            onClick={() => {
+                              setCitationBlueprintType(bp.id);
+                              setStudioPageInspection(null);
+                              setStudioCustomVerifyPath('');
+                            }}
                           >
                             {bp.label}
                           </button>
@@ -5790,14 +5889,7 @@ export function DashboardConsoleClient(props: {
                     </div>
 
                     {citationBlueprintType === 'vs_competitor' ? (
-                      <div
-                        style={{
-                          display: 'inline-flex',
-                          flexWrap: 'wrap',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
+                      <div className="vs-pill-group">
                         <span
                           className="vs-mono"
                           style={{
@@ -5815,15 +5907,12 @@ export function DashboardConsoleClient(props: {
                             <button
                               key={rival}
                               type="button"
-                              onClick={() => setCustomCitationRival(rival)}
-                              className="vs-btn vs-btn-secondary"
-                              style={{
-                                padding: '3px 9px',
-                                fontSize: '11.5px',
-                                borderColor: isSelected
-                                  ? 'var(--vs-ink)'
-                                  : undefined,
-                                fontWeight: isSelected ? 700 : 500,
+                              className="vs-pill-btn vs-pill-btn-sm"
+                              data-active={isSelected ? 'true' : 'false'}
+                              onClick={() => {
+                                setCustomCitationRival(rival);
+                                setStudioPageInspection(null);
+                                setStudioCustomVerifyPath('');
                               }}
                             >
                               {rival}
@@ -5833,9 +5922,11 @@ export function DashboardConsoleClient(props: {
                         <input
                           type="text"
                           value={customCitationRival}
-                          onChange={(e) =>
-                            setCustomCitationRival(e.target.value)
-                          }
+                          onChange={(e) => {
+                            setCustomCitationRival(e.target.value);
+                            setStudioPageInspection(null);
+                            setStudioCustomVerifyPath('');
+                          }}
                           placeholder="Or type rival name..."
                           className="vs-input"
                           style={{
@@ -5860,9 +5951,11 @@ export function DashboardConsoleClient(props: {
                         <select
                           aria-label="Select tracked buyer prompt"
                           value={effectivePromptForStudio}
-                          onChange={(e) =>
-                            setCustomCitationPrompt(e.target.value)
-                          }
+                          onChange={(e) => {
+                            setCustomCitationPrompt(e.target.value);
+                            setStudioPageInspection(null);
+                            setStudioCustomVerifyPath('');
+                          }}
                           className="vs-input"
                           style={{
                             width: 'auto',
@@ -5886,9 +5979,11 @@ export function DashboardConsoleClient(props: {
                         <input
                           type="text"
                           value={customCitationPrompt}
-                          onChange={(e) =>
-                            setCustomCitationPrompt(e.target.value)
-                          }
+                          onChange={(e) => {
+                            setCustomCitationPrompt(e.target.value);
+                            setStudioPageInspection(null);
+                            setStudioCustomVerifyPath('');
+                          }}
                           placeholder="Or type custom buyer question..."
                           className="vs-input"
                           style={{
@@ -5902,6 +5997,302 @@ export function DashboardConsoleClient(props: {
                     ) : null}
                   </div>
                 </div>
+
+                {/* M62: Closed-Loop Published Comparison Page Live Verifier & 1-Click Rival Prompt Tracker */}
+                {studioPageInspection && activeStudioVerification ? (
+                  <div
+                    style={{
+                      borderTop: '1px solid var(--vs-border)',
+                      background: '#FFFFFF',
+                    }}
+                  >
+                    <div
+                      style={{
+                        padding: '11px 18px',
+                        borderBottom: '1px solid var(--vs-border)',
+                        background: activeStudioVerification.allChecksPassed
+                          ? 'var(--vs-pass-bg)'
+                          : 'var(--vs-surface-warm)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <strong style={{ fontSize: '13px' }}>
+                          {activeStudioVerification.statusHeadline}
+                        </strong>
+                        <StatusBadge
+                          tone={
+                            activeStudioVerification.allChecksPassed
+                              ? 'pass'
+                              : activeStudioVerification.isLiveHttp200
+                                ? 'warn'
+                                : 'critical'
+                          }
+                        >
+                          {activeStudioVerification.allChecksPassed
+                            ? '5/5 BOT CHECKS LIVE'
+                            : `${activeStudioVerification.passedCount}/${activeStudioVerification.totalCount} LIVE · ${activeStudioVerification.pageReadinessScore}/100`}
+                        </StatusBadge>
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <span
+                          className="vs-mono"
+                          style={{
+                            fontSize: '11px',
+                            color: 'var(--vs-ink-muted)',
+                          }}
+                        >
+                          ROUTE TO VERIFY:
+                        </span>
+                        <input
+                          type="text"
+                          value={
+                            studioCustomVerifyPath ||
+                            activeCitationPageBundle.suggestedPath
+                          }
+                          onChange={(e) =>
+                            setStudioCustomVerifyPath(e.target.value)
+                          }
+                          aria-label="Published comparison route path"
+                          className="vs-input vs-mono"
+                          style={{
+                            width: '230px',
+                            padding: '4px 8px',
+                            fontSize: '11.5px',
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void handleVerifyCitationStudioPage()}
+                          disabled={verifyingStudioPage}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        >
+                          {verifyingStudioPage
+                            ? 'Checking...'
+                            : '↻ Check Route'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns:
+                          'repeat(auto-fit, minmax(185px, 1fr))',
+                        gap: '1px',
+                        background: 'var(--vs-border)',
+                        borderBottom: '1px solid var(--vs-border)',
+                      }}
+                    >
+                      {studioPageInspection.checks.map((chk) => (
+                        <div
+                          key={chk.id}
+                          style={{
+                            padding: '11px 13px',
+                            background: '#FFFFFF',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '5px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '6px',
+                            }}
+                          >
+                            <strong style={{ fontSize: '12px' }}>
+                              {chk.label}
+                            </strong>
+                            <StatusBadge tone={chk.passed ? 'pass' : 'warn'}>
+                              {chk.passed ? 'LIVE' : 'NEEDED'}
+                            </StatusBadge>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '11.5px',
+                              color: 'var(--vs-ink-secondary)',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {chk.detail}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      style={{
+                        padding: '12px 18px',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          maxWidth: '640px',
+                          fontSize: '12.5px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {activeStudioVerification.nextActionSummary}
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          alignItems: 'center',
+                        }}
+                      >
+                        {activeStudioVerification.isLiveHttp200 ? (
+                          domainPrompts.some(
+                            (p) =>
+                              p.prompt_text.trim().toLowerCase() ===
+                              activeStudioVerification.recommendedPromptToTrack
+                                .trim()
+                                .toLowerCase()
+                          ) ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveTab('tab1_visibility');
+                                if (typeof window !== 'undefined') {
+                                  window.scrollTo({
+                                    top: 0,
+                                    behavior: 'smooth',
+                                  });
+                                }
+                              }}
+                              className="vs-btn"
+                              style={{
+                                padding: '8px 14px',
+                                fontSize: '12px',
+                              }}
+                            >
+                              ✓ Prompt Tracked — View Live AI Answers →
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              disabled={
+                                scanningSuggestedPrompt ===
+                                activeStudioVerification.recommendedPromptToTrack
+                              }
+                              onClick={() =>
+                                void handleTrackSuggestedPrompt(
+                                  activeStudioVerification.recommendedPromptToTrack,
+                                  activeStudioVerification.recommendedPromptIntent
+                                )
+                              }
+                              className="vs-btn"
+                              style={{
+                                padding: '8px 14px',
+                                fontSize: '12px',
+                              }}
+                            >
+                              {scanningSuggestedPrompt ===
+                              activeStudioVerification.recommendedPromptToTrack
+                                ? 'Scanning 3 AI Engines...'
+                                : '+ Track Comparison Prompt Across 3 AI Engines →'}
+                            </button>
+                          )
+                        ) : null}
+
+                        {!activeStudioVerification.allChecksPassed ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleCopyStudioFollowUpPrompt()
+                              }
+                              className={
+                                activeStudioVerification.isLiveHttp200
+                                  ? 'vs-btn vs-btn-secondary'
+                                  : 'vs-btn'
+                              }
+                              style={{
+                                padding: '8px 13px',
+                                fontSize: '12px',
+                              }}
+                            >
+                              {copiedStudioFollowUpPrompt
+                                ? '✓ Page Follow-Up Prompt Copied!'
+                                : 'Copy Follow-Up Prompt for This Page'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedStudioFollowUpPrompt((prev) => !prev)
+                              }
+                              className="vs-btn vs-btn-secondary"
+                              style={{
+                                padding: '8px 12px',
+                                fontSize: '12px',
+                              }}
+                            >
+                              {expandedStudioFollowUpPrompt
+                                ? 'Hide Prompt'
+                                : 'Inspect Follow-Up Prompt'}
+                            </button>
+                          </>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {expandedStudioFollowUpPrompt &&
+                    !activeStudioVerification.allChecksPassed ? (
+                      <div
+                        style={{
+                          padding: '0 18px 14px 18px',
+                          background: '#FFFFFF',
+                        }}
+                      >
+                        <CodeArtifactCard
+                          title={`Follow-Up Page Remediation Prompt (${studioPageInspection.pathname})`}
+                          fileHint="Paste into Claude, ChatGPT, Antigravity, Cursor, or Shopify to finish this comparison route"
+                          code={
+                            activeStudioVerification.followUpPagePrompt.content
+                          }
+                          qualityScore={
+                            activeStudioVerification.followUpPagePrompt.score
+                          }
+                          qualityBreakdown={
+                            activeStudioVerification.followUpPagePrompt
+                              .breakdown
+                          }
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 {expandedCitationPageStudio ? (
                   <div

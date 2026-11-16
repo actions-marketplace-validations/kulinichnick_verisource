@@ -64,6 +64,7 @@ import {
   dispatchWeeklyExecutiveDigestEmail,
   enforceQualityGate95,
   evaluateCommerceAttributeReadiness,
+  evaluatePublishedCitationPage,
   evaluateTrialLifecycleStage,
   extractAlternateMarkdownHref,
   extractBrandNameFromTitle,
@@ -2928,4 +2929,115 @@ test('M61.2 buildMagicLinkSignInAlert & dispatchMagicLinkSignInEmail generate >=
   assert.equal(dryRun.mode, 'preview_dry_run');
   assert.equal(dryRun.delivered, false);
   assert.ok(dryRun.qualityScore >= 9.5);
+});
+
+test('M62 evaluatePublishedCitationPage handles 404 missing routes, partial routes, and 5/5 live comparison pages (>= 9.5/10)', () => {
+  const sampleDom = {
+    ...PATIENT_ZERO_DOMAINS[1]!,
+    domain_url: 'https://summitdental.com',
+    brand_name: 'Summit Dental',
+    is_shopify: false,
+  };
+  const bundle = buildCitationAnswerPageBundle({
+    domain: sampleDom,
+    blueprintType: 'vs_competitor',
+    rivalName: 'BrightSmile Clinic',
+    targetEnv: 'webflow_cms',
+  });
+
+  // 1. Missing 404 route
+  const missingInspect = analyzeHtmlForBotExtraction({
+    targetUrl: 'https://summitdental.com/compare/summit-dental-vs-brightsmile-clinic',
+    pathname: '/compare/summit-dental-vs-brightsmile-clinic',
+    hostname: 'summitdental.com',
+    httpStatus: 404,
+    gptBotStatus: 404,
+    perplexityBotStatus: 404,
+    rawHtml: '<html><body><h1>404 Not Found</h1></body></html>',
+    brandName: 'Summit Dental',
+    brandTruthSheet: sampleDom.brand_truth_sheet,
+    isShopify: false,
+  });
+  const missingEval = evaluatePublishedCitationPage({
+    domain: sampleDom,
+    bundle,
+    inspection: missingInspect,
+    targetEnv: 'webflow_cms',
+  });
+  assert.equal(missingEval.isLiveHttp200, false);
+  assert.equal(missingEval.allChecksPassed, false);
+  assert.ok(missingEval.followUpPagePrompt.score >= 9.5);
+  assert.ok(missingEval.nextActionSummary.includes('Publish to Selected Domains'));
+
+  // 2. Partial HTTP 200 route (missing HTML <table> and FAQPage JSON-LD)
+  const partialInspect = analyzeHtmlForBotExtraction({
+    targetUrl: 'https://summitdental.com/compare/summit-dental-vs-brightsmile-clinic',
+    pathname: '/compare/summit-dental-vs-brightsmile-clinic',
+    hostname: 'summitdental.com',
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml:
+      '<html><head><title>Summit vs BrightSmile</title></head><body><main><h1>Summit Dental vs BrightSmile</h1><p>' +
+      'Verified dental care comparison text for patients evaluating pricing and service coverage. '.repeat(
+        12
+      ) +
+      '</p><h2>Pricing Overview</h2><h2>Coverage Scope</h2></main></body></html>',
+    brandName: 'Summit Dental',
+    brandTruthSheet: sampleDom.brand_truth_sheet,
+    isShopify: false,
+  });
+  const partialEval = evaluatePublishedCitationPage({
+    domain: sampleDom,
+    bundle,
+    inspection: partialInspect,
+    targetEnv: 'wordpress_cms',
+  });
+  assert.equal(partialEval.isLiveHttp200, true);
+  assert.equal(partialEval.allChecksPassed, false);
+  assert.ok(partialEval.followUpPagePrompt.score >= 9.5);
+  assert.ok(partialEval.followUpPagePrompt.content.includes('KEEP INTACT · LIVE'));
+  assert.ok(partialEval.followUpPagePrompt.content.includes('FAQPage'));
+
+  // 3. Full 5/5 verified live comparison page
+  const fullInspect = analyzeHtmlForBotExtraction({
+    targetUrl: 'https://summitdental.com/compare/summit-dental-vs-brightsmile-clinic',
+    pathname: '/compare/summit-dental-vs-brightsmile-clinic',
+    hostname: 'summitdental.com',
+    httpStatus: 200,
+    gptBotStatus: 200,
+    perplexityBotStatus: 200,
+    rawHtml:
+      `<html><head><title>Summit vs BrightSmile</title><script type="application/ld+json">${bundle.faqJsonLd}</script></head><body><main><h1>Summit Dental vs BrightSmile Clinic</h1><p>` +
+      'Transparent first-party comparison of dental treatment plans, coverage scope, and appointment scheduling. '.repeat(
+        10
+      ) +
+      '</p><h2>Side-by-Side Matrix</h2><table><tr><th>Factor</th><th>Summit Dental</th></tr><tr><td>Pricing</td><td>$199 exam</td></tr></table><h2>Buyer FAQ</h2></main></body></html>',
+    brandName: 'Summit Dental',
+    brandTruthSheet: sampleDom.brand_truth_sheet,
+    isShopify: false,
+  });
+  const fullEval = evaluatePublishedCitationPage({
+    domain: sampleDom,
+    bundle,
+    inspection: fullInspect,
+    targetEnv: 'coding_agent',
+  });
+  assert.equal(fullEval.isLiveHttp200, true);
+  assert.equal(fullEval.allChecksPassed, true);
+  assert.equal(fullEval.hasComparisonTable, true);
+  assert.equal(fullEval.hasFaqJsonLd, true);
+  assert.ok(
+    fullEval.recommendedPromptToTrack.includes(
+      'Summit Dental vs BrightSmile Clinic'
+    )
+  );
+  assert.ok(fullEval.followUpPagePrompt.score >= 9.5);
+
+  for (const ev of [missingEval, partialEval, fullEval]) {
+    const combined = `${ev.statusHeadline} ${ev.nextActionSummary}\n${ev.followUpPagePrompt.content}`;
+    assert.ok(!/plain[- ]english|\bin english\b|everyday english/i.test(combined));
+    assert.ok(!/\b\d+(?:\.\d+)?\s*\/\s*10\b|QUALITY GATE|\bCritic\b/i.test(combined));
+    assert.equal(gradeArtifactQuality(combined).breakdown.lexicon_filter, 2.0);
+  }
 });
