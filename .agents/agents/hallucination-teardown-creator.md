@@ -28,7 +28,7 @@ You generate `3 to 5` high-converting, evidence-backed public tear-downs every w
    - Provide the exact `https://[brand.com]` URL to open in Chrome and a tight 3-bullet recording choreography (`0:00–0:10` Open Verisource Side Panel on `[brand.com]` -> Step 01 Flagged Issue; `0:10–0:20` Switch to Step 02 -> Show auto-detected CMS & 1-Click Fix Teaser; `0:20–0:30` Show `4/4` live protocol checklist).
 4. **Draft Platform-Native Posts Enforced by `enforceQualityGate95()`:**
    - Author 3 distinct, non-repetitive drafts per tear-down:
-     1. **X (Twitter) Post:** Punchy operator observation + SVG/video hook (`<= 280` chars lead + optional 1-reply technical breakdown).
+     1. **X (Twitter) Post:** Punchy operator observation (`<= 240` chars hard cap for standard `280`-char accounts; write the brand name `Allbirds` rather than a bare `allbirds.com` URL so X does not count a `23`-char `t.co` link or attach an unwanted third-party link preview card over your `1200x628` `.png` graphic).
      2. **LinkedIn Founder Post:** Short 4–6 sentence operator breakdown anchored in concrete protocol facts (`robots.txt`, `/agents.md`, `JSON-LD`).
      3. **Reddit Value-First Post (`r/shopify`, `r/bigseo`, or `r/SaaS`):** Pure technical breakdown sharing exact findings and how any site owner can check their own `robots.txt` / schema—zero hard promotional spam.
    - Run `enforceQualityGate95()` across every draft (`>= 9.5 / 10.0`, `0` banned words). Append to `g:\My Drive\GEO MCP Engine\growth_ops\queue\weekly_social_teardowns.md`.

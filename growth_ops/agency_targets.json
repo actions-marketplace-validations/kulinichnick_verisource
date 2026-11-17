@@ -13,8 +13,12 @@
       "publicContactChannel": "hello@velstar.co.uk",
       "caseStudyClientDomain": "avon.uk.com",
       "caseStudyClientName": "Avon UK",
-      "status": "audited",
-      "auditedAt": "2026-11-17T08:25:51.451Z"
+      "auditSlug": "avon-uk-com-wrtj",
+      "status": "sent",
+      "auditedAt": "2026-11-17T08:25:51.451Z",
+      "sentAt": "2026-11-17T08:52:04.000Z",
+      "channelsSent": ["email", "linkedin"],
+      "followUpDueDate": "2026-11-21"
     },
     {
       "agencyName": "Edgar Allan",
@@ -26,8 +30,12 @@
       "publicContactChannel": "hello@edgarallan.com",
       "caseStudyClientDomain": "accushield.com",
       "caseStudyClientName": "Accushield",
-      "status": "audited",
-      "auditedAt": "2026-11-17T08:25:51.451Z"
+      "auditSlug": "accushield-com-7axa",
+      "status": "sent",
+      "auditedAt": "2026-11-17T08:25:51.451Z",
+      "sentAt": "2026-11-17T08:52:04.000Z",
+      "channelsSent": ["email", "linkedin"],
+      "followUpDueDate": "2026-11-21"
     },
     {
       "agencyName": "Siege Media",
