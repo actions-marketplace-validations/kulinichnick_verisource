@@ -166,29 +166,33 @@ export default async function ProtocolGuidePage({
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
             PROTOCOL REFERENCE MATRIX
           </div>
-          <div className="vs-card vs-table-wrap">
-            <table className="vs-table">
-              <thead>
-                <tr>
-                  <th>{guide.referenceTable.headers[0]}</th>
-                  <th>{guide.referenceTable.headers[1]}</th>
-                  <th>{guide.referenceTable.headers[2]}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {guide.referenceTable.rows.map((row) => (
-                  <tr key={row[0]}>
-                    <td>
-                      <strong className="vs-mono" style={{ fontSize: '12.5px' }}>
-                        {row[0]}
-                      </strong>
-                    </td>
-                    <td style={{ color: 'var(--vs-ink-secondary)' }}>{row[1]}</td>
-                    <td>{row[2]}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-table-wrap">
+                <table className="vs-table">
+                  <thead>
+                    <tr>
+                      <th>{guide.referenceTable.headers[0]}</th>
+                      <th>{guide.referenceTable.headers[1]}</th>
+                      <th>{guide.referenceTable.headers[2]}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {guide.referenceTable.rows.map((row) => (
+                      <tr key={row[0]}>
+                        <td>
+                          <strong className="vs-mono" style={{ fontSize: '12.5px' }}>
+                            {row[0]}
+                          </strong>
+                        </td>
+                        <td style={{ color: 'var(--vs-ink-secondary)' }}>{row[1]}</td>
+                        <td>{row[2]}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </section>
 

@@ -18,14 +18,14 @@ export function CmsTemplatesExplorerClient(): React.ReactElement {
 
   return (
     <div style={{ marginBottom: '36px' }}>
-      <div
-        className="vs-card"
-        style={{
-          padding: '18px 20px',
-          marginBottom: '18px',
-          background: 'var(--vs-surface-warm)',
-        }}
-      >
+      <div className="vs-bezel" style={{ marginBottom: '18px' }}>
+        <div
+          className="vs-card"
+          style={{
+            padding: '18px 20px',
+            background: 'var(--vs-surface-warm)',
+          }}
+        >
         <div
           style={{
             display: 'flex',
@@ -94,6 +94,7 @@ export function CmsTemplatesExplorerClient(): React.ReactElement {
             Where to publish on {active.platformLabel}:
           </strong>{' '}
           {active.whereToPublish}
+        </div>
         </div>
       </div>
 

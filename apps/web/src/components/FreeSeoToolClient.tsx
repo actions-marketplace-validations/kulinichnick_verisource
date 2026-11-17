@@ -15,13 +15,13 @@ export function FreeSeoToolClient(props: {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [result, setResult] = useState<FreeToolCheckPayload | null>(null);
 
-  async function handleRunCheck(e: React.FormEvent): Promise<void> {
-    e.preventDefault();
-    const trimmed = domainInput.trim();
+  async function executeToolProbe(rawTarget: string): Promise<void> {
+    const trimmed = rawTarget.trim();
     if (!trimmed) {
       setErrorMsg('Enter a public website domain to run the live check.');
       return;
     }
+    setDomainInput(trimmed);
     setLoading(true);
     setErrorMsg(null);
 
@@ -50,26 +50,64 @@ export function FreeSeoToolClient(props: {
     }
   }
 
+  async function handleRunCheck(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+    await executeToolProbe(domainInput);
+  }
+
   return (
-    <div className="vs-card" style={{ overflow: 'hidden', marginBottom: '36px' }}>
-      <form onSubmit={handleRunCheck} className="vs-grader-form">
-        <input
-          type="text"
-          className="vs-input"
-          placeholder={`Enter website URL (e.g. ${props.placeholderDomain})`}
-          aria-label="Enter website domain to test"
-          value={domainInput}
-          onChange={(e) => setDomainInput(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="vs-btn"
-          disabled={loading}
-          style={{ whiteSpace: 'nowrap' }}
+    <div className="vs-bezel-obsidian" style={{ marginBottom: '36px' }}>
+      <div className="vs-card" style={{ overflow: 'hidden' }}>
+        <form onSubmit={handleRunCheck} className="vs-grader-form">
+          <input
+            type="text"
+            className="vs-input"
+            placeholder={`Enter website URL (e.g. ${props.placeholderDomain})`}
+            aria-label="Enter website domain to test"
+            value={domainInput}
+            onChange={(e) => setDomainInput(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="vs-btn"
+            disabled={loading}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            {loading ? 'Running Live HTTP Probe…' : 'Run Free Live Check →'}
+          </button>
+        </form>
+
+        <div
+          style={{
+            padding: '10px 20px',
+            background: 'var(--vs-surface-subtle)',
+            borderBottom: result || errorMsg ? '1px solid var(--vs-border)' : 'none',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '6px',
+          }}
         >
-          {loading ? 'Running Live HTTP Probe…' : 'Run Free Live Check →'}
-        </button>
-      </form>
+          <span
+            className="vs-eyebrow"
+            style={{ fontSize: '10.5px', marginRight: '4px' }}
+          >
+            OR TEST A LIVE BENCHMARK DOMAIN:
+          </span>
+          {(['stripe.com', 'linear.app', 'cal.com', 'shopify.com'] as const).map(
+            (sampleHost) => (
+              <button
+                key={sampleHost}
+                type="button"
+                disabled={loading}
+                className="vs-pill-btn vs-pill-btn-sm"
+                onClick={() => void executeToolProbe(sampleHost)}
+              >
+                {sampleHost}
+              </button>
+            )
+          )}
+        </div>
 
       {errorMsg ? (
         <div
@@ -435,6 +473,7 @@ export function FreeSeoToolClient(props: {
           credit card required.
         </div>
       )}
+      </div>
     </div>
   );
 }

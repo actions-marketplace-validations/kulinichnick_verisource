@@ -4352,7 +4352,86 @@ async function run() {
         `Found /10, plain-English, Beta, or coffee-store echo on M83 ${rLabel}`
       );
     }
-    console.log('✔ [79/79] M83 Tactile Bezels & Motion SVGs (FIG 03, FIG 05, FIG 06, FIG 07) Across /mcp-guide, /connectors, /partners & /sample-audit verified!');
+    console.log('✔ [79/80] M83 Tactile Bezels & Motion SVGs (FIG 03, FIG 05, FIG 06, FIG 07) Across /mcp-guide, /connectors, /partners & /sample-audit verified!');
+
+    // 78. M84 Tactile Bezels & Dual-Orientation Motion SVGs (FIG 08–FIG 12) Across /tools, /templates, /benchmarks, /compare & /guides
+    const [
+      m84ToolsHtml,
+      m84ToolDetailHtml,
+      m84TemplatesHtml,
+      m84BenchmarksHtml,
+      m84CompareHtml,
+      m84GuidesHtml,
+    ] = await Promise.all([
+      fetch(`${BASE}/tools`).then((r) => r.text()),
+      fetch(`${BASE}/tools/json-ld-ai-schema-checker`).then((r) => r.text()),
+      fetch(`${BASE}/templates`).then((r) => r.text()),
+      fetch(`${BASE}/benchmarks`).then((r) => r.text()),
+      fetch(`${BASE}/compare`).then((r) => r.text()),
+      fetch(`${BASE}/guides`).then((r) => r.text()),
+    ]);
+
+    assert.ok(
+      m84ToolsHtml.includes('FIG 08 · ZERO-SIGNUP LIVE HTTP PROTOCOL VALIDATORS') &&
+        m84ToolsHtml.includes('vs-schematic-desktop') &&
+        m84ToolsHtml.includes('vs-schematic-mobile') &&
+        m84ToolDetailHtml.includes('vs-bezel-obsidian') &&
+        m84ToolDetailHtml.includes('OR TEST A LIVE BENCHMARK DOMAIN:'),
+      'Expected /tools and /tools/* to render FIG 08 Motion SVG, tactile bezels, and 1-click benchmark pills'
+    );
+    assert.ok(
+      m84TemplatesHtml.includes(
+        'FIG 09 · 7-CMS MACHINE-READABLE STARTER TEMPLATES'
+      ) && m84TemplatesHtml.includes('vs-bezel'),
+      'Expected /templates to render FIG 09 Motion SVG and tactile bezels'
+    );
+    assert.ok(
+      m84BenchmarksHtml.includes(
+        'FIG 10 · 2026 40-DOMAIN EMPIRICAL READINESS GAPS'
+      ) && m84BenchmarksHtml.includes('vs-bezel'),
+      'Expected /benchmarks to render FIG 10 Motion SVG and tactile bezels'
+    );
+    assert.ok(
+      m84CompareHtml.includes(
+        'FIG 11 · PASSIVE DASHBOARDS VS. READ-WRITE ENGINE'
+      ) && m84CompareHtml.includes('vs-bezel'),
+      'Expected /compare to render FIG 11 Motion SVG and tactile bezels'
+    );
+    assert.ok(
+      m84GuidesHtml.includes(
+        'FIG 12 · TECHNICAL AI SEARCH IMPLEMENTATION PLAYBOOKS'
+      ) && m84GuidesHtml.includes('vs-bezel'),
+      'Expected /guides to render FIG 12 Motion SVG and tactile bezels'
+    );
+
+    for (const [rLabel, rHtml] of [
+      ['/tools', m84ToolsHtml],
+      ['/tools/json-ld-ai-schema-checker', m84ToolDetailHtml],
+      ['/templates', m84TemplatesHtml],
+      ['/benchmarks', m84BenchmarksHtml],
+      ['/compare', m84CompareHtml],
+      ['/guides', m84GuidesHtml],
+    ]) {
+      const vis = rHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (vis.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on M84 ${rLabel}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(vis) &&
+          !PLAIN_ENGLISH_JARGON.test(vis) &&
+          !/\bbeta\b/i.test(vis) &&
+          !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+            rHtml
+          ),
+        `Found /10, plain-English, Beta, or coffee-store echo on M84 ${rLabel}`
+      );
+    }
+    console.log('✔ [80/80] M84 Full-Site Tactile Bezels & Motion SVGs (FIG 08–FIG 12) Across /tools, /templates, /benchmarks, /compare & /guides verified!');
   } finally {
     server.kill();
   }

@@ -4362,3 +4362,115 @@ test('M83 /mcp-guide, /connectors, /partners, /sample-audit & GtmDomainScanHando
     );
   }
 });
+
+test('M84 /tools, /templates, /benchmarks, /compare & /guides tactile bezels + FIG 08/09/10/11/12 Motion SVGs & mobile table locks pass 0-slop & 0-coffee-echo gates', () => {
+  const toolsPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/tools/page.tsx'),
+    'utf8'
+  );
+  const freeToolClient = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/FreeSeoToolClient.tsx'
+    ),
+    'utf8'
+  );
+  const templatesPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/templates/page.tsx'),
+    'utf8'
+  );
+  const benchmarksPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/benchmarks/page.tsx'),
+    'utf8'
+  );
+  const benchmarkExplorer = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/BenchmarkCohortExplorerClient.tsx'
+    ),
+    'utf8'
+  );
+  const comparePage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/compare/page.tsx'),
+    'utf8'
+  );
+  const compareSlugPage = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/app/compare/[slug]/page.tsx'
+    ),
+    'utf8'
+  );
+  const guidesPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/guides/page.tsx'),
+    'utf8'
+  );
+  const guidesSlugPage = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/app/guides/[slug]/page.tsx'
+    ),
+    'utf8'
+  );
+
+  assert.ok(
+    toolsPage.includes('FIG 08 · ZERO-SIGNUP LIVE HTTP PROTOCOL VALIDATORS')
+  );
+  assert.ok(freeToolClient.includes('vs-bezel-obsidian'));
+  assert.ok(freeToolClient.includes('OR TEST A LIVE BENCHMARK DOMAIN:'));
+  assert.ok(
+    templatesPage.includes('FIG 09 · 7-CMS MACHINE-READABLE STARTER TEMPLATES')
+  );
+  assert.ok(
+    benchmarksPage.includes('FIG 10 · 2026 40-DOMAIN EMPIRICAL READINESS GAPS')
+  );
+  assert.ok(
+    comparePage.includes('FIG 11 · PASSIVE DASHBOARDS VS. READ-WRITE ENGINE')
+  );
+  assert.ok(
+    guidesPage.includes('FIG 12 · TECHNICAL AI SEARCH IMPLEMENTATION PLAYBOOKS')
+  );
+
+  // Zero unsafe combined "vs-card vs-table-wrap" on same div across upgraded routes
+  for (const [label, src] of [
+    ['BenchmarkCohortExplorerClient.tsx', benchmarkExplorer],
+    ['compare/page.tsx', comparePage],
+    ['compare/[slug]/page.tsx', compareSlugPage],
+    ['guides/[slug]/page.tsx', guidesSlugPage],
+  ] as const) {
+    assert.ok(
+      !src.includes('vs-card vs-table-wrap'),
+      `Expected separated .vs-bezel > .vs-card > .vs-table-wrap in ${label}`
+    );
+  }
+
+  for (const [label, src] of [
+    ['tools/page.tsx', toolsPage],
+    ['FreeSeoToolClient.tsx', freeToolClient],
+    ['templates/page.tsx', templatesPage],
+    ['benchmarks/page.tsx', benchmarksPage],
+    ['compare/page.tsx', comparePage],
+    ['guides/page.tsx', guidesPage],
+  ] as const) {
+    assert.equal(
+      gradeArtifactQuality(src).breakdown.lexicon_filter,
+      2.0,
+      `Found banned AI lexicon in ${label}`
+    );
+    assert.ok(
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(src),
+      `Found coffee-store echo in ${label}`
+    );
+    assert.ok(!/\bbeta\b/i.test(src), `Found Beta label in ${label}`);
+    assert.ok(
+      !/plain[- ]english|\bin english\b|everyday english/i.test(
+        src.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      ),
+      `Found plain-English jargon in ${label}`
+    );
+    assert.ok(
+      !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(src),
+      `Found internal /10 Quality Gate jargon in ${label}`
+    );
+  }
+});

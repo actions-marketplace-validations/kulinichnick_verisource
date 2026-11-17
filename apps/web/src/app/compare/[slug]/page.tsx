@@ -167,38 +167,42 @@ export default async function CompetitorAlternativePage({
             {`Verisource vs. ${entry.competitorName} (2026 Feature Breakdown)`}
           </h2>
 
-          <div className="vs-card vs-table-wrap">
-            <table className="vs-table">
-              <thead>
-                <tr>
-                  <th>Evaluation Criterion</th>
-                  <th>Verisource (Read-Write + /mcp)</th>
-                  <th>{`${entry.competitorName} (${entry.competitorPriceAnchor})`}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entry.comparisonRows.map((row) => (
-                  <tr key={row.criterion}>
-                    <td>
-                      <strong>{row.criterion}</strong>
-                    </td>
-                    <td>
-                      <StatusBadge
-                        tone={row.verisourceAdvantage ? 'pass' : 'neutral'}
-                      >
-                        VERISOURCE
-                      </StatusBadge>{' '}
-                      <span style={{ fontSize: '13.5px', marginLeft: '6px' }}>
-                        {row.verisourceValue}
-                      </span>
-                    </td>
-                    <td style={{ color: 'var(--vs-ink-secondary)' }}>
-                      {row.competitorValue}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-table-wrap">
+                <table className="vs-table">
+                  <thead>
+                    <tr>
+                      <th>Evaluation Criterion</th>
+                      <th>Verisource (Read-Write + /mcp)</th>
+                      <th>{`${entry.competitorName} (${entry.competitorPriceAnchor})`}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entry.comparisonRows.map((row) => (
+                      <tr key={row.criterion}>
+                        <td>
+                          <strong>{row.criterion}</strong>
+                        </td>
+                        <td>
+                          <StatusBadge
+                            tone={row.verisourceAdvantage ? 'pass' : 'neutral'}
+                          >
+                            VERISOURCE
+                          </StatusBadge>{' '}
+                          <span style={{ fontSize: '13.5px', marginLeft: '6px' }}>
+                            {row.verisourceValue}
+                          </span>
+                        </td>
+                        <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                          {row.competitorValue}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -219,14 +223,14 @@ export default async function CompetitorAlternativePage({
           </h2>
 
           <div className="vs-grid-2">
-            <div
-              className="vs-card"
-              style={{
-                padding: '22px',
-                borderColor: 'var(--vs-ink)',
-                borderWidth: '1.5px',
-              }}
-            >
+            <div className="vs-bezel-obsidian">
+              <div
+                className="vs-card"
+                style={{
+                  padding: '22px',
+                  height: '100%',
+                }}
+              >
               <div
                 style={{
                   display: 'flex',
@@ -256,6 +260,7 @@ export default async function CompetitorAlternativePage({
                   </li>
                 ))}
               </ul>
+              </div>
             </div>
 
             <div className="vs-card" style={{ padding: '22px' }}>
