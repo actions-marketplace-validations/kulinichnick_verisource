@@ -92,7 +92,8 @@ export function PartnerHubClient(): React.ReactElement {
   return (
     <div className="vs-stack" style={{ gap: '28px', marginBottom: '36px' }}>
       {/* Interactive 25% Recurring Commission Calculator */}
-      <div className="vs-card" style={{ overflow: 'hidden' }}>
+      <div className="vs-bezel">
+        <div className="vs-card" style={{ overflow: 'hidden' }}>
         <div
           style={{
             padding: '14px 18px',
@@ -258,10 +259,12 @@ export function PartnerHubClient(): React.ReactElement {
             }
           />
         </div>
+        </div>
       </div>
 
       {/* Instant Partner Link Minter */}
-      <div className="vs-card" style={{ padding: '24px' }} id="mint-partner-link">
+      <div className="vs-bezel-obsidian" id="mint-partner-link">
+        <div className="vs-card" style={{ padding: '24px' }}>
         <div
           style={{
             display: 'flex',
@@ -432,6 +435,7 @@ export function PartnerHubClient(): React.ReactElement {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

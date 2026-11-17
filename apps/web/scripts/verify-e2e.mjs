@@ -4281,7 +4281,78 @@ async function run() {
         `Found /10, plain-English, Beta, or coffee-store echo on M82 ${rLabel}`
       );
     }
-    console.log('✔ [78/78] M82 Tactile Bezels & Motion SVG Funnel Parity Across /pricing, /agencies & /tutorial verified!');
+    console.log('✔ [78/79] M82 Tactile Bezels & Motion SVG Funnel Parity Across /pricing, /agencies & /tutorial verified!');
+
+    // 77. M83 Tactile Bezels & Dual-Orientation Motion SVGs Across /mcp-guide, /connectors, /partners & /sample-audit + Shared GTM Handoff
+    const [m83McpHtml, m83ConnectorsHtml, m83PartnersHtml, m83SampleAuditHtml] =
+      await Promise.all([
+        fetch(`${BASE}/mcp-guide`).then((r) => r.text()),
+        fetch(`${BASE}/connectors`).then((r) => r.text()),
+        fetch(`${BASE}/partners`).then((r) => r.text()),
+        fetch(`${BASE}/sample-audit`).then((r) => r.text()),
+      ]);
+
+    assert.ok(
+      m83McpHtml.includes('FIG 03 · STATELESS STREAMABLE HTTP /MCP ENGINE') &&
+        m83McpHtml.includes('vs-bezel-obsidian') &&
+        m83McpHtml.includes('vs-band-obsidian') &&
+        m83McpHtml.includes('OR TEST A LIVE BENCHMARK DOMAIN:'),
+      'Expected /mcp-guide to render FIG 03 bezel, obsidian #live-test bezel, benchmark pills, and closing obsidian CTA band'
+    );
+
+    assert.ok(
+      m83ConnectorsHtml.includes('FIG 05 · UPGRADE-SAFE CMS PROTOCOL BRIDGES') &&
+        m83ConnectorsHtml.includes('vs-schematic-desktop') &&
+        m83ConnectorsHtml.includes('vs-schematic-mobile') &&
+        m83ConnectorsHtml.includes('vs-bezel-obsidian') &&
+        m83ConnectorsHtml.includes('OR TEST A LIVE BENCHMARK DOMAIN:'),
+      'Expected /connectors to render dual-orientation FIG 05 Motion SVG, tactile bezels, and upgraded GtmDomainScanHandoff'
+    );
+
+    assert.ok(
+      m83PartnersHtml.includes('FIG 06 · 90-DAY STRIPE PARTNER ATTRIBUTION') &&
+        m83PartnersHtml.includes('vs-schematic-desktop') &&
+        m83PartnersHtml.includes('vs-schematic-mobile') &&
+        m83PartnersHtml.includes('vs-bezel-obsidian') &&
+        m83PartnersHtml.includes('OR TEST A LIVE BENCHMARK DOMAIN:'),
+      'Expected /partners to render dual-orientation FIG 06 Motion SVG, tactile bezels, and upgraded GtmDomainScanHandoff'
+    );
+
+    assert.ok(
+      m83SampleAuditHtml.includes('FIG 07 · WHITE-LABEL SCORECARD ANATOMY') &&
+        m83SampleAuditHtml.includes('vs-schematic-desktop') &&
+        m83SampleAuditHtml.includes('vs-schematic-mobile') &&
+        m83SampleAuditHtml.includes('vs-bezel') &&
+        m83SampleAuditHtml.includes('vs-table-wrap'),
+      'Expected /sample-audit to render dual-orientation FIG 07 Motion SVG, tactile bezels, and mobile zero-overflow table wrap'
+    );
+
+    for (const [rLabel, rHtml] of [
+      ['/mcp-guide', m83McpHtml],
+      ['/connectors', m83ConnectorsHtml],
+      ['/partners', m83PartnersHtml],
+      ['/sample-audit', m83SampleAuditHtml],
+    ]) {
+      const vis = rHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (vis.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on M83 ${rLabel}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(vis) &&
+          !PLAIN_ENGLISH_JARGON.test(vis) &&
+          !/\bbeta\b/i.test(vis) &&
+          !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+            rHtml
+          ),
+        `Found /10, plain-English, Beta, or coffee-store echo on M83 ${rLabel}`
+      );
+    }
+    console.log('✔ [79/79] M83 Tactile Bezels & Motion SVGs (FIG 03, FIG 05, FIG 06, FIG 07) Across /mcp-guide, /connectors, /partners & /sample-audit verified!');
   } finally {
     server.kill();
   }

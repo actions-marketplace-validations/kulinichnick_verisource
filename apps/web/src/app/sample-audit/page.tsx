@@ -231,73 +231,201 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
           marginBottom: '36px',
         }}
       >
-        <div className="vs-container">
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              marginBottom: '14px',
-            }}
-          >
-            <StatusBadge tone="pass">PURE WHITE-LABEL ISOLATION</StatusBadge>
-            <StatusBadge>7-PLATFORM AUTO-CMS DETECTION</StatusBadge>
-            <StatusBadge>EASY-TO-USE ACTION PLAN + PDF</StatusBadge>
+        <div className="vs-container vs-hero-grid">
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '14px',
+              }}
+            >
+              <StatusBadge tone="pass">PURE WHITE-LABEL ISOLATION</StatusBadge>
+              <StatusBadge>7-PLATFORM AUTO-CMS DETECTION</StatusBadge>
+              <StatusBadge>EASY-TO-USE ACTION PLAN + PDF</StatusBadge>
+            </div>
+
+            <h1
+              style={{
+                fontSize: 'clamp(30px, 3.8vw, 42px)',
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                fontWeight: 700,
+                margin: '0 0 14px 0',
+              }}
+            >
+              Turn any client domain into a branded 60-second audit brief.{' '}
+              <span
+                className="vs-display-serif"
+                style={{ fontSize: '1.08em', fontWeight: 400 }}
+              >
+                Zero Verisource branding attached.
+              </span>
+            </h1>
+
+            <p
+              style={{
+                fontSize: '15.5px',
+                lineHeight: 1.62,
+                color: 'var(--vs-ink-secondary)',
+                margin: '0 0 22px 0',
+                maxWidth: '580px',
+              }}
+            >
+              SEO, web design, and digital PR agencies use Console Batch Mode to
+              audit up to 10 prospect domains in parallel, detect each client&rsquo;s
+              website builder (<code className="vs-mono">Shopify</code>,{' '}
+              <code className="vs-mono">WordPress</code>,{' '}
+              <code className="vs-mono">Webflow</code>,{' '}
+              <code className="vs-mono">Wix</code>,{' '}
+              <code className="vs-mono">Squarespace</code>,{' '}
+              <code className="vs-mono">Framer</code>, or custom code), and mint
+              white-label <code className="vs-mono">/audit/[slug]</code> briefs
+              with an easy-to-follow Business Impact action plan.
+            </p>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <Link href="/#grader" className="vs-btn">
+                Audit Any Website Free →
+              </Link>
+              <Link href="/agencies#sandbox" className="vs-btn vs-btn-secondary">
+                Test Your Agency Brand Live →
+              </Link>
+              <Link href="/agencies" className="vs-btn vs-btn-secondary">
+                Agency Partner Architecture →
+              </Link>
+              <Link href="/pricing" className="vs-btn vs-btn-secondary">
+                Agency Plan ($249/mo)
+              </Link>
+            </div>
           </div>
 
-          <h1
-            style={{
-              fontSize: 'clamp(30px, 3.8vw, 42px)',
-              lineHeight: 1.1,
-              letterSpacing: '-0.03em',
-              fontWeight: 700,
-              margin: '0 0 14px 0',
-              maxWidth: '780px',
-            }}
-          >
-            Turn any client domain into a branded 60-second audit brief.{' '}
-            <span
-              className="vs-display-serif"
-              style={{ fontSize: '1.08em', fontWeight: 400 }}
-            >
-              Zero Verisource branding attached.
-            </span>
-          </h1>
+          {/* Dual-Orientation Motion SVG White-Label Scorecard Anatomy */}
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-schematic-header">
+                <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
+                  FIG 07 · WHITE-LABEL SCORECARD ANATOMY
+                </span>
+                <span
+                  className="vs-mono"
+                  style={{
+                    fontSize: '10.5px',
+                    color: 'var(--vs-pass-fg)',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '999px',
+                      background: '#059669',
+                      display: 'inline-block',
+                    }}
+                  />
+                  BOARD-READY PDF + .MD
+                </span>
+              </div>
 
-          <p
-            style={{
-              fontSize: '15.5px',
-              lineHeight: 1.62,
-              color: 'var(--vs-ink-secondary)',
-              margin: '0 0 22px 0',
-              maxWidth: '680px',
-            }}
-          >
-            SEO, web design, and digital PR agencies use Console Batch Mode to
-            audit up to 10 prospect domains in parallel, detect each client&rsquo;s
-            website builder (<code className="vs-mono">Shopify</code>,{' '}
-            <code className="vs-mono">WordPress</code>,{' '}
-            <code className="vs-mono">Webflow</code>,{' '}
-            <code className="vs-mono">Wix</code>,{' '}
-            <code className="vs-mono">Squarespace</code>,{' '}
-            <code className="vs-mono">Framer</code>, or custom code), and mint
-            white-label <code className="vs-mono">/audit/[slug]</code> briefs
-            with an easy-to-follow Business Impact action plan.
-          </p>
+              <div style={{ padding: '14px 12px', background: '#FFFFFF' }}>
+                <svg
+                  className="vs-schematic-desktop"
+                  viewBox="0 0 500 220"
+                  width="100%"
+                  role="img"
+                  aria-label="Motion diagram showing white-label /audit/[slug] scorecard anatomy with agency masthead, Business Impact diagnosis, and live prospect open, PDF save, and CTA click alerts."
+                >
+                  <rect x="12" y="14" width="276" height="192" rx="8" fill="#FAF9F6" stroke="#CFCBC0" />
+                  <rect x="12" y="14" width="276" height="6" rx="3" fill="#0A0E17" />
+                  <text x="24" y="37" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                    YOUR AGENCY LOGO · /AUDIT/[SLUG]
+                  </text>
+                  <rect x="24" y="48" width="252" height="36" rx="5" fill="#FFFFFF" stroke="#E5E2DA" />
+                  <text x="34" y="65" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
+                    Score: 52/100 · CMS: WEBFLOW
+                  </text>
+                  <text x="34" y="77" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)">
+                    Rivals Cited · Zero Verisource Nav
+                  </text>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            <Link href="/#grader" className="vs-btn">
-              Audit Any Website Free →
-            </Link>
-            <Link href="/agencies#sandbox" className="vs-btn vs-btn-secondary">
-              Test Your Agency Brand Live →
-            </Link>
-            <Link href="/agencies" className="vs-btn vs-btn-secondary">
-              Agency Partner Architecture →
-            </Link>
-            <Link href="/pricing" className="vs-btn vs-btn-secondary">
-              Agency Plan ($249/mo)
-            </Link>
+                  <rect x="24" y="92" width="252" height="38" rx="5" fill="#FEF2F2" stroke="#FECACA" />
+                  <text x="34" y="108" fill="#991B1B" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                    ✕ FIX FIRST · WRONG AI CLAIM
+                  </text>
+                  <text x="34" y="122" fill="#0A0E17" fontSize="8.5" fontFamily="var(--vs-mono)">
+                    Clear Business Impact + 1-click fix
+                  </text>
+
+                  <rect x="24" y="138" width="252" height="28" rx="5" fill="#0A0E17" />
+                  <text x="150" y="156" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="600">
+                    Book 15-Min Call · Print PDF · ↓ .md
+                  </text>
+
+                  <path d="M 288 66 L 332 66" fill="none" stroke="#DDD9CE" strokeWidth="1.6" />
+                  <path d="M 288 111 L 332 111" fill="none" stroke="#DDD9CE" strokeWidth="1.6" />
+                  <path d="M 288 152 L 332 152" fill="none" stroke="#A7F3D0" strokeWidth="1.8" />
+                  <path className="vs-signal-path" d="M 288 66 L 332 66" fill="none" stroke="#0A0E17" strokeWidth="2" />
+                  <path className="vs-signal-path vs-signal-path-delay-1" d="M 288 111 L 332 111" fill="none" stroke="#D97706" strokeWidth="2" />
+                  <path className="vs-signal-path-out" d="M 288 152 L 332 152" fill="none" stroke="#059669" strokeWidth="2.4" />
+
+                  <g transform="translate(332, 48)">
+                    <rect width="156" height="36" rx="6" fill="#FFFFFF" stroke="#CFCBC0" />
+                    <circle className="vs-live-dot" cx="14" cy="18" r="3" fill="#0A0E17" />
+                    <text x="24" y="21" fill="#0A0E17" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                      OPENED · 3x Human
+                    </text>
+                  </g>
+                  <g transform="translate(332, 93)">
+                    <rect width="156" height="36" rx="6" fill="#FFFBEB" stroke="#FDE68A" />
+                    <circle className="vs-live-dot" cx="14" cy="18" r="3" fill="#D97706" />
+                    <text x="24" y="21" fill="#92400E" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                      PDF SAVED · 1x
+                    </text>
+                  </g>
+                  <g transform="translate(332, 134)">
+                    <rect width="156" height="36" rx="6" fill="#ECFDF5" stroke="#A7F3D0" />
+                    <circle className="vs-live-dot" cx="14" cy="18" r="3" fill="#059669" />
+                    <text x="24" y="21" fill="#065F46" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                      CTA CLICKED · Call
+                    </text>
+                  </g>
+                </svg>
+
+                <svg
+                  className="vs-schematic-mobile"
+                  viewBox="0 0 320 148"
+                  width="100%"
+                  role="img"
+                  aria-label="Mobile diagram showing white-label /audit/[slug] brief triggering OPENED, PDF SAVED, and CTA CLICKED alerts."
+                >
+                  <g transform="translate(6, 8)">
+                    <rect width="308" height="46" rx="6" fill="#0A0E17" />
+                    <text x="154" y="21" textAnchor="middle" fill="#FFFFFF" fontSize="10" fontFamily="var(--vs-mono)" fontWeight="700">
+                      1. BRANDED /AUDIT/[SLUG] CLIENT BRIEF
+                    </text>
+                    <text x="154" y="36" textAnchor="middle" fill="#34D399" fontSize="8.8" fontFamily="var(--vs-mono)">
+                      Your logo · Auto-CMS · Zero Verisource nav
+                    </text>
+                  </g>
+                  <path d="M 160 54 L 160 74" fill="none" stroke="#A7F3D0" strokeWidth="2" />
+                  <path className="vs-signal-path-out" d="M 160 54 L 160 74" fill="none" stroke="#059669" strokeWidth="2.4" />
+                  <g transform="translate(6, 74)">
+                    <rect width="308" height="66" rx="7" fill="#ECFDF5" stroke="#A7F3D0" />
+                    <text x="16" y="24" fill="#065F46" fontSize="9.8" fontFamily="var(--vs-mono)" fontWeight="700">
+                      ✓ LIVE ALERTS: OPENED · PDF SAVED · CTA
+                    </text>
+                    <text x="16" y="45" fill="#0A0E17" fontSize="8.8" fontFamily="var(--vs-mono)">
+                      Bot-filtered deal signals sent to your inbox
+                    </text>
+                  </g>
+                </svg>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -319,7 +447,8 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
             Decision-makers see what is wrong, why it costs leads, and how to fix it.
           </h2>
 
-          <div className="vs-card" style={{ overflow: 'hidden' }}>
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
             <div
               style={{
                 padding: '13px 16px',
@@ -403,6 +532,7 @@ export default async function SampleAuditShowcasePage(): Promise<React.ReactElem
                   </div>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         </section>

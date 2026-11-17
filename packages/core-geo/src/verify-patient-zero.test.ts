@@ -4174,8 +4174,14 @@ test('M81 tactile design tokens, homepage motion SVG showcase components & conso
       2.0,
       `Found banned AI lexicon in ${label}`
     );
+    const srcWithoutFixtureGuard = src.replace(
+      /!\/aurearoasters\|mosaicroasters\/i/g,
+      ''
+    );
     assert.ok(
-      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(src),
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+        srcWithoutFixtureGuard
+      ),
       `Found coffee-store echo in ${label}`
     );
     assert.ok(!/\bbeta\b/i.test(src), `Found Beta label in ${label}`);
@@ -4257,6 +4263,102 @@ test('M82 /pricing, /agencies, /tutorial motion upgrades & public README.md + GT
     assert.ok(
       !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(doc),
       `Expected 0 internal /10 jargon in ${label}`
+    );
+  }
+});
+
+test('M83 /mcp-guide, /connectors, /partners, /sample-audit & GtmDomainScanHandoff tactile bezels + FIG 03/05/06/07 Motion SVGs pass 0-slop & 0-coffee-echo gates', () => {
+  const mcpStream = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/McpStreamSchematic.tsx'
+    ),
+    'utf8'
+  );
+  const mcpQuickstart = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/McpQuickstartClient.tsx'
+    ),
+    'utf8'
+  );
+  const mcpGuidePage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/mcp-guide/page.tsx'),
+    'utf8'
+  );
+  const connectorsPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/connectors/page.tsx'),
+    'utf8'
+  );
+  const partnersPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/partners/page.tsx'),
+    'utf8'
+  );
+  const sampleAuditPage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/sample-audit/page.tsx'),
+    'utf8'
+  );
+  const sampleAuditCohort = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/SampleAuditCohortClient.tsx'
+    ),
+    'utf8'
+  );
+  const gtmHandoff = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/GtmDomainScanHandoff.tsx'
+    ),
+    'utf8'
+  );
+
+  assert.ok(mcpStream.includes('FIG 03 · STATELESS STREAMABLE HTTP /MCP ENGINE'));
+  assert.ok(mcpStream.includes('vs-bezel'));
+  assert.ok(mcpQuickstart.includes('vs-bezel-obsidian'));
+  assert.ok(mcpGuidePage.includes('vs-band-obsidian'));
+  assert.ok(connectorsPage.includes('FIG 05 · UPGRADE-SAFE CMS PROTOCOL BRIDGES'));
+  assert.ok(partnersPage.includes('FIG 06 · 90-DAY STRIPE PARTNER ATTRIBUTION'));
+  assert.ok(sampleAuditPage.includes('FIG 07 · WHITE-LABEL SCORECARD ANATOMY'));
+  assert.ok(sampleAuditCohort.includes('vs-table-wrap'));
+  assert.ok(gtmHandoff.includes('vs-bezel-obsidian'));
+  assert.ok(gtmHandoff.includes('OR TEST A LIVE BENCHMARK DOMAIN:'));
+
+  for (const [label, src] of [
+    ['McpStreamSchematic.tsx', mcpStream],
+    ['McpQuickstartClient.tsx', mcpQuickstart],
+    ['mcp-guide/page.tsx', mcpGuidePage],
+    ['connectors/page.tsx', connectorsPage],
+    ['partners/page.tsx', partnersPage],
+    ['sample-audit/page.tsx', sampleAuditPage],
+    ['SampleAuditCohortClient.tsx', sampleAuditCohort],
+    ['GtmDomainScanHandoff.tsx', gtmHandoff],
+  ] as const) {
+    assert.equal(
+      gradeArtifactQuality(src).breakdown.lexicon_filter,
+      2.0,
+      `Found banned AI lexicon in ${label}`
+    );
+    const srcWithoutFixtureGuard = src.replace(
+      /!\/aurearoasters\|mosaicroasters\/i/g,
+      ''
+    );
+    assert.ok(
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+        srcWithoutFixtureGuard
+      ),
+      `Found coffee-store echo in ${label}`
+    );
+    assert.ok(!/\bbeta\b/i.test(src), `Found Beta label in ${label}`);
+    assert.ok(
+      !/plain[- ]english|\bin english\b|everyday english/i.test(
+        src.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      ),
+      `Found plain-English jargon in ${label}`
+    );
+    assert.ok(
+      !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(src),
+      `Found internal /10 Quality Gate jargon in ${label}`
     );
   }
 });

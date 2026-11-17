@@ -17,14 +17,14 @@ export function ConnectorBridgesClient(): React.ReactElement {
 
   return (
     <div style={{ marginBottom: '36px' }}>
-      <div
-        className="vs-card"
-        style={{
-          padding: '18px 20px',
-          marginBottom: '18px',
-          background: 'var(--vs-surface-warm)',
-        }}
-      >
+      <div className="vs-bezel" style={{ marginBottom: '18px' }}>
+        <div
+          className="vs-card"
+          style={{
+            padding: '18px 20px',
+            background: 'var(--vs-surface-warm)',
+          }}
+        >
         <div
           style={{
             display: 'flex',
@@ -120,6 +120,7 @@ export function ConnectorBridgesClient(): React.ReactElement {
               <code className="vs-mono">/api/ucp/mcp</code>.
             </span>
           )}
+        </div>
         </div>
       </div>
 

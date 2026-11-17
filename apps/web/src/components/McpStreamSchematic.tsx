@@ -7,44 +7,62 @@ import React from 'react';
  */
 export function McpStreamSchematic(): React.ReactElement {
   return (
-    <div
-      className="vs-card"
-      style={{
-        overflow: 'hidden',
-        background: 'var(--vs-surface)',
-      }}
-    >
-      <div className="vs-schematic-header">
-        <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
-          FIG 03 · STATELESS STREAMABLE HTTP /MCP ENGINE
-        </span>
-        <span
-          className="vs-mono"
-          style={{
-            fontSize: '10.5px',
-            color: 'var(--vs-pass-fg)',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          ● ZERO /SSE OVERHEAD
-        </span>
-      </div>
-
+    <div className="vs-bezel">
       <div
+        className="vs-card"
         style={{
-          padding: '14px 12px 10px 12px',
+          overflow: 'hidden',
           background: 'var(--vs-surface)',
         }}
       >
-        {/* Desktop & Tablet Landscape Schematic (> 640px) */}
-        <svg
-          className="vs-schematic-desktop"
-          viewBox="0 0 560 302"
-          width="100%"
-          role="img"
-          aria-label="Animated architectural diagram showing Claude Desktop, Cursor, Windsurf, and Antigravity calling https://mcp.verisource.dev/mcp over stateless Streamable HTTP for free readiness checks and paid syntax-validated GEO fix bundles."
+        <div className="vs-schematic-header">
+          <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
+            FIG 03 · STATELESS STREAMABLE HTTP /MCP ENGINE
+          </span>
+          <span
+            className="vs-mono"
+            style={{
+              fontSize: '10.5px',
+              color: 'var(--vs-pass-fg)',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: '#059669',
+                display: 'inline-block',
+              }}
+            />
+            ZERO /SSE OVERHEAD
+          </span>
+        </div>
+
+        <div
+          style={{
+            padding: '14px 12px 10px 12px',
+            background: 'var(--vs-surface)',
+          }}
         >
+          {/* Desktop & Tablet Landscape Schematic (> 640px) */}
+          <svg
+            className="vs-schematic-desktop"
+            viewBox="0 0 560 302"
+            width="100%"
+            role="img"
+            aria-label="Animated architectural diagram showing Claude Desktop, Cursor, Windsurf, and Antigravity calling https://mcp.verisource.dev/mcp over stateless Streamable HTTP for free readiness checks and paid syntax-validated GEO fix bundles."
+          >
+            <defs>
+              <filter id="vsMcpCardShadow" x="-6%" y="-6%" width="112%" height="118%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#0A0E17" floodOpacity="0.06" />
+              </filter>
+            </defs>
           <g stroke="#E5E2DA" strokeWidth="1">
             <line x1="16" y1="22" x2="28" y2="22" />
             <line x1="22" y1="16" x2="22" y2="28" />
@@ -260,7 +278,18 @@ export function McpStreamSchematic(): React.ReactElement {
           </g>
 
           {/* Center Streamable HTTP Gate */}
-          <g>
+          <g filter="url(#vsMcpCardShadow)">
+            <rect
+              className="vs-pulse-ring"
+              x="213"
+              y="101"
+              width="106"
+              height="106"
+              rx="11"
+              fill="none"
+              stroke="#059669"
+              strokeWidth="1.3"
+            />
             <rect
               x="218"
               y="106"
@@ -269,9 +298,10 @@ export function McpStreamSchematic(): React.ReactElement {
               rx="8"
               fill="#0A0E17"
             />
+            <circle className="vs-live-dot" cx="266" cy="120" r="3" fill="#34D399" />
             <text
               x="266"
-              y="133"
+              y="138"
               textAnchor="middle"
               fill="#FAF9F6"
               fontSize="9.5"
@@ -283,7 +313,7 @@ export function McpStreamSchematic(): React.ReactElement {
             </text>
             <text
               x="266"
-              y="152"
+              y="156"
               textAnchor="middle"
               fill="#FAF9F6"
               fontSize="10.8"
@@ -294,9 +324,9 @@ export function McpStreamSchematic(): React.ReactElement {
             </text>
             <text
               x="266"
-              y="169"
+              y="172"
               textAnchor="middle"
-              fill="#A3A9B6"
+              fill="#34D399"
               fontSize="9"
               fontFamily="var(--vs-mono)"
             >
@@ -304,7 +334,7 @@ export function McpStreamSchematic(): React.ReactElement {
             </text>
             <text
               x="266"
-              y="184"
+              y="186"
               textAnchor="middle"
               fill="#A3A9B6"
               fontSize="9"
@@ -708,12 +738,13 @@ export function McpStreamSchematic(): React.ReactElement {
         }}
       >
         <span>Listed on Official MCP Registry: dev.verisource/mcp</span>
-        <span
-          className="vs-mono"
-          style={{ fontWeight: 600, color: 'var(--vs-ink)', whiteSpace: 'nowrap' }}
-        >
-          mcp.verisource.dev/mcp
-        </span>
+          <span
+            className="vs-mono"
+            style={{ fontWeight: 600, color: 'var(--vs-ink)', whiteSpace: 'nowrap' }}
+          >
+            mcp.verisource.dev/mcp
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -185,13 +185,14 @@ export function McpQuickstartClient(): React.ReactElement {
   return (
     <div style={{ display: 'grid', gap: '36px' }}>
       {/* Part 1: 1-Click Client Configurator */}
-      <div
-        className="vs-card"
-        style={{
-          padding: '22px',
-          background: 'var(--vs-surface)',
-        }}
-      >
+      <div className="vs-bezel">
+        <div
+          className="vs-card"
+          style={{
+            padding: '22px',
+            background: 'var(--vs-surface)',
+          }}
+        >
         <div
           style={{
             display: 'flex',
@@ -298,17 +299,19 @@ export function McpQuickstartClient(): React.ReactElement {
           }
           code={configSnippet}
         />
+        </div>
       </div>
 
       {/* Part 2: Live Free scan_domain_ai_readiness JSON-RPC Playground */}
-      <div
-        id="live-test"
-        className="vs-card"
-        style={{
-          padding: '22px',
-          background: 'var(--vs-surface)',
-        }}
-      >
+      <div className="vs-bezel-obsidian">
+        <div
+          id="live-test"
+          className="vs-card"
+          style={{
+            padding: '22px',
+            background: 'var(--vs-surface)',
+          }}
+        >
         <div
           style={{
             display: 'flex',
@@ -372,6 +375,36 @@ export function McpQuickstartClient(): React.ReactElement {
             {loading ? 'Running /mcp Tool...' : 'Run Free /mcp Scan →'}
           </button>
         </form>
+
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: '6px',
+            marginBottom: '12px',
+          }}
+        >
+          <span
+            className="vs-eyebrow"
+            style={{ fontSize: '10.5px', marginRight: '4px' }}
+          >
+            OR TEST A LIVE BENCHMARK DOMAIN:
+          </span>
+          {(['stripe.com', 'linear.app', 'cal.com', 'shopify.com'] as const).map(
+            (sampleHost) => (
+              <button
+                key={sampleHost}
+                type="button"
+                disabled={loading}
+                className="vs-pill-btn vs-pill-btn-sm"
+                onClick={() => void runLiveMcpScan(sampleHost)}
+              >
+                {sampleHost}
+              </button>
+            )
+          )}
+        </div>
 
         {errorMsg ? (
           <div
@@ -515,6 +548,7 @@ export function McpQuickstartClient(): React.ReactElement {
             ) : null}
           </div>
         ) : null}
+        </div>
       </div>
     </div>
   );

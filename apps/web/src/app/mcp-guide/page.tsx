@@ -209,35 +209,37 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
             Start free without an API key. Pay only when your agents pull deep fixes.
           </h2>
 
-          <div
-            className="vs-card vs-ledger-strip-4"
-            style={{ overflow: 'hidden', background: 'var(--vs-surface)' }}
-          >
-            <MetricLedgerCell
-              label="Free Readiness Scan"
-              value="$0"
-              sublabel="0 credits · 3 custom domains/day/IP (24h KV cache)"
-              tone="pass"
-            />
-            <MetricLedgerCell
-              label="Cached Tool Read"
-              value="1"
-              suffix="credit"
-              sublabel="Sub-100ms read from 12h Cloudflare KV cache"
-            />
-            <MetricLedgerCell
-              label="Live Multi-Engine Refresh"
-              value="10"
-              suffix="credits"
-              sublabel="Fresh ChatGPT, Gemini & Perplexity crawl + schema validation"
-            />
-            <MetricLedgerCell
-              label="Monthly Plan Quotas"
-              value="1,000"
-              suffix="/ 5,000 cr"
-              sublabel="Pro: 150 7d-trial cr → 1,000/mo · Agency: 5,000/mo"
-              tone="pass"
-            />
+          <div className="vs-bezel">
+            <div
+              className="vs-card vs-ledger-strip-4"
+              style={{ overflow: 'hidden', background: 'var(--vs-surface)' }}
+            >
+              <MetricLedgerCell
+                label="Free Readiness Scan"
+                value="$0"
+                sublabel="0 credits · 3 custom domains/day/IP (24h KV cache)"
+                tone="pass"
+              />
+              <MetricLedgerCell
+                label="Cached Tool Read"
+                value="1"
+                suffix="credit"
+                sublabel="Sub-100ms read from 12h Cloudflare KV cache"
+              />
+              <MetricLedgerCell
+                label="Live Multi-Engine Refresh"
+                value="10"
+                suffix="credits"
+                sublabel="Fresh ChatGPT, Gemini & Perplexity crawl + schema validation"
+              />
+              <MetricLedgerCell
+                label="Monthly Plan Quotas"
+                value="1,000"
+                suffix="/ 5,000 cr"
+                sublabel="Pro: 150 7d-trial cr → 1,000/mo · Agency: 5,000/mo"
+                tone="pass"
+              />
+            </div>
           </div>
         </section>
 
@@ -261,11 +263,13 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
             Four focused tools. Zero deprecated <code className="vs-mono">/sse</code> bloat.
           </h2>
 
-          <div
-            className="vs-card"
-            style={{ overflowX: 'auto', background: 'var(--vs-surface)' }}
-          >
-            <table className="vs-table">
+          <div className="vs-bezel">
+            <div
+              className="vs-card"
+              style={{ overflow: 'hidden', background: 'var(--vs-surface)' }}
+            >
+              <div className="vs-table-wrap">
+                <table className="vs-table">
               <thead>
                 <tr>
                   <th>Tool Name</th>
@@ -304,6 +308,8 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                 ))}
               </tbody>
             </table>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -352,7 +358,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
             {MCP_GUIDE_FAQS.map((faq) => (
               <div
                 key={faq.question}
-                className="vs-card"
+                className="vs-card vs-card-interactive"
                 style={{ padding: '20px 22px' }}
               >
                 <h3
@@ -382,12 +388,11 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
         </section>
 
         {/* Bottom Conversion Banner */}
-        <section>
+        <section style={{ marginBottom: '24px' }}>
           <div
-            className="vs-card"
+            className="vs-band-obsidian"
             style={{
-              padding: '28px',
-              background: 'var(--vs-surface)',
+              padding: '28px 30px',
               display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'center',
@@ -396,7 +401,10 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
             }}
           >
             <div style={{ maxWidth: '620px' }}>
-              <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+              <div
+                className="vs-eyebrow"
+                style={{ color: '#34D399', marginBottom: '6px' }}
+              >
                 READY TO AUTOMATE CITATION AUDITS &amp; SITE FIXES?
               </div>
               <h2
@@ -404,6 +412,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                   fontSize: '22px',
                   letterSpacing: '-0.02em',
                   margin: '0 0 8px 0',
+                  color: '#FFFFFF',
                 }}
               >
                 Mint your SHA-256 <code className="vs-mono">vs_live_</code> Bearer key in Step 03
@@ -411,7 +420,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
               <p
                 style={{
                   fontSize: '14px',
-                  color: 'var(--vs-ink-secondary)',
+                  color: '#CBD5E1',
                   margin: 0,
                 }}
               >
@@ -426,10 +435,15 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
               <a
                 href="/api/checkout?plan=pro_99&cycle=monthly"
                 className="vs-btn"
+                style={{
+                  background: '#FFFFFF',
+                  color: '#0A0E17',
+                  borderColor: '#FFFFFF',
+                }}
               >
                 Activate Pro + MCP ($99/mo) →
               </a>
-              <Link href="/agencies" className="vs-btn vs-btn-secondary">
+              <Link href="/agencies#sandbox" className="vs-btn vs-btn-secondary">
                 Agency Plan ($249/mo · 5,000 cr) →
               </Link>
               <a

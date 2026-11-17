@@ -170,8 +170,10 @@ export function SampleAuditCohortClient(props: {
         </form>
       </div>
 
-      <div className="vs-card vs-table-wrap">
-        <table className="vs-table">
+      <div className="vs-bezel">
+        <div className="vs-card" style={{ overflow: 'hidden' }}>
+          <div className="vs-table-wrap">
+            <table className="vs-table">
           <thead>
             <tr>
               <th>Brand &amp; Detected CMS</th>
@@ -259,6 +261,8 @@ export function SampleAuditCohortClient(props: {
             })}
           </tbody>
         </table>
+          </div>
+        </div>
       </div>
     </div>
   );
