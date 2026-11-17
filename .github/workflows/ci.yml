@@ -12,23 +12,21 @@ concurrency:
 
 jobs:
   verify-and-build:
-    name: Typecheck, Unit, MCP, Build & 13/13 E2E Quality Gate
-    runs-on: ubuntu-latest
+    name: Typecheck, Unit, MCP, Build & E2E Quality Gate
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     env:
       PROVIDER_MODE: mock
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Setup pnpm 9.15.0
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.15.0
+      - name: Setup pnpm (from packageManager)
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: 'pnpm'
@@ -39,21 +37,26 @@ jobs:
       - name: Typecheck all 5 workspaces (cold-clone safe)
         run: pnpm typecheck
 
-      - name: Run @verisource/core-geo (7/7) & @verisource/mcp-worker (4/4) tests
+      - name: Run @verisource/core-geo & @verisource/mcp-worker unit tests
         run: pnpm test
 
       - name: Build all 5 workspaces (Next.js, Worker dry-run, Chrome MV3)
         run: pnpm build
 
-      - name: Run live Next.js 13/13 E2E & >=9.5/10 Quality Gate verification
+      - name: Run live Next.js E2E & >=9.5/10 Quality Gate verification
         run: pnpm --filter @verisource/web test:e2e
 
       - name: Package Chrome Web Store MV3 archive
-        run: pnpm --filter @verisource/extension zip
+        run: |
+          pnpm --filter @verisource/extension zip
+          mkdir -p build
+          cp apps/extension/.output/*-chrome.zip build/verisource-chrome-mv3-v1.0.0.zip
+          ls -lh build/verisource-chrome-mv3-v1.0.0.zip
 
       - name: Upload Chrome MV3 .zip artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: verisource-chrome-mv3-extension
-          path: apps/extension/.output/*.zip
+          path: build/verisource-chrome-mv3-v1.0.0.zip
+          include-hidden-files: true
           if-no-files-found: error

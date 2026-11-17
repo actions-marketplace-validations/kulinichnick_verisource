@@ -28,3 +28,10 @@ npm-debug.log*
 pnpm-debug.log*
 
 .vercel
+
+# Local session handoffs & private outbound prospect lists
+CHAT_HANDOFF.md
+OUTBOUND_*.csv
+outbound-campaigns/
+chrome-store-assets/
+verisource-chrome-mv3-*.zip
