@@ -4474,3 +4474,49 @@ test('M84 /tools, /templates, /benchmarks, /compare & /guides tactile bezels + F
     );
   }
 });
+
+test('M85 WXT Manifest V3 Chrome Extension Side Panel v1.0.0 tactile bezels, compact Motion SVG telemetry & least-privilege permissions pass 0-slop & 0-coffee-echo gates', () => {
+  const extPkg = JSON.parse(
+    fs.readFileSync(
+      path.resolve(process.cwd(), '../../apps/extension/package.json'),
+      'utf8'
+    )
+  ) as { version: string };
+  const extWxtConfig = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/extension/wxt.config.ts'),
+    'utf8'
+  );
+  const extApp = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/extension/entrypoints/sidepanel/App.tsx'
+    ),
+    'utf8'
+  );
+
+  assert.equal(extPkg.version, '1.0.0');
+  assert.ok(extWxtConfig.includes("version: '1.0.0'"));
+  assert.ok(extWxtConfig.includes("permissions: ['sidePanel', 'activeTab']"));
+  assert.ok(!extWxtConfig.includes('<all_urls>'));
+
+  assert.ok(extApp.includes('vs-bezel-obsidian'));
+  assert.ok(extApp.includes('FIG EXT · ACTIVE TAB AI &amp; PROTOCOL PROBE'));
+  assert.ok(extApp.includes('VISIBILITY SIGNAL'));
+  assert.ok(extApp.includes('OR TEST A LIVE BENCHMARK:'));
+  assert.ok(extApp.includes('Preview White-Label Sandbox →'));
+
+  assert.equal(
+    gradeArtifactQuality(extApp).breakdown.lexicon_filter,
+    2.0,
+    'Found banned AI lexicon in Chrome Extension Side Panel App.tsx'
+  );
+  assert.ok(
+    !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(extApp),
+    'Found coffee-store echo in Chrome Extension Side Panel App.tsx'
+  );
+  assert.ok(!/\bbeta\b/i.test(extApp), 'Found Beta label in App.tsx');
+  assert.ok(
+    !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(extApp),
+    'Found internal /10 Quality Gate jargon in App.tsx'
+  );
+});

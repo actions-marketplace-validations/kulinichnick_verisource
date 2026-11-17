@@ -4431,7 +4431,48 @@ async function run() {
         `Found /10, plain-English, Beta, or coffee-store echo on M84 ${rLabel}`
       );
     }
-    console.log('✔ [80/80] M84 Full-Site Tactile Bezels & Motion SVGs (FIG 08–FIG 12) Across /tools, /templates, /benchmarks, /compare & /guides verified!');
+    console.log('✔ [80/81] M84 Full-Site Tactile Bezels & Motion SVGs (FIG 08–FIG 12) Across /tools, /templates, /benchmarks, /compare & /guides verified!');
+
+    // 79. M85 WXT Manifest V3 Chrome Extension v1.0.0 Side Panel Tactile Bezels, Motion SVG Telemetry & Least-Privilege Build Check
+    const extOutputDir = path.resolve(webDir, '..', 'extension', '.output', 'chrome-mv3');
+    const extManifestPath = path.join(extOutputDir, 'manifest.json');
+    assert.ok(
+      fs.existsSync(extManifestPath),
+      'Expected built Chrome MV3 manifest.json in apps/extension/.output/chrome-mv3'
+    );
+    const extManifest = JSON.parse(fs.readFileSync(extManifestPath, 'utf8'));
+    assert.equal(extManifest.manifest_version, 3);
+    assert.equal(extManifest.version, '1.0.0');
+    assert.deepEqual(extManifest.permissions, ['sidePanel', 'activeTab']);
+
+    const m85ExtChunks = path.join(extOutputDir, 'chunks');
+    const m85SidepanelJsFile = fs
+      .readdirSync(m85ExtChunks)
+      .find((f) => f.startsWith('sidepanel-') && f.endsWith('.js'));
+    assert.ok(m85SidepanelJsFile, 'Expected built sidepanel-*.js chunk');
+    const m85SidepanelJs = fs.readFileSync(
+      path.join(m85ExtChunks, m85SidepanelJsFile),
+      'utf8'
+    );
+    assert.ok(
+      m85SidepanelJs.includes('vs-bezel-obsidian') &&
+        m85SidepanelJs.includes('FIG EXT') &&
+        m85SidepanelJs.includes('VISIBILITY SIGNAL') &&
+        m85SidepanelJs.includes('OR TEST A LIVE BENCHMARK:') &&
+        m85SidepanelJs.includes('Preview White-Label Sandbox'),
+      'Expected built Chrome MV3 Side Panel JS bundle to include tactile bezels, FIG EXT Motion SVG, VISIBILITY SIGNAL bars, benchmark pills, and Agency Sandbox link'
+    );
+    const extSidepanelHtml = fs.readFileSync(
+      path.join(extOutputDir, 'sidepanel.html'),
+      'utf8'
+    );
+    assert.ok(
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+        `${JSON.stringify(extManifest)} ${extSidepanelHtml}`
+      ),
+      'Expected zero coffee-store echoes in Chrome MV3 manifest.json and sidepanel.html'
+    );
+    console.log('✔ [81/81] M85 WXT Manifest V3 Chrome Extension v1.0.0 Side Panel Tactile Bezels, Motion SVG Telemetry & Least-Privilege Bundle verified!');
   } finally {
     server.kill();
   }

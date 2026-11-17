@@ -8,8 +8,9 @@ export default defineConfig({
   }),
   manifest: {
     name: 'Verisource — GEO & AI Citation Inspector',
+    version: '1.0.0',
     description:
-      'Inspect AI visibility, hallucinations, and /agents.md readiness on any storefront or B2B site.',
+      'Inspect AI visibility, claim accuracy, 3-pillar JSON-LD, and /agents.md readiness across 7 CMS platforms.',
     homepage_url: 'https://verisource.dev',
     permissions: ['sidePanel', 'activeTab'],
     icons: {

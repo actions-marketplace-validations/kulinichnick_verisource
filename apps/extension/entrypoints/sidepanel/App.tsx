@@ -20,6 +20,7 @@ import {
   summarizeEngineCitationShare,
   type AiRemediationTargetEnv,
   type FullGeoAuditResult,
+  type JsonLdAiReadinessSummary,
   type LiveFixVerificationReport,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
@@ -90,6 +91,8 @@ export default function App(): React.ReactElement {
   const [verifyingLiveFixes, setVerifyingLiveFixes] = useState(false);
   const [liveVerificationReport, setLiveVerificationReport] =
     useState<LiveFixVerificationReport | null>(null);
+  const [liveJsonLdReadiness, setLiveJsonLdReadiness] =
+    useState<JsonLdAiReadinessSummary | null>(null);
   const [copiedFollowUpPrompt, setCopiedFollowUpPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -124,6 +127,7 @@ export default function App(): React.ReactElement {
       setErrorMessage(null);
       setStatusMessage(null);
       setLiveVerificationReport(null);
+      setLiveJsonLdReadiness(null);
       setCopiedFollowUpPrompt(false);
 
       try {
@@ -158,6 +162,9 @@ export default function App(): React.ReactElement {
             }
             if (liveSummary.detectedPlatform) {
               fullAudit.probe.detectedPlatform = liveSummary.detectedPlatform;
+            }
+            if (liveSummary.jsonLdReadiness) {
+              setLiveJsonLdReadiness(liveSummary.jsonLdReadiness);
             }
             fullAudit.shopify.isShopify = liveSummary.isShopify;
             fullAudit.shopify.shopifyMcpStatus = liveSummary.shopifyMcpStatus;
@@ -436,11 +443,27 @@ export default function App(): React.ReactElement {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+            style={{ flexShrink: 0 }}
+          >
+            <rect width="20" height="20" rx="4.5" fill="#0A0E17" />
+            <path
+              d="M10 4.5L15.5 10L10 15.5L4.5 10L10 4.5Z"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="1.6"
+            />
+            <circle className="vs-live-dot" cx="10" cy="10" r="1.9" fill="#34D399" />
+          </svg>
           <span
             className="vs-mono"
             style={{
               fontWeight: 700,
-              fontSize: '13px',
+              fontSize: '12.5px',
               letterSpacing: '-0.02em',
             }}
           >
@@ -466,68 +489,70 @@ export default function App(): React.ReactElement {
         </a>
       </div>
 
-      {/* Domain Inspector Bar */}
-      <div className="vs-card" style={{ padding: '10px', marginBottom: '10px' }}>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void inspectDomain(domainInput);
-          }}
-          style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}
-        >
-          <input
-            type="text"
-            value={domainInput}
-            onChange={(e) => setDomainInput(e.target.value)}
-            placeholder="Enter website (e.g. yourcompany.com)"
-            className="vs-input"
-            style={{ padding: '7px 9px', fontSize: '12.5px' }}
-            aria-label="Inspect target domain"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="vs-btn"
+      {/* Domain Inspector Bar inside Tactile Obsidian Bezel */}
+      <div className="vs-bezel-obsidian" style={{ marginBottom: '10px' }}>
+        <div className="vs-card" style={{ padding: '10px' }}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void inspectDomain(domainInput);
+            }}
+            style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}
+          >
+            <input
+              type="text"
+              value={domainInput}
+              onChange={(e) => setDomainInput(e.target.value)}
+              placeholder="Enter website (e.g. yourcompany.com)"
+              className="vs-input"
+              style={{ padding: '7px 9px', fontSize: '12.5px' }}
+              aria-label="Inspect target domain"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="vs-btn"
+              style={{
+                padding: '7px 12px',
+                fontSize: '12px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {loading ? 'Scanning...' : 'Audit Site'}
+            </button>
+          </form>
+
+          <div
             style={{
-              padding: '7px 12px',
-              fontSize: '12px',
-              whiteSpace: 'nowrap',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '6px',
             }}
           >
-            {loading ? 'Scanning...' : 'Audit Site'}
-          </button>
-        </form>
-
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '6px',
-          }}
-        >
-          <button
-            type="button"
-            className="vs-btn vs-btn-secondary"
-            style={{ padding: '4px 9px', fontSize: '11px' }}
-            onClick={() => void readActiveTabAndScan()}
-          >
-            {activeTabUrl
-              ? `↻ Scan Active Tab (${activeTabUrl})`
-              : 'Scan Active Browser Tab'}
-          </button>
-
-          {audit ? (
             <button
               type="button"
               className="vs-btn vs-btn-secondary"
               style={{ padding: '4px 9px', fontSize: '11px' }}
-              onClick={handleExportAuditMarkdown}
+              onClick={() => void readActiveTabAndScan()}
             >
-              ↓ Export Audit (.md)
+              {activeTabUrl
+                ? `↻ Scan Active Tab (${activeTabUrl})`
+                : 'Scan Active Browser Tab'}
             </button>
-          ) : null}
+
+            {audit ? (
+              <button
+                type="button"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '4px 9px', fontSize: '11px' }}
+                onClick={handleExportAuditMarkdown}
+              >
+                ↓ Export Audit (.md)
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -564,43 +589,131 @@ export default function App(): React.ReactElement {
       ) : null}
 
       {!audit ? (
-        <div className="vs-card" style={{ padding: '18px 14px' }}>
-          <div className="vs-eyebrow" style={{ marginBottom: '5px' }}>
-            AI SEARCH &amp; AGENT INSPECTOR
+        <div className="vs-bezel">
+          <div className="vs-card" style={{ overflow: 'hidden' }}>
+            <div
+              className="vs-schematic-header"
+              style={{ padding: '7px 11px' }}
+            >
+              <span className="vs-eyebrow" style={{ fontSize: '9.5px' }}>
+                FIG EXT · ACTIVE TAB AI &amp; PROTOCOL PROBE
+              </span>
+              <span
+                className="vs-mono"
+                style={{
+                  fontSize: '9.5px',
+                  color: 'var(--vs-pass-fg)',
+                  fontWeight: 600,
+                }}
+              >
+                MV3 · LEAST PRIVILEGE
+              </span>
+            </div>
+
+            <div style={{ padding: '10px 10px 6px 10px', background: '#FFFFFF' }}>
+              <svg
+                viewBox="0 0 320 116"
+                width="100%"
+                role="img"
+                aria-label="Motion diagram showing active browser tab flowing through the Verisource 7-CMS HTTP & AI probe to generate 1-click fixes."
+              >
+                <g transform="translate(6, 6)">
+                  <rect width="308" height="38" rx="6" fill="#0A0E17" />
+                  <circle className="vs-live-dot" cx="16" cy="19" r="3" fill="#34D399" />
+                  <text x="27" y="17" fill="#FFFFFF" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                    1. INSPECT ACTIVE TAB OR DOMAIN
+                  </text>
+                  <text x="27" y="30" fill="#34D399" fontSize="8.3" fontFamily="var(--vs-mono)">
+                    GPTBot WAF · /llms.txt · /agents.md · 3-Pillar JSON-LD
+                  </text>
+                </g>
+                <path d="M 160 44 L 160 62" fill="none" stroke="#A7F3D0" strokeWidth="2" />
+                <path className="vs-signal-path-out" d="M 160 44 L 160 62" fill="none" stroke="#059669" strokeWidth="2.4" />
+                <g transform="translate(6, 62)">
+                  <rect width="308" height="46" rx="6" fill="#ECFDF5" stroke="#A7F3D0" />
+                  <text x="14" y="19" fill="#065F46" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
+                    ✓ AUTO-DETECTS ALL 7 CMS PLATFORMS
+                  </text>
+                  <text x="14" y="35" fill="#0A0E17" fontSize="8.3" fontFamily="var(--vs-mono)">
+                    Copy 1-Click AI Fix Prompt + Verify 4/4 Live
+                  </text>
+                </g>
+              </svg>
+            </div>
+
+            <div style={{ padding: '12px 14px 14px 14px' }}>
+              <strong
+                style={{
+                  display: 'block',
+                  fontSize: '13.5px',
+                  marginBottom: '5px',
+                }}
+              >
+                Audit the site in your active tab or enter any domain above.
+              </strong>
+              <p
+                style={{
+                  margin: '0 0 10px 0',
+                  fontSize: '12px',
+                  lineHeight: 1.5,
+                  color: 'var(--vs-ink-secondary)',
+                }}
+              >
+                Checks <code className="vs-mono">GPTBot</code>,{' '}
+                <code className="vs-mono">OAI-SearchBot</code>,{' '}
+                <code className="vs-mono">PerplexityBot</code>,{' '}
+                <code className="vs-mono">ClaudeBot</code>, raw HTML crawler
+                readability, 3-pillar <code className="vs-mono">JSON-LD</code>,
+                and verified schema fixes.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => void readActiveTabAndScan()}
+                className="vs-btn"
+                style={{
+                  width: '100%',
+                  fontSize: '12px',
+                  padding: '8px 12px',
+                  marginBottom: '10px',
+                }}
+              >
+                Scan Active Browser Tab →
+              </button>
+
+              <div
+                style={{
+                  paddingTop: '9px',
+                  borderTop: '1px solid var(--vs-border)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                <span
+                  className="vs-eyebrow"
+                  style={{ fontSize: '9.5px', width: '100%' }}
+                >
+                  OR TEST A LIVE BENCHMARK:
+                </span>
+                {(
+                  ['stripe.com', 'linear.app', 'cal.com', 'shopify.com'] as const
+                ).map((sampleHost) => (
+                  <button
+                    key={sampleHost}
+                    type="button"
+                    disabled={loading}
+                    className="vs-pill-btn vs-pill-btn-sm"
+                    style={{ padding: '3px 8px', fontSize: '10.5px' }}
+                    onClick={() => void inspectDomain(sampleHost)}
+                  >
+                    {sampleHost}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
-          <strong
-            style={{
-              display: 'block',
-              fontSize: '14.5px',
-              marginBottom: '6px',
-            }}
-          >
-            Audit the site in your active tab or enter any domain above.
-          </strong>
-          <p
-            style={{
-              margin: '0 0 12px 0',
-              fontSize: '12.5px',
-              lineHeight: 1.55,
-              color: 'var(--vs-ink-secondary)',
-            }}
-          >
-            Checks <code className="vs-mono">GPTBot</code>,{' '}
-            <code className="vs-mono">OAI-SearchBot</code>,{' '}
-            <code className="vs-mono">PerplexityBot</code>,{' '}
-            <code className="vs-mono">ClaudeBot</code>,{' '}
-            <code className="vs-mono">Google-Extended</code>, raw HTML crawler
-            readability, brand sentiment, rival Share of Voice, and
-            syntax-validated schema fixes.
-          </p>
-          <button
-            type="button"
-            onClick={() => void readActiveTabAndScan()}
-            className="vs-btn"
-            style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
-          >
-            Scan Active Browser Tab →
-          </button>
         </div>
       ) : (
         <ThreeTabShell
@@ -621,30 +734,128 @@ export default function App(): React.ReactElement {
                 />
               ) : null}
 
-              <div
-                className="vs-card"
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  overflow: 'hidden',
-                }}
-              >
-                <div style={{ borderRight: '1px solid var(--vs-border)' }}>
-                  <MetricLedgerCell
-                    label={isGuided ? 'AI Visibility' : 'AI Share of Voice'}
-                    value={audit.visibilityScore}
-                    suffix="/ 100"
-                    tone={audit.visibilityScore < 50 ? 'warn' : 'pass'}
-                    sublabel={audit.hostname}
-                  />
-                </div>
-                <div>
-                  <MetricLedgerCell
-                    label={isGuided ? 'Fact Accuracy' : 'Truth Accuracy'}
-                    value={`${audit.accuracyScore}%`}
-                    tone={audit.accuracyScore < 80 ? 'critical' : 'pass'}
-                    sublabel={`${audit.allHallucinations.length} issue(s)`}
-                  />
+              <div className="vs-bezel">
+                <div className="vs-card" style={{ overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      borderBottom: '1px solid var(--vs-border)',
+                    }}
+                  >
+                    <div style={{ borderRight: '1px solid var(--vs-border)' }}>
+                      <MetricLedgerCell
+                        label={isGuided ? 'AI Visibility' : 'AI Share of Voice'}
+                        value={audit.visibilityScore}
+                        suffix="/ 100"
+                        tone={audit.visibilityScore < 50 ? 'warn' : 'pass'}
+                        sublabel={audit.hostname}
+                      />
+                    </div>
+                    <div>
+                      <MetricLedgerCell
+                        label={isGuided ? 'Fact Accuracy' : 'Truth Accuracy'}
+                        value={`${audit.accuracyScore}%`}
+                        tone={audit.accuracyScore < 80 ? 'critical' : 'pass'}
+                        sublabel={`${audit.allHallucinations.length} issue(s)`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Compact Live-Reactive Motion SVG Signal Bar Strip */}
+                  <div style={{ padding: '8px 10px', background: '#FFFFFF' }}>
+                    {(() => {
+                      const visWidth = Math.max(
+                        12,
+                        Math.min(280, Math.round((audit.visibilityScore / 100) * 280))
+                      );
+                      const accWidth = Math.max(
+                        12,
+                        Math.min(280, Math.round((audit.accuracyScore / 100) * 280))
+                      );
+                      const botsOk =
+                        audit.probe.robotsAiBotStatus.GPTBot &&
+                        audit.probe.robotsAiBotStatus.PerplexityBot &&
+                        !audit.probe.robotsAiBotStatus.waf_blocked;
+                      const llmsOk = audit.probe.llmsTxtStatus === 'present';
+                      const agentsOk =
+                        audit.shopify.agentsMdStatus === 'custom_enriched';
+                      const jsonPillarCount = liveJsonLdReadiness
+                        ? 3 - liveJsonLdReadiness.missingAiGraphPillars.length
+                        : 1;
+                      return (
+                        <svg
+                          viewBox="0 0 304 68"
+                          width="100%"
+                          role="img"
+                          aria-label="Live compact telemetry bars for AI Visibility, Fact Accuracy, and 4 protocol readiness checks."
+                        >
+                          <text x="0" y="10" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                            VISIBILITY SIGNAL
+                          </text>
+                          <text x="304" y="10" textAnchor="end" fill="#0A0E17" fontSize="8.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                            {`${audit.visibilityScore}/100`}
+                          </text>
+                          <rect x="0" y="14" width="304" height="7" rx="3.5" fill="#EFECE6" />
+                          <rect
+                            x="0"
+                            y="14"
+                            width={visWidth}
+                            height="7"
+                            rx="3.5"
+                            fill={audit.visibilityScore >= 55 ? '#059669' : '#D97706'}
+                          />
+                          <circle
+                            className="vs-live-dot"
+                            cx={Math.max(6, visWidth - 3)}
+                            cy="17.5"
+                            r="2.2"
+                            fill="#FFFFFF"
+                          />
+
+                          <text x="0" y="34" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                            FACT ACCURACY
+                          </text>
+                          <text x="304" y="34" textAnchor="end" fill="#0A0E17" fontSize="8.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                            {`${audit.accuracyScore}%`}
+                          </text>
+                          <rect x="0" y="38" width="304" height="7" rx="3.5" fill="#EFECE6" />
+                          <rect
+                            x="0"
+                            y="38"
+                            width={accWidth}
+                            height="7"
+                            rx="3.5"
+                            fill={audit.accuracyScore >= 85 ? '#0A0E17' : '#DC2626'}
+                          />
+
+                          <g transform="translate(0, 54)">
+                            <circle cx="5" cy="6" r="3" fill={botsOk ? '#059669' : '#DC2626'} />
+                            <text x="11" y="9" fill="#0A0E17" fontSize="8" fontFamily="var(--vs-mono)">
+                              WAF
+                            </text>
+                            <circle cx="52" cy="6" r="3" fill={llmsOk ? '#059669' : '#D97706'} />
+                            <text x="58" y="9" fill="#0A0E17" fontSize="8" fontFamily="var(--vs-mono)">
+                              /llms
+                            </text>
+                            <circle cx="106" cy="6" r="3" fill={agentsOk ? '#059669' : '#DC2626'} />
+                            <text x="112" y="9" fill="#0A0E17" fontSize="8" fontFamily="var(--vs-mono)">
+                              /agents
+                            </text>
+                            <circle
+                              cx="176"
+                              cy="6"
+                              r="3"
+                              fill={jsonPillarCount === 3 ? '#059669' : '#D97706'}
+                            />
+                            <text x="182" y="9" fill="#0A0E17" fontSize="8" fontFamily="var(--vs-mono)">
+                              {`JSON-LD (${jsonPillarCount}/3)`}
+                            </text>
+                          </g>
+                        </svg>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
 
@@ -725,135 +936,166 @@ export default function App(): React.ReactElement {
                 </div>
               ) : null}
 
-              {/* Compact 3-Engine Mention vs. Citation Share Strip */}
-              <div className="vs-card" style={{ padding: '10px 12px' }}>
-                <div
-                  className="vs-eyebrow"
-                  style={{ marginBottom: '6px', fontSize: '10px' }}
-                >
-                  MENTION VS. CITATION SHARE
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '6px',
-                  }}
-                >
-                  {engineShare.map((item) => {
-                    const statusText =
-                      item.totalSnapshots === 0
-                        ? 'Pending'
-                        : item.mentionedCount > 0
-                          ? `Cited ${item.citationRatePct}% · #${item.bestRank ?? 1}`
-                          : 'Omitted';
-                    return (
-                      <div
-                        key={item.aiEngine}
-                        style={{
-                          padding: '7px 8px',
-                          border: '1px solid var(--vs-border)',
-                          borderRadius: '5px',
-                          background: 'var(--vs-surface-subtle)',
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: '10.5px',
-                            fontWeight: 700,
-                            color: 'var(--vs-ink-secondary)',
-                          }}
-                        >
-                          {item.shortLabel}
-                        </div>
-                        <div
-                          className="vs-mono"
-                          style={{
-                            fontSize: '13px',
-                            fontWeight: 700,
-                            marginTop: '2px',
-                          }}
-                        >
-                          {item.mentionRatePct}%
-                        </div>
-                        <div
-                          style={{
-                            fontSize: '10px',
-                            color:
-                              item.totalSnapshots > 0 &&
-                              item.mentionedCount === 0
-                                ? 'var(--vs-crit-fg)'
-                                : 'var(--vs-ink-muted)',
-                            marginTop: '1px',
-                          }}
-                        >
-                          {statusText}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Compact Brand Sentiment & Rival Share of Voice */}
-              {sentimentAndSov ? (
-                <div className="vs-card" style={{ padding: '10px 12px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '6px',
-                      marginBottom: '6px',
-                    }}
-                  >
+              {/* Compact 3-Engine Mention vs. Citation Share + Rival SoV (Expanded in Pro Mode) */}
+              <details className="vs-disclosure" open={!isGuided}>
+                <summary className="vs-disclosure-summary">
+                  <div>
+                    <strong style={{ fontSize: '12px', display: 'block' }}>
+                      Engine Mention Share &amp; Rival SoV
+                    </strong>
                     <span
-                      className="vs-eyebrow"
-                      style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
+                      style={{
+                        fontSize: '11px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
                     >
-                      SENTIMENT &amp; RIVAL SOV
+                      ChatGPT, Gemini &amp; Perplexity breakdown
                     </span>
-                    <StatusBadge
-                      tone={
-                        sentimentAndSov.dominantFraming === 'recommended'
-                          ? 'pass'
-                          : sentimentAndSov.dominantFraming === 'cautionary' ||
-                              sentimentAndSov.dominantFraming === 'invisible'
-                            ? 'critical'
-                            : 'warn'
-                      }
-                    >
-                      {`${sentimentAndSov.dominantFraming.toUpperCase()} · ${sentimentAndSov.sentimentScore}/100`}
-                    </StatusBadge>
                   </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '5px',
-                    }}
-                  >
-                    {sentimentAndSov.headToHeadSov.map((row) => (
+                  <span className="vs-disclosure-pill">Engines</span>
+                </summary>
+                <div
+                  className="vs-disclosure-body"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+                >
+                  <div>
+                    <div
+                      className="vs-eyebrow"
+                      style={{ marginBottom: '6px', fontSize: '10px' }}
+                    >
+                      MENTION VS. CITATION SHARE
+                    </div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '6px',
+                      }}
+                    >
+                      {engineShare.map((item) => {
+                        const statusText =
+                          item.totalSnapshots === 0
+                            ? 'Pending'
+                            : item.mentionedCount > 0
+                              ? `Cited ${item.citationRatePct}% · #${item.bestRank ?? 1}`
+                              : 'Omitted';
+                        return (
+                          <div
+                            key={item.aiEngine}
+                            style={{
+                              padding: '7px 8px',
+                              border: '1px solid var(--vs-border)',
+                              borderRadius: '5px',
+                              background: 'var(--vs-surface-subtle)',
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                color: 'var(--vs-ink-secondary)',
+                              }}
+                            >
+                              {item.shortLabel}
+                            </div>
+                            <div
+                              className="vs-mono"
+                              style={{
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                marginTop: '2px',
+                              }}
+                            >
+                              {item.mentionRatePct}%
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '10px',
+                                color:
+                                  item.totalSnapshots > 0 &&
+                                  item.mentionedCount === 0
+                                    ? 'var(--vs-crit-fg)'
+                                    : 'var(--vs-ink-muted)',
+                                marginTop: '1px',
+                              }}
+                            >
+                              {statusText}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {sentimentAndSov ? (
+                    <div
+                      style={{
+                        paddingTop: '8px',
+                        borderTop: '1px solid var(--vs-border)',
+                      }}
+                    >
                       <div
-                        key={row.entityName}
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
-                          fontSize: '11.5px',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginBottom: '6px',
                         }}
                       >
                         <span
-                          style={{ fontWeight: row.isTargetBrand ? 700 : 500 }}
+                          className="vs-eyebrow"
+                          style={{ fontSize: '10px', color: 'var(--vs-ink)' }}
                         >
-                          {row.entityName}
-                          {row.isTargetBrand ? ' (You)' : ''}
+                          SENTIMENT &amp; RIVAL SOV
                         </span>
-                        <span className="vs-mono">{row.shareOfVoicePct}%</span>
+                        <StatusBadge
+                          tone={
+                            sentimentAndSov.dominantFraming === 'recommended'
+                              ? 'pass'
+                              : sentimentAndSov.dominantFraming === 'cautionary' ||
+                                  sentimentAndSov.dominantFraming === 'invisible'
+                                ? 'critical'
+                                : 'warn'
+                          }
+                        >
+                          {`${sentimentAndSov.dominantFraming.toUpperCase()} · ${sentimentAndSov.sentimentScore}/100`}
+                        </StatusBadge>
                       </div>
-                    ))}
-                  </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '5px',
+                        }}
+                      >
+                        {sentimentAndSov.headToHeadSov.map((row) => (
+                          <div
+                            key={row.entityName}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              fontSize: '11.5px',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontWeight: row.isTargetBrand ? 700 : 500,
+                              }}
+                            >
+                              {row.entityName}
+                              {row.isTargetBrand ? ' (You)' : ''}
+                            </span>
+                            <span className="vs-mono">
+                              {row.shareOfVoicePct}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
+              </details>
 
               {/* Protocol, Bots & JS Crawler Readability */}
               <div className="vs-card" style={{ padding: '10px 12px' }}>
@@ -1036,14 +1278,14 @@ export default function App(): React.ReactElement {
               ) : null}
 
               {/* Platform-Tailored 1-Click AI Fix Prompt Card */}
-              <div
-                className="vs-card"
-                style={{
-                  padding: '11px 12px',
-                  borderColor: 'var(--vs-ink)',
-                  background: 'var(--vs-surface-warm)',
-                }}
-              >
+              <div className="vs-bezel-obsidian">
+                <div
+                  className="vs-card"
+                  style={{
+                    padding: '11px 12px',
+                    background: 'var(--vs-surface-warm)',
+                  }}
+                >
                 <div
                   style={{
                     display: 'flex',
@@ -1218,6 +1460,9 @@ export default function App(): React.ReactElement {
                         }
                         const liveSummary =
                           (await apiRes.json()) as ReadinessScanSummary;
+                        if (liveSummary.jsonLdReadiness) {
+                          setLiveJsonLdReadiness(liveSummary.jsonLdReadiness);
+                        }
                         const report =
                           buildLiveFixVerificationFromSummary(liveSummary);
                         setLiveVerificationReport(report);
@@ -1301,6 +1546,7 @@ export default function App(): React.ReactElement {
                   >
                     ↓ Bundle (.md)
                   </button>
+                </div>
                 </div>
               </div>
 
@@ -1835,37 +2081,52 @@ export default function App(): React.ReactElement {
               </div>
 
               {/* White-Label Pitch Handoff */}
-              <div className="vs-card" style={{ padding: '10px 12px' }}>
-                <strong
-                  style={{
-                    fontSize: '12.5px',
-                    display: 'block',
-                    marginBottom: '4px',
-                  }}
-                >
-                  60-Second Branded Client Link
-                </strong>
-                <p
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--vs-ink-secondary)',
-                    margin: '0 0 8px 0',
-                  }}
-                >
-                  Send a clean executive audit page with your agency logo and
-                  booking button.
-                </p>
-                <a
-                  href={`${cleanOrigin}/dashboard?tab=tab3_offsite&domain=${encodeURIComponent(
-                    audit.hostname
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="vs-btn"
-                  style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
-                >
-                  Create Branded Client Link →
-                </a>
+              <div className="vs-bezel">
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <strong
+                    style={{
+                      fontSize: '12.5px',
+                      display: 'block',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    60-Second Branded Client Link
+                  </strong>
+                  <p
+                    style={{
+                      fontSize: '12px',
+                      color: 'var(--vs-ink-secondary)',
+                      margin: '0 0 8px 0',
+                    }}
+                  >
+                    Send a clean executive audit page with your agency logo and
+                    booking button, or test your brand live in the sandbox.
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <a
+                      href={`${cleanOrigin}/dashboard?tab=tab3_offsite&domain=${encodeURIComponent(
+                        audit.hostname
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="vs-btn"
+                      style={{ width: '100%', fontSize: '12px', padding: '8px 12px' }}
+                    >
+                      Create Branded Client Link →
+                    </a>
+                    <a
+                      href={`${cleanOrigin}/agencies?domain=${encodeURIComponent(
+                        audit.hostname
+                      )}#sandbox`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="vs-btn vs-btn-secondary"
+                      style={{ width: '100%', fontSize: '11.5px', padding: '6px 10px' }}
+                    >
+                      Preview White-Label Sandbox →
+                    </a>
+                  </div>
+                </div>
               </div>
 
               {isGuided ? (
