@@ -50,13 +50,13 @@ jobs:
         run: |
           pnpm --filter @verisource/extension zip
           mkdir -p build
-          cp apps/extension/.output/*-chrome.zip build/verisource-chrome-mv3-v1.0.0.zip
-          ls -lh build/verisource-chrome-mv3-v1.0.0.zip
+          cp apps/extension/.output/*-chrome.zip build/verisource-chrome-mv3-v1.0.1.zip
+          ls -lh build/verisource-chrome-mv3-v1.0.1.zip
 
       - name: Upload Chrome MV3 .zip artifact
         uses: actions/upload-artifact@v7
         with:
           name: verisource-chrome-mv3-extension
-          path: build/verisource-chrome-mv3-v1.0.0.zip
+          path: build/verisource-chrome-mv3-v1.0.1.zip
           include-hidden-files: true
           if-no-files-found: error

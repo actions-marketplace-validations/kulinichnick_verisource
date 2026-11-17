@@ -4442,8 +4442,24 @@ async function run() {
     );
     const extManifest = JSON.parse(fs.readFileSync(extManifestPath, 'utf8'));
     assert.equal(extManifest.manifest_version, 3);
-    assert.equal(extManifest.version, '1.0.0');
+    assert.equal(extManifest.version, '1.0.1');
     assert.deepEqual(extManifest.permissions, ['sidePanel', 'activeTab']);
+    assert.ok(
+      !/Shopify|WordPress|Webflow|Wix|Squarespace|Framer|Next\.js/i.test(
+        extManifest.description
+      ),
+      'Expected Chrome MV3 manifest description to stay free of third-party CMS keyword lists (Yellow Argon guard)'
+    );
+    const cwsKitMarkdown = fs.readFileSync(
+      path.resolve(webDir, '..', '..', 'CHROME_STORE_LAUNCH_KIT.md'),
+      'utf8'
+    );
+    assert.ok(
+      !/Shopify|WordPress|Webflow|Wix|Squarespace|Framer|Next\.js|Claude Code/i.test(
+        cwsKitMarkdown
+      ),
+      'Expected CHROME_STORE_LAUNCH_KIT.md to stay free of third-party CMS/IDE keyword lists (Yellow Argon guard)'
+    );
 
     const m85ExtChunks = path.join(extOutputDir, 'chunks');
     const m85SidepanelJsFile = fs
