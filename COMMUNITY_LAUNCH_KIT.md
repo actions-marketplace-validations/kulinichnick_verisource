@@ -172,3 +172,21 @@ Verisource is a read-write GEO & Paid MCP action engine:
 
 Try the free domain grader at https://verisource.dev/#grader, explore the 90-second interactive tour at https://verisource.dev/tutorial, or read our 40-domain 2026 HTTP Readiness Study at https://verisource.dev/benchmarks/ai-search-readiness-2026. The first 30 Pro and Agency workspaces lock our Founding Partner Rate for life.
 ```
+
+---
+
+## 6. DevTools `/llms.txt` vs. `/agents.md` Adoption Gap — Hacker News & X Research Post
+
+### A. X / LinkedIn Empirical Addendum Post
+```text
+We just audited 10 fast-growing DevTools & B2B SaaS sites (trigger.dev, inngest.com, turso.tech, tinybird.co, knock.app, workos.com, stytch.com, upstash.com, highlight.io, infisical.com) over live HTTP:
+
+- 90% (9 of 10) ship a valid /llms.txt docs index.
+- Only 20% (2 of 10 — tinybird.co & infisical.com) ship a custom /agents.md pricing & limits guardrail file.
+- Only 10% (1 of 10 — upstash.com) ship all 3 JSON-LD pillars (Entity + Offer + FAQPage).
+
+Developers are indexing their docs for LLMs, yet leaving pricing tiers, rate limits, and FAQ answers unguarded when Claude, Cursor, and Perplexity compare vendors.
+
+Full addendum & 40-domain benchmark: https://verisource.dev/benchmarks/ai-search-readiness-2026
+Or test your own repo/domain via our free MCP tool: https://mcp.verisource.dev/mcp
+```

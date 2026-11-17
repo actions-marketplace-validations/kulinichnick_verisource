@@ -4520,3 +4520,47 @@ test('M85 WXT Manifest V3 Chrome Extension Side Panel v1.0.0 tactile bezels, com
     'Found internal /10 Quality Gate jargon in App.tsx'
   );
 });
+
+test('M86 Chrome Store Launch Kit + DevTools /llms.txt vs /agents.md Benchmark Addendum pass >= 9.5/10 Critic & 0-coffee-echo gates', () => {
+  const cwsKit = fs.readFileSync(
+    path.resolve(process.cwd(), '../../CHROME_STORE_LAUNCH_KIT.md'),
+    'utf8'
+  );
+  const benchmarkPage = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/app/benchmarks/ai-search-readiness-2026/page.tsx'
+    ),
+    'utf8'
+  );
+  const communityKit = fs.readFileSync(
+    path.resolve(process.cwd(), '../../COMMUNITY_LAUNCH_KIT.md'),
+    'utf8'
+  );
+
+  assert.ok(cwsKit.includes('verisource-chrome-mv3-v1.0.0.zip'));
+  assert.ok(cwsKit.includes('sidePanel'));
+  assert.ok(
+    benchmarkPage.includes('NOVEMBER 2026 ADDENDUM · DEVELOPER INFRASTRUCTURE COHORT')
+  );
+  assert.ok(communityKit.includes('90% (9 of 10) ship a valid /llms.txt'));
+
+  for (const [label, doc] of [
+    ['CHROME_STORE_LAUNCH_KIT.md', cwsKit],
+    ['COMMUNITY_LAUNCH_KIT.md', communityKit],
+  ] as const) {
+    const graded = gradeArtifactQuality(doc);
+    assert.ok(
+      graded.score >= 9.5 && graded.breakdown.lexicon_filter === 2.0,
+      `Expected ${label} >= 9.5/10 with 0 banned words, got ${graded.score}`
+    );
+    assert.ok(
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(doc),
+      `Expected 0 coffee-store echoes in ${label}`
+    );
+    assert.ok(
+      !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(doc),
+      `Expected 0 internal /10 jargon in ${label}`
+    );
+  }
+});

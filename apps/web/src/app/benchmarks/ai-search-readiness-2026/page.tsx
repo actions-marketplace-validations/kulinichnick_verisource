@@ -431,6 +431,99 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
           </div>
         </section>
 
+        {/* DevTools /llms.txt vs. /agents.md Empirical Addendum */}
+        <section style={{ marginBottom: '36px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            NOVEMBER 2026 ADDENDUM · DEVELOPER INFRASTRUCTURE COHORT (N = 10)
+          </div>
+          <h2
+            style={{
+              fontSize: '22px',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 10px 0',
+            }}
+          >
+            90% of DevTools ship <code className="vs-mono">/llms.txt</code>. Only
+            20% ship <code className="vs-mono">/agents.md</code>.
+          </h2>
+          <p
+            style={{
+              fontSize: '14px',
+              lineHeight: 1.62,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 16px 0',
+              maxWidth: '840px',
+            }}
+          >
+            In a follow-up live HTTP probe across 10 developer infrastructure
+            and B2B SaaS domains (<code className="vs-mono">trigger.dev</code>,{' '}
+            <code className="vs-mono">inngest.com</code>,{' '}
+            <code className="vs-mono">turso.tech</code>,{' '}
+            <code className="vs-mono">tinybird.co</code>,{' '}
+            <code className="vs-mono">knock.app</code>,{' '}
+            <code className="vs-mono">workos.com</code>,{' '}
+            <code className="vs-mono">stytch.com</code>,{' '}
+            <code className="vs-mono">upstash.com</code>,{' '}
+            <code className="vs-mono">highlight.io</code>, and{' '}
+            <code className="vs-mono">infisical.com</code>), 9 of 10 (90.0%)
+            served a valid <code className="vs-mono">/llms.txt</code>{' '}
+            directory, yet only 2 of 10 (20.0% —{' '}
+            <code className="vs-mono">tinybird.co</code> and{' '}
+            <code className="vs-mono">infisical.com</code>) published a custom{' '}
+            <code className="vs-mono">/agents.md</code> pricing and limits
+            guardrail file, and only 1 of 10 (10.0% —{' '}
+            <code className="vs-mono">upstash.com</code>) shipped all 3{' '}
+            <code className="vs-mono">JSON-LD</code> pillars.
+          </p>
+
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-table-wrap">
+                <table className="vs-table">
+                  <thead>
+                    <tr>
+                      <th>Protocol / Schema Signal</th>
+                      <th>DevTools Cohort (N = 10)</th>
+                      <th>Commercial Impact</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="vs-mono">/llms.txt (HTTP 200)</td>
+                      <td>
+                        <StatusBadge tone="pass">90.0% (9 / 10)</StatusBadge>
+                      </td>
+                      <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                        High documentation-link adoption across modern DevTools
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="vs-mono">Custom /agents.md</td>
+                      <td>
+                        <StatusBadge tone="warn">20.0% (2 / 10)</StatusBadge>
+                      </td>
+                      <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                        80% leave pricing tiers &amp; rate limits unguarded
+                        against AI hallucination
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="vs-mono">Full 3-Pillar JSON-LD</td>
+                      <td>
+                        <StatusBadge tone="critical">10.0% (1 / 10)</StatusBadge>
+                      </td>
+                      <td style={{ color: 'var(--vs-ink-secondary)' }}>
+                        90% omit FAQPage or Offer pricing nodes on root pages
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Frequently Asked Questions */}
         <section style={{ marginBottom: '20px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>

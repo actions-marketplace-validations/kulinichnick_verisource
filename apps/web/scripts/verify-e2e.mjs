@@ -4472,7 +4472,22 @@ async function run() {
       ),
       'Expected zero coffee-store echoes in Chrome MV3 manifest.json and sidepanel.html'
     );
-    console.log('✔ [81/81] M85 WXT Manifest V3 Chrome Extension v1.0.0 Side Panel Tactile Bezels, Motion SVG Telemetry & Least-Privilege Bundle verified!');
+    console.log('✔ [81/82] M85 WXT Manifest V3 Chrome Extension v1.0.0 Side Panel Tactile Bezels, Motion SVG Telemetry & Least-Privilege Bundle verified!');
+
+    // 80. M86 DevTools /llms.txt vs /agents.md Empirical Benchmark Addendum on /benchmarks/ai-search-readiness-2026
+    const m86BenchmarkHtml = await fetch(
+      `${BASE}/benchmarks/ai-search-readiness-2026`
+    ).then((r) => r.text());
+    assert.ok(
+      m86BenchmarkHtml.includes(
+        'NOVEMBER 2026 ADDENDUM · DEVELOPER INFRASTRUCTURE COHORT (N = 10)'
+      ) &&
+        m86BenchmarkHtml.includes('90.0% (9 / 10)') &&
+        m86BenchmarkHtml.includes('20.0% (2 / 10)') &&
+        m86BenchmarkHtml.includes('10.0% (1 / 10)'),
+      'Expected DevTools /llms.txt vs /agents.md empirical addendum on /benchmarks/ai-search-readiness-2026'
+    );
+    console.log('✔ [82/82] M86 DevTools /llms.txt vs /agents.md Empirical Benchmark Addendum verified!');
   } finally {
     server.kill();
   }
