@@ -5,8 +5,11 @@ All empirical URLs, free zero-signup protocol validators, and Streamable HTTP en
 - **2026 AI Search & Agent Readiness Study (`N = 40`):** `https://verisource.dev/benchmarks/ai-search-readiness-2026`
 - **Free 60-Second Domain Grader:** `https://verisource.dev/#grader`
 - **Interactive 90-Second Product Tour:** `https://verisource.dev/tutorial`
+- **Interactive White-Label Agency Sandbox:** `https://verisource.dev/agencies#sandbox`
 - **7-CMS Starter Templates (`/agents.md` & `/llms.txt`):** `https://verisource.dev/templates`
-- **Free Zero-Signup Protocol Validators:** `https://verisource.dev/tools`
+- **WordPress Plugin & Shopify OS 2.0 Bridges:** `https://verisource.dev/connectors`
+- **Free Zero-Signup Protocol Validators (`JSON-LD`, `/llms.txt`, `GPTBot` WAF, Shopify UCP):** `https://verisource.dev/tools`
+- **25% Recurring Affiliate Partner Hub:** `https://verisource.dev/partners`
 - **Streamable HTTP MCP Server (`dev.verisource/mcp@1.0.0`):** `https://mcp.verisource.dev/mcp`
 
 ---
@@ -53,8 +56,8 @@ Record at `1920x1080` (`60fps`, clean browser chrome, zoom `110%` on desktop). U
   - Click tactile `.vs-pill-btn` platform pills (`Shopify Theme (Liquid)`, `Webflow`, `WordPress`, `Coding Agent`). Click **`Copy Prompt for My AI`**, then click **`✓ Verify Live Fixes`** to show the `4/4 VERIFIED LIVE` (`JSON-LD`, `/llms.txt`, `/agents.md`, `AI Bot WAF`) scorecard.
 - **Scene 04 (`2:30–3:20`) — Rival Comparison Page Studio & Live Page Verifier (`/dashboard` Step 02):**
   - Scroll to `#vs-citation-page-studio`, select a rival pill, generate a truth-locked `[Brand] vs. [Rival]` HTML/Markdown table + `FAQPage` `JSON-LD`, and click **`✓ Verify Page Live`** (`GPTBot` `HTTP 200` + SSR `<table>` check).
-- **Scene 05 (`3:20–4:05`) — 60-Second Agency White-Label `/audit/[slug]` & `CTA CLICKED` Deal Alerts (`/dashboard` Step 03):**
-  - Mint a branded `/audit/[slug]` link with custom agency hex color and booking calendar URL. Open `/audit/[slug]` in an incognito tab—showing zero Verisource branding—click the booking CTA, and show the **`CTA CLICKED · 1x`** filter pill in Step 03.
+- **Scene 05 (`3:20–4:05`) — 60-Second Agency White-Label `/audit/[slug]` & `CTA CLICKED` / `PDF SAVED` Deal Alerts (`/dashboard` Step 03):**
+  - Mint a branded `/audit/[slug]` link with custom agency hex color and booking calendar URL. Open `/audit/[slug]` in an incognito tab—showing zero Verisource branding, `↓ Brief (.md)`, and `Print / Save PDF`—click the booking CTA, and show the **`CTA CLICKED · 1x`** and **`PDF SAVED · 1x`** badges in Step 03.
 - **Scene 06 (`4:05–4:45`) — Stateless Streamable HTTP `/mcp` in Cursor & Claude Desktop (`/dashboard` Step 03):**
   - Open the Step 03 `/mcp` Connection Hub, click **`⚡ Test Live /mcp Connection`** (`HTTP 200` handshake at `0` credit cost), and copy the `https://mcp.verisource.dev/mcp` JSON config into Cursor or Antigravity.
 

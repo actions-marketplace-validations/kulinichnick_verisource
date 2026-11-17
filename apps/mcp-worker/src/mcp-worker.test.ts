@@ -423,3 +423,50 @@ test('M74 Fake or unentitled Bearer headers cannot bypass 3/IP/day rate limit on
     }
   }
 });
+
+test('M80 scan_domain_ai_readiness exposes 3-pillar jsonLdReadiness (Entity, FAQPage, Offer) over Streamable HTTP', async () => {
+  const req = new Request('https://mcp.verisource.dev/mcp', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+      'cf-connecting-ip': '198.51.100.77',
+    },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 301,
+      method: 'tools/call',
+      params: {
+        name: 'scan_domain_ai_readiness',
+        arguments: { domain: 'aurearoasters.com' },
+      },
+    }),
+  });
+  const res = await worker.fetch(req, TEST_ENV);
+  assert.equal(res.status, 200);
+  const raw = await res.text();
+  const dataLine = raw
+    .split('\n')
+    .find((l) => l.startsWith('data: '));
+  const rpc = JSON.parse(dataLine ? dataLine.slice(6) : raw) as {
+    result: { isError?: boolean; content: Array<{ text: string }> };
+  };
+  assert.notEqual(rpc.result.isError, true);
+  const payload = JSON.parse(rpc.result.content[0]!.text) as {
+    jsonLdReadiness?: {
+      blockCount: number;
+      hasEntityIdentity: boolean;
+      hasFaqPage: boolean;
+      hasOfferOrPricing: boolean;
+      missingAiGraphPillars: string[];
+    };
+  };
+  assert.ok(
+    payload.jsonLdReadiness &&
+      typeof payload.jsonLdReadiness.hasEntityIdentity === 'boolean' &&
+      typeof payload.jsonLdReadiness.hasFaqPage === 'boolean' &&
+      typeof payload.jsonLdReadiness.hasOfferOrPricing === 'boolean' &&
+      Array.isArray(payload.jsonLdReadiness.missingAiGraphPillars),
+    'Expected scan_domain_ai_readiness to return 3-pillar jsonLdReadiness'
+  );
+});

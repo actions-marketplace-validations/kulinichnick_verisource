@@ -8,6 +8,8 @@ All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 - **OAuth 2.0 Protected Resource Metadata (RFC 9728):** `https://mcp.verisource.dev/.well-known/oauth-protected-resource`
 - **Visual Quickstart & Playground:** `https://verisource.dev/mcp-guide`
 - **7-CMS Starter Templates (`/agents.md` & `/llms.txt`):** `https://verisource.dev/templates`
+- **WordPress & Shopify OS 2.0 Connector Bridges:** `https://verisource.dev/connectors`
+- **Free 4-Tool Diagnostic Suite (`JSON-LD`, `/llms.txt`, WAF, Shopify UCP):** `https://verisource.dev/tools`
 - **Agent Protocol Documentation:** `https://verisource.dev/agents.md`
 - **Root Registry & Smithery Files:** `server.json` · `smithery.yaml`
 
@@ -34,7 +36,7 @@ Audit ChatGPT, Gemini, and Perplexity citations, flag pricing hallucinations, an
 Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.dev/mcp`) built on MCP TypeScript SDK v2 for B2B Generative Engine Optimization (GEO), 7-platform CMS remediation, and Shopify Universal Commerce Protocol (`/api/ucp/mcp`) readiness.
 
 ### Exposed Tools
-1. `scan_domain_ai_readiness` (Free Preview — 0 credits, no key required): Returns AI Visibility Score (0-100), 7-platform CMS detection (`Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, `Next.js`), `GPTBot` / `OAI-SearchBot` / `PerplexityBot` / `ClaudeBot` WAF & `/robots.txt` access, Shopify `/api/ucp/mcp` + `/agents.md` status, and 1 sample buyer prompt citation check.
+1. `scan_domain_ai_readiness` (Free Preview — 0 credits, no key required): Returns AI Visibility Score (0-100), 7-platform CMS detection (`Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, `Next.js`), 3-pillar `schema.org` `JSON-LD` readiness (`Entity Identity`, `FAQPage` Q&A count, `Offer` pricing), `GPTBot` / `OAI-SearchBot` / `PerplexityBot` / `ClaudeBot` WAF & `/robots.txt` access, Shopify `/api/ucp/mcp` + `/agents.md` status, and 1 sample buyer prompt citation check.
 2. `get_citation_gaps_and_fanouts` (Pro $99/mo or Agency $249/mo — 1 cached or 10 live credits): Returns 3-engine Mention vs. Citation share, Source-Type categorized citation gap domains (`Reddit`, `G2`, `Clutch`, editorial roundups), channel-specific outreach playbooks, and observed AI search sub-queries across ChatGPT, Google Gemini, and Perplexity.
 3. `check_brand_hallucinations` (Pro / Agency — 1 cached or 10 live credits): Diffs live AI claims against a verified Brand Truth Sheet to catch false pricing, shipping thresholds, or discontinued SKU claims.
 4. `generate_geo_fix_bundle` (Pro / Agency — 1 cached or 10 live credits): Generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, Shopify `templates/agents.md.liquid` overrides, and 1-Click AI Remediation Prompts.

@@ -95,7 +95,7 @@ export function buildMcpDiscoveryManifest(options?: {
         tier: 'free_preview',
         creditsCost: 0,
         description:
-          'Returns AI Visibility Score (0-100), 7-platform CMS detection (Shopify, WordPress, Webflow, Wix, Squarespace, Framer, Custom), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF and robots.txt access, SSR vs JS crawler readability, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation check.',
+          'Returns AI Visibility Score (0-100), 7-platform CMS detection (Shopify, WordPress, Webflow, Wix, Squarespace, Framer, Custom), 3-pillar JSON-LD readiness (Entity, FAQPage Q&A count, Offer pricing), GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF and robots.txt access, SSR vs JS crawler readability, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation check.',
       },
       {
         name: 'get_citation_gaps_and_fanouts',

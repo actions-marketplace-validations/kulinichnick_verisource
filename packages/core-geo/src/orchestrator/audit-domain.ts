@@ -28,11 +28,13 @@ import {
 } from '../generator/fix-generator.js';
 import {
   analyzeCrawlerHtmlReadability,
+  inspectJsonLdAiReadiness,
   matchesPublicHostname,
   normalizePublicDomain,
   probeDomainHttpReadiness,
   type CrawlerReadabilityReport,
   type DomainHttpProbeResult,
+  type JsonLdAiReadinessSummary,
 } from '../scanner/bot-waf-prober.js';
 import {
   getWebsitePlatformMeta,
@@ -71,6 +73,7 @@ export interface ReadinessScanSummary {
   llmsTxtStatus: LlmsTxtStatus;
   robotsAiBotStatus: RobotsAiBotStatus;
   jsonLdCount: number;
+  jsonLdReadiness?: JsonLdAiReadinessSummary;
   crawlerReadability?: CrawlerReadabilityReport;
   samplePromptResult: {
     promptText: string;
@@ -861,6 +864,7 @@ export async function runDomainReadinessScan(
     llmsTxtStatus: probe.llmsTxtStatus,
     robotsAiBotStatus: probe.robotsAiBotStatus,
     jsonLdCount: probe.jsonLdBlocks.length,
+    jsonLdReadiness: inspectJsonLdAiReadiness(probe.jsonLdBlocks),
     crawlerReadability:
       probe.crawlerReadability ??
       analyzeCrawlerHtmlReadability(

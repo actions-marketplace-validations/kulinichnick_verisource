@@ -1039,6 +1039,54 @@ export function PublicGraderClient(): React.ReactElement {
                   ) : null}
                 </div>
 
+                {result.jsonLdReadiness ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: result.crawlerReadability ? '12px' : 0,
+                    }}
+                  >
+                    <span
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-muted)',
+                        marginRight: '4px',
+                      }}
+                    >
+                      3-PILLAR JSON-LD GRAPH:
+                    </span>
+                    <StatusBadge
+                      tone={
+                        result.jsonLdReadiness.hasEntityIdentity ? 'pass' : 'warn'
+                      }
+                    >
+                      {`ENTITY: ${
+                        result.jsonLdReadiness.hasEntityIdentity ? 'LIVE' : 'MISSING'
+                      }`}
+                    </StatusBadge>
+                    <StatusBadge
+                      tone={result.jsonLdReadiness.hasFaqPage ? 'pass' : 'warn'}
+                    >
+                      {result.jsonLdReadiness.hasFaqPage
+                        ? `FAQPAGE: ${result.jsonLdReadiness.faqQuestionCount} Q&A`
+                        : 'FAQPAGE: MISSING'}
+                    </StatusBadge>
+                    <StatusBadge
+                      tone={
+                        result.jsonLdReadiness.hasOfferOrPricing ? 'pass' : 'warn'
+                      }
+                    >
+                      {`OFFER PRICING: ${
+                        result.jsonLdReadiness.hasOfferOrPricing ? 'LIVE' : 'MISSING'
+                      }`}
+                    </StatusBadge>
+                  </div>
+                ) : null}
+
                 {result.crawlerReadability ? (
                   <div
                     style={{
