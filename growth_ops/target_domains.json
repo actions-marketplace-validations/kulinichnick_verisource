@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T20:37:39.075Z",
+  "updatedAt": "2026-11-17T22:01:16.558Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -242,6 +242,256 @@
       "vertical": "shopify_dtc",
       "status": "published",
       "publishedAt": "2026-11-17T20:37:39.075Z"
+    },
+    {
+      "domain": "supabase.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "planetscale.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "liveblocks.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "ably.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "langfuse.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "braintrust.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "helicone.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "portkey.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "vapi.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "elevenlabs.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "gymshark.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "rhodeskin.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "glossier.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "meritbeauty.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "iliabeauty.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "tower28beauty.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "ouraring.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "whoop.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "eightsleep.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "monos.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "deepgram.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "assemblyai.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "browserbase.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "firecrawl.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "exa.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "tavily.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pinecone.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "weaviate.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "qdrant.tech",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "unkey.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "awaytravel.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "cuyana.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "rothys.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "bombas.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "untuckit.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "mackweldon.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "taylorstitch.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "huckberry.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "rumpl.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "blueland.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "arcjet.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "svix.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "hookdeck.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "june.so",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "unstructured.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "bitetoothpastebits.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "seed.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "ritual.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "mudwtr.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "chamberlaincoffee.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
     }
   ]
 }

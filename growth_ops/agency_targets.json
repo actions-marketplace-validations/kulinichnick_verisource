@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T20:37:39.075Z",
+  "updatedAt": "2026-11-17T22:01:16.558Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -133,6 +133,138 @@
       "publicContactChannel": "hello@8020.inc",
       "caseStudyClientDomain": "wave.co",
       "caseStudyClientName": "Wave",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Charle",
+      "agencyDomain": "charleagency.com",
+      "specialty": "Shopify Plus eCommerce Agency",
+      "contactName": "Nic Dunn",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Nic%20Dunn%20Charle",
+      "publicContactChannel": "hello@charleagency.com",
+      "caseStudyClientDomain": "111skin.com",
+      "caseStudyClientName": "111SKIN",
+      "status": "queued"
+    },
+    {
+      "agencyName": "SVZ",
+      "agencyDomain": "svz.io",
+      "specialty": "Webflow Enterprise Studio",
+      "contactName": "Scott Van Zandt",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Scott%20Van%20Zandt%20SVZ",
+      "publicContactChannel": "hello@svz.io",
+      "caseStudyClientDomain": "envoy.com",
+      "caseStudyClientName": "Envoy",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Grizzle",
+      "agencyDomain": "grizzle.io",
+      "specialty": "B2B SaaS SEO & GEO Agency",
+      "contactName": "Tom Whatley",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Tom%20Whatley%20Grizzle",
+      "publicContactChannel": "tom@grizzle.io",
+      "caseStudyClientDomain": "pipedrive.com",
+      "caseStudyClientName": "Pipedrive",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Vervaunt",
+      "agencyDomain": "vervaunt.com",
+      "specialty": "Shopify Plus & Luxury Commerce Consultancy",
+      "contactName": "Paul Rogers",
+      "contactRole": "Co-Founder & Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Paul%20Rogers%20Vervaunt",
+      "publicContactChannel": "hello@vervaunt.com",
+      "caseStudyClientDomain": "representclo.com",
+      "caseStudyClientName": "Represent",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Amply",
+      "agencyDomain": "joinamply.com",
+      "specialty": "B2B Webflow Enterprise Partner",
+      "contactName": "Luke Lewis",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Luke%20Lewis%20Amply",
+      "publicContactChannel": "luke@joinamply.com",
+      "caseStudyClientDomain": "awardco.com",
+      "caseStudyClientName": "Awardco",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Rock The Rankings",
+      "agencyDomain": "rocktherankings.com",
+      "specialty": "B2B SaaS SEO & AI Search Agency",
+      "contactName": "Justin Berg",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Justin%20Berg%20Rock%20The%20Rankings",
+      "publicContactChannel": "justin@rocktherankings.com",
+      "caseStudyClientDomain": "keragon.com",
+      "caseStudyClientName": "Keragon",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Swanky",
+      "agencyDomain": "swankyagency.com",
+      "specialty": "Shopify Plus Platinum Partner",
+      "contactName": "Dan Partridge",
+      "contactRole": "Global CEO (Founder: Dan McIvor)",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Dan%20Partridge%20Swanky",
+      "publicContactChannel": "humans@swankyagency.com",
+      "caseStudyClientDomain": "pastaevangelists.com",
+      "caseStudyClientName": "Pasta Evangelists",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Creative Corner Studio",
+      "agencyDomain": "creativecorner.studio",
+      "specialty": "Webflow Premium Enterprise Partner",
+      "contactName": "Miroslav Ivanov",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Miroslav%20Ivanov%20Creative%20Corner",
+      "publicContactChannel": "hello@creativecorner.studio",
+      "caseStudyClientDomain": "testlio.com",
+      "caseStudyClientName": "Testlio",
+      "status": "queued"
+    },
+    {
+      "agencyName": "blubolt",
+      "agencyDomain": "blubolt.com",
+      "specialty": "Shopify Plus eCommerce Agency",
+      "contactName": "Iestyn Keyes",
+      "contactRole": "CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Iestyn%20Keyes%20blubolt",
+      "publicContactChannel": "hello@blubolt.com",
+      "caseStudyClientDomain": "rixolondon.com",
+      "caseStudyClientName": "RIXO",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Embarque",
+      "agencyDomain": "embarque.io",
+      "specialty": "B2B SaaS SEO & GEO Agency",
+      "contactName": "Julian Canlas",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Julian%20Canlas%20Embarque",
+      "publicContactChannel": "julian@embarque.io",
+      "caseStudyClientDomain": "instatus.com",
+      "caseStudyClientName": "Instatus",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Netalico",
+      "agencyDomain": "netalico.com",
+      "specialty": "Shopify Plus Premier Partner",
+      "contactName": "Mark William Lewis",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Mark%20William%20Lewis%20Netalico",
+      "publicContactChannel": "clients@netalico.com",
+      "caseStudyClientDomain": "feetures.com",
+      "caseStudyClientName": "Feetures",
       "status": "queued"
     },
     {

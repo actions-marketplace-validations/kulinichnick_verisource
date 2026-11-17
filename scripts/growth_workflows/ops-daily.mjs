@@ -520,7 +520,7 @@ async function main() {
     )
     .join('\n');
 
-  if (newOutreachRows) {
+  if (!dryRun && newOutreachRows) {
     mirrorFileIfNeeded(
       outreachQueueRel,
       `${existingOutreach.trimEnd()}\n${newOutreachRows}\n`
@@ -686,13 +686,17 @@ async function main() {
     ``,
   ].join('\n');
 
-  mirrorFileIfNeeded('queue/TODAY_ACTION_DASHBOARD.md', dashboardMd);
-  console.log(
-    `\n✔ [ops:daily] Complete! Review your 15-minute dashboard at:\n  ${path.join(
-      ACTIVE_OPS_DIR,
-      'queue/TODAY_ACTION_DASHBOARD.md'
-    )}`
-  );
+  if (!dryRun) {
+    mirrorFileIfNeeded('queue/TODAY_ACTION_DASHBOARD.md', dashboardMd);
+    console.log(
+      `\n✔ [ops:daily] Complete! Review your 15-minute dashboard at:\n  ${path.join(
+        ACTIVE_OPS_DIR,
+        'queue/TODAY_ACTION_DASHBOARD.md'
+      )}`
+    );
+  } else {
+    console.log(`\n✔ [ops:daily] Dry-run complete (zero state or queue files modified).`);
+  }
 }
 
 main().catch((err) => {
