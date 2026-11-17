@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T09:26:42.998Z",
+  "updatedAt": "2026-11-17T20:37:39.075Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -93,6 +93,46 @@
       "publicContactChannel": "hello@refokus.com",
       "caseStudyClientDomain": "arq.it",
       "caseStudyClientName": "Arqit",
+      "status": "sent",
+      "auditedAt": "2026-11-17T20:37:39.075Z",
+      "auditSlug": "arq-it-5mmt",
+      "emailSentAt": "2026-11-17T20:37:39.075Z",
+      "resendMessageId": "01a1eb3a-d224-7923-bcac-3cf0c8977d79",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-21"
+    },
+    {
+      "agencyName": "WeMakeWebsites",
+      "agencyDomain": "wemakewebsites.com",
+      "specialty": "Shopify Plus Flagship Agency",
+      "contactName": "Piers Thorogood",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Piers%20Thorogood%20WeMakeWebsites",
+      "publicContactChannel": "hello@wemakewebsites.com",
+      "caseStudyClientDomain": "pangaia.com",
+      "caseStudyClientName": "PANGAIA",
+      "status": "sent",
+      "auditedAt": "2026-11-17T20:37:39.075Z",
+      "auditSlug": "pangaia-com-t01g",
+      "emailSentAt": "2026-11-17T20:37:39.075Z",
+      "resendMessageId": "01a1eb3a-cfc0-7435-bb97-fef3e6590cfd",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-21"
+    },
+    {
+      "agencyName": "8020",
+      "agencyDomain": "8020.inc",
+      "specialty": "Webflow & No-Code Enterprise Studio",
+      "contactName": "Matt Varughese",
+      "contactRole": "CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Matt%20Varughese%208020",
+      "publicContactChannel": "hello@8020.inc",
+      "caseStudyClientDomain": "wave.co",
+      "caseStudyClientName": "Wave",
       "status": "queued"
     },
     {
@@ -105,30 +145,6 @@
       "publicContactChannel": "benji@growandconvert.com (verify via Apollo)",
       "caseStudyClientDomain": "patreon.com",
       "caseStudyClientName": "Patreon",
-      "status": "queued"
-    },
-    {
-      "agencyName": "WeMakeWebsites",
-      "agencyDomain": "wemakewebsites.com",
-      "specialty": "Shopify Plus Flagship Agency",
-      "contactName": "Piers Thorogood",
-      "contactRole": "Co-Founder",
-      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Piers%20Thorogood%20WeMakeWebsites",
-      "publicContactChannel": "hello@wemakewebsites.com",
-      "caseStudyClientDomain": "pangaia.com",
-      "caseStudyClientName": "PANGAIA",
-      "status": "queued"
-    },
-    {
-      "agencyName": "8020",
-      "agencyDomain": "8020.inc",
-      "specialty": "Webflow & No-Code Enterprise Studio",
-      "contactName": "Matt Varughese",
-      "contactRole": "CEO",
-      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Matt%20Varughese%208020",
-      "publicContactChannel": "hello@8020.inc",
-      "caseStudyClientDomain": "wave.co",
-      "caseStudyClientName": "Wave",
       "status": "queued"
     }
   ]

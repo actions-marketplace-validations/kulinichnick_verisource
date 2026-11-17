@@ -1,11 +1,14 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  DEMO_PROFILE,
   enforceQualityGate95,
   getWebsitePlatformMeta,
   normalizePublicDomain,
   runDomainReadinessScan,
+  runFullGeoAudit,
 } from '../../packages/core-geo/dist/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -137,14 +140,82 @@ function buildThreeSentenceAgencyNote({
   clientDomain,
   topGap,
   sandboxUrl,
+  auditBriefUrl,
 }) {
   const cleanFirst = firstName.split(/\s+/)[0] || 'there';
+  const briefClause = auditBriefUrl
+    ? `I staged a deal-ready client brief (${auditBriefUrl}) plus a live white-label sandbox (${sandboxUrl})`
+    : `I loaded ${clientDomain} into a white-label client preview (${sandboxUrl})`;
   const draft = [
-    `Hi ${cleanFirst} — spotted ${clientDomain} in ${agencyName}'s public client work and ran a live HTTP protocol check: ${topGap}.`,
-    `I loaded ${clientDomain} into a white-label client preview (${sandboxUrl}) so you can test your own agency logo and booking link on the 1-click JSON-LD, /llms.txt, and /agents.md fix bundle.`,
-    `Zero call needed — feel free to use the audit in your next client review or spin up 15 client domains under your own brand.`,
+    `Spotted ${clientDomain} in ${agencyName}'s public client work and ran a live HTTP & AI search check: ${topGap}.`,
+    `${briefClause} so your team can test your own agency logo and booking link on the 1-click JSON-LD, /llms.txt, and /agents.md fix bundle.`,
+    `Zero call needed — feel free to use the audit in your next client review or spin up 15 client domains under ${agencyName}'s brand.`,
   ].join(' ');
   return enforceQualityGate95(draft);
+}
+
+async function mintLiveSupabaseBriefIfConfigured(hostname) {
+  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
+  const sbKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  if (!sbUrl || !sbKey) return null;
+
+  try {
+    const audit = await runFullGeoAudit({
+      domainInput: hostname,
+      rawEnv: {
+        PROVIDER_MODE: process.env.PROVIDER_MODE ?? 'live',
+        GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+        PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
+        FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY,
+      },
+    });
+    const slugBase = audit.hostname
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase();
+    const shareSlug = `${slugBase}-${Math.random().toString(36).slice(2, 6)}`;
+    const row = {
+      id: crypto.randomUUID(),
+      agency_user_id: DEMO_PROFILE.id,
+      share_slug: shareSlug,
+      prospect_domain: audit.domainUrl,
+      prospect_brand_name: audit.brandName,
+      visibility_score: audit.visibilityScore,
+      hallucination_count: audit.allHallucinations.length,
+      agency_brand_name_snapshot: 'Verisource GEO Advisory',
+      agency_logo_url_snapshot: null,
+      agency_primary_color_snapshot: '#0A0E17',
+      agency_cta_url_snapshot: 'https://verisource.dev/agencies#sandbox',
+      summary_payload: audit.pitchSummaryPayload,
+      views_count: 0,
+      expires_at: new Date(Date.now() + 30 * 86400 * 1000).toISOString(),
+      created_at: new Date().toISOString(),
+    };
+
+    const res = await fetch(
+      `${sbUrl.replace(/\/+$/, '')}/rest/v1/agency_pitch_reports`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: sbKey,
+          Authorization: `Bearer ${sbKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify(row),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+    if (!res.ok) return null;
+    return {
+      shareSlug,
+      briefUrl: `https://verisource.dev/audit/${shareSlug}`,
+      visibilityScore: audit.visibilityScore,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function safeProbeDomain(rawDomain) {
@@ -263,8 +334,11 @@ async function dispatchFounderOutreachViaResend({
 
   // Relay via authenticated production endpoint when RESEND_API_KEY lives in Vercel secrets
   const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const rawAppUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
   const appOrigin = (
-    process.env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev'
+    rawAppUrl && !/localhost|127\.0\.0\.1/i.test(rawAppUrl)
+      ? rawAppUrl
+      : 'https://verisource.dev'
   ).replace(/\/+$/, '');
   if (!serviceKey) {
     return { sent: false, reason: 'RESEND_AND_SERVICE_KEY_MISSING', id: null };
@@ -338,22 +412,30 @@ async function main() {
       const sandboxUrl = `https://verisource.dev/agencies?domain=${encodeURIComponent(
         summary.hostname
       )}#sandbox`;
+      const mintedBrief = !dryRun
+        ? await mintLiveSupabaseBriefIfConfigured(summary.hostname)
+        : null;
       const enforcedNote = buildThreeSentenceAgencyNote({
         firstName: agency.contactName,
         agencyName: agency.agencyName,
         clientDomain: summary.hostname,
         topGap,
         sandboxUrl,
+        auditBriefUrl: mintedBrief?.briefUrl ?? null,
       });
       const firstName = agency.contactName.split(/\s+/)[0];
       const pillars = countJsonLdPillars(summary);
+      const primaryShareUrl = mintedBrief?.briefUrl ?? sandboxUrl;
       const linkedinDm = enforceQualityGate95(
-        `Hi ${firstName} — checked ${summary.hostname} (${pillars}/3 JSON-LD, /agents.md ${summary.agentsMdStatus}). White-label preview: ${sandboxUrl}`
+        `Hi ${firstName} — checked ${summary.hostname} (${pillars}/3 JSON-LD, /agents.md ${summary.agentsMdStatus}). White-label brief: ${primaryShareUrl}`
       ).content;
 
       if (!dryRun) {
         agency.status = 'audited';
         agency.auditedAt = nowIso;
+        if (mintedBrief?.shareSlug) {
+          agency.auditSlug = mintedBrief.shareSlug;
+        }
       }
 
       let emailDispatch = { sent: false, id: null, reason: null };

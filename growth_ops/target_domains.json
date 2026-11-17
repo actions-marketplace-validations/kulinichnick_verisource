@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T09:26:42.998Z",
+  "updatedAt": "2026-11-17T20:37:39.075Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -186,52 +186,62 @@
     {
       "domain": "hexclad.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "jonesroadbeauty.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "loopearplugs.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "oatly.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "drinkag1.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "magicmind.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "liquiddeath.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "cutsclothing.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "vuoriclothing.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     },
     {
       "domain": "cotopaxi.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T20:37:39.075Z"
     }
   ]
 }
