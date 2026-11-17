@@ -11,6 +11,8 @@
     "test": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r test",
     "build": "pnpm -r build",
     "stripe:live": "pnpm --filter @verisource/web stripe:live",
+    "ops:daily": "node scripts/growth_workflows/ops-daily.mjs",
+    "ops:weekly": "node scripts/growth_workflows/ops-weekly.mjs",
     "clean": "pnpm -r clean"
   },
   "devDependencies": {

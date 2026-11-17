@@ -3513,6 +3513,66 @@ export function DashboardConsoleClient(props: {
         </div>
       </div>
 
+      {data.profile.plan_tier === 'tripwire_19' ? (
+        <div
+          className="vs-card"
+          style={{
+            padding: '12px 16px',
+            marginBottom: '16px',
+            background: 'var(--vs-surface-warm)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+          }}
+        >
+          <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
+            <strong style={{ color: 'var(--vs-ink)' }}>
+              $19 Audit Pass Upgrade Credit Active:
+            </strong>{' '}
+            Apply your $19 one-time pass toward Month 1 of automated weekly drift
+            monitoring &amp; multi-engine prompt tracking.
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <a
+              href={`/api/checkout?plan=starter_49&cycle=monthly&trial=0${
+                activeDomain
+                  ? `&domain=${encodeURIComponent(
+                      new URL(activeDomain.domain_url).hostname
+                    )}`
+                  : ''
+              }${
+                accessToken
+                  ? `&access_token=${encodeURIComponent(accessToken)}`
+                  : ''
+              }`}
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '6px 12px', fontSize: '12px' }}
+            >
+              Starter ($30 Month 1) →
+            </a>
+            <a
+              href={`/api/checkout?plan=pro_99&cycle=monthly&trial=0${
+                activeDomain
+                  ? `&domain=${encodeURIComponent(
+                      new URL(activeDomain.domain_url).hostname
+                    )}`
+                  : ''
+              }${
+                accessToken
+                  ? `&access_token=${encodeURIComponent(accessToken)}`
+                  : ''
+              }`}
+              className="vs-btn"
+              style={{ padding: '6px 12px', fontSize: '12px' }}
+            >
+              Pro + MCP ($80 Month 1) →
+            </a>
+          </div>
+        </div>
+      ) : null}
+
       {handoffHostname ? (
         <div
           className="vs-card"

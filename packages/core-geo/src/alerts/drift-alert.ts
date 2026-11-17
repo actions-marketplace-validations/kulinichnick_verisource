@@ -3,9 +3,175 @@ import {
   type EnforcedQualityArtifact,
 } from '../critic/quality-gate.js';
 import type {
+  AgentsMdStatus,
   HallucinationDetail,
+  LlmsTxtStatus,
   QualityRubricBreakdown,
+  RobotsAiBotStatus,
 } from '../db/types.js';
+
+export interface FourCheckReadinessSnapshot {
+  robotsAiBotStatus: RobotsAiBotStatus;
+  llmsTxtStatus: LlmsTxtStatus;
+  agentsMdStatus: AgentsMdStatus;
+  jsonLdReady: boolean;
+}
+
+export interface ComputeDomainDriftDiffInput {
+  brandName: string;
+  previousVisibilityScore: number;
+  currentVisibilityScore: number;
+  previousAccuracyScore: number;
+  currentAccuracyScore: number;
+  previousCompetitors?: string[];
+  currentCompetitors?: string[];
+  brandSharePct?: number;
+  topRival?: { name: string; sharePct: number } | null;
+  previousChecks?: FourCheckReadinessSnapshot | null;
+  currentChecks: FourCheckReadinessSnapshot;
+  hallucinationsCount?: number;
+}
+
+export interface DomainDriftDiffSummary {
+  driftDetected: boolean;
+  driftReasons: string[];
+  visibilityDelta: number;
+  accuracyDelta: number;
+  brandSharePct: number;
+  topRival: { name: string; sharePct: number } | null;
+  newCompetitorsCited: string[];
+  liveChecksPassed: number;
+  regressedChecks: string[];
+  pendingChecks: string[];
+}
+
+function evaluateFourChecks(
+  snap: FourCheckReadinessSnapshot
+): Record<'waf_bots' | 'llms_txt' | 'agents_md' | 'json_ld', boolean> {
+  const botsAllowed =
+    Boolean(snap.robotsAiBotStatus.GPTBot) &&
+    Boolean(snap.robotsAiBotStatus['OAI-SearchBot']) &&
+    Boolean(snap.robotsAiBotStatus.PerplexityBot) &&
+    Boolean(snap.robotsAiBotStatus.ClaudeBot) &&
+    !snap.robotsAiBotStatus.waf_blocked;
+  return {
+    waf_bots: botsAllowed,
+    llms_txt: snap.llmsTxtStatus === 'present',
+    agents_md: snap.agentsMdStatus === 'custom_enriched',
+    json_ld: Boolean(snap.jsonLdReady),
+  };
+}
+
+const FOUR_CHECK_LABELS: Record<
+  'waf_bots' | 'llms_txt' | 'agents_md' | 'json_ld',
+  string
+> = {
+  waf_bots: 'AI Crawler WAF & robots.txt Access',
+  llms_txt: '/llms.txt Directory',
+  agents_md: 'Custom /agents.md Rulebook',
+  json_ld: '3-Pillar JSON-LD Schema',
+};
+
+export function computeDomainDriftDiff(
+  input: ComputeDomainDriftDiffInput
+): DomainDriftDiffSummary {
+  const visibilityDelta =
+    input.currentVisibilityScore - input.previousVisibilityScore;
+  const accuracyDelta =
+    input.currentAccuracyScore - input.previousAccuracyScore;
+
+  const prevCompNorm = new Set(
+    (input.previousCompetitors ?? [])
+      .map((c) => c.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const brandNorm = input.brandName.trim().toLowerCase();
+  const newCompetitorsCited: string[] = [];
+  const seenCurrent = new Set<string>();
+  for (const rawComp of input.currentCompetitors ?? []) {
+    const clean = rawComp.trim();
+    const key = clean.toLowerCase();
+    if (!clean || key === brandNorm || seenCurrent.has(key)) continue;
+    seenCurrent.add(key);
+    if (!prevCompNorm.has(key)) {
+      newCompetitorsCited.push(clean);
+    }
+  }
+
+  const currMap = evaluateFourChecks(input.currentChecks);
+  const prevMap = input.previousChecks
+    ? evaluateFourChecks(input.previousChecks)
+    : null;
+
+  const checkKeys = ['waf_bots', 'llms_txt', 'agents_md', 'json_ld'] as const;
+  let liveChecksPassed = 0;
+  const regressedChecks: string[] = [];
+  const pendingChecks: string[] = [];
+
+  for (const k of checkKeys) {
+    if (currMap[k]) {
+      liveChecksPassed += 1;
+    } else {
+      pendingChecks.push(FOUR_CHECK_LABELS[k]);
+      if (prevMap && prevMap[k]) {
+        regressedChecks.push(FOUR_CHECK_LABELS[k]);
+      }
+    }
+  }
+
+  const driftReasons: string[] = [];
+  if (visibilityDelta <= -5) {
+    driftReasons.push(
+      `AI Visibility Score dropped ${Math.abs(visibilityDelta)} pts (${input.previousVisibilityScore} -> ${input.currentVisibilityScore}/100)`
+    );
+  }
+  if (accuracyDelta < 0) {
+    driftReasons.push(
+      `Brand Truth Accuracy dropped ${Math.abs(accuracyDelta)} pts (${input.previousAccuracyScore}% -> ${input.currentAccuracyScore}%)`
+    );
+  }
+  if ((input.hallucinationsCount ?? 0) > 0) {
+    driftReasons.push(
+      `${input.hallucinationsCount} active pricing or policy claim conflict(s) detected`
+    );
+  }
+  if (regressedChecks.length > 0) {
+    driftReasons.push(
+      `${regressedChecks.length}/4 live protocol check(s) regressed (${regressedChecks.join(', ')})`
+    );
+  }
+  if (newCompetitorsCited.length > 0) {
+    driftReasons.push(
+      `New rival citation(s) detected: ${newCompetitorsCited.slice(0, 3).join(', ')}`
+    );
+  }
+
+  const brandSharePct = Math.max(0, Math.round(input.brandSharePct ?? 0));
+  const topRival = input.topRival ?? null;
+  if (
+    topRival &&
+    topRival.sharePct > brandSharePct &&
+    newCompetitorsCited.length === 0 &&
+    visibilityDelta < 0
+  ) {
+    driftReasons.push(
+      `${topRival.name} leads Head-to-Head Share-of-Voice (${topRival.sharePct}% vs. ${brandSharePct}%)`
+    );
+  }
+
+  return {
+    driftDetected: driftReasons.length > 0,
+    driftReasons,
+    visibilityDelta,
+    accuracyDelta,
+    brandSharePct,
+    topRival,
+    newCompetitorsCited,
+    liveChecksPassed,
+    regressedChecks,
+    pendingChecks,
+  };
+}
 
 export interface BuildDriftAlertInput {
   brandName: string;
@@ -14,6 +180,11 @@ export interface BuildDriftAlertInput {
   accuracyScore: number;
   hallucinations: HallucinationDetail[];
   blockedBots: string[];
+  previousVisibilityScore?: number;
+  previousAccuracyScore?: number;
+  newCompetitorsCited?: string[];
+  regressedChecks?: string[];
+  liveChecksPassed?: number;
   consoleBaseUrl?: string;
 }
 
@@ -67,10 +238,19 @@ export function buildHallucinationDriftAlert(
   const consoleLink = `${baseUrl}/dashboard?domain=${encodeURIComponent(hostname)}`;
 
   const conflictCount = input.hallucinations.length;
+  const newComps = (input.newCompetitorsCited ?? []).filter(Boolean);
+  const regressed = (input.regressedChecks ?? []).filter(Boolean);
+  const visDrop =
+    typeof input.previousVisibilityScore === 'number'
+      ? input.visibilityScore - input.previousVisibilityScore
+      : 0;
+
   const subject =
     conflictCount > 0
       ? `[Verisource Watchdog] ${conflictCount} AI claim conflict(s) flagged on ${hostname}`
-      : `[Verisource Watchdog] Weekly AI retrieval digest for ${hostname} (${input.visibilityScore}/100)`;
+      : regressed.length > 0 || newComps.length > 0 || visDrop <= -5
+        ? `[Verisource Watchdog] AI citation drift detected on ${hostname} (${input.visibilityScore}/100)`
+        : `[Verisource Watchdog] Weekly AI retrieval digest for ${hostname} (${input.visibilityScore}/100)`;
 
   const claimLines =
     conflictCount > 0
@@ -82,6 +262,23 @@ export function buildHallucinationDriftAlert(
           'Zero active pricing, shipping, or SKU hallucinations detected across ChatGPT, Google Gemini, and Perplexity.',
         ];
 
+  const driftExtraLines: string[] = [];
+  if (typeof input.previousVisibilityScore === 'number' && visDrop < 0) {
+    driftExtraLines.push(
+      `Visibility Score Delta: ${input.previousVisibilityScore}/100 -> ${input.visibilityScore}/100 (${visDrop} pts).`
+    );
+  }
+  if (regressed.length > 0) {
+    driftExtraLines.push(
+      `Protocol Regression (${input.liveChecksPassed ?? 0}/4 Live): ${regressed.join(', ')}.`
+    );
+  }
+  if (newComps.length > 0) {
+    driftExtraLines.push(
+      `Newly Cited Competitor(s): ${newComps.slice(0, 3).join(', ')}. Open Step 02 Comparison Page Studio to publish a factual vs.-Rival matrix.`
+    );
+  }
+
   const botLine =
     input.blockedBots.length > 0
       ? `WAF Crawler Block Warning: ${input.blockedBots.join(', ')} returned HTTP 403 on ${input.domainUrl}/robots.txt or root.`
@@ -92,6 +289,7 @@ export function buildHallucinationDriftAlert(
     `${input.brandName} currently holds ${input.visibilityScore}/100 AI Share-of-Voice and ${input.accuracyScore}% Brand Truth accuracy across ChatGPT, Google Gemini, and Perplexity commercial buyer prompts.`,
     '',
     ...claimLines,
+    ...(driftExtraLines.length > 0 ? ['', ...driftExtraLines] : []),
     '',
     botLine,
     `Publish updated schema.org JSON-LD, /llms.txt, and /agents.md fixes in your 3-Tab Console: ${consoleLink}`,

@@ -1,0 +1,217 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-11-17T08:25:51.451Z",
+  "batchSizeDefault": 10,
+  "domains": [
+    {
+      "domain": "linear.app",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "cal.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "resend.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "posthog.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "dub.co",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "loops.so",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "plain.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "attio.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "mintlify.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "raycast.com",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "domain": "allbirds.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "brooklinen.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "chubbies.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "olipop.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "graza.co",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "flybyjing.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "SoloStove.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "fellowproducts.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "LARQ.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "beistravel.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "clerk.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "neon.tech",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "convex.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sanity.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "checklyhq.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "axiom.co",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "railway.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "render.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fly.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "val.town",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "hexclad.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "jonesroadbeauty.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "loopearplugs.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "oatly.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "drinkag1.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "magicmind.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "liquiddeath.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "cutsclothing.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "vuoriclothing.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "cotopaxi.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    }
+  ]
+}

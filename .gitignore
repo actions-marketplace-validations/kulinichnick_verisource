@@ -35,3 +35,5 @@ OUTBOUND_*.csv
 outbound-campaigns/
 chrome-store-assets/
 verisource-chrome-mv3-*.zip
+growth_ops/queue/
+growth_ops/ledger/

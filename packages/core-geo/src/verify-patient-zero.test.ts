@@ -50,6 +50,7 @@ import {
   buildShopifyThemeExtensionBundle,
   buildWordPressConnectorPluginPhp,
   computeAiSearchRoiProjection,
+  computeDomainDriftDiff,
   computePartnerCommissionBreakdown,
   deriveWorkspacePartnerSlug,
   dispatchPartnerOnboardingEmail,
@@ -4574,5 +4575,88 @@ test('M86 Chrome Store Launch Kit + DevTools /llms.txt vs /agents.md Benchmark A
       !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(doc),
       `Expected 0 internal /10 jargon in ${label}`
     );
+  }
+});
+
+test('M88 computeDomainDriftDiff + 5 Autonomous Subagents + Chrome MV3 Paywall & Tab Sync pass >= 9.5/10 gates', () => {
+  const driftRes = computeDomainDriftDiff({
+    brandName: 'Linear',
+    previousVisibilityScore: 76,
+    currentVisibilityScore: 68,
+    previousAccuracyScore: 100,
+    currentAccuracyScore: 88,
+    previousCompetitors: ['Jira'],
+    currentCompetitors: ['Jira', 'Shortcut'],
+    brandSharePct: 35,
+    topRival: { name: 'Shortcut', sharePct: 45 },
+    previousChecks: {
+      robotsAiBotStatus: {
+        GPTBot: true,
+        'OAI-SearchBot': true,
+        PerplexityBot: true,
+        ClaudeBot: true,
+        'Google-Extended': true,
+        waf_blocked: false,
+      },
+      llmsTxtStatus: 'present',
+      agentsMdStatus: 'custom_enriched',
+      jsonLdReady: true,
+    },
+    currentChecks: {
+      robotsAiBotStatus: {
+        GPTBot: true,
+        'OAI-SearchBot': true,
+        PerplexityBot: true,
+        ClaudeBot: true,
+        'Google-Extended': true,
+        waf_blocked: false,
+      },
+      llmsTxtStatus: 'present',
+      agentsMdStatus: 'missing',
+      jsonLdReady: false,
+    },
+    hallucinationsCount: 1,
+  });
+
+  assert.equal(driftRes.driftDetected, true);
+  assert.equal(driftRes.visibilityDelta, -8);
+  assert.equal(driftRes.accuracyDelta, -12);
+  assert.equal(driftRes.liveChecksPassed, 2);
+  assert.deepEqual(driftRes.newCompetitorsCited, ['Shortcut']);
+  assert.equal(driftRes.regressedChecks.length, 2);
+
+  const driftEmail = buildHallucinationDriftAlert({
+    brandName: 'Linear',
+    domainUrl: 'https://linear.app',
+    visibilityScore: 68,
+    accuracyScore: 88,
+    previousVisibilityScore: 76,
+    hallucinations: [],
+    blockedBots: [],
+    newCompetitorsCited: ['Shortcut'],
+    regressedChecks: driftRes.regressedChecks,
+    liveChecksPassed: driftRes.liveChecksPassed,
+  });
+  assert.ok(driftEmail.quality.score >= 9.5);
+  assert.ok(driftEmail.subject.includes('citation drift detected'));
+  assert.ok(driftEmail.text.includes('Shortcut'));
+
+  const agentFiles = [
+    'agency-trojan-outbound.md',
+    'programmatic-seo-publisher.md',
+    'hallucination-teardown-creator.md',
+    'retention-drift-watchdog.md',
+    'ma-diligence-ledger.md',
+  ];
+  for (const file of agentFiles) {
+    const agentPath = path.resolve(
+      process.cwd(),
+      '../../.gemini/agents',
+      file
+    );
+    assert.ok(fs.existsSync(agentPath), `Expected .gemini/agents/${file}`);
+    const content = fs.readFileSync(agentPath, 'utf8');
+    assert.ok(content.includes('subagent: true'));
+    assert.ok(content.includes('mainAgent: false'));
   }
 });

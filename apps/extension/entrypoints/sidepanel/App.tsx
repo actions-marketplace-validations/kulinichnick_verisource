@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
@@ -10,6 +10,7 @@ import {
   buildImplementationBundleMarkdown,
   buildLiveFixVerificationFromSummary,
   buildPlainEnglishSiteDiagnosis,
+  buildPublicAiPromptTeaser,
   evaluateCommerceAttributeReadiness,
   generateGeoFixBundle,
   generateSuggestedBuyerPrompts,
@@ -22,6 +23,7 @@ import {
   type FullGeoAuditResult,
   type JsonLdAiReadinessSummary,
   type LiveFixVerificationReport,
+  type PlanTier,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
 import {
@@ -98,17 +100,59 @@ export default function App(): React.ReactElement {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [audit, setAudit] = useState<FullGeoAuditResult | null>(null);
+  const [subscriberPlan, setSubscriberPlan] = useState<PlanTier>('free');
+  const [subscriberTokenInput, setSubscriberTokenInput] = useState('');
+  const [showPassConnect, setShowPassConnect] = useState(false);
+  const [connectingPass, setConnectingPass] = useState(false);
+  const lastSyncedTabHostRef = useRef<string | null>(null);
+  const tabSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const verifySubscriberToken = useCallback(
+    async (rawToken: string, originOverride?: string): Promise<boolean> => {
+      const cleanToken = rawToken.trim();
+      const baseOrigin = (originOverride ?? workspaceOrigin).replace(/\/$/, '');
+      try {
+        const res = await fetch(`${baseOrigin}/api/dashboard/state`, {
+          method: 'GET',
+          headers: cleanToken
+            ? { Authorization: `Bearer ${cleanToken}` }
+            : undefined,
+          credentials: 'include',
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!res.ok) return false;
+        const json = (await res.json()) as {
+          profile?: { plan_tier?: PlanTier };
+        };
+        const tier = json.profile?.plan_tier ?? 'free';
+        if (tier !== 'free') {
+          setSubscriberPlan(tier);
+          return true;
+        }
+      } catch {
+        // Offline or unauthenticated
+      }
+      return false;
+    },
+    [workspaceOrigin]
+  );
 
   useEffect(() => {
+    let savedToken = '';
     try {
       const saved = window.localStorage.getItem('vs_ux_mode');
       if (saved === 'guided' || saved === 'pro') {
         setUxMode(saved);
       }
+      savedToken = window.localStorage.getItem('vs_ext_access_token') ?? '';
+      if (savedToken) {
+        setSubscriberTokenInput(savedToken);
+      }
     } catch {
       // Ignore storage boundary in restricted contexts
     }
-  }, []);
+    void verifySubscriberToken(savedToken);
+  }, [verifySubscriberToken]);
 
   const handleChangeUxMode = (next: UxMode) => {
     setUxMode(next);
@@ -251,24 +295,87 @@ export default function App(): React.ReactElement {
   }, [inspectDomain]);
 
   useEffect(() => {
-    if (typeof browser !== 'undefined' && browser.tabs?.query) {
+    if (typeof browser === 'undefined' || !browser.tabs?.query) return;
+
+    const syncFromActiveTab = (explicitUrl?: string | null) => {
+      const applyCandidateUrl = (rawUrl?: string | null) => {
+        const host = extractPublicHostname(rawUrl ?? undefined);
+        if (host) {
+          setActiveTabUrl(host);
+          if (lastSyncedTabHostRef.current !== host) {
+            lastSyncedTabHostRef.current = host;
+            setDomainInput(host);
+            if (tabSyncTimerRef.current) {
+              clearTimeout(tabSyncTimerRef.current);
+            }
+            tabSyncTimerRef.current = setTimeout(() => {
+              void inspectDomain(host);
+            }, 220);
+          }
+        } else {
+          lastSyncedTabHostRef.current = null;
+          setActiveTabUrl(null);
+        }
+      };
+
+      if (explicitUrl !== undefined) {
+        applyCandidateUrl(explicitUrl);
+        return;
+      }
+
       void browser.tabs
         .query({ active: true, currentWindow: true })
         .then((tabs) => {
-          const host = extractPublicHostname(tabs[0]?.url);
-          if (host) {
-            setActiveTabUrl(host);
-            void inspectDomain(host);
-          }
+          applyCandidateUrl(tabs[0]?.url ?? null);
         })
         .catch(() => {
           // Safe noop in non-extension browser preview
         });
-    }
+    };
+
+    syncFromActiveTab();
+
+    const handleTabActivated = () => {
+      syncFromActiveTab();
+    };
+    const handleTabUpdated = (
+      _tabId: number,
+      changeInfo: { url?: string; status?: string },
+      tab?: { active?: boolean; url?: string }
+    ) => {
+      if (tab?.active && (changeInfo.url || changeInfo.status === 'complete')) {
+        syncFromActiveTab(changeInfo.url ?? tab.url ?? undefined);
+      }
+    };
+    const handleWindowFocusChanged = () => {
+      syncFromActiveTab();
+    };
+    const handleRuntimeMessage = (msg: unknown) => {
+      const payload = msg as { type?: string; url?: string | null } | null;
+      if (payload?.type === 'VS_ACTIVE_TAB_SYNC') {
+        syncFromActiveTab(payload.url ?? undefined);
+      }
+    };
+
+    browser.tabs.onActivated?.addListener(handleTabActivated);
+    browser.tabs.onUpdated?.addListener(handleTabUpdated);
+    browser.windows?.onFocusChanged?.addListener(handleWindowFocusChanged);
+    browser.runtime?.onMessage?.addListener(handleRuntimeMessage);
+
+    return () => {
+      if (tabSyncTimerRef.current) {
+        clearTimeout(tabSyncTimerRef.current);
+      }
+      browser.tabs.onActivated?.removeListener(handleTabActivated);
+      browser.tabs.onUpdated?.removeListener(handleTabUpdated);
+      browser.windows?.onFocusChanged?.removeListener(handleWindowFocusChanged);
+      browser.runtime?.onMessage?.removeListener(handleRuntimeMessage);
+    };
   }, [inspectDomain]);
 
   const cleanOrigin = workspaceOrigin.replace(/\/$/, '');
   const isGuided = uxMode === 'guided';
+  const isPaidSubscriber = subscriberPlan !== 'free';
 
   const engineShare = audit
     ? summarizeEngineCitationShare(audit.scanResults, audit.hostname)
@@ -395,13 +502,15 @@ export default function App(): React.ReactElement {
         accuracy_score: audit.accuracyScore,
       },
       snapshots: audit.scanResults,
-      fixes: audit.fixes.map((f) => ({
-        fix_type: f.fixType,
-        title: f.title,
-        content_payload: f.contentPayload,
-        is_applied: false,
-        natural_quality_score: f.naturalQualityScore,
-      })),
+      fixes: isPaidSubscriber
+        ? audit.fixes.map((f) => ({
+            fix_type: f.fixType,
+            title: f.title,
+            content_payload: f.contentPayload,
+            is_applied: false,
+            natural_quality_score: f.naturalQualityScore,
+          }))
+        : [],
       trackedPrompts: audit.trackedPrompts,
       crawlerReadability: audit.probe.crawlerReadability ?? null,
       suggestedPrompts,
@@ -1339,214 +1448,452 @@ export default function App(): React.ReactElement {
                   })}
                 </div>
 
-                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    className="vs-btn"
-                    style={{ padding: '6px 10px', fontSize: '11.5px', flex: '1 1 auto' }}
-                    onClick={() => {
-                      const promptArtifact = buildAiRemediationMasterPrompt({
-                        domain: {
-                          brand_name: audit.brandName,
-                          domain_url: audit.domainUrl,
-                          is_shopify: audit.shopify.isShopify,
-                          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-                          agents_md_status: audit.shopify.agentsMdStatus,
-                          llms_txt_status: audit.probe.llmsTxtStatus,
-                          robots_ai_bot_status: audit.probe.robotsAiBotStatus,
-                          brand_truth_sheet: audit.brandTruthSheet,
-                          visibility_score: audit.visibilityScore,
-                          accuracy_score: audit.accuracyScore,
-                        },
-                        fixes: audit.fixes.map((f) => ({
-                          fix_type: f.fixType,
-                          title: f.title,
-                          content_payload: f.contentPayload,
-                          is_applied: false,
-                          natural_quality_score: f.naturalQualityScore,
-                        })),
-                        snapshots: audit.scanResults,
-                        crawlerReadability:
-                          audit.probe.crawlerReadability ?? null,
-                        targetEnv: selectedPromptEnv,
-                      });
-                      if (
-                        typeof navigator !== 'undefined' &&
-                        navigator.clipboard?.writeText
-                      ) {
-                        void navigator.clipboard.writeText(
-                          promptArtifact.content
-                        );
-                      }
-                      setCopiedAiPrompt(true);
-                      setTimeout(() => setCopiedAiPrompt(false), 2400);
-                    }}
-                  >
-                    {copiedAiPrompt ? '✓ Prompt Copied' : 'Copy AI Fix Prompt'}
-                  </button>
-                  <button
-                    type="button"
-                    className="vs-btn vs-btn-secondary"
-                    style={{ padding: '5px 9px', fontSize: '11px' }}
-                    onClick={() => {
-                      const topRival =
-                        sentimentAndSov?.headToHeadSov.find(
-                          (r) => !r.isTargetBrand
-                        )?.entityName ?? null;
-                      const pageBundle = buildCitationAnswerPageBundle({
-                        domain: {
-                          brand_name: audit.brandName,
-                          domain_url: audit.domainUrl,
-                          industry_vertical: audit.industryVertical,
-                          is_shopify: audit.shopify.isShopify,
-                          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-                          agents_md_status: audit.shopify.agentsMdStatus,
-                          llms_txt_status: audit.probe.llmsTxtStatus,
-                          brand_truth_sheet: audit.brandTruthSheet,
-                        },
-                        blueprintType: 'vs_competitor',
-                        rivalName: topRival,
-                        targetPrompt: audit.trackedPrompts[0] ?? null,
-                        targetEnv: selectedPromptEnv,
-                      });
-                      if (
-                        typeof navigator !== 'undefined' &&
-                        navigator.clipboard?.writeText
-                      ) {
-                        void navigator.clipboard.writeText(
-                          pageBundle.aiBuildPrompt.content
-                        );
-                      }
-                      setCopiedRivalPagePrompt(true);
-                      setTimeout(() => setCopiedRivalPagePrompt(false), 2400);
-                    }}
-                  >
-                    {copiedRivalPagePrompt
-                      ? '✓ vs. Rival Copied'
-                      : 'Copy vs. Rival Prompt'}
-                  </button>
-                  <button
-                    type="button"
-                    className="vs-btn vs-btn-secondary"
-                    disabled={verifyingLiveFixes}
-                    style={{ padding: '5px 9px', fontSize: '11px' }}
-                    onClick={async () => {
-                      setVerifyingLiveFixes(true);
-                      setErrorMessage(null);
-                      setCopiedFollowUpPrompt(false);
-                      const originToQuery = workspaceOrigin.replace(/\/$/, '');
-                      try {
-                        const apiRes = await fetch(
-                          `${originToQuery}/api/grader`,
-                          {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              domain: audit.hostname,
-                              forceRefresh: true,
-                            }),
-                            signal: AbortSignal.timeout(7500),
+                {isPaidSubscriber ? (
+                  <>
+                    <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="vs-btn"
+                        style={{ padding: '6px 10px', fontSize: '11.5px', flex: '1 1 auto' }}
+                        onClick={() => {
+                          const promptArtifact = buildAiRemediationMasterPrompt({
+                            domain: {
+                              brand_name: audit.brandName,
+                              domain_url: audit.domainUrl,
+                              is_shopify: audit.shopify.isShopify,
+                              shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                              agents_md_status: audit.shopify.agentsMdStatus,
+                              llms_txt_status: audit.probe.llmsTxtStatus,
+                              robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+                              brand_truth_sheet: audit.brandTruthSheet,
+                              visibility_score: audit.visibilityScore,
+                              accuracy_score: audit.accuracyScore,
+                            },
+                            fixes: audit.fixes.map((f) => ({
+                              fix_type: f.fixType,
+                              title: f.title,
+                              content_payload: f.contentPayload,
+                              is_applied: false,
+                              natural_quality_score: f.naturalQualityScore,
+                            })),
+                            snapshots: audit.scanResults,
+                            crawlerReadability:
+                              audit.probe.crawlerReadability ?? null,
+                            targetEnv: selectedPromptEnv,
+                          });
+                          if (
+                            typeof navigator !== 'undefined' &&
+                            navigator.clipboard?.writeText
+                          ) {
+                            void navigator.clipboard.writeText(
+                              promptArtifact.content
+                            );
                           }
-                        );
-                        if (!apiRes.ok) {
-                          const errJson = (await apiRes
-                            .json()
-                            .catch(() => ({}))) as { message?: string };
-                          setErrorMessage(
-                            errJson.message ??
-                              'Unable to refresh live verification right now.'
-                          );
-                          return;
-                        }
-                        const liveSummary =
-                          (await apiRes.json()) as ReadinessScanSummary;
-                        if (liveSummary.jsonLdReadiness) {
-                          setLiveJsonLdReadiness(liveSummary.jsonLdReadiness);
-                        }
-                        const report =
-                          buildLiveFixVerificationFromSummary(liveSummary);
-                        setLiveVerificationReport(report);
-                        setAudit((prev) =>
-                          prev
-                            ? {
-                                ...prev,
-                                visibilityScore: liveSummary.visibilityScore,
-                                accuracyScore: liveSummary.accuracyScore,
-                                probe: {
-                                  ...prev.probe,
-                                  robotsAiBotStatus:
-                                    liveSummary.robotsAiBotStatus,
-                                  llmsTxtStatus: liveSummary.llmsTxtStatus,
-                                  detectedPlatform:
-                                    liveSummary.detectedPlatform ??
-                                    prev.probe.detectedPlatform,
-                                },
-                                shopify: {
-                                  ...prev.shopify,
-                                  isShopify: liveSummary.isShopify,
-                                  shopifyMcpStatus:
-                                    liveSummary.shopifyMcpStatus,
-                                  agentsMdStatus: liveSummary.agentsMdStatus,
-                                },
+                          setCopiedAiPrompt(true);
+                          setTimeout(() => setCopiedAiPrompt(false), 2400);
+                        }}
+                      >
+                        {copiedAiPrompt ? '✓ Prompt Copied' : 'Copy AI Fix Prompt'}
+                      </button>
+                      <button
+                        type="button"
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '5px 9px', fontSize: '11px' }}
+                        onClick={() => {
+                          const topRival =
+                            sentimentAndSov?.headToHeadSov.find(
+                              (r) => !r.isTargetBrand
+                            )?.entityName ?? null;
+                          const pageBundle = buildCitationAnswerPageBundle({
+                            domain: {
+                              brand_name: audit.brandName,
+                              domain_url: audit.domainUrl,
+                              industry_vertical: audit.industryVertical,
+                              is_shopify: audit.shopify.isShopify,
+                              shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                              agents_md_status: audit.shopify.agentsMdStatus,
+                              llms_txt_status: audit.probe.llmsTxtStatus,
+                              brand_truth_sheet: audit.brandTruthSheet,
+                            },
+                            blueprintType: 'vs_competitor',
+                            rivalName: topRival,
+                            targetPrompt: audit.trackedPrompts[0] ?? null,
+                            targetEnv: selectedPromptEnv,
+                          });
+                          if (
+                            typeof navigator !== 'undefined' &&
+                            navigator.clipboard?.writeText
+                          ) {
+                            void navigator.clipboard.writeText(
+                              pageBundle.aiBuildPrompt.content
+                            );
+                          }
+                          setCopiedRivalPagePrompt(true);
+                          setTimeout(() => setCopiedRivalPagePrompt(false), 2400);
+                        }}
+                      >
+                        {copiedRivalPagePrompt
+                          ? '✓ vs. Rival Copied'
+                          : 'Copy vs. Rival Prompt'}
+                      </button>
+                      <button
+                        type="button"
+                        className="vs-btn vs-btn-secondary"
+                        disabled={verifyingLiveFixes}
+                        style={{ padding: '5px 9px', fontSize: '11px' }}
+                        onClick={async () => {
+                          setVerifyingLiveFixes(true);
+                          setErrorMessage(null);
+                          setCopiedFollowUpPrompt(false);
+                          const originToQuery = workspaceOrigin.replace(/\/$/, '');
+                          try {
+                            const apiRes = await fetch(
+                              `${originToQuery}/api/grader`,
+                              {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  domain: audit.hostname,
+                                  forceRefresh: true,
+                                }),
+                                signal: AbortSignal.timeout(7500),
                               }
-                            : prev
-                        );
-                        const passed = report.checks.filter(
-                          (c) => c.live
-                        ).length;
-                        setStatusMessage(
-                          `Verified ${passed}/4 checks live on ${report.hostname} (${liveSummary.visibilityScore}/100 Visibility)`
-                        );
-                      } catch {
-                        setErrorMessage(
-                          `Could not reach ${originToQuery}/api/grader to verify live fixes.`
-                        );
-                      } finally {
-                        setVerifyingLiveFixes(false);
-                      }
-                    }}
-                  >
-                    {verifyingLiveFixes
-                      ? 'Checking...'
-                      : '✓ Verify Live Fixes'}
-                  </button>
-                  <button
-                    type="button"
-                    className="vs-btn vs-btn-secondary"
-                    style={{ padding: '5px 9px', fontSize: '11px' }}
-                    onClick={() => {
-                      const md = buildImplementationBundleMarkdown({
-                        domain: {
-                          brand_name: audit.brandName,
-                          domain_url: audit.domainUrl,
-                          is_shopify: audit.shopify.isShopify,
-                          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-                          visibility_score: audit.visibilityScore,
-                          accuracy_score: audit.accuracyScore,
-                        },
-                        fixes: audit.fixes.map((f) => ({
-                          title: f.title,
-                          fix_type: f.fixType,
-                          content_payload: f.contentPayload,
-                          natural_quality_score: f.naturalQualityScore,
-                        })),
-                      });
-                      const blob = new Blob([md], {
-                        type: 'text/markdown;charset=utf-8',
-                      });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `${audit.hostname}-verisource-geo-bundle.md`;
-                      document.body.appendChild(a);
-                      a.click();
-                      a.remove();
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    ↓ Bundle (.md)
-                  </button>
-                </div>
+                            );
+                            if (!apiRes.ok) {
+                              const errJson = (await apiRes
+                                .json()
+                                .catch(() => ({}))) as { message?: string };
+                              setErrorMessage(
+                                errJson.message ??
+                                  'Unable to refresh live verification right now.'
+                              );
+                              return;
+                            }
+                            const liveSummary =
+                              (await apiRes.json()) as ReadinessScanSummary;
+                            if (liveSummary.jsonLdReadiness) {
+                              setLiveJsonLdReadiness(liveSummary.jsonLdReadiness);
+                            }
+                            const report =
+                              buildLiveFixVerificationFromSummary(liveSummary);
+                            setLiveVerificationReport(report);
+                            setAudit((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    visibilityScore: liveSummary.visibilityScore,
+                                    accuracyScore: liveSummary.accuracyScore,
+                                    probe: {
+                                      ...prev.probe,
+                                      robotsAiBotStatus:
+                                        liveSummary.robotsAiBotStatus,
+                                      llmsTxtStatus: liveSummary.llmsTxtStatus,
+                                      detectedPlatform:
+                                        liveSummary.detectedPlatform ??
+                                        prev.probe.detectedPlatform,
+                                    },
+                                    shopify: {
+                                      ...prev.shopify,
+                                      isShopify: liveSummary.isShopify,
+                                      shopifyMcpStatus:
+                                        liveSummary.shopifyMcpStatus,
+                                      agentsMdStatus: liveSummary.agentsMdStatus,
+                                    },
+                                  }
+                                : prev
+                            );
+                            const passed = report.checks.filter(
+                              (c) => c.live
+                            ).length;
+                            setStatusMessage(
+                              `Verified ${passed}/4 checks live on ${report.hostname} (${liveSummary.visibilityScore}/100 Visibility)`
+                            );
+                          } catch {
+                            setErrorMessage(
+                              `Could not reach ${originToQuery}/api/grader to verify live fixes.`
+                            );
+                          } finally {
+                            setVerifyingLiveFixes(false);
+                          }
+                        }}
+                      >
+                        {verifyingLiveFixes
+                          ? 'Checking...'
+                          : '✓ Verify Live Fixes'}
+                      </button>
+                      <button
+                        type="button"
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '5px 9px', fontSize: '11px' }}
+                        onClick={() => {
+                          const md = buildImplementationBundleMarkdown({
+                            domain: {
+                              brand_name: audit.brandName,
+                              domain_url: audit.domainUrl,
+                              is_shopify: audit.shopify.isShopify,
+                              shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+                              visibility_score: audit.visibilityScore,
+                              accuracy_score: audit.accuracyScore,
+                            },
+                            fixes: audit.fixes.map((f) => ({
+                              title: f.title,
+                              fix_type: f.fixType,
+                              content_payload: f.contentPayload,
+                              natural_quality_score: f.naturalQualityScore,
+                            })),
+                          });
+                          const blob = new Blob([md], {
+                            type: 'text/markdown;charset=utf-8',
+                          });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `${audit.hostname}-verisource-geo-bundle.md`;
+                          document.body.appendChild(a);
+                          a.click();
+                          a.remove();
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        ↓ Bundle (.md)
+                      </button>
+                    </div>
+                    {subscriberPlan === 'tripwire_19' ? (
+                      <div
+                        style={{
+                          marginTop: '8px',
+                          padding: '7px 9px',
+                          borderRadius: '5px',
+                          border: '1px solid var(--vs-border)',
+                          background: '#FFFFFF',
+                          fontSize: '11px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '5px',
+                        }}
+                      >
+                        <div>
+                          <strong>$19 Upgrade Credit Active:</strong> Apply your
+                          $19 pass toward automated weekly drift checks.
+                        </div>
+                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                          <a
+                            href={`${cleanOrigin}/api/checkout?plan=starter_49&cycle=monthly&trial=0&domain=${encodeURIComponent(
+                              audit.hostname
+                            )}&env=${encodeURIComponent(selectedPromptEnv)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="vs-btn vs-btn-secondary"
+                            style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                          >
+                            Starter ($30 Mo 1) →
+                          </a>
+                          <a
+                            href={`${cleanOrigin}/api/checkout?plan=pro_99&cycle=monthly&trial=0&domain=${encodeURIComponent(
+                              audit.hostname
+                            )}&env=${encodeURIComponent(selectedPromptEnv)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="vs-btn"
+                            style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                          >
+                            Pro + MCP ($80 Mo 1) →
+                          </a>
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  (() => {
+                    const teaser = buildPublicAiPromptTeaser({
+                      brandName: audit.brandName,
+                      hostname: audit.hostname,
+                      targetEnv: selectedPromptEnv,
+                      robotsAiBotStatus: audit.probe.robotsAiBotStatus,
+                      llmsTxtStatus: audit.probe.llmsTxtStatus,
+                      agentsMdStatus: audit.shopify.agentsMdStatus,
+                      jsonLdCount: audit.probe.jsonLdBlocks.length,
+                      isShopify: audit.shopify.isShopify,
+                      hallucinationDetected:
+                        audit.allHallucinations.length > 0,
+                    });
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div
+                          style={{
+                            borderRadius: '5px',
+                            overflow: 'hidden',
+                            border: '1px solid var(--vs-border-strong)',
+                            background: 'var(--vs-terminal)',
+                          }}
+                        >
+                          <pre
+                            className="vs-code-block"
+                            style={{
+                              borderRadius: 0,
+                              padding: '8px 10px 5px 10px',
+                              fontSize: '10.5px',
+                              whiteSpace: 'pre-wrap',
+                              overflowWrap: 'anywhere',
+                            }}
+                          >
+                            <code>{teaser.visibleHeaderText}</code>
+                          </pre>
+                          <div
+                            className="vs-mono"
+                            style={{
+                              padding: '0 10px 8px 10px',
+                              fontSize: '10px',
+                              lineHeight: 1.5,
+                              color: '#A3A8B4',
+                            }}
+                          >
+                            {teaser.redactedPayloadLines.slice(0, 3).map((ln, idx) => (
+                              <div key={idx} className="vs-blur-token">
+                                {ln}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                          <a
+                            href={`${cleanOrigin}/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
+                              audit.hostname
+                            )}&env=${encodeURIComponent(selectedPromptEnv)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="vs-btn"
+                            style={{ width: '100%', padding: '7px 10px', fontSize: '11.5px' }}
+                          >
+                            Activate $19 Audit Pass (Full Fix + vs.-Rival Studio) →
+                          </a>
+                          <a
+                            href={`${cleanOrigin}/api/checkout?plan=pro_99&cycle=monthly&domain=${encodeURIComponent(
+                              audit.hostname
+                            )}&env=${encodeURIComponent(selectedPromptEnv)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="vs-btn vs-btn-secondary"
+                            style={{ width: '100%', padding: '6px 10px', fontSize: '11px' }}
+                          >
+                            Or Start 7-Day Trial ($49 Starter · $99 Pro) →
+                          </a>
+                        </div>
+
+                        <div style={{ fontSize: '10.5px', color: 'var(--vs-ink-secondary)' }}>
+                          Your $19 Audit Pass applies as a 1-click credit toward
+                          the $49 Starter or $99 Pro plan.
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="vs-btn vs-btn-secondary"
+                            disabled={verifyingLiveFixes}
+                            style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                            onClick={async () => {
+                              setVerifyingLiveFixes(true);
+                              setErrorMessage(null);
+                              const originToQuery = workspaceOrigin.replace(/\/$/, '');
+                              try {
+                                const apiRes = await fetch(
+                                  `${originToQuery}/api/grader`,
+                                  {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                      domain: audit.hostname,
+                                      forceRefresh: true,
+                                    }),
+                                    signal: AbortSignal.timeout(7500),
+                                  }
+                                );
+                                if (apiRes.ok) {
+                                  const liveSummary =
+                                    (await apiRes.json()) as ReadinessScanSummary;
+                                  if (liveSummary.jsonLdReadiness) {
+                                    setLiveJsonLdReadiness(liveSummary.jsonLdReadiness);
+                                  }
+                                  const report =
+                                    buildLiveFixVerificationFromSummary(liveSummary);
+                                  setLiveVerificationReport(report);
+                                  const passed = report.checks.filter((c) => c.live).length;
+                                  setStatusMessage(
+                                    `Verified ${passed}/4 checks live on ${report.hostname}`
+                                  );
+                                }
+                              } catch {
+                                setErrorMessage('Unable to reach live verifier.');
+                              } finally {
+                                setVerifyingLiveFixes(false);
+                              }
+                            }}
+                          >
+                            {verifyingLiveFixes ? 'Checking...' : '✓ Verify Live Fixes'}
+                          </button>
+                          <button
+                            type="button"
+                            className="vs-btn vs-btn-secondary"
+                            style={{ padding: '4px 8px', fontSize: '10.5px' }}
+                            onClick={() => setShowPassConnect((prev) => !prev)}
+                          >
+                            {showPassConnect ? 'Hide Key Input' : 'Have a Pass / Key?'}
+                          </button>
+                        </div>
+
+                        {showPassConnect ? (
+                          <form
+                            onSubmit={async (e) => {
+                              e.preventDefault();
+                              setConnectingPass(true);
+                              const ok = await verifySubscriberToken(
+                                subscriberTokenInput
+                              );
+                              setConnectingPass(false);
+                              if (ok) {
+                                try {
+                                  window.localStorage.setItem(
+                                    'vs_ext_access_token',
+                                    subscriberTokenInput.trim()
+                                  );
+                                } catch {
+                                  // Ignore storage restriction
+                                }
+                                setShowPassConnect(false);
+                                setStatusMessage('Subscriber pass verified.');
+                              } else {
+                                setErrorMessage(
+                                  'Key not recognized. Paste an active vs_live_ key or sign in via Private Console.'
+                                );
+                              }
+                            }}
+                            style={{ display: 'flex', gap: '5px' }}
+                          >
+                            <input
+                              type="password"
+                              value={subscriberTokenInput}
+                              onChange={(e) =>
+                                setSubscriberTokenInput(e.target.value)
+                              }
+                              placeholder="Paste vs_live_... API key"
+                              className="vs-input"
+                              style={{ padding: '5px 8px', fontSize: '11px' }}
+                            />
+                            <button
+                              type="submit"
+                              disabled={connectingPass}
+                              className="vs-btn"
+                              style={{ padding: '5px 9px', fontSize: '11px' }}
+                            >
+                              {connectingPass ? '...' : 'Connect'}
+                            </button>
+                          </form>
+                        ) : null}
+                      </div>
+                    );
+                  })()
+                )}
                 </div>
               </div>
 
@@ -1602,7 +1949,7 @@ export default function App(): React.ReactElement {
                         >
                           {`${followUpBundle.liveCount}/4 VERIFIED LIVE`}
                         </StatusBadge>
-                        {!followUpBundle.allVerified ? (
+                        {!followUpBundle.allVerified && isPaidSubscriber ? (
                           <button
                             type="button"
                             className="vs-btn vs-btn-secondary"
@@ -1745,39 +2092,41 @@ export default function App(): React.ReactElement {
                 </div>
               ) : null}
 
-              <details className="vs-disclosure" open={!isGuided}>
-                <summary className="vs-disclosure-summary">
-                  <div>
-                    <strong style={{ fontSize: '12px', display: 'block' }}>
-                      Individual Raw Code Files ({audit.fixes.length})
-                    </strong>
-                    <span style={{ fontSize: '11px', color: 'var(--vs-ink-secondary)' }}>
-                      Optional — already bundled inside your 1-Click AI Fix Prompt above.
-                    </span>
+              {isPaidSubscriber ? (
+                <details className="vs-disclosure" open={!isGuided}>
+                  <summary className="vs-disclosure-summary">
+                    <div>
+                      <strong style={{ fontSize: '12px', display: 'block' }}>
+                        Individual Raw Code Files ({audit.fixes.length})
+                      </strong>
+                      <span style={{ fontSize: '11px', color: 'var(--vs-ink-secondary)' }}>
+                        Optional — already bundled inside your 1-Click AI Fix Prompt above.
+                      </span>
+                    </div>
+                    <span className="vs-disclosure-pill">Files</span>
+                  </summary>
+                  <div
+                    className="vs-disclosure-body"
+                    style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
+                  >
+                    {audit.fixes.map((fix, idx) => (
+                      <CodeArtifactCard
+                        key={`${fix.fixType}-${idx}`}
+                        title={fix.title}
+                        plainSummary={
+                          isGuided ? describeFixPlainly(fix.fixType) : undefined
+                        }
+                        fileHint={
+                          isGuided ? undefined : `Artifact Type: ${fix.fixType}`
+                        }
+                        code={fix.contentPayload}
+                        qualityScore={fix.naturalQualityScore}
+                        qualityBreakdown={fix.qualityRubricBreakdown}
+                      />
+                    ))}
                   </div>
-                  <span className="vs-disclosure-pill">Files</span>
-                </summary>
-                <div
-                  className="vs-disclosure-body"
-                  style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-                >
-                  {audit.fixes.map((fix, idx) => (
-                    <CodeArtifactCard
-                      key={`${fix.fixType}-${idx}`}
-                      title={fix.title}
-                      plainSummary={
-                        isGuided ? describeFixPlainly(fix.fixType) : undefined
-                      }
-                      fileHint={
-                        isGuided ? undefined : `Artifact Type: ${fix.fixType}`
-                      }
-                      code={fix.contentPayload}
-                      qualityScore={fix.naturalQualityScore}
-                      qualityBreakdown={fix.qualityRubricBreakdown}
-                    />
-                  ))}
-                </div>
-              </details>
+                </details>
+              ) : null}
 
               <details className="vs-disclosure" open={!isGuided}>
                 <summary className="vs-disclosure-summary">
@@ -1996,12 +2345,12 @@ export default function App(): React.ReactElement {
                       gap: '7px',
                     }}
                   >
-                    {rankedSources.map((src) => {
+                    {rankedSources.map((src, idx) => {
                       const primaryUrl =
                         src.urls[0] ?? `https://${src.sourceHost}`;
                       return (
                         <div
-                          key={src.sourceHost}
+                          key={`${src.sourceHost}-${idx}`}
                           style={{
                             padding: '7px 9px',
                             border: '1px solid var(--vs-border)',
@@ -2019,9 +2368,18 @@ export default function App(): React.ReactElement {
                               flexWrap: 'wrap',
                             }}
                           >
-                            <strong style={{ fontSize: '12px' }}>
-                              {src.sourceHost}
-                            </strong>
+                            {isPaidSubscriber ? (
+                              <strong style={{ fontSize: '12px' }}>
+                                {src.sourceHost}
+                              </strong>
+                            ) : (
+                              <strong
+                                className="vs-mono vs-blur-token"
+                                style={{ fontSize: '12px' }}
+                              >
+                                {`locked-citation-${idx + 1}.source`}
+                              </strong>
+                            )}
                             <div
                               style={{
                                 display: 'inline-flex',
@@ -2056,22 +2414,44 @@ export default function App(): React.ReactElement {
                           >
                             {src.recommendedAction}
                           </div>
-                          <div
-                            className="vs-mono"
-                            style={{ fontSize: '11px', wordBreak: 'break-all' }}
-                          >
-                            <a
-                              href={primaryUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ color: 'var(--vs-ink-secondary)' }}
+                          {isPaidSubscriber ? (
+                            <div
+                              className="vs-mono"
+                              style={{ fontSize: '11px', wordBreak: 'break-all' }}
                             >
-                              {primaryUrl}
-                            </a>
-                          </div>
+                              <a
+                                href={primaryUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'var(--vs-ink-secondary)' }}
+                              >
+                                {primaryUrl}
+                              </a>
+                            </div>
+                          ) : (
+                            <div
+                              className="vs-mono vs-blur-token"
+                              style={{ fontSize: '11px' }}
+                            >
+                              https://locked-citation-source.ext/buyer-guide
+                            </div>
+                          )}
                         </div>
                       );
                     })}
+                    {!isPaidSubscriber ? (
+                      <a
+                        href={`${cleanOrigin}/api/checkout?plan=tripwire_19&cycle=one_time&domain=${encodeURIComponent(
+                          audit.hostname
+                        )}&env=${encodeURIComponent(selectedPromptEnv)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="vs-btn"
+                        style={{ width: '100%', fontSize: '11.5px', padding: '7px 10px' }}
+                      >
+                        Activate $19 Audit Pass to View Citation Gap URLs →
+                      </a>
+                    ) : null}
                   </div>
                 ) : (
                   <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>

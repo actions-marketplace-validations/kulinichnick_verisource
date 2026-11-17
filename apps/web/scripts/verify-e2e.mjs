@@ -4503,7 +4503,68 @@ async function run() {
         m86BenchmarkHtml.includes('10.0% (1 / 10)'),
       'Expected DevTools /llms.txt vs /agents.md empirical addendum on /benchmarks/ai-search-readiness-2026'
     );
-    console.log('✔ [82/82] M86 DevTools /llms.txt vs /agents.md Empirical Benchmark Addendum verified!');
+    console.log('✔ [82/83] M86 DevTools /llms.txt vs /agents.md Empirical Benchmark Addendum verified!');
+
+    // 81. M88 Autonomous Growth & Retention Locks: /api/cron/drift-watchdog (401/200), /report/[domain] Programmatic SEO + Sitemap, & Chrome MV3 Paywall + Tab Sync
+    const unauthDriftCronRes = await fetch(`${BASE}/api/cron/drift-watchdog`);
+    assert.equal(
+      unauthDriftCronRes.status,
+      401,
+      'Expected unauthenticated GET /api/cron/drift-watchdog to return HTTP 401'
+    );
+
+    const authDriftCronRes = await fetch(
+      `${BASE}/api/cron/drift-watchdog?dryRun=1&limit=5`,
+      { headers: OWNER_HEADERS }
+    );
+    assert.equal(authDriftCronRes.status, 200);
+    const authDriftCronJson = await authDriftCronRes.json();
+    assert.equal(authDriftCronJson.ok, true);
+    assert.ok(Array.isArray(authDriftCronJson.domainReports));
+    assert.ok(Array.isArray(authDriftCronJson.tripwireUpgradeCandidates));
+    assert.ok(Array.isArray(authDriftCronJson.subscriberRetentionAlerts));
+
+    const [m88ReportRes, m88MissingReportRes, m88SitemapXml] = await Promise.all([
+      fetch(`${BASE}/report/linear.app`),
+      fetch(`${BASE}/report/aurearoasters.com`),
+      fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+    ]);
+    assert.equal(m88ReportRes.status, 200);
+    assert.equal(
+      m88MissingReportRes.status,
+      404,
+      'Expected internal fixture domain aurearoasters.com to return HTTP 404 on public /report/[domain]'
+    );
+    const m88ReportHtml = await m88ReportRes.text();
+    assert.ok(
+      m88ReportHtml.includes('LIVE PROTOCOL SCORECARD') &&
+        m88ReportHtml.includes('application/ld+json') &&
+        m88ReportHtml.includes('FAQPage') &&
+        m88ReportHtml.includes('Activate $19 Audit Pass') &&
+        m88SitemapXml.includes('https://verisource.dev/report/linear.app'),
+      'Expected /report/linear.app to render TechArticle + FAQPage JSON-LD, $19 Audit Pass CTA, and sitemap.xml entry'
+    );
+    const m88ReportVisible = m88ReportHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (m88ReportVisible.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /report/linear.app'
+    );
+
+    const m88BgJs = fs.readFileSync(
+      path.join(extOutputDir, 'background.js'),
+      'utf8'
+    );
+    assert.ok(
+      m85SidepanelJs.includes('VS_ACTIVE_TAB_SYNC') &&
+        m85SidepanelJs.includes('Activate $19 Audit Pass') &&
+        m88BgJs.includes('VS_ACTIVE_TAB_SYNC'),
+      'Expected Chrome MV3 extension bundle to wire live VS_ACTIVE_TAB_SYNC tab-switch listener and $19 Step 02/03 paywall'
+    );
+    console.log('✔ [83/83] M88 /api/cron/drift-watchdog (401/200), /report/[domain] Programmatic SEO + Sitemap, & Chrome MV3 Paywall + Tab Sync verified!');
   } finally {
     server.kill();
   }

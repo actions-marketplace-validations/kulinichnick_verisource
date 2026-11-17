@@ -3,6 +3,7 @@ import {
   FREE_SEO_TOOLS,
   PROTOCOL_GUIDES,
 } from './gtm-content';
+import { getPublishedDomainScorecards } from './published-reports';
 
 export const VERISOURCE_ORIGIN = 'https://verisource.dev';
 
@@ -33,6 +34,9 @@ export function getAllIndexableVerisourceUrls(): string[] {
     `${VERISOURCE_ORIGIN}/partners`,
     `${VERISOURCE_ORIGIN}/tools`,
     ...FREE_SEO_TOOLS.map((item) => `${VERISOURCE_ORIGIN}/tools/${item.slug}`),
+    ...getPublishedDomainScorecards().map(
+      (item) => `${VERISOURCE_ORIGIN}/report/${item.domain}`
+    ),
     `${VERISOURCE_ORIGIN}/llms.txt`,
     `${VERISOURCE_ORIGIN}/agents.md`,
   ];

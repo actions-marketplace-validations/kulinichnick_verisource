@@ -3,5 +3,11 @@
   "framework": "nextjs",
   "installCommand": "pnpm install",
   "buildCommand": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm --filter @verisource/web build",
-  "outputDirectory": "apps/web/.next"
+  "outputDirectory": "apps/web/.next",
+  "crons": [
+    {
+      "path": "/api/cron/drift-watchdog",
+      "schedule": "0 13 * * 1"
+    }
+  ]
 }

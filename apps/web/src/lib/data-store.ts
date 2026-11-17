@@ -14,6 +14,7 @@ import {
   normalizePublicDomain,
   resolveCoreGeoEnv,
   runFullGeoAudit,
+  sha256Hex,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type BillingCycle,
@@ -406,6 +407,24 @@ export async function resolveAuthenticatedProfile(
     token = extractCookieValue(request.headers.get('cookie'), 'vs_access_token');
   }
   if (!token || token === MOCK_OWNER_SESSION_TOKEN) return null;
+
+  if (token.startsWith('vs_live_')) {
+    const keyHash = await sha256Hex(token);
+    const { data: keyRow } = await supabase
+      .from('mcp_api_keys')
+      .select('user_id')
+      .eq('key_hash', keyHash)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!keyRow?.user_id) return null;
+    const { data: keyOwnerProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', keyRow.user_id)
+      .maybeSingle();
+    if (!keyOwnerProfile) return null;
+    return { supabase, profile: keyOwnerProfile };
+  }
 
   const { data: userRes, error: authErr } = await supabase.auth.getUser(token);
   if (authErr || !userRes?.user) {

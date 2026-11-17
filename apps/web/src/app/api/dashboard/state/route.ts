@@ -4,6 +4,16 @@ import {
   resolveConsoleRequestAccess,
 } from '../../../../lib/data-store';
 
+const STATE_CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+};
+
+export async function OPTIONS(): Promise<NextResponse> {
+  return new NextResponse(null, { status: 204, headers: STATE_CORS_HEADERS });
+}
+
 export async function GET(request: Request): Promise<NextResponse> {
   const access = await resolveConsoleRequestAccess(request);
 
@@ -14,37 +24,43 @@ export async function GET(request: Request): Promise<NextResponse> {
         mode: 'unauthenticated_locked',
         message: 'Sign in to access your private Verisource Console.',
       },
-      { status: 401 }
+      { status: 401, headers: STATE_CORS_HEADERS }
     );
   }
 
   if (access.status === 'plan_activation_required') {
-    return NextResponse.json({
-      mode: 'plan_activation_required',
-      profile: access.profile,
-      domains: [],
-      prompts: [],
-      snapshots: [],
-      fixes: [],
-      attributionEvents: [],
-      pitchReports: [],
-      mcpApiKeys: [],
-    });
+    return NextResponse.json(
+      {
+        mode: 'plan_activation_required',
+        profile: access.profile,
+        domains: [],
+        prompts: [],
+        snapshots: [],
+        fixes: [],
+        attributionEvents: [],
+        pitchReports: [],
+        mcpApiKeys: [],
+      },
+      { headers: STATE_CORS_HEADERS }
+    );
   }
 
   if (access.status === 'mock_owner') {
     const store = getLocalMockStore();
-    return NextResponse.json({
-      mode: 'mock',
-      profile: store.profile,
-      domains: store.domains,
-      prompts: store.prompts,
-      snapshots: store.snapshots,
-      fixes: store.fixes,
-      attributionEvents: store.attributionEvents,
-      pitchReports: store.pitchReports,
-      mcpApiKeys: store.mcpApiKeys,
-    });
+    return NextResponse.json(
+      {
+        mode: 'mock',
+        profile: store.profile,
+        domains: store.domains,
+        prompts: store.prompts,
+        snapshots: store.snapshots,
+        fixes: store.fixes,
+        attributionEvents: store.attributionEvents,
+        pitchReports: store.pitchReports,
+        mcpApiKeys: store.mcpApiKeys,
+      },
+      { headers: STATE_CORS_HEADERS }
+    );
   }
 
   const { supabase, profile } = access;
@@ -96,15 +112,18 @@ export async function GET(request: Request): Promise<NextResponse> {
         .order('created_at', { ascending: false }),
     ]);
 
-  return NextResponse.json({
-    mode: 'live_authenticated',
-    profile,
-    domains: domains ?? [],
-    prompts: promptsRes.data ?? [],
-    snapshots: snapsRes.data ?? [],
-    fixes: fixesRes.data ?? [],
-    attributionEvents: attrRes.data ?? [],
-    pitchReports: pitchRes.data ?? [],
-    mcpApiKeys: keysRes.data ?? [],
-  });
+  return NextResponse.json(
+    {
+      mode: 'live_authenticated',
+      profile,
+      domains: domains ?? [],
+      prompts: promptsRes.data ?? [],
+      snapshots: snapsRes.data ?? [],
+      fixes: fixesRes.data ?? [],
+      attributionEvents: attrRes.data ?? [],
+      pitchReports: pitchRes.data ?? [],
+      mcpApiKeys: keysRes.data ?? [],
+    },
+    { headers: STATE_CORS_HEADERS }
+  );
 }

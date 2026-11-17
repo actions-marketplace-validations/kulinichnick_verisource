@@ -4,9 +4,11 @@ import {
   FREE_SEO_TOOLS,
   PROTOCOL_GUIDES,
 } from '../lib/gtm-content';
+import { getPublishedDomainScorecards } from '../lib/published-reports';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
+  const publishedReports = getPublishedDomainScorecards();
   return [
     {
       url: 'https://verisource.dev',
@@ -109,6 +111,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: 'weekly' as const,
       priority: 0.85,
+    })),
+    ...publishedReports.map((item) => ({
+      url: `https://verisource.dev/report/${item.domain}`,
+      lastModified: new Date(item.publishedAt || now.toISOString()),
+      changeFrequency: 'weekly' as const,
+      priority: 0.82,
     })),
     {
       url: 'https://verisource.dev/llms.txt',

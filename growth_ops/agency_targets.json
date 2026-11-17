@@ -1,0 +1,105 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-11-17T08:25:51.451Z",
+  "batchSizeDefault": 2,
+  "agencies": [
+    {
+      "agencyName": "Velstar",
+      "agencyDomain": "velstar.co.uk",
+      "specialty": "Shopify Plus Agency",
+      "contactName": "Dan Sheard",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Dan%20Sheard%20Velstar",
+      "publicContactChannel": "hello@velstar.co.uk",
+      "caseStudyClientDomain": "avon.uk.com",
+      "caseStudyClientName": "Avon UK",
+      "status": "audited",
+      "auditedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "agencyName": "Edgar Allan",
+      "agencyDomain": "edgarallan.com",
+      "specialty": "Webflow Enterprise Partner",
+      "contactName": "Mason Poe",
+      "contactRole": "Founder & Managing Partner",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Mason%20Poe%20Edgar%20Allan",
+      "publicContactChannel": "hello@edgarallan.com",
+      "caseStudyClientDomain": "accushield.com",
+      "caseStudyClientName": "Accushield",
+      "status": "audited",
+      "auditedAt": "2026-11-17T08:25:51.451Z"
+    },
+    {
+      "agencyName": "Siege Media",
+      "agencyDomain": "siegemedia.com",
+      "specialty": "B2B SaaS & FinTech SEO Agency",
+      "contactName": "Ross Hudgens",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Ross%20Hudgens%20Siege%20Media",
+      "publicContactChannel": "hello@siegemedia.com",
+      "caseStudyClientDomain": "zapier.com",
+      "caseStudyClientName": "Zapier",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Underwaterpistol",
+      "agencyDomain": "underwaterpistol.com",
+      "specialty": "Shopify Plus Design & CRO",
+      "contactName": "Garyrennison / Leadership Team",
+      "contactRole": "Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Underwaterpistol%20Managing%20Director",
+      "publicContactChannel": "info@underwaterpistol.com",
+      "caseStudyClientDomain": "brewtea.co.uk",
+      "caseStudyClientName": "Brew Tea Co",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Refokus",
+      "agencyDomain": "refokus.com",
+      "specialty": "Webflow Enterprise Studio",
+      "contactName": "Steffenscheidt / Leozakour",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Leo%20Zakour%20Refokus",
+      "publicContactChannel": "hello@refokus.com",
+      "caseStudyClientDomain": "arq.it",
+      "caseStudyClientName": "Arqit",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Grow and Convert",
+      "agencyDomain": "growandconvert.com",
+      "specialty": "B2B Content & BoFu SEO Agency",
+      "contactName": "Benji Hyam",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Benji%20Hyam%20Grow%20and%20Convert",
+      "publicContactChannel": "benji@growandconvert.com (verify via Apollo)",
+      "caseStudyClientDomain": "patreon.com",
+      "caseStudyClientName": "Patreon",
+      "status": "queued"
+    },
+    {
+      "agencyName": "WeMakeWebsites",
+      "agencyDomain": "wemakewebsites.com",
+      "specialty": "Shopify Plus Flagship Agency",
+      "contactName": "Piers Thorogood",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Piers%20Thorogood%20WeMakeWebsites",
+      "publicContactChannel": "hello@wemakewebsites.com",
+      "caseStudyClientDomain": "pangaia.com",
+      "caseStudyClientName": "PANGAIA",
+      "status": "queued"
+    },
+    {
+      "agencyName": "8020",
+      "agencyDomain": "8020.inc",
+      "specialty": "Webflow & No-Code Enterprise Studio",
+      "contactName": "Matt Varughese",
+      "contactRole": "CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Matt%20Varughese%208020",
+      "publicContactChannel": "hello@8020.inc",
+      "caseStudyClientDomain": "wave.co",
+      "caseStudyClientName": "Wave",
+      "status": "queued"
+    }
+  ]
+}

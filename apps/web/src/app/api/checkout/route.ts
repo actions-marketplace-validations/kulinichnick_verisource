@@ -171,7 +171,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     rawPlan !== 'tripwire_19' &&
     Boolean(
       tripwirePaidAt &&
-        Date.now() - Date.parse(tripwirePaidAt) <= 7 * 86400 * 1000
+        Date.now() - Date.parse(tripwirePaidAt) <= 14 * 86400 * 1000
     );
 
   const hasPriorBillingHistory = auth
