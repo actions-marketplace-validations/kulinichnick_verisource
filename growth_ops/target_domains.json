@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T09:23:55.956Z",
+  "updatedAt": "2026-11-17T09:26:42.998Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -126,52 +126,62 @@
     {
       "domain": "clerk.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "neon.tech",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "convex.dev",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "sanity.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "checklyhq.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "axiom.co",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "railway.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "render.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "fly.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "val.town",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:26:42.998Z"
     },
     {
       "domain": "hexclad.com",
