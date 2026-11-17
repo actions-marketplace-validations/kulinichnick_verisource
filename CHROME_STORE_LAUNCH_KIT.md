@@ -47,8 +47,21 @@ Verisource requests only `sidePanel` and `activeTab`. It never injects backgroun
 
 ---
 
-## 4. `1280x800` Promotional Marquee Assets
+## 4. Chrome Web Store Ready-to-Upload `.png` Assets (24-Bit RGB, No Alpha)
 
-Two crisp `1280x800` vector marquee graphics are saved in `g:\My Drive\GEO MCP Engine\chrome-store-assets\`:
-1. `verisource-cws-marquee-1-hero-1280x800.svg` — **Active Tab AI Visibility, WAF & 3-Pillar JSON-LD Inspector**
-2. `verisource-cws-marquee-2-fixes-1280x800.svg` — **7-CMS 1-Click AI Fix Prompt & 4/4 Live HTTP Verification**
+Chrome Web Store requires `24-bit PNG (no alpha channel)` graphics rather than `.svg` files. All 4 upload-ready `.png` files (alongside editable `.svg` vector sources) are saved in `g:\My Drive\GEO MCP Engine\chrome-store-assets\`:
+
+1. `verisource-cws-screenshot-1-hero-1280x800.png` (`1280x800`, 24-bit RGB) — **Screenshot 1: Active Tab AI Visibility, WAF & 3-Pillar JSON-LD Inspector**
+2. `verisource-cws-screenshot-2-fixes-1280x800.png` (`1280x800`, 24-bit RGB) — **Screenshot 2: 7-CMS 1-Click AI Fix Prompt & 4/4 Live HTTP Verification**
+3. `verisource-cws-small-promo-440x280.png` (`440x280`, 24-bit RGB) — **Small Promo Tile**
+4. `verisource-cws-store-icon-128x128.png` (`128x128`) — **Store Listing Icon**
+
+---
+
+## 5. 5-Minute Developer Console Upload Checklist
+
+1. Open `https://chrome.google.com/webstore/devconsole` in your personal Google account (requires Google's one-time `$5.00` developer registration if not yet activated).
+2. Click **New Item** and drag in `g:\My Drive\GEO MCP Engine\verisource-chrome-mv3-v1.0.0.zip`.
+3. Under **Store Listing**, paste the **Extension Name**, **Short Summary**, **Detailed Store Description**, and **Category** (`Developer Tools`) from Sections 1–2 above, then drag in the 4 `.png` images from `g:\My Drive\GEO MCP Engine\chrome-store-assets\`.
+4. Under **Privacy Practices**, select **Single Purpose** (`Inspect AI search visibility, crawler access, and structured protocol files for the active browser tab on user click`), paste the `sidePanel` and `activeTab` justifications from Section 3, check **No** for remote code execution, and paste `https://verisource.dev/privacy` as your Privacy Policy URL.
+5. Click **Submit for Review** (pure `sidePanel` + `activeTab` extensions with zero `<all_urls>` host permissions typically clear review in 24–48 hours).
