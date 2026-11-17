@@ -5,6 +5,8 @@ import { HeroSignalSchematic } from '../components/HeroSignalSchematic';
 import { PlatformModulesShowcase } from '../components/PlatformModulesShowcase';
 import { PricingLadderSection } from '../components/PricingLadderSection';
 import { PublicGraderClient } from '../components/PublicGraderClient';
+import { SampleBusinessMotionShowcase } from '../components/SampleBusinessMotionShowcase';
+import { StandoutFeaturesBento } from '../components/StandoutFeaturesBento';
 
 export default function HomePage(): React.ReactElement {
   return (
@@ -89,11 +91,11 @@ export default function HomePage(): React.ReactElement {
               <a href="#grader" className="vs-btn">
                 Scan My Website Free ↓
               </a>
+              <Link href="/pricing" className="vs-btn vs-btn-secondary">
+                Start 7-Day Free Trial ($0 Today) →
+              </Link>
               <Link href="/tutorial" className="vs-btn vs-btn-secondary">
                 Interactive 90s Tour →
-              </Link>
-              <Link href="/dashboard" className="vs-btn vs-btn-secondary">
-                Subscriber Sign In →
               </Link>
             </div>
 
@@ -134,11 +136,79 @@ export default function HomePage(): React.ReactElement {
       </section>
 
       <div className="vs-container">
-        {/* Customer Tests Their Own Domain — Plain-English Free Diagnosis */}
-        <PublicGraderClient />
+        {/* Customer Tests Their Own Domain — Spotlighted Inside Tactile Obsidian Bezel */}
+        <div id="audit" className="vs-bezel-obsidian">
+          <PublicGraderClient />
+        </div>
+
+        {/* Empirical Proof & Quick Entry Bar Right Beneath the Live Scanner */}
+        <div
+          className="vs-card"
+          style={{
+            marginTop: '18px',
+            padding: '13px 18px',
+            background: 'var(--vs-surface-warm)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '10px 18px',
+            fontSize: '12.5px',
+            color: 'var(--vs-ink-secondary)',
+          }}
+        >
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px' }}>
+            <span>
+              <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+                95%
+              </strong>{' '}
+              of 40 audited sites lack <code className="vs-mono">/agents.md</code>
+            </span>
+            <span>
+              <strong className="vs-mono" style={{ color: 'var(--vs-pass-fg)' }}>
+                14.2%–15.9%
+              </strong>{' '}
+              AI referral buyer conversion
+            </span>
+            <span>
+              <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+                7 CMS
+              </strong>{' '}
+              platforms auto-detected in 1 click
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            <Link
+              href="/benchmarks/ai-search-readiness-2026"
+              style={{
+                color: 'var(--vs-ink)',
+                fontWeight: 600,
+                textDecoration: 'underline',
+              }}
+            >
+              2026 40-Domain Study →
+            </Link>
+            <Link
+              href="/agencies#sandbox"
+              style={{
+                color: 'var(--vs-ink)',
+                fontWeight: 600,
+                textDecoration: 'underline',
+              }}
+            >
+              Agency White-Label Sandbox →
+            </Link>
+          </div>
+        </div>
+
+        {/* Interactive Sample Business Before/After Motion SVG Storyboard */}
+        <SampleBusinessMotionShowcase />
+
+        {/* 6 Standout Motion-SVG Capabilities Built for Non-Pros & Pros */}
+        <StandoutFeaturesBento />
 
         {/* Calm 3-Step Workflow: How Business Owners Use Verisource Without Coding */}
-        <section id="how-it-works" style={{ marginTop: '64px' }}>
+        <section id="how-it-works" style={{ marginTop: '72px' }}>
           <div
             style={{
               display: 'flex',
@@ -191,8 +261,9 @@ export default function HomePage(): React.ReactElement {
             </div>
           </div>
 
-          <div className="vs-card" style={{ overflow: 'hidden' }}>
-            <div className="vs-ledger-strip-3">
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-ledger-strip-3">
               <div style={{ padding: '22px' }}>
                 <div
                   style={{
@@ -355,13 +426,14 @@ export default function HomePage(): React.ReactElement {
               </div>
             </div>
           </div>
+          </div>
         </section>
 
         {/* Interactive 5-Pillar Platform Showcase (Inspired by Category Leaders, Powered by Action Tools) */}
         <PlatformModulesShowcase />
 
         {/* Passive GEO Trackers vs. Verisource Read-Write Action Engine */}
-        <section style={{ marginTop: '72px' }}>
+        <section style={{ marginTop: '72px', minWidth: 0, maxWidth: '100%' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
             READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION
           </div>
@@ -390,8 +462,10 @@ export default function HomePage(): React.ReactElement {
             AI tool.
           </p>
 
-          <div className="vs-card vs-table-wrap">
-            <table className="vs-table">
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-table-wrap">
+                <table className="vs-table">
               <thead>
                 <tr>
                   <th>Capability</th>
@@ -493,11 +567,83 @@ export default function HomePage(): React.ReactElement {
                 </tr>
               </tbody>
             </table>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* Transparent Pricing Ladder */}
         <PricingLadderSection />
+
+        {/* Closing High-Contrast Conversion Band */}
+        <section
+          className="vs-band-obsidian"
+          style={{
+            marginTop: '64px',
+            marginBottom: '28px',
+            padding: '32px 28px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px',
+          }}
+        >
+          <div style={{ maxWidth: '640px' }}>
+            <div
+              className="vs-eyebrow"
+              style={{ color: '#34D399', marginBottom: '6px' }}
+            >
+              START IN 60 SECONDS · $0.00 DUE TODAY ON 7-DAY FREE TRIAL
+            </div>
+            <h2
+              style={{
+                margin: '0 0 8px 0',
+                fontSize: 'clamp(22px, 2.8vw, 28px)',
+                fontWeight: 700,
+                letterSpacing: '-0.025em',
+                color: '#FFFFFF',
+              }}
+            >
+              Stop letting ChatGPT and Perplexity send your buyers to competitors.
+            </h2>
+            <p
+              style={{
+                margin: 0,
+                fontSize: '14px',
+                lineHeight: 1.58,
+                color: '#CBD5E1',
+              }}
+            >
+              Run a free audit on your domain right now, or start a 7-day free
+              trial ($0.00 charged today, cancel in 1 click) to copy your
+              1-Click AI Fix Prompt, verify all 4 files live, and track weekly
+              Share-of-Voice.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <a
+              href="#grader"
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '11px 18px' }}
+            >
+              Scan My Website Free ↑
+            </a>
+            <Link
+              href="/pricing"
+              className="vs-btn"
+              style={{
+                padding: '11px 20px',
+                background: '#FFFFFF',
+                color: '#0A0E17',
+                borderColor: '#FFFFFF',
+              }}
+            >
+              Start 7-Day Free Trial →
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -4155,7 +4155,75 @@ async function run() {
         !/\bbeta\b/i.test(strippedGuestPricing),
       'Found /10, plain-English, or Beta jargon on guest /pricing'
     );
-    console.log('✔ [76/76] M79 Zero-Hop Direct Grader/Tool Checkout, /pricing Interactive AI Conversion Calculator & WebPage/FAQPage JSON-LD verified!');
+    console.log('✔ [76/77] M79 Zero-Hop Direct Grader/Tool Checkout, /pricing Interactive AI Conversion Calculator & WebPage/FAQPage JSON-LD verified!');
+
+    // 75. M81 Tactile Instrument Bezels, Sample Business Motion SVG Storyboard, 6-Card Standout Bento & De-Cluttered Console Zone Separation
+    const [m81HomeHtml, m81Step1Html, m81Step2Html, m81Step3Html] =
+      await Promise.all([
+        fetch(`${BASE}/`).then((r) => r.text()),
+        fetch(`${BASE}/dashboard`, { headers: OWNER_HEADERS }).then((r) =>
+          r.text()
+        ),
+        fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+          headers: OWNER_HEADERS,
+        }).then((r) => r.text()),
+        fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+          headers: OWNER_HEADERS,
+        }).then((r) => r.text()),
+      ]);
+
+    const svgTagCountOnHome = (m81HomeHtml.match(/<svg\b/gi) ?? []).length;
+    assert.ok(
+      svgTagCountOnHome >= 8,
+      `Expected >= 8 inline motion SVGs on redesigned homepage (Hero + Sample Business Storyboard + 6 Standout Cards), got ${svgTagCountOnHome}`
+    );
+    assert.ok(
+      m81HomeHtml.includes('id="sample-workflow"') &&
+        m81HomeHtml.includes('Summit Dental Studio') &&
+        m81HomeHtml.includes('id="standout-features"') &&
+        m81HomeHtml.includes('vs-bezel-obsidian') &&
+        m81HomeHtml.includes('OR TEST A LIVE BENCHMARK DOMAIN:') &&
+        m81HomeHtml.includes('href="/agencies#sandbox"') &&
+        m81HomeHtml.includes('href="/connectors"') &&
+        m81HomeHtml.includes('href="/tools/json-ld-ai-schema-checker"'),
+      'Expected redesigned / to render SampleBusinessMotionShowcase, StandoutFeaturesBento, obsidian grader bezel, 1-click benchmark pills, and direct links to standout tools'
+    );
+
+    assert.ok(
+      m81Step1Html.includes('vs-quick-jump-bar') &&
+        m81Step1Html.includes('id="vs-step1-overview"') &&
+        m81Step1Html.includes('id="vs-step1-engines"') &&
+        m81Step1Html.includes('id="vs-step1-truth"') &&
+        m81Step1Html.includes('id="vs-step1-crawlers"') &&
+        m81Step2Html.includes('id="vs-step2-master-prompt"') &&
+        m81Step2Html.includes('id="vs-citation-page-studio"') &&
+        m81Step2Html.includes('id="vs-step2-raw-files"') &&
+        m81Step3Html.includes('id="vs-step3-citations"') &&
+        m81Step3Html.includes('id="vs-step3-whitelabel"') &&
+        m81Step3Html.includes('id="vs-mcp-connection-hub"') &&
+        m81Step3Html.includes('id="vs-subscriber-partner-hub"'),
+      'Expected Console Steps 01, 02, and 03 to render quick-jump navigation bars and cleanly separated zone anchors'
+    );
+
+    const strippedM81Home = m81HomeHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM81Home.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on M81 redesigned homepage'
+    );
+    assert.ok(
+      !SELF_SCORE_JARGON.test(strippedM81Home) &&
+        !PLAIN_ENGLISH_JARGON.test(strippedM81Home) &&
+        !/\bbeta\b/i.test(strippedM81Home) &&
+        !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+          m81HomeHtml
+        ),
+      'Found /10, plain-English, Beta, or coffee-store echo on M81 redesigned homepage'
+    );
+    console.log('✔ [77/77] M81 Tactile Bezels, 8+ Inline Motion SVGs, Sample Business Storyboard, 6-Card Standout Bento & Console Quick-Jump Zone Separation verified!');
   } finally {
     server.kill();
   }

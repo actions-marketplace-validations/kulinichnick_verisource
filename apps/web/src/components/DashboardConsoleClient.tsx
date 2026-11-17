@@ -63,6 +63,8 @@ import {
 } from '@verisource/core-geo';
 import {
   CodeArtifactCard,
+  ConsoleQuickJumpBar,
+  ConsoleZoneHeader,
   GuidedExplainerBanner,
   MetricLedgerCell,
   StatusBadge,
@@ -2949,7 +2951,8 @@ export function DashboardConsoleClient(props: {
 
         <div className="vs-grid-2" style={{ alignItems: 'start' }}>
           {/* Left Column: Sign-In Card or Signed-In Account Card */}
-          <div className="vs-card" style={{ padding: '26px' }}>
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ padding: '26px' }}>
             {isPlanActivation ? (
               <div>
                 <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
@@ -3164,10 +3167,12 @@ export function DashboardConsoleClient(props: {
                 </div>
               </div>
             )}
+            </div>
           </div>
 
           {/* Right Column: Plan Activation Cards */}
-          <div className="vs-card" style={{ padding: '26px' }}>
+          <div className="vs-bezel">
+            <div className="vs-card" style={{ padding: '26px' }}>
             <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
               NEW TO VERISOURCE?
             </div>
@@ -3314,6 +3319,7 @@ export function DashboardConsoleClient(props: {
                 </div>
               ))}
             </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3321,145 +3327,189 @@ export function DashboardConsoleClient(props: {
   }
 
   return (
-    <div className="vs-container" style={{ paddingTop: '28px' }}>
-      {/* Workspace Top Control Bar */}
-      <div
-        className="vs-card"
-        style={{
-          padding: '14px 18px',
-          marginBottom: '16px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '14px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <span
-            className="vs-mono"
-            style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+    <div className="vs-container" style={{ paddingTop: '28px', paddingBottom: '56px' }}>
+      {/* Workspace Top Control Bar (2-Tier Clean Instrument Header) */}
+      <div className="vs-bezel" style={{ marginBottom: '20px' }}>
+        <div className="vs-card" style={{ overflow: 'hidden' }}>
+          <div
+            style={{
+              padding: '14px 18px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px 16px',
+            }}
           >
-            ACTIVE DOMAIN:
-          </span>
-          <select
-            value={activeDomain?.id ?? ''}
-            onChange={(e) => setSelectedDomainId(e.target.value)}
-            className="vs-input"
-            style={{ width: 'auto', minWidth: '250px', padding: '7px 10px' }}
-            aria-label="Select tracked domain"
-          >
-            {data.domains.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.brand_name} ({new URL(d.domain_url).hostname})
-              </option>
-            ))}
-          </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <span
+                className="vs-mono"
+                style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--vs-ink-muted)' }}
+              >
+                ACTIVE DOMAIN:
+              </span>
+              <select
+                value={activeDomain?.id ?? ''}
+                onChange={(e) => setSelectedDomainId(e.target.value)}
+                className="vs-input"
+                style={{ width: 'auto', minWidth: '240px', padding: '7px 10px' }}
+                aria-label="Select tracked domain"
+              >
+                {data.domains.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.brand_name} ({new URL(d.domain_url).hostname})
+                  </option>
+                ))}
+              </select>
 
-          {activeDomain ? (
-            <div style={{ display: 'inline-flex', gap: '6px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                disabled={rescanningDomain || deletingDomain}
-                onClick={() => void handleRescanDomain()}
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '7px 11px', fontSize: '12px' }}
-                title="Run live HTTP & multi-engine re-scan on active domain"
-              >
-                {rescanningDomain ? 'Re-Scanning...' : '↻ Re-Scan'}
-              </button>
-              <button
-                type="button"
-                onClick={handleExportExecutiveAuditReport}
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '7px 11px', fontSize: '12px' }}
-                title="Download full Executive AI Search Report (.md)"
-              >
-                ↓ Export Audit (.md)
-              </button>
-              {!isProtectedDemoSeedDomain ? (
-                <button
-                  type="button"
-                  disabled={deletingDomain || rescanningDomain}
-                  onClick={() => void handleDeleteDomain()}
-                  className="vs-btn vs-btn-secondary"
-                  style={{
-                    padding: '7px 10px',
-                    fontSize: '12px',
-                    color: 'var(--vs-crit-fg)',
-                  }}
-                  title="Remove domain and purge its crawl snapshots"
-                >
-                  {deletingDomain ? 'Removing...' : 'Remove'}
-                </button>
+              {activeDomain ? (
+                <div style={{ display: 'inline-flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    disabled={rescanningDomain || deletingDomain}
+                    onClick={() => void handleRescanDomain()}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '7px 11px', fontSize: '12px' }}
+                    title="Run live HTTP & multi-engine re-scan on active domain"
+                  >
+                    {rescanningDomain ? 'Re-Scanning...' : '↻ Re-Scan'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleExportExecutiveAuditReport}
+                    className="vs-btn vs-btn-secondary"
+                    style={{ padding: '7px 11px', fontSize: '12px' }}
+                    title="Download full Executive AI Search Report (.md)"
+                  >
+                    ↓ Export Audit (.md)
+                  </button>
+                  {!isProtectedDemoSeedDomain ? (
+                    <button
+                      type="button"
+                      disabled={deletingDomain || rescanningDomain}
+                      onClick={() => void handleDeleteDomain()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{
+                        padding: '7px 10px',
+                        fontSize: '12px',
+                        color: 'var(--vs-crit-fg)',
+                      }}
+                      title="Remove domain and purge its crawl snapshots"
+                    >
+                      {deletingDomain ? 'Removing...' : 'Remove'}
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
-          ) : null}
 
-          <form
-            onSubmit={handleAddDomain}
-            style={{ display: 'inline-flex', gap: '6px' }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', flexWrap: 'wrap' }}>
+              <UxModeSwitch mode={uxMode} onChange={handleChangeUxMode} />
+              <StatusBadge tone="pass">
+                {`PLAN: ${data.profile.plan_tier.toUpperCase()}`}
+              </StatusBadge>
+              {!isGuided ? (
+                <StatusBadge>
+                  {`MCP CREDITS: ${data.profile.mcp_calls_used_this_month} / ${data.profile.mcp_calls_limit}`}
+                </StatusBadge>
+              ) : null}
+              <Link
+                href="/tutorial"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '7px 11px', fontSize: '12px' }}
+                title="Open 90-second interactive walkthrough of all 3 Console steps"
+              >
+                How to Use
+              </Link>
+              <form action="/api/billing/portal" method="POST">
+                {accessToken ? (
+                  <input type="hidden" name="access_token" value={accessToken} />
+                ) : null}
+                <button
+                  type="submit"
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '7px 12px', fontSize: '12px' }}
+                >
+                  Manage Billing
+                </button>
+              </form>
+              {accessToken ? (
+                <button
+                  type="button"
+                  onClick={() => void handleSignOut()}
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '7px 12px', fontSize: '12px' }}
+                  title={authEmail ?? 'Signed in'}
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '7px 12px', fontSize: '12px' }}
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: '9px 18px',
+              borderTop: '1px solid var(--vs-border)',
+              background: 'var(--vs-surface-warm)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '8px 14px',
+            }}
           >
-            <input
-              type="text"
-              value={newDomainUrl}
-              onChange={(e) => setNewDomainUrl(e.target.value)}
-              placeholder="Add domain (e.g. stripe.com)"
-              className="vs-input"
-              style={{ width: '210px', padding: '7px 10px', fontSize: '12.5px' }}
-            />
-            <button
-              type="submit"
-              disabled={addingDomain}
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '7px 12px', fontSize: '12.5px' }}
+            <form
+              onSubmit={handleAddDomain}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}
             >
-              {addingDomain ? 'Scanning...' : '+ Scan Domain'}
-            </button>
-          </form>
-        </div>
+              <span
+                className="vs-eyebrow"
+                style={{ fontSize: '10.5px', marginRight: '2px' }}
+              >
+                ADD WEBSITE:
+              </span>
+              <input
+                type="text"
+                value={newDomainUrl}
+                onChange={(e) => setNewDomainUrl(e.target.value)}
+                placeholder="Add domain (e.g. stripe.com)"
+                className="vs-input"
+                style={{ width: '215px', padding: '6px 10px', fontSize: '12px', background: '#FFFFFF' }}
+              />
+              <button
+                type="submit"
+                disabled={addingDomain}
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '12px' }}
+              >
+                {addingDomain ? 'Scanning...' : '+ Scan Domain'}
+              </button>
+            </form>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <UxModeSwitch mode={uxMode} onChange={handleChangeUxMode} />
-          <StatusBadge tone="pass">
-            {`PLAN: ${data.profile.plan_tier.toUpperCase()}`}
-          </StatusBadge>
-          {!isGuided ? (
-            <StatusBadge>
-              {`MCP CREDITS: ${data.profile.mcp_calls_used_this_month} / ${data.profile.mcp_calls_limit}`}
-            </StatusBadge>
-          ) : null}
-          <form action="/api/billing/portal" method="POST">
-            {accessToken ? (
-              <input type="hidden" name="access_token" value={accessToken} />
-            ) : null}
-            <button
-              type="submit"
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '7px 12px', fontSize: '12px' }}
-            >
-              Manage Billing
-            </button>
-          </form>
-          {accessToken ? (
-            <button
-              type="button"
-              onClick={() => void handleSignOut()}
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '7px 12px', fontSize: '12px' }}
-              title={authEmail ?? 'Signed in'}
-            >
-              Sign Out
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '7px 12px', fontSize: '12px' }}
-            >
-              Sign In
-            </Link>
-          )}
+            <span style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>
+              {isGuided ? (
+                <>
+                  <strong>Guided Mode active:</strong> calm, step-by-step view
+                  with optional developer tools tucked neatly inside drawers.
+                </>
+              ) : (
+                <>
+                  <strong className="vs-mono">Pro Mode active:</strong> all HTTP
+                  headers, multi-engine SoV tables, raw schema files &amp;{' '}
+                  <code className="vs-mono">/mcp</code> controls expanded.
+                </>
+              )}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -3794,26 +3844,73 @@ export function DashboardConsoleClient(props: {
         {activeTab === 'tab1_visibility' && activeDomain ? (
           <div>
             {isGuided ? (
-              <GuidedExplainerBanner
-                stepLabel="STEP 01 OF 03 · WHAT WE FOUND ON YOUR WEBSITE"
-                title="Start here: see what needs to be fixed—then let your AI fix it in Step 02"
-                description="Review your step-by-step site action plan below, confirm your real prices in 'Your Real Business Facts', and click 'Fix With 1-Click AI Prompt →' to update your site without coding."
-                glossary={[
-                  {
-                    term: 'AI Visibility',
-                    meaning: 'How often AI recommends your business (0–100)',
-                  },
-                  {
-                    term: 'Fact Accuracy',
-                    meaning: 'Whether AI states your real prices & policies',
-                  },
-                  {
-                    term: '1-Click AI Prompt',
-                    meaning: 'Ready-made prompt you paste into ChatGPT, Claude, or Cursor',
-                  },
-                ]}
-              />
+              <div style={{ marginBottom: '16px' }}>
+                <GuidedExplainerBanner
+                  stepLabel="STEP 01 OF 03 · WHAT WE FOUND ON YOUR WEBSITE"
+                  title="Start here: see what needs to be fixed—then let your AI fix it in Step 02"
+                  description="Review your step-by-step site action plan below, confirm your real prices in 'Your Real Business Facts', and click 'Fix With 1-Click AI Prompt →' to update your site without coding."
+                  glossary={[
+                    {
+                      term: 'AI Visibility',
+                      meaning: 'How often AI recommends your business (0–100)',
+                    },
+                    {
+                      term: 'Fact Accuracy',
+                      meaning: 'Whether AI states your real prices & policies',
+                    },
+                    {
+                      term: '1-Click AI Prompt',
+                      meaning: 'Ready-made prompt you paste into ChatGPT, Claude, or Cursor',
+                    },
+                  ]}
+                />
+              </div>
             ) : null}
+
+            <ConsoleQuickJumpBar
+              mode={uxMode}
+              anchors={
+                isGuided
+                  ? [
+                      { id: 'vs-step1-overview', label: '1. Score & Action Plan' },
+                      { id: 'vs-step1-truth', label: '2. Your Real Business Facts' },
+                      { id: 'vs-step1-engines', label: '3. Engine Breakdown' },
+                      { id: 'vs-step1-crawlers', label: '4. Bot & Visitor Logs' },
+                    ]
+                  : [
+                      { id: 'vs-step1-overview', label: '01 · Score & Uplift' },
+                      { id: 'vs-step1-engines', label: '02 · Engine SoV & Sentiment' },
+                      { id: 'vs-step1-truth', label: '03 · Claim Watchdog & Truth' },
+                      { id: 'vs-step1-crawlers', label: '04 · WAF, Crawl & Pixel' },
+                    ]
+              }
+              rightHint={
+                isGuided
+                  ? '4 calm sections · ~2 min review'
+                  : '4 telemetry zones · live HTTP & snapshot stream'
+              }
+            />
+
+            <div id="vs-step1-overview" className="vs-console-zone-first">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 1 OF 4' : 'ZONE 01 · SCORE LEDGER'}
+                title={
+                  isGuided
+                    ? 'Your Overall AI Score & Priority Action Plan'
+                    : 'Visibility Score, Claim Accuracy & Remediation Delta'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Read your top 2–3 priority fixes below, then click the button on any item to jump straight to your 1-Click AI Fix Prompt.'
+                    : 'Tracks composite 3-engine Share of Voice, Brand Truth accuracy, verified AI referral orders, and Before → After score uplift.'
+                }
+                badgeText={
+                  activeDomain.visibility_score >= 70
+                    ? 'STRONG BASELINE'
+                    : 'ACTION RECOMMENDED'
+                }
+                badgeTone={activeDomain.visibility_score >= 70 ? 'pass' : 'warn'}
+              />
 
             {/* Metric Summary Strip */}
             <div
@@ -4132,7 +4229,43 @@ export function DashboardConsoleClient(props: {
                 </div>
               </div>
             ) : null}
+            </div>
 
+            {/* Zone: Engine-by-Engine Citation Share & Sentiment (Collapsed by default in Guided Mode so non-pros aren't overwhelmed; Open in Pro Mode) */}
+            <div id="vs-step1-engines" className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 2 OF 4 · OPTIONAL DETAIL' : 'ZONE 02 · MULTI-ENGINE SOV'}
+                title={
+                  isGuided
+                    ? 'How ChatGPT, Gemini & Perplexity Each Rank You'
+                    : 'Engine-by-Engine Citation Share, Framing Polarity & Rival SoV'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Optional breakdown—open the drawer below anytime if you want to compare how each AI search engine scores you against competitors.'
+                    : 'Click any engine card to filter the Snapshot Diff table below, or click Build vs. Page → on any named competitor to draft a comparison route.'
+                }
+                badgeText={isGuided ? 'OPTIONAL BREAKDOWN' : '3 ENGINES TRACKED'}
+              />
+
+              <details className="vs-disclosure" open={!isGuided}>
+                <summary className="vs-disclosure-summary">
+                  <div style={{ maxWidth: '760px' }}>
+                    <strong style={{ fontSize: '13.5px', display: 'block', marginBottom: '2px' }}>
+                      {isGuided
+                        ? 'Detailed AI Engine Breakdown & Competitor Comparison (ChatGPT · Gemini · Perplexity)'
+                        : 'Multi-Engine Citation Share & Head-to-Head Rival Share of Voice'}
+                    </strong>
+                    <span style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
+                      {isGuided
+                        ? 'See mention rate, footnote citation rate, and which competitors are named instead of you.'
+                        : 'Granular mention vs. cited URL split, sentiment framing polarity, and entity SoV bars.'}
+                    </span>
+                  </div>
+                  <span className="vs-disclosure-pill">Engine Scores</span>
+                </summary>
+
+                <div className="vs-disclosure-body">
             {/* Engine-by-Engine Citation Share Strip + 1-Click Engine Filter */}
             <div className="vs-card" style={{ marginBottom: '22px', overflow: 'hidden' }}>
               <div
@@ -4542,6 +4675,31 @@ export function DashboardConsoleClient(props: {
                 </div>
               </div>
             ) : null}
+                </div>
+              </details>
+            </div>
+
+            {/* Zone: Hallucination Watchdog + 1-Click Truth Sheet */}
+            <div id="vs-step1-truth" className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 3 OF 4 · IMPORTANT' : 'ZONE 03 · CLAIM WATCHDOG & TRUTH SHEET'}
+                title={
+                  isGuided
+                    ? 'Check What AI Tells Buyers & Confirm Your Real Business Facts'
+                    : 'Engine Answer Snapshots, Hallucination Diff & Brand Truth Sheet'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Read what AI currently says on the left, make sure your real prices and rules on the right are accurate, and click Save Facts so Step 02 builds 100% accurate fixes.'
+                    : 'Audits raw engine excerpts against your verified Brand Truth Sheet and regenerates syntax-validated JSON-LD, /agents.md, and /llms.txt artifacts on save.'
+                }
+                badgeText={
+                  flaggedSnapshots.length > 0
+                    ? `${flaggedSnapshots.length} CLAIM CONFLICT(S)`
+                    : 'FACTS VERIFIED'
+                }
+                badgeTone={flaggedSnapshots.length > 0 ? 'critical' : 'pass'}
+              />
 
             {/* Module 1: Hallucination Watchdog + 1-Click Truth Sheet */}
             <div className="vs-grid-split" style={{ marginBottom: '24px' }}>
@@ -4867,6 +5025,25 @@ export function DashboardConsoleClient(props: {
                 />
               </div>
             ) : null}
+            </div>
+
+            {/* Zone: AI Bot WAF Status, Crawler Readability & Dual Attribution */}
+            <div id="vs-step1-crawlers" className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 4 OF 4' : 'ZONE 04 · WAF, CRAWL & PIXEL TELEMETRY'}
+                title={
+                  isGuided
+                    ? 'Can AI Bots Read Your Website? (+ Optional Visitor Tracker)'
+                    : '5-Bot WAF Status, Non-JS Signal Density, Sub-Page Bot Inspector & Attribution'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Green ALLOWED badges mean AI search bots can visit your site. The visitor tracker inside the bottom drawer is 100% optional (like Google Analytics).'
+                    : 'Verifies robots.txt / WAF access for 5 AI crawlers, inspects non-JS DOM token streams on any route, and logs HMAC-verified bot hits and checkout conversions.'
+                }
+                badgeText={`BOT CRAWLS: ${totalBotCrawls}`}
+                badgeTone={totalBotCrawls > 0 ? 'pass' : 'neutral'}
+              />
 
             {/* Module 2: AI Bot WAF Status, Crawler Readability & Dual Attribution */}
             <div className="vs-card" style={{ padding: '16px', marginBottom: '18px' }}>
@@ -5737,32 +5914,74 @@ export function DashboardConsoleClient(props: {
                 </div>
               </details>
             </div>
+            </div>
           </div>
         ) : null}
 
         {activeTab === 'tab2_fixes' && activeDomain ? (
           <div>
             {isGuided ? (
-              <GuidedExplainerBanner
-                stepLabel="STEP 02 OF 03 · 1-CLICK PROMPT FOR YOUR AI (NO CODING NEEDED)"
-                title="Fastest way to fix your website: copy 1 Verisource prompt into your AI tool"
-                description="You do NOT need to copy-paste individual code files below. Simply pick your AI tool inside the first box, click 'Copy Prompt for My AI', paste it into ChatGPT, Claude, Antigravity, Cursor, or Shopify, and click '✓ Verify Live Fixes' when done."
-                glossary={[
-                  {
-                    term: '1-Click AI Prompt',
-                    meaning: 'One ready-made prompt that installs every fix below automatically',
-                  },
-                  {
-                    term: 'JSON-LD',
-                    meaning: 'Hidden fact-sheet code AI & search engines read',
-                  },
-                  {
-                    term: '/agents.md & /llms.txt',
-                    meaning: 'Official business rulebook & directory for AI bots',
-                  },
-                ]}
-              />
+              <div style={{ marginBottom: '16px' }}>
+                <GuidedExplainerBanner
+                  stepLabel="STEP 02 OF 03 · 1-CLICK PROMPT FOR YOUR AI (NO CODING NEEDED)"
+                  title="Fastest way to fix your website: copy 1 Verisource prompt into your AI tool"
+                  description="You do NOT need to copy-paste individual code files below. Simply pick your AI tool inside the first box, click 'Copy Prompt for My AI', paste it into ChatGPT, Claude, Antigravity, Cursor, or Shopify, and click '✓ Verify Live Fixes' when done."
+                  glossary={[
+                    {
+                      term: '1-Click AI Prompt',
+                      meaning: 'One ready-made prompt that installs every fix below automatically',
+                    },
+                    {
+                      term: 'JSON-LD',
+                      meaning: 'Hidden fact-sheet code AI & search engines read',
+                    },
+                    {
+                      term: '/agents.md & /llms.txt',
+                      meaning: 'Official business rulebook & directory for AI bots',
+                    },
+                  ]}
+                />
+              </div>
             ) : null}
+
+            <ConsoleQuickJumpBar
+              mode={uxMode}
+              anchors={
+                isGuided
+                  ? [
+                      { id: 'vs-step2-master-prompt', label: '1. 1-Click AI Fix Prompt' },
+                      { id: 'vs-citation-page-studio', label: '2. Competitor Comparison Page' },
+                      { id: 'vs-step2-raw-files', label: '3. Optional Raw Files & Shopping' },
+                    ]
+                  : [
+                      { id: 'vs-step2-master-prompt', label: '01 · Master AI Prompt & Live Verify' },
+                      { id: 'vs-citation-page-studio', label: '02 · Citation & vs. Rival Studio' },
+                      { id: 'vs-step2-raw-files', label: '03 · Shopping Matrix & Raw Bundle' },
+                    ]
+              }
+              rightHint={
+                isGuided
+                  ? 'Most owners only need Section 1 (~2 min)'
+                  : '7-CMS auto-detection · 4-point HTTP verifier'
+              }
+            />
+
+            <div id="vs-step2-master-prompt" className="vs-console-zone-first">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 1 OF 3 · START HERE' : 'ZONE 01 · MASTER REMEDIATION & LIVE VERIFIER'}
+                title={
+                  isGuided
+                    ? 'Fix Your Website in 1 Click (Using Your Own AI or Drop-In Plugin)'
+                    : '7-Platform Master Remediation Prompt & Closed-Loop HTTP Verifier'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Pick your website builder below, click Copy Prompt for My AI, paste it into ChatGPT/Claude/Cursor (or grab our 1-file WordPress plugin on /connectors), then click ✓ Verify Live Fixes.'
+                    : 'Auto-detects CMS platform, bundles syntax-validated JSON-LD + /agents.md + /llms.txt into one prompt, and probes all 4 live HTTP endpoints on verification.'
+                }
+                badgeText="PRIMARY FIX"
+                badgeTone="pass"
+              />
 
             {/* 1-Click AI Remediation Master Prompt (Claude · ChatGPT · Antigravity · Cursor) */}
             {aiRemediationMasterPrompt ? (
@@ -6339,6 +6558,24 @@ export function DashboardConsoleClient(props: {
                 ) : null}
               </div>
             ) : null}
+            </div>
+
+            {/* Zone 02: M48 AI Citation & Rival Comparison Page Studio */}
+            <div className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 2 OF 3 · WIN BUYER COMPARISONS' : 'ZONE 02 · CITATION & COMPARISON STUDIO'}
+                title={
+                  isGuided
+                    ? 'Publish a “You vs. Competitor” or Buyer Guide Page'
+                    : 'Brand-Truth-Locked Comparison & Answer-First Route Generator'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: After finishing Section 1, pick a competitor name below and click Copy AI Prompt to Create Page so ChatGPT & Perplexity cite your comparison table.'
+                    : 'Synthesizes semantic <table> feature matrices and FAQPage JSON-LD locked to your Brand Truth Sheet, plus live route verification.'
+                }
+                badgeText="SHORTLIST CAPTURE"
+              />
 
             {/* M48: AI Citation & Rival Comparison Page Studio */}
             {activeCitationPageBundle ? (
@@ -7030,6 +7267,24 @@ export function DashboardConsoleClient(props: {
                 </div>
               </div>
             ) : null}
+            </div>
+
+            {/* Zone 03: AI Shopping Readiness & Manual Raw Files */}
+            <div id="vs-step2-raw-files" className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 3 OF 3 · OPTIONAL DEVELOPER FILES' : 'ZONE 03 · SHOPPING MATRIX & RAW ARTIFACT BUNDLE'}
+                title={
+                  isGuided
+                    ? 'AI Shopping Checklist & Individual Raw Code Files (Optional)'
+                    : '5-Attribute Commerce Readiness Matrix & Syntax-Validated Raw Artifacts'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Everything here is already inside your 1-Click AI Fix Prompt in Section 1. Only open the raw files drawer if a web developer wants to copy files manually.'
+                    : 'Audits structured Offer, Fulfillment, Policy, Entity, and Protocol attributes and exposes individual validated JSON-LD, /agents.md, and /llms.txt payloads.'
+                }
+                badgeText={isGuided ? 'ALREADY IN SECTION 1' : `${domainFixes.length} ARTIFACTS`}
+              />
 
             {/* AI Shopping & Offer Attribute Readiness Matrix */}
             {commerceReadiness ? (
@@ -7299,32 +7554,96 @@ export function DashboardConsoleClient(props: {
                 </div>
               </div>
             </details>
+            </div>
           </div>
         ) : null}
 
         {activeTab === 'tab3_offsite' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div>
             {isGuided ? (
-              <GuidedExplainerBanner
-                stepLabel="STEP 03 OF 03 · COMPETITORS & CLIENT REPORTS"
-                title="See where competitors get recommended & share client links"
-                description="Add real questions buyers ask to uncover which blogs and Reddit threads AI trusts, or create a clean branded audit page to send to a prospect."
-                glossary={[
-                  {
-                    term: 'Competitor Sources',
-                    meaning: 'Third-party articles & threads AI trusts',
-                  },
-                  {
-                    term: 'White-Label Pitch URL',
-                    meaning: 'Shareable client report with your logo & booking button',
-                  },
-                ]}
-              />
+              <div style={{ marginBottom: '16px' }}>
+                <GuidedExplainerBanner
+                  stepLabel="STEP 03 OF 03 · COMPETITORS & CLIENT REPORTS"
+                  title="See where competitors get recommended & share client links"
+                  description="Add real questions buyers ask to uncover which blogs and Reddit threads AI trusts, or create a clean branded audit page to send to a prospect."
+                  glossary={[
+                    {
+                      term: 'Competitor Sources',
+                      meaning: 'Third-party articles & threads AI trusts',
+                    },
+                    {
+                      term: 'White-Label Pitch URL',
+                      meaning: 'Shareable client report with your logo & booking button',
+                    },
+                  ]}
+                />
+              </div>
             ) : null}
 
+            <ConsoleQuickJumpBar
+              mode={uxMode}
+              anchors={
+                isGuided
+                  ? [
+                      { id: 'vs-step3-citations', label: '1. Competitor Sources & Questions' },
+                      { id: 'vs-step3-whitelabel', label: '2. Client Audit Links (Agencies)' },
+                      { id: 'vs-mcp-connection-hub', label: '3. Connect AI Agents (/mcp)' },
+                      { id: 'vs-subscriber-partner-hub', label: '4. Earn 25% Referral Credit' },
+                    ]
+                  : [
+                      { id: 'vs-step3-citations', label: '01 · Rival X-Ray & Citation Gaps' },
+                      { id: 'vs-step3-whitelabel', label: '02 · White-Label Pitch & Deal Alerts' },
+                      { id: 'vs-mcp-connection-hub', label: '03 · Streamable HTTP /mcp Hub' },
+                      { id: 'vs-subscriber-partner-hub', label: '04 · 25% Partner Engine' },
+                    ]
+              }
+              rightHint={
+                isGuided
+                  ? '4 clear tools · use only the ones you need'
+                  : 'Off-site authority, batch prospecting & /mcp'
+              }
+            />
+
             {activeDomain ? (
-              <>
-            {/* M50: Live Competitor Domain Technical X-Ray (Side-by-Side Readiness Diff) */}
+              <div id="vs-step3-citations" className="vs-console-zone-first">
+                <ConsoleZoneHeader
+                  zoneTag={isGuided ? 'SECTION 1 OF 4 · OFF-SITE CITATIONS' : 'ZONE 01 · RIVAL X-RAY, CITATION GAPS & FANOUTS'}
+                  title={
+                    isGuided
+                      ? 'Where AI Finds Your Competitors (Reviews, Blogs & Buyer Questions)'
+                      : 'Live Competitor HTTP X-Ray, Ranked Citation Gaps & Buyer Fanouts'
+                  }
+                  howToUse={
+                    isGuided
+                      ? 'How to use: Click Draft Pitch on any Citation Gap row below to get a polite outreach note to get your business added to trusted articles and directories.'
+                      : 'Benchmarks rival domains side by side over live HTTP, ranks third-party citation gaps by engine frequency, and verifies live dofollow/mention placements.'
+                  }
+                  badgeText={`${citationGapCount} CITATION GAP(S)`}
+                  badgeTone={citationGapCount > 0 ? 'warn' : 'pass'}
+                />
+
+            {/* M50: Live Competitor Domain Technical X-Ray (Collapsed in Guided Mode for calm layout; Open in Pro Mode) */}
+            <details
+              className="vs-disclosure"
+              open={!isGuided || Boolean(rivalXrayReport)}
+              style={{ marginBottom: '20px' }}
+            >
+              <summary className="vs-disclosure-summary">
+                <div style={{ maxWidth: '760px' }}>
+                  <strong style={{ fontSize: '13.5px', display: 'block', marginBottom: '2px' }}>
+                    {isGuided
+                      ? 'Optional: Compare Your Website Side-by-Side Against Any Competitor URL'
+                      : 'Live Competitor Technical X-Ray — Side-by-Side HTTP & Schema Diff'}
+                  </strong>
+                  <span style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)' }}>
+                    {isGuided
+                      ? 'Enter a competitor website to see why AI bots read their site more easily—and copy 1 prompt to overtake them.'
+                      : 'Compares GPTBot access, non-JS token stream, JSON-LD graph types, /llms.txt, and /agents.md head to head.'}
+                  </span>
+                </div>
+                <span className="vs-disclosure-pill">Competitor X-Ray</span>
+              </summary>
+              <div className="vs-disclosure-body" style={{ padding: '14px' }}>
             <div className="vs-card" style={{ overflow: 'hidden' }}>
               <div
                 style={{
@@ -7544,9 +7863,11 @@ export function DashboardConsoleClient(props: {
                 </div>
               ) : null}
             </div>
+              </div>
+            </details>
 
             {/* Citation Gap Source Leaderboard */}
-            <div className="vs-card vs-table-wrap">
+            <div className="vs-card vs-table-wrap" style={{ marginBottom: '20px' }}>
               <div
                 style={{
                   padding: '12px 16px',
@@ -8439,8 +8760,25 @@ export function DashboardConsoleClient(props: {
                 </tbody>
               </table>
             </div>
-              </>
+              </div>
             ) : null}
+
+            {/* Zone 02: Agency 60-Second White-Label Pitch Mode */}
+            <div id="vs-step3-whitelabel" className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 2 OF 4 · CLIENT & AGENCY LINKS' : 'ZONE 02 · WHITE-LABEL PROSPECTING & DEAL ALERTS'}
+                title={
+                  isGuided
+                    ? 'Create Branded Client Audit Links (For Agencies & Consultants)'
+                    : '60-Second White-Label /audit/[slug] Pipeline, PDF Briefs & Open Telemetry'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Enter 1–10 client domains with your logo and booking link to create clean shareable scorecards—we email you when a prospect opens it, saves the PDF, or clicks your CTA.'
+                    : 'Mints isolated white-label /audit/[slug] scorecards (0 Verisource chrome), tracks bot-filtered OPENED, PDF SAVED, and CTA CLICKED signals, and generates 3-touch sequences.'
+                }
+                badgeText={`${data.pitchReports.length} ACTIVE LINK(S)`}
+              />
 
             {/* Module 4: Agency 60-Second White-Label Pitch Mode (Single + Batch Prospecting) */}
             <div className="vs-grid-2">
@@ -9021,6 +9359,24 @@ export function DashboardConsoleClient(props: {
                 />
               </div>
             ) : null}
+            </div>
+
+            {/* Zone 03: Paid MCP Server Connection Hub & Subscriber 25% Partner Hub */}
+            <div className="vs-console-zone">
+              <ConsoleZoneHeader
+                zoneTag={isGuided ? 'SECTION 3 & 4 · AI AGENT SYNC & 25% PARTNER CREDIT' : 'ZONE 03 & 04 · STREAMABLE HTTP /MCP & PARTNER ENGINE'}
+                title={
+                  isGuided
+                    ? 'Optional: Connect Desktop AI Agents (/mcp) or Earn 25% Referral Credit'
+                    : 'Stateless Streamable HTTP /mcp Keys & 25% Recurring Partner Link'
+                }
+                howToUse={
+                  isGuided
+                    ? 'How to use: Open the first drawer to connect Claude Desktop, Cursor, or Antigravity directly to your workspace, or open the second drawer to share Verisource and cover your monthly plan.'
+                    : 'Mint SHA-256 Bearer tokens for https://mcp.verisource.dev/mcp, run live endpoint diagnostics, or activate your 90-day Stripe-synced 25% recurring referral link.'
+                }
+                badgeText="INTEGRATIONS & REWARDS"
+              />
 
             {/* Paid MCP Server Connection Hub: Plan-aware + Guided/Pro progressive disclosure */}
             <div id="vs-mcp-connection-hub">
@@ -9884,6 +10240,7 @@ export function DashboardConsoleClient(props: {
                   </div>
                 );
               })()}
+            </div>
             </div>
           </div>
         ) : null}

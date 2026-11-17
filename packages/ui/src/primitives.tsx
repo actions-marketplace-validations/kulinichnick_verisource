@@ -327,7 +327,7 @@ export function ThreeTabShell(props: {
     },
   ];
 
-  return (
+  const shellCard = (
     <div className="vs-card" style={{ overflow: 'hidden' }}>
       <div className="vs-tabs-bar" role="tablist" aria-label="Verisource 3-Tab Console">
         {tabs.map((tab) => {
@@ -346,9 +346,10 @@ export function ThreeTabShell(props: {
                 className="vs-mono"
                 style={{
                   fontSize: '10.5px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   letterSpacing: '0.06em',
                   marginBottom: '2px',
+                  color: isActive ? 'var(--vs-ink)' : 'var(--vs-ink-muted)',
                 }}
               >
                 {isGuided ? `STEP ${tab.index}` : `TAB ${tab.index}`}
@@ -356,7 +357,7 @@ export function ThreeTabShell(props: {
               <div
                 style={{
                   fontSize: props.compact ? '12.5px' : '13.5px',
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
                 {tab.label}
@@ -376,7 +377,98 @@ export function ThreeTabShell(props: {
           );
         })}
       </div>
-      <div style={{ padding: props.compact ? '14px' : '22px' }}>{props.children}</div>
+      <div style={{ padding: props.compact ? '14px' : '24px' }}>{props.children}</div>
+    </div>
+  );
+
+  return props.compact ? shellCard : <div className="vs-bezel">{shellCard}</div>;
+}
+
+export interface ConsoleJumpAnchor {
+  id: string;
+  label: string;
+}
+
+export function ConsoleQuickJumpBar(props: {
+  mode: UxMode;
+  anchors: ConsoleJumpAnchor[];
+  rightHint?: string;
+}): React.ReactElement {
+  return (
+    <nav
+      aria-label="Section quick-jump navigation"
+      className="vs-quick-jump-bar"
+    >
+      <div className="vs-quick-jump-links">
+        <span
+          className="vs-eyebrow"
+          style={{ fontSize: '10.5px', marginRight: '4px' }}
+        >
+          {props.mode === 'guided' ? 'ON THIS PAGE:' : 'JUMP TO PANEL:'}
+        </span>
+        {props.anchors.map((a) => (
+          <a key={a.id} href={`#${a.id}`} className="vs-quick-jump-pill">
+            {a.label}
+          </a>
+        ))}
+      </div>
+      {props.rightHint ? (
+        <span
+          className="vs-mono"
+          style={{ fontSize: '11px', color: 'var(--vs-ink-muted)' }}
+        >
+          {props.rightHint}
+        </span>
+      ) : null}
+    </nav>
+  );
+}
+
+export function ConsoleZoneHeader(props: {
+  zoneTag: string;
+  title: string;
+  howToUse: string;
+  badgeText?: string;
+  badgeTone?: BadgeTone;
+}): React.ReactElement {
+  return (
+    <div className="vs-zone-header">
+      <div style={{ maxWidth: '760px' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            flexWrap: 'wrap',
+            marginBottom: '5px',
+          }}
+        >
+          <span className="vs-zone-step-pill">{props.zoneTag}</span>
+          <strong
+            style={{
+              fontSize: '16px',
+              letterSpacing: '-0.015em',
+              color: 'var(--vs-ink)',
+            }}
+          >
+            {props.title}
+          </strong>
+        </div>
+        <div
+          style={{
+            fontSize: '13px',
+            color: 'var(--vs-ink-secondary)',
+            lineHeight: 1.5,
+          }}
+        >
+          {props.howToUse}
+        </div>
+      </div>
+      {props.badgeText ? (
+        <StatusBadge tone={props.badgeTone ?? 'neutral'}>
+          {props.badgeText}
+        </StatusBadge>
+      ) : null}
     </div>
   );
 }

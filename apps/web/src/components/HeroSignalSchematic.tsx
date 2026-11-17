@@ -8,39 +8,57 @@ import React from 'react';
  */
 export function HeroSignalSchematic(): React.ReactElement {
   return (
-    <div
-      className="vs-card"
-      style={{
-        overflow: 'hidden',
-        background: 'var(--vs-surface)',
-      }}
-    >
-      <div className="vs-schematic-header">
-        <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
-          FIG 01 · HOW VERISOURCE PROTECTS YOUR BRAND
-        </span>
-        <span
-          className="vs-mono"
-          style={{
-            fontSize: '10.5px',
-            color: 'var(--vs-pass-fg)',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          ● LIVE VERIFICATION LOOP
-        </span>
-      </div>
+    <div className="vs-bezel">
+      <div
+        className="vs-card"
+        style={{
+          overflow: 'hidden',
+          background: 'var(--vs-surface)',
+        }}
+      >
+        <div className="vs-schematic-header">
+          <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
+            FIG 01 · HOW VERISOURCE PROTECTS &amp; GROWS YOUR BRAND
+          </span>
+          <span
+            className="vs-mono"
+            style={{
+              fontSize: '10.5px',
+              color: 'var(--vs-pass-fg)',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: '#059669',
+                display: 'inline-block',
+              }}
+            />
+            LIVE VERIFICATION LOOP
+          </span>
+        </div>
 
-      <div style={{ padding: '14px 12px 10px 12px', background: 'var(--vs-surface)' }}>
-        {/* Desktop & Tablet Landscape Schematic (> 640px) */}
-        <svg
-          className="vs-schematic-desktop"
-          viewBox="0 0 560 308"
-          width="100%"
-          role="img"
-          aria-label="Animated diagram showing buyer questions from ChatGPT, Google Gemini, and Perplexity flowing through the Verisource Truth Gate to catch false pricing claims and publish verified website code fixes."
-        >
+        <div style={{ padding: '14px 12px 10px 12px', background: 'var(--vs-surface)' }}>
+          {/* Desktop & Tablet Landscape Schematic (> 640px) */}
+          <svg
+            className="vs-schematic-desktop"
+            viewBox="0 0 560 308"
+            width="100%"
+            role="img"
+            aria-label="Animated diagram showing buyer questions from ChatGPT, Google Gemini, and Perplexity flowing through the Verisource Truth Gate to catch false pricing claims and publish verified website code fixes."
+          >
+            <defs>
+              <filter id="vsHeroCardShadow" x="-6%" y="-6%" width="112%" height="118%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#0A0E17" floodOpacity="0.06" />
+              </filter>
+            </defs>
           {/* Architectural Registration Crosshairs */}
           <g stroke="#E5E2DA" strokeWidth="1">
             <line x1="16" y1="22" x2="28" y2="22" />
@@ -159,16 +177,16 @@ export function HeroSignalSchematic(): React.ReactElement {
           />
 
           {/* Left Engine Node 1: ChatGPT */}
-          <g transform="translate(18, 65)">
+          <g transform="translate(18, 65)" filter="url(#vsHeroCardShadow)">
             <rect
               width="148"
               height="42"
               rx="6"
-              fill="#FAF9F6"
+              fill="#FFFFFF"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <circle cx="15" cy="21" r="3.5" fill="#0A0E17" />
+            <circle className="vs-live-dot" cx="15" cy="21" r="3.5" fill="#0A0E17" />
             <text
               x="26"
               y="18"
@@ -191,16 +209,16 @@ export function HeroSignalSchematic(): React.ReactElement {
           </g>
 
           {/* Left Engine Node 2: Google Gemini */}
-          <g transform="translate(18, 135)">
+          <g transform="translate(18, 135)" filter="url(#vsHeroCardShadow)">
             <rect
               width="148"
               height="42"
               rx="6"
-              fill="#FAF9F6"
+              fill="#FFFFFF"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <circle cx="15" cy="21" r="3.5" fill="#0A0E17" />
+            <circle className="vs-live-dot" cx="15" cy="21" r="3.5" fill="#0A0E17" />
             <text
               x="26"
               y="18"
@@ -223,16 +241,16 @@ export function HeroSignalSchematic(): React.ReactElement {
           </g>
 
           {/* Left Engine Node 3: Perplexity */}
-          <g transform="translate(18, 205)">
+          <g transform="translate(18, 205)" filter="url(#vsHeroCardShadow)">
             <rect
               width="148"
               height="42"
               rx="6"
-              fill="#FAF9F6"
+              fill="#FFFFFF"
               stroke="#CFCBC0"
               strokeWidth="1"
             />
-            <circle cx="15" cy="21" r="3.5" fill="#0A0E17" />
+            <circle className="vs-live-dot" cx="15" cy="21" r="3.5" fill="#0A0E17" />
             <text
               x="26"
               y="18"
@@ -255,7 +273,7 @@ export function HeroSignalSchematic(): React.ReactElement {
           </g>
 
           {/* Center Monolith: Verisource Truth Gate */}
-          <g transform="translate(222, 106)">
+          <g transform="translate(222, 106)" filter="url(#vsHeroCardShadow)">
             <rect
               className="vs-pulse-ring"
               x="-5"
@@ -264,8 +282,8 @@ export function HeroSignalSchematic(): React.ReactElement {
               height="110"
               rx="11"
               fill="none"
-              stroke="#CFCBC0"
-              strokeWidth="1"
+              stroke="#059669"
+              strokeWidth="1.2"
             />
             <rect width="88" height="100" rx="8" fill="#0A0E17" />
             <polygon
@@ -274,7 +292,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               stroke="#FAF9F6"
               strokeWidth="1.5"
             />
-            <circle cx="44" cy="32" r="2.5" fill="#A7F3D0" />
+            <circle className="vs-live-dot" cx="44" cy="32" r="3" fill="#34D399" />
             <text
               x="44"
               y="64"
@@ -295,12 +313,12 @@ export function HeroSignalSchematic(): React.ReactElement {
               fontSize="8.5"
               fontFamily="var(--vs-mono)"
             >
-              TRUTH GATE
+              7-CMS AUTO-FIX
             </text>
           </g>
 
           {/* Right Output Card 1: Flagged AI Mistake */}
-          <g transform="translate(362, 64)">
+          <g transform="translate(362, 64)" filter="url(#vsHeroCardShadow)">
             <rect
               width="180"
               height="66"
@@ -343,7 +361,7 @@ export function HeroSignalSchematic(): React.ReactElement {
           </g>
 
           {/* Right Output Card 2: Published Website Fix */}
-          <g transform="translate(362, 176)">
+          <g transform="translate(362, 176)" filter="url(#vsHeroCardShadow)">
             <rect
               width="180"
               height="76"
@@ -361,7 +379,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               fontWeight="700"
               letterSpacing="0.04em"
             >
-              ✓ PUBLISHED SITE FIX
+              ✓ 4/4 VERIFIED LIVE
             </text>
             <text
               x="12"
@@ -389,7 +407,7 @@ export function HeroSignalSchematic(): React.ReactElement {
               fontSize="9"
               fontFamily="var(--vs-mono)"
             >
-              48 → 91 / 100 readiness
+              48 → 91 / 100 · #1 Cited
             </text>
           </g>
         </svg>
@@ -689,30 +707,31 @@ export function HeroSignalSchematic(): React.ReactElement {
         </svg>
       </div>
 
-      <div
-        style={{
-          padding: '9px 14px',
-          borderTop: '1px solid var(--vs-border)',
-          background: 'var(--vs-surface-warm)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '6px 10px',
-          fontSize: '11.5px',
-          color: 'var(--vs-ink-secondary)',
-        }}
-      >
-        <span>
-          <strong>Easy-to-Use Guided Mode</strong> +{' '}
-          <strong className="vs-mono">Pro /mcp Mode</strong> built in
-        </span>
-        <span
-          className="vs-mono"
-          style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', whiteSpace: 'nowrap' }}
+        <div
+          style={{
+            padding: '10px 14px',
+            borderTop: '1px solid var(--vs-border)',
+            background: 'var(--vs-surface-warm)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '6px 10px',
+            fontSize: '11.5px',
+            color: 'var(--vs-ink-secondary)',
+          }}
         >
-          SVG · 0 ms lag
-        </span>
+          <span>
+            <strong>Guided Mode</strong> (no coding) +{' '}
+            <strong className="vs-mono">Pro /mcp Mode</strong> · 7 CMS platforms
+          </span>
+          <span
+            className="vs-mono"
+            style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', whiteSpace: 'nowrap' }}
+          >
+            SVG · 0 ms lag
+          </span>
+        </div>
       </div>
     </div>
   );

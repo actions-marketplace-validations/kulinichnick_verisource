@@ -111,12 +111,18 @@ export function PlatformModulesShowcase(): React.ReactElement {
           </p>
         </div>
 
-        <Link href="/pricing" className="vs-btn vs-btn-secondary">
-          Compare Console Plans →
-        </Link>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <Link href="/tutorial" className="vs-btn vs-btn-secondary">
+            90s Interactive Tour →
+          </Link>
+          <Link href="/pricing" className="vs-btn">
+            Compare Console Plans →
+          </Link>
+        </div>
       </div>
 
-      <div className="vs-card vs-showcase-grid">
+      <div className="vs-bezel">
+        <div className="vs-card vs-showcase-grid">
         {/* Left Selector Rail */}
         <div className="vs-showcase-rail">
           {PILLARS.map((pillar, index) => {
@@ -526,13 +532,21 @@ export function PlatformModulesShowcase(): React.ReactElement {
             }}
           >
             <span style={{ fontSize: '12.5px', color: 'var(--vs-ink-muted)' }}>
-              Test your own domain free above, then activate your private Console.
+              Switch between <strong>Guided Mode</strong> (step-by-step, zero
+              jargon) and <strong>Pro Mode</strong> (HTTP, schema &amp;{' '}
+              <code className="vs-mono">/mcp</code>) in 1 click.
             </span>
-            <a href="#grader" className="vs-btn">
-              Test Your Website Free ↑
-            </a>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <a href="#grader" className="vs-btn vs-btn-secondary">
+                Test Your Website Free ↑
+              </a>
+              <Link href="/pricing" className="vs-btn">
+                Start 7-Day Free Trial ($0 Today) →
+              </Link>
+            </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

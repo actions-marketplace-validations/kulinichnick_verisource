@@ -281,6 +281,59 @@ export function PublicGraderClient(): React.ReactElement {
         </button>
       </form>
 
+      {!result ? (
+        <div
+          style={{
+            padding: '9px 20px',
+            borderBottom: '1px solid var(--vs-border)',
+            background: '#FFFFFF',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px 12px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <span
+              className="vs-eyebrow"
+              style={{ fontSize: '10.5px', marginRight: '4px' }}
+            >
+              OR TEST A LIVE BENCHMARK DOMAIN:
+            </span>
+            {(['stripe.com', 'linear.app', 'cal.com', 'shopify.com'] as const).map(
+              (sampleHost) => (
+                <button
+                  key={sampleHost}
+                  type="button"
+                  disabled={loading}
+                  className="vs-pill-btn vs-pill-btn-sm"
+                  onClick={() => {
+                    setDomainInput(sampleHost);
+                    void runScan(sampleHost);
+                  }}
+                >
+                  {sampleHost}
+                </button>
+              )
+            )}
+          </div>
+          <span
+            className="vs-mono"
+            style={{ fontSize: '11px', color: 'var(--vs-ink-muted)' }}
+          >
+            Auto-detects Shopify · WordPress · Webflow · Wix · Next.js
+          </span>
+        </div>
+      ) : null}
+
       {error ? (
         <div
           style={{

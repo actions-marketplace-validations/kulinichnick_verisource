@@ -4122,3 +4122,72 @@ test('M79 computeAiSearchRoiProjection computes deterministic 6x+ AI conversion 
   assert.equal(localProj.projectedMonthlyAiRevenueUsd, 8400);
   assert.equal(localProj.monthsCoveredBySingleCustomer, 28.3);
 });
+
+test('M81 tactile design tokens, homepage motion SVG showcase components & console quick-jump primitives pass 0-slop & 0-coffee-echo gates', () => {
+  const uiStyles = fs.readFileSync(
+    path.resolve(process.cwd(), '../ui/src/styles.ts'),
+    'utf8'
+  );
+  const uiPrimitives = fs.readFileSync(
+    path.resolve(process.cwd(), '../ui/src/primitives.tsx'),
+    'utf8'
+  );
+  const sampleMotion = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/SampleBusinessMotionShowcase.tsx'
+    ),
+    'utf8'
+  );
+  const standoutBento = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/StandoutFeaturesBento.tsx'
+    ),
+    'utf8'
+  );
+  const homePage = fs.readFileSync(
+    path.resolve(process.cwd(), '../../apps/web/src/app/page.tsx'),
+    'utf8'
+  );
+
+  // Tactile bezel, console separation & motion SVG CSS classes present
+  assert.ok(uiStyles.includes('.vs-bezel {'));
+  assert.ok(uiStyles.includes('.vs-bezel-obsidian {'));
+  assert.ok(uiStyles.includes('.vs-quick-jump-bar {'));
+  assert.ok(uiStyles.includes('.vs-console-zone {'));
+  assert.ok(uiStyles.includes('@keyframes vsLiveDot'));
+  assert.ok(uiStyles.includes('@keyframes vsScanSweep'));
+  assert.ok(uiPrimitives.includes('export function ConsoleQuickJumpBar'));
+  assert.ok(uiPrimitives.includes('export function ConsoleZoneHeader'));
+
+  // Zero neon purple/cyan/pink gradients in design system
+  assert.ok(!/#a855f7|#ec4899|#06b6d4|blueviolet|magenta/i.test(uiStyles));
+
+  for (const [label, src] of [
+    ['SampleBusinessMotionShowcase.tsx', sampleMotion],
+    ['StandoutFeaturesBento.tsx', standoutBento],
+    ['page.tsx', homePage],
+  ] as const) {
+    assert.equal(
+      gradeArtifactQuality(src).breakdown.lexicon_filter,
+      2.0,
+      `Found banned AI lexicon in ${label}`
+    );
+    assert.ok(
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(src),
+      `Found coffee-store echo in ${label}`
+    );
+    assert.ok(!/\bbeta\b/i.test(src), `Found Beta label in ${label}`);
+    assert.ok(
+      !/plain[- ]english|\bin english\b|everyday english/i.test(
+        src.replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      ),
+      `Found plain-English jargon in ${label}`
+    );
+    assert.ok(
+      !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(src),
+      `Found internal /10 Quality Gate jargon in ${label}`
+    );
+  }
+});
