@@ -214,13 +214,15 @@ function mirrorFileIfNeeded(relPath, content) {
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
+  const rawAgencies = Number(getArgValue(args, '--agencies', '2'));
   const agencyCount = Math.max(
-    1,
-    Math.min(10, Number(getArgValue(args, '--agencies', '2')) || 2)
+    0,
+    Math.min(10, Number.isFinite(rawAgencies) ? rawAgencies : 2)
   );
+  const rawDomains = Number(getArgValue(args, '--domains', '10'));
   const seoCount = Math.max(
-    1,
-    Math.min(25, Number(getArgValue(args, '--domains', '10')) || 10)
+    0,
+    Math.min(25, Number.isFinite(rawDomains) ? rawDomains : 10)
   );
   const nowIso = new Date().toISOString();
   const todayDate = nowIso.slice(0, 10);

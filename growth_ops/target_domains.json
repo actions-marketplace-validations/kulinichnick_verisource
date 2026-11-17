@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T08:25:51.451Z",
+  "updatedAt": "2026-11-17T09:23:55.956Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -66,52 +66,62 @@
     {
       "domain": "allbirds.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "brooklinen.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "chubbies.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "olipop.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "graza.co",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "flybyjing.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "SoloStove.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "fellowproducts.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "LARQ.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "beistravel.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-17T09:23:55.956Z"
     },
     {
       "domain": "clerk.com",
