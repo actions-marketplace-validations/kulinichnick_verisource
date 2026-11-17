@@ -71,6 +71,27 @@ export default function FreeToolsHubPage(): React.ReactElement {
               3-pillar <code className="vs-mono">JSON-LD</code> graphs, and
               Shopify <code className="vs-mono">/api/ucp/mcp</code> endpoints.
             </p>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '10px',
+                marginTop: '18px',
+              }}
+            >
+              <a
+                href="https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="vs-btn"
+              >
+                Add Free Chrome Side Panel →
+              </a>
+              <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
+                Connect Free /mcp Server →
+              </Link>
+            </div>
           </div>
 
           <div className="vs-bezel">

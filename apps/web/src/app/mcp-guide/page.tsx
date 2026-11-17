@@ -185,6 +185,14 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                 <a href="#live-test" className="vs-btn vs-btn-secondary">
                   Try Free Scan Below ↓
                 </a>
+                <a
+                  href="https://cursor.directory/plugins/verisource-geo-ai-citation-mcp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="vs-btn vs-btn-secondary"
+                >
+                  View on Cursor Directory ↗
+                </a>
               </div>
             </div>
 

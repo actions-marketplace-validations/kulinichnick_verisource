@@ -72,8 +72,8 @@ Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.de
    - Submit Remote URL `https://mcp.verisource.dev/mcp`, Homepage `https://verisource.dev`, and Docs `https://verisource.dev/mcp-guide`.
 5. **MCP.so Community Index (`https://mcp.so/submit`):**
    - Category: `SEO & Search` · Server Endpoint: `https://mcp.verisource.dev/mcp` · Templates: `https://verisource.dev/templates`.
-6. **Cursor Directory (`https://cursor.directory/mcp`):**
-   - Submit `.cursor/mcp.json` snippet pointing to `https://mcp.verisource.dev/mcp` with `scan_domain_ai_readiness` (`0` credits) and `generate_geo_fix_bundle`.
+6. **Cursor Directory (`https://cursor.directory/plugins/verisource-geo-ai-citation-mcp` — LIVE):**
+   - Published `.cursor/mcp.json` plugin entry pointing to `https://mcp.verisource.dev/mcp` with `scan_domain_ai_readiness` (`0` credits) and `generate_geo_fix_bundle`.
 7. **`punkpeye/awesome-mcp-servers` GitHub PR Entry (Copy-Paste Markdown Bullet):**
    ```markdown
    - [Verisource GEO & Citation MCP](https://verisource.dev/mcp-guide) `☁️` - Stateless Streamable HTTP MCP server (`https://mcp.verisource.dev/mcp`) to audit ChatGPT, Gemini, and Perplexity citations, flag pricing hallucinations, and generate syntax-validated `JSON-LD`, `/llms.txt`, and `/agents.md` across 7 CMS platforms.

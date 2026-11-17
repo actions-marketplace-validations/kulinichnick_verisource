@@ -1,6 +1,6 @@
 # Verisource — B2B Generative Engine Optimization (GEO) & Streamable HTTP `/mcp` Platform
 
-**Live Platform:** [https://verisource.dev](https://verisource.dev) · **Streamable HTTP MCP:** `https://mcp.verisource.dev/mcp` · **Official MCP Registry:** `dev.verisource/mcp@1.0.0`
+**Live Platform:** [https://verisource.dev](https://verisource.dev) · **Streamable HTTP MCP:** `https://mcp.verisource.dev/mcp` · **Official MCP Registry:** `dev.verisource/mcp@1.0.0` · **Cursor Directory:** [verisource-geo-ai-citation-mcp](https://cursor.directory/plugins/verisource-geo-ai-citation-mcp) · **Chrome Web Store:** [Install Side Panel](https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb)
 
 Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** cite your brand, catches hallucinated pricing and policy claims against a verified **Brand Truth Sheet**, and generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, and **You vs. Competitor** HTML comparison pages across **7 CMS platforms** (`Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, and `Next.js`).
 
