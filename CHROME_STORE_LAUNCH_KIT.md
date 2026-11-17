@@ -2,7 +2,7 @@
 
 Ready-to-submit Chrome Web Store listing copy, least-privilege permission justifications, and `1280x800` 24-bit RGB promotional assets for **`verisource-chrome-mv3-v1.0.1.zip`** (`hkkihmaeffcpapckhiciaaadbanbjddb`).
 
-> **Yellow Argon Compliance Note:** All third-party CMS, website builder, and IDE brand lists have been stripped across `manifest.json`, the Short Summary, the Detailed Store Description, and all 24-bit RGB screenshots (`<= 4` occurrences per non-stopword, `10.0 / 10.0` `quality-gate-95` verified).
+> **Yellow Argon Compliance Note:** All third-party CMS, website builder, and IDE brand lists have been stripped across `manifest.json`, the Short Summary, the Detailed Store Description, and all 24-bit RGB screenshots (`<= 4` occurrences per non-stopword).
 
 ---
 

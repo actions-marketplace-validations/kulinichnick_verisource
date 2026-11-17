@@ -4494,10 +4494,16 @@ test('M85 WXT Manifest V3 Chrome Extension Side Panel v1.0.0 tactile bezels, com
     'utf8'
   );
 
-  assert.equal(extPkg.version, '1.0.0');
-  assert.ok(extWxtConfig.includes("version: '1.0.0'"));
+  assert.equal(extPkg.version, '1.0.1');
+  assert.ok(extWxtConfig.includes("version: '1.0.1'"));
   assert.ok(extWxtConfig.includes("permissions: ['sidePanel', 'activeTab']"));
   assert.ok(!extWxtConfig.includes('<all_urls>'));
+  assert.ok(
+    !/Shopify|WordPress|Webflow|Wix|Squarespace|Framer|Next\.js/i.test(
+      extWxtConfig
+    ),
+    'Expected wxt.config.ts manifest metadata to stay free of third-party CMS keyword lists (Yellow Argon guard)'
+  );
 
   assert.ok(extApp.includes('vs-bezel-obsidian'));
   assert.ok(extApp.includes('FIG EXT · ACTIVE TAB AI &amp; PROTOCOL PROBE'));
@@ -4538,8 +4544,14 @@ test('M86 Chrome Store Launch Kit + DevTools /llms.txt vs /agents.md Benchmark A
     'utf8'
   );
 
-  assert.ok(cwsKit.includes('verisource-chrome-mv3-v1.0.0.zip'));
+  assert.ok(cwsKit.includes('verisource-chrome-mv3-v1.0.1.zip'));
   assert.ok(cwsKit.includes('sidePanel'));
+  assert.ok(
+    !/Shopify|WordPress|Webflow|Wix|Squarespace|Framer|Next\.js|Claude Code/i.test(
+      cwsKit
+    ),
+    'Expected CHROME_STORE_LAUNCH_KIT.md to stay free of third-party CMS/IDE keyword lists (Yellow Argon guard)'
+  );
   assert.ok(
     benchmarkPage.includes('NOVEMBER 2026 ADDENDUM · DEVELOPER INFRASTRUCTURE COHORT')
   );
