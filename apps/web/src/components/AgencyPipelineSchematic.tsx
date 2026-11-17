@@ -7,44 +7,62 @@ import React from 'react';
  */
 export function AgencyPipelineSchematic(): React.ReactElement {
   return (
-    <div
-      className="vs-card"
-      style={{
-        overflow: 'hidden',
-        background: 'var(--vs-surface)',
-      }}
-    >
-      <div className="vs-schematic-header">
-        <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
-          FIG 02 · 60-SECOND WHITE-LABEL RETAINER ENGINE
-        </span>
-        <span
-          className="vs-mono"
-          style={{
-            fontSize: '10.5px',
-            color: 'var(--vs-pass-fg)',
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          ● ZERO VERISOURCE CHROME
-        </span>
-      </div>
-
+    <div className="vs-bezel">
       <div
+        className="vs-card"
         style={{
-          padding: '14px 12px 10px 12px',
+          overflow: 'hidden',
           background: 'var(--vs-surface)',
         }}
       >
-        {/* Desktop & Tablet Landscape Schematic (> 640px) */}
-        <svg
-          className="vs-schematic-desktop"
-          viewBox="0 0 560 302"
-          width="100%"
-          role="img"
-          aria-label="Animated architectural diagram showing 10 prospect domains passing through the Verisource 60-second white-label engine to trigger human open alerts and $1,500 to $3,000 monthly client retainers."
+        <div className="vs-schematic-header">
+          <span className="vs-eyebrow" style={{ fontSize: '10.5px' }}>
+            FIG 02 · 60-SECOND WHITE-LABEL RETAINER ENGINE
+          </span>
+          <span
+            className="vs-mono"
+            style={{
+              fontSize: '10.5px',
+              color: 'var(--vs-pass-fg)',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '999px',
+                background: '#059669',
+                display: 'inline-block',
+              }}
+            />
+            ZERO VERISOURCE CHROME
+          </span>
+        </div>
+
+        <div
+          style={{
+            padding: '14px 12px 10px 12px',
+            background: 'var(--vs-surface)',
+          }}
         >
+          {/* Desktop & Tablet Landscape Schematic (> 640px) */}
+          <svg
+            className="vs-schematic-desktop"
+            viewBox="0 0 560 302"
+            width="100%"
+            role="img"
+            aria-label="Animated architectural diagram showing 10 prospect domains passing through the Verisource 60-second white-label engine to trigger human open, PDF save, and CTA click alerts plus $1,500 to $3,000 monthly client retainers."
+          >
+            <defs>
+              <filter id="vsAgencyCardShadow" x="-6%" y="-6%" width="112%" height="118%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#0A0E17" floodOpacity="0.06" />
+              </filter>
+            </defs>
           <g stroke="#E5E2DA" strokeWidth="1">
             <line x1="16" y1="22" x2="28" y2="22" />
             <line x1="22" y1="16" x2="22" y2="28" />
@@ -258,7 +276,18 @@ export function AgencyPipelineSchematic(): React.ReactElement {
           </g>
 
           {/* Center White-Label Minting Core */}
-          <g>
+          <g filter="url(#vsAgencyCardShadow)">
+            <rect
+              className="vs-pulse-ring"
+              x="215"
+              y="103"
+              width="102"
+              height="102"
+              rx="11"
+              fill="none"
+              stroke="#059669"
+              strokeWidth="1.3"
+            />
             <rect
               x="220"
               y="108"
@@ -267,9 +296,10 @@ export function AgencyPipelineSchematic(): React.ReactElement {
               rx="8"
               fill="#0A0E17"
             />
+            <circle className="vs-live-dot" cx="266" cy="122" r="3" fill="#34D399" />
             <text
               x="266"
-              y="136"
+              y="141"
               textAnchor="middle"
               fill="#FAF9F6"
               fontSize="9.5"
@@ -281,7 +311,7 @@ export function AgencyPipelineSchematic(): React.ReactElement {
             </text>
             <text
               x="266"
-              y="155"
+              y="159"
               textAnchor="middle"
               fill="#FAF9F6"
               fontSize="11"
@@ -292,9 +322,9 @@ export function AgencyPipelineSchematic(): React.ReactElement {
             </text>
             <text
               x="266"
-              y="171"
+              y="175"
               textAnchor="middle"
-              fill="#A3A9B6"
+              fill="#34D399"
               fontSize="9"
               fontFamily="var(--vs-mono)"
             >
@@ -302,18 +332,18 @@ export function AgencyPipelineSchematic(): React.ReactElement {
             </text>
             <text
               x="266"
-              y="186"
+              y="190"
               textAnchor="middle"
               fill="#A3A9B6"
-              fontSize="9"
+              fontSize="8.8"
               fontFamily="var(--vs-mono)"
             >
-              + CSV Export
+              + PDF / CSV
             </text>
           </g>
 
-          {/* Right Outcome Card 1: Verified Human Open Alert */}
-          <g>
+          {/* Right Outcome Card 1: Verified Deal Alerts */}
+          <g filter="url(#vsAgencyCardShadow)">
             <rect
               x="362"
               y="68"
@@ -323,15 +353,16 @@ export function AgencyPipelineSchematic(): React.ReactElement {
               fill="#ECFDF5"
               stroke="#A7F3D0"
             />
+            <circle className="vs-live-dot" cx="375" cy="84" r="3.2" fill="#059669" />
             <text
-              x="374"
+              x="384"
               y="87"
               fill="#166534"
-              fontSize="9.5"
+              fontSize="9.2"
               fontWeight="700"
               fontFamily="var(--vs-mono)"
             >
-              HOT LEAD · 1x OPEN
+              OPENED · PDF · CTA
             </text>
             <text
               x="374"
@@ -341,7 +372,7 @@ export function AgencyPipelineSchematic(): React.ReactElement {
               fontWeight="600"
               fontFamily="var(--vs-sans)"
             >
-              Instant Inbox Alert
+              Live Deal Alerts
             </text>
             <text
               x="374"
@@ -355,14 +386,14 @@ export function AgencyPipelineSchematic(): React.ReactElement {
           </g>
 
           {/* Right Outcome Card 2: Retainer Economics */}
-          <g>
+          <g filter="url(#vsAgencyCardShadow)">
             <rect
               x="362"
               y="168"
               width="180"
               height="76"
               rx="6"
-              fill="#FAF9F6"
+              fill="#FFFFFF"
               stroke="#0A0E17"
               strokeWidth="1.5"
             />
@@ -706,12 +737,13 @@ export function AgencyPipelineSchematic(): React.ReactElement {
         }}
       >
         <span>1 closed client pays for Verisource 6x–12x over.</span>
-        <span
-          className="vs-mono"
-          style={{ fontWeight: 600, color: 'var(--vs-ink)', whiteSpace: 'nowrap' }}
-        >
-          15 sites · 5,000 /mcp credits
-        </span>
+          <span
+            className="vs-mono"
+            style={{ fontWeight: 600, color: 'var(--vs-ink)', whiteSpace: 'nowrap' }}
+          >
+            15 sites · 5,000 /mcp credits
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -488,7 +488,8 @@ export function InteractiveTutorialClient(): React.ReactElement {
       </div>
 
       {/* Main Interactive 2-Column Tour Sandbox */}
-      <div className="vs-card vs-showcase-grid" style={{ marginBottom: '56px' }}>
+      <div className="vs-bezel" style={{ marginBottom: '56px' }}>
+      <div className="vs-card vs-showcase-grid">
         {/* Left Step Rail */}
         <div className="vs-showcase-rail" style={{ padding: '20px' }}>
           <div style={{ marginBottom: '14px' }}>
@@ -1263,8 +1264,9 @@ We already generated the validated JSON-LD and /ai-facts fixes—happy to walk t
           ) : null}
 
           {persona === 'developer_mcp' && stepIdx > 0 ? (
-            <div className="vs-card vs-table-wrap">
-              <table className="vs-table">
+            <div className="vs-card" style={{ overflow: 'hidden' }}>
+              <div className="vs-table-wrap">
+                <table className="vs-table">
                 <thead>
                   <tr>
                     <th>MCP Tool / Endpoint</th>
@@ -1312,6 +1314,7 @@ We already generated the validated JSON-LD and /ai-facts fixes—happy to walk t
                   </tr>
                 </tbody>
               </table>
+              </div>
             </div>
           ) : null}
 
@@ -1328,6 +1331,7 @@ We already generated the validated JSON-LD and /ai-facts fixes—happy to walk t
             {`→ ${currentStep.actionOutcome}`}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Section 2: 6-Environment / 7-CMS Visual Quickstart Guides */}
@@ -1372,6 +1376,7 @@ We already generated the validated JSON-LD and /ai-facts fixes—happy to walk t
           ))}
         </div>
 
+        <div className="vs-bezel">
         <div className="vs-card" style={{ padding: '22px' }}>
           <div
             style={{
@@ -1436,93 +1441,155 @@ We already generated the validated JSON-LD and /ai-facts fixes—happy to walk t
           </div>
 
           <div className="vs-guided-banner">
-            <strong style={{ fontSize: '13px' }}>
-              How Live Verification Scores This Stack:{' '}
-            </strong>
-            <span
-              style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+              }}
             >
-              {activeQuickstartMeta.verificationMethod}
-            </span>
+              <div>
+                <strong style={{ fontSize: '13px' }}>
+                  How Live Verification Scores This Stack:{' '}
+                </strong>
+                <span
+                  style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}
+                >
+                  {activeQuickstartMeta.verificationMethod}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <Link
+                  href="/connectors"
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '6px 11px', fontSize: '12px' }}
+                >
+                  WordPress &amp; Shopify Connectors →
+                </Link>
+                <Link
+                  href="/templates"
+                  className="vs-btn vs-btn-secondary"
+                  style={{ padding: '6px 11px', fontSize: '12px' }}
+                >
+                  Copy Starter Templates →
+                </Link>
+              </div>
+            </div>
           </div>
+        </div>
         </div>
       </section>
 
       {/* Section 3: Direct Own-Domain Scan & Trial Handoff */}
-      <section id="try-your-domain">
-        <div
-          className="vs-card"
-          style={{
-            padding: '26px',
-            background: 'var(--vs-surface-warm)',
-          }}
-        >
+      <section id="try-your-domain" style={{ marginBottom: '24px' }}>
+        <div className="vs-bezel-obsidian">
           <div
+            className="vs-card"
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              marginBottom: '16px',
+              padding: '26px',
+              background: 'var(--vs-surface-warm)',
             }}
           >
-            <div>
-              <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
-                READY TO TEST YOUR OWN DOMAIN?
-              </div>
-              <h2
-                style={{
-                  fontSize: '22px',
-                  fontWeight: 700,
-                  letterSpacing: '-0.02em',
-                  margin: 0,
-                }}
-              >
-                Run your free 60-second AI Visibility &amp; CMS diagnosis now.
-              </h2>
-            </div>
-            <StatusBadge tone="pass">
-              $0 FREE SCAN · 7-DAY FREE TRIAL AVAILABLE
-            </StatusBadge>
-          </div>
-
-          <form
-            onSubmit={handleRunOwnSiteSubmit}
-            className="vs-grader-form"
-            style={{
-              padding: 0,
-              borderBottom: 'none',
-              marginBottom: '16px',
-            }}
-          >
-            <input
-              type="text"
-              className="vs-input"
-              placeholder="Enter your website (e.g. yourcompany.com)"
-              aria-label="Enter your website domain to run a free AI audit"
-              value={customDomainInput}
-              onChange={(e) => setCustomDomainInput(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="vs-btn"
-              style={{ whiteSpace: 'nowrap' }}
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                marginBottom: '16px',
+              }}
             >
-              Audit My Website Free →
-            </button>
-          </form>
+              <div>
+                <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+                  READY TO TEST YOUR OWN DOMAIN?
+                </div>
+                <h2
+                  style={{
+                    fontSize: '22px',
+                    fontWeight: 700,
+                    letterSpacing: '-0.02em',
+                    margin: 0,
+                  }}
+                >
+                  Run your free 60-second AI Visibility &amp; CMS diagnosis now.
+                </h2>
+              </div>
+              <StatusBadge tone="pass">
+                $0 FREE SCAN · 7-DAY FREE TRIAL AVAILABLE
+              </StatusBadge>
+            </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            <Link href="/pricing" className="vs-btn vs-btn-secondary">
-              Start 7-Day Free Trial ($0 Today) →
-            </Link>
-            <Link href="/agencies" className="vs-btn vs-btn-secondary">
-              Agency White-Label ($249/mo · 15 Sites)
-            </Link>
-            <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
-              Open Live /mcp Playground
-            </Link>
+            <form
+              onSubmit={handleRunOwnSiteSubmit}
+              className="vs-grader-form"
+              style={{
+                padding: 0,
+                borderBottom: 'none',
+                marginBottom: '12px',
+              }}
+            >
+              <input
+                type="text"
+                className="vs-input"
+                placeholder="Enter your website (e.g. yourcompany.com)"
+                aria-label="Enter your website domain to run a free AI audit"
+                value={customDomainInput}
+                onChange={(e) => setCustomDomainInput(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="vs-btn"
+                style={{ whiteSpace: 'nowrap' }}
+              >
+                Audit My Website Free →
+              </button>
+            </form>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: '6px',
+                marginBottom: '16px',
+                paddingBottom: '14px',
+                borderBottom: '1px solid var(--vs-border)',
+              }}
+            >
+              <span
+                className="vs-eyebrow"
+                style={{ fontSize: '10.5px', marginRight: '4px' }}
+              >
+                OR JUMP WITH A SAMPLE DOMAIN:
+              </span>
+              {(['stripe.com', 'linear.app', 'cal.com', 'shopify.com'] as const).map(
+                (sampleHost) => (
+                  <Link
+                    key={sampleHost}
+                    href={`/?domain=${sampleHost}#grader`}
+                    className="vs-pill-btn vs-pill-btn-sm"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    {sampleHost}
+                  </Link>
+                )
+              )}
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <Link href="/pricing" className="vs-btn vs-btn-secondary">
+                Start 7-Day Free Trial ($0 Today) →
+              </Link>
+              <Link href="/agencies#sandbox" className="vs-btn vs-btn-secondary">
+                Agency White-Label ($249/mo · 15 Sites)
+              </Link>
+              <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
+                Open Live /mcp Playground
+              </Link>
+            </div>
           </div>
         </div>
       </section>

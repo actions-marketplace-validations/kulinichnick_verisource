@@ -349,31 +349,33 @@ export default function AgenciesPartnerPage(): React.ReactElement {
             Built for 87%+ software margin from your first client retainer.
           </h2>
 
-          <div
-            className="vs-card vs-ledger-strip-4"
-            style={{ overflow: 'hidden' }}
-          >
-            <MetricLedgerCell
-              label="INCLUDED CLIENT SITES"
-              value="15"
-              sublabel="400 weekly tracked buyer prompts"
-            />
-            <MetricLedgerCell
-              label="EFFECTIVE COST / CLIENT"
-              value="$16.60/mo"
-              sublabel="$249/mo monthly · $13.27/site annual"
-              tone="pass"
-            />
-            <MetricLedgerCell
-              label="TYPICAL GEO RETAINER"
-              value="$1,500–$3k"
-              sublabel="Local legal/dental, D2C & B2B SaaS"
-            />
-            <MetricLedgerCell
-              label="AGENT /MCP QUOTA"
-              value="5,000"
-              sublabel="1 credit cached · 10 credits live scan"
-            />
+          <div className="vs-bezel" style={{ marginBottom: '18px' }}>
+            <div
+              className="vs-card vs-ledger-strip-4"
+              style={{ overflow: 'hidden' }}
+            >
+              <MetricLedgerCell
+                label="INCLUDED CLIENT SITES"
+                value="15"
+                sublabel="400 weekly tracked buyer prompts"
+              />
+              <MetricLedgerCell
+                label="EFFECTIVE COST / CLIENT"
+                value="$16.60/mo"
+                sublabel="$249/mo monthly · $13.27/site annual"
+                tone="pass"
+              />
+              <MetricLedgerCell
+                label="TYPICAL GEO RETAINER"
+                value="$1,500–$3k"
+                sublabel="Local legal/dental, D2C & B2B SaaS"
+              />
+              <MetricLedgerCell
+                label="AGENT /MCP QUOTA"
+                value="5,000"
+                sublabel="1 credit cached · 10 credits live scan"
+              />
+            </div>
           </div>
 
           <AgencyRoiCalculator />
@@ -399,7 +401,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
             {AGENCY_WORKFLOW_STEPS.map((item) => (
               <div
                 key={item.step}
-                className="vs-card"
+                className="vs-card vs-card-interactive"
                 style={{ padding: '22px' }}
               >
                 <div
@@ -544,7 +546,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
             {AGENCY_FAQS.map((faq) => (
               <div
                 key={faq.question}
-                className="vs-card"
+                className="vs-card vs-card-interactive"
                 style={{ padding: '20px 22px' }}
               >
                 <h3
@@ -574,12 +576,11 @@ export default function AgenciesPartnerPage(): React.ReactElement {
         </section>
 
         {/* Bottom Agency Callout */}
-        <section>
+        <section style={{ marginBottom: '24px' }}>
           <div
-            className="vs-card"
+            className="vs-band-obsidian"
             style={{
-              padding: '26px 28px',
-              background: 'var(--vs-surface-warm)',
+              padding: '28px 30px',
               display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'center',
@@ -588,25 +589,40 @@ export default function AgenciesPartnerPage(): React.ReactElement {
             }}
           >
             <div>
-              <div style={{ fontWeight: 700, fontSize: '18px', marginBottom: '4px' }}>
+              <div
+                className="vs-eyebrow"
+                style={{ color: '#34D399', marginBottom: '4px' }}
+              >
+                15 CLIENT DOMAINS · $16.60/CLIENT · 96.7% MARGIN
+              </div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: '19px',
+                  color: '#FFFFFF',
+                  marginBottom: '4px',
+                }}
+              >
                 Ready to white-label Verisource across your client roster?
               </div>
-              <div style={{ fontSize: '13.5px', color: 'var(--vs-ink-secondary)' }}>
+              <div style={{ fontSize: '13.5px', color: '#CBD5E1' }}>
                 Includes 15 client domains, custom logo &amp; hex branding,
-                human open alerts, and 5,000 monthly <code className="vs-mono">/mcp</code>{' '}
-                credits.
+                human open / PDF / CTA alerts, and 5,000 monthly{' '}
+                <code className="vs-mono">/mcp</code> credits.
               </div>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-              <Link
-                href="/sample-audit"
-                className="vs-btn vs-btn-secondary"
-              >
+              <Link href="/sample-audit" className="vs-btn vs-btn-secondary">
                 Inspect Live Sample Briefs
               </Link>
               <a
                 href="/api/checkout?plan=agency_249&cycle=monthly"
                 className="vs-btn"
+                style={{
+                  background: '#FFFFFF',
+                  color: '#0A0E17',
+                  borderColor: '#FFFFFF',
+                }}
               >
                 Start Agency White-Label ($249/mo) →
               </a>

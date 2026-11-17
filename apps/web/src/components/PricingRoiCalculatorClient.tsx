@@ -48,16 +48,22 @@ export function PricingRoiCalculatorClient(props: {
     (projection.recommendedPlan === 'starter_49' ||
       projection.recommendedPlan === 'pro_99');
 
+  const aiBarWidth = Math.min(280, Math.round(projection.aiConversionPct * 16));
+  const orgBarWidth = Math.max(
+    18,
+    Math.round(projection.organicBaselineConversionPct * 16)
+  );
+
   return (
-    <div
-      id="vs-pricing-roi-calculator"
-      className="vs-card vs-stack"
-      style={{
-        marginTop: '24px',
-        padding: '22px 24px',
-        gap: '16px',
-      }}
-    >
+    <div className="vs-bezel" style={{ marginTop: '24px' }}>
+      <div
+        id="vs-pricing-roi-calculator"
+        className="vs-card vs-stack"
+        style={{
+          padding: '22px 24px',
+          gap: '16px',
+        }}
+      >
       <div
         style={{
           display: 'flex',
@@ -216,6 +222,87 @@ export function PricingRoiCalculatorClient(props: {
         />
       </div>
 
+      {/* Live Reactive SVG Conversion Advantage Bar */}
+      <div
+        style={{
+          padding: '10px 14px',
+          borderRadius: '8px',
+          border: '1px solid var(--vs-border)',
+          background: 'var(--vs-surface-warm)',
+        }}
+      >
+        <svg
+          viewBox="0 0 640 62"
+          width="100%"
+          role="img"
+          aria-label={`Conversion rate comparison for ${activePreset.label}: ${projection.organicBaselineConversionPct} percent traditional search vs ${projection.aiConversionPct} percent AI cited referral.`}
+        >
+          <text
+            x="8"
+            y="22"
+            fill="#686D78"
+            fontSize="10"
+            fontFamily="var(--vs-mono)"
+            fontWeight="600"
+          >
+            {`Organic Search Baseline (${projection.organicBaselineConversionPct}%)`}
+          </text>
+          <rect
+            x="248"
+            y="11"
+            width={orgBarWidth}
+            height="13"
+            rx="4"
+            fill="#CFCBC0"
+          />
+          <text
+            x={256 + orgBarWidth}
+            y="21.5"
+            fill="#686D78"
+            fontSize="9.5"
+            fontFamily="var(--vs-mono)"
+          >
+            {`${projection.organicEquivalentCustomersPerMonth} buyer(s)/mo`}
+          </text>
+
+          <text
+            x="8"
+            y="48"
+            fill="#065F46"
+            fontSize="10"
+            fontFamily="var(--vs-mono)"
+            fontWeight="700"
+          >
+            {`Cited AI Search Clicks (${projection.aiConversionPct}%)`}
+          </text>
+          <rect
+            x="248"
+            y="37"
+            width={aiBarWidth}
+            height="13"
+            rx="4"
+            fill="#059669"
+          />
+          <circle
+            className="vs-live-dot"
+            cx={248 + aiBarWidth - 6}
+            cy="43.5"
+            r="3"
+            fill="#ECFDF5"
+          />
+          <text
+            x={256 + aiBarWidth}
+            y="47.5"
+            fill="#065F46"
+            fontSize="9.8"
+            fontFamily="var(--vs-mono)"
+            fontWeight="700"
+          >
+            {`${projection.projectedAiCustomersPerMonth} buyer(s)/mo`}
+          </text>
+        </svg>
+      </div>
+
       <div
         style={{
           display: 'flex',
@@ -237,6 +324,7 @@ export function PricingRoiCalculatorClient(props: {
             ? `Start 7-Day Free Trial ($0 Today) →`
             : `Activate Plan ($${projection.planMonthlyCostUsd}/mo) →`}
         </a>
+      </div>
       </div>
     </div>
   );

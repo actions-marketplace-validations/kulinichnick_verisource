@@ -4191,3 +4191,72 @@ test('M81 tactile design tokens, homepage motion SVG showcase components & conso
     );
   }
 });
+
+test('M82 /pricing, /agencies, /tutorial motion upgrades & public README.md + GTM launch kits pass >= 9.5/10 Critic & 0-coffee-echo gates', () => {
+  const pricingLadder = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/PricingLadderSection.tsx'
+    ),
+    'utf8'
+  );
+  const pricingRoi = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/PricingRoiCalculatorClient.tsx'
+    ),
+    'utf8'
+  );
+  const agencySchematic = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/components/AgencyPipelineSchematic.tsx'
+    ),
+    'utf8'
+  );
+  const tutorialPage = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      '../../apps/web/src/app/tutorial/page.tsx'
+    ),
+    'utf8'
+  );
+  const readmeMd = fs.readFileSync(
+    path.resolve(process.cwd(), '../../README.md'),
+    'utf8'
+  );
+  const communityKit = fs.readFileSync(
+    path.resolve(process.cwd(), '../../COMMUNITY_LAUNCH_KIT.md'),
+    'utf8'
+  );
+  const mcpDirKit = fs.readFileSync(
+    path.resolve(process.cwd(), '../../MCP_DIRECTORY_LAUNCH.md'),
+    'utf8'
+  );
+
+  assert.ok(pricingLadder.includes('vs-bezel-obsidian'));
+  assert.ok(pricingLadder.includes('DAY 0 · $0.00 TODAY'));
+  assert.ok(pricingRoi.includes('Cited AI Search Clicks'));
+  assert.ok(agencySchematic.includes('OPENED · PDF · CTA'));
+  assert.ok(tutorialPage.includes('FIG 04 · 90-SECOND INTERACTIVE TOUR MAP'));
+
+  for (const [label, doc] of [
+    ['README.md', readmeMd],
+    ['COMMUNITY_LAUNCH_KIT.md', communityKit],
+    ['MCP_DIRECTORY_LAUNCH.md', mcpDirKit],
+  ] as const) {
+    const graded = gradeArtifactQuality(doc);
+    assert.ok(
+      graded.score >= 9.5 && graded.breakdown.lexicon_filter === 2.0,
+      `Expected ${label} >= 9.5/10 with 0 banned words, got ${graded.score}`
+    );
+    assert.ok(
+      !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(doc),
+      `Expected 0 coffee-store echoes in ${label}`
+    );
+    assert.ok(
+      !/QUALITY GATE|9\.5\s*\/\s*10|\bCritic\b/i.test(doc),
+      `Expected 0 internal /10 jargon in ${label}`
+    );
+  }
+});

@@ -1,92 +1,104 @@
-# Verisource (`verisource.dev` · `mcp.verisource.dev`)
+# Verisource — B2B Generative Engine Optimization (GEO) & Streamable HTTP `/mcp` Platform
 
-Universal B2B Generative Engine Optimization (GEO), Hallucination Watchdog, and Monetized Streamable HTTP `/mcp` Platform—with a built-in Shopify Deep-Catalog Adapter (`/api/ucp/mcp` + `/api/mcp`) and a Manifest V3 Chrome Side Panel Extension.
+**Live Platform:** [https://verisource.dev](https://verisource.dev) · **Streamable HTTP MCP:** `https://mcp.verisource.dev/mcp` · **Official MCP Registry:** `dev.verisource/mcp@1.0.0`
+
+Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** cite your brand, catches hallucinated pricing and policy claims against a verified **Brand Truth Sheet**, and generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, and **You vs. Competitor** HTML comparison pages across **7 CMS platforms** (`Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, and `Next.js`).
 
 ---
 
-## Monorepo Architecture (`C:\dev\verisource`)
+## Live Free Tools, Benchmarks & Sandboxes (Zero Account Required)
 
-| Workspace Package | Purpose | Key Tech |
+| Resource | URL | What It Does |
 | :--- | :--- | :--- |
-| `packages/core-geo` | WinterCG-portable intelligence engine: SSRF-safe HTTP & simulated `GPTBot`/`PerplexityBot` WAF prober, Shopify `/api/ucp/mcp` + `/agents.md` classifier, Hallucination Watchdog, Query Fanout Decompiler, 9.5/10 Adversarial Quality Critic, and SHA-256 `vs_live_` key generator. | TypeScript 5.7, Zod, Web Crypto |
-| `packages/ui` | Stateless editorial UI primitives (`VerisourceStyleTag`, `ThreeTabShell`, `CodeArtifactCard`, `MetricLedgerCell`, `StatusBadge`). High-contrast `#0F172A` slate hierarchy, `1px` borders, `tabular-nums` data tables. | React 19 |
-| `apps/web` | Public Instant Domain Grader (`/`), Pricing Ladder (`/pricing`), 3-Tab GEO Console (`/dashboard`), White-Label Agency Pitch Views (`/audit/[slug]`), Origin-verified Revenue Pixel (`/api/pixel`), and Stripe Checkout + Webhooks. | Next.js 15 App Router, Stripe, Supabase |
-| `apps/mcp-worker` | Stateless Streamable HTTP MCP Server at `/mcp` (`createMcpHandler` from `@modelcontextprotocol/server` v2.4.0), RFC 9728 OAuth Protected Resource metadata, free preview tool + 3 paid metered tools (`1` cached / `10` live credits), and scheduled cron scanner. | Cloudflare Workers (`nodejs_compat`), Zod v4 |
-| `apps/extension` | Least-privilege (`['sidePanel', 'activeTab']` only) Chrome Side Panel inspector sharing `packages/ui` and `packages/core-geo`. | WXT 0.19, Manifest V3 |
+| **Free 60-Second Domain Audit** | [verisource.dev/#grader](https://verisource.dev/#grader) | Probes 5 AI crawlers, 3 answer engines, CMS stack, and 3-pillar `JSON-LD` readiness. |
+| **2026 40-Domain AI Readiness Study** | [verisource.dev/benchmarks/ai-search-readiness-2026](https://verisource.dev/benchmarks/ai-search-readiness-2026) | Empirical HTTPS crawl dataset across B2B SaaS, Shopify D2C, agencies, and local brands. |
+| **4 Free Protocol Validators** | [verisource.dev/tools](https://verisource.dev/tools) | Zero-signup checkers for 3-pillar `JSON-LD` & `FAQPage`, `/llms.txt`, 5-Bot WAF, and Shopify AI. |
+| **Interactive 90-Second Console Tour** | [verisource.dev/tutorial](https://verisource.dev/tutorial) | Click-through sandbox for Business Owners, White-Label Agencies, and `/mcp` Developers. |
+| **Live Agency White-Label Sandbox** | [verisource.dev/agencies#sandbox](https://verisource.dev/agencies#sandbox) | Preview your agency brand, hex accent bar, and booking URL on any client domain in 15 seconds. |
+| **7-CMS Templates & Connectors** | [verisource.dev/connectors](https://verisource.dev/connectors) · [/templates](https://verisource.dev/templates) | Drop-in `verisource-geo-connector.php` WordPress plugin, Shopify OS 2.0 Liquid bridge, and templates. |
+| **AI Conversion Payback Calculator** | [verisource.dev/pricing#vs-pricing-roi-calculator](https://verisource.dev/pricing#vs-pricing-roi-calculator) | Models 14.2%–15.9% AI referral buyer conversion vs. 1.76%–2.8% organic baseline across 4 verticals. |
+| **25% Recurring Partner Program** | [verisource.dev/partners](https://verisource.dev/partners) | 90-day attribution cookie synced directly to Stripe subscription metadata. |
 
 ---
 
-## Local Quickstart (Zero API Keys Required)
+## Connect Claude Desktop, Cursor, Windsurf, or Antigravity in 30 Seconds (`/mcp`)
 
-Out of the box, `PROVIDER_MODE=mock` runs real HTTP/WAF storefront probes while simulating multi-engine prompts, Supabase state, and Stripe checkout locally—pre-loaded with Patient Zero stores **Aurea Coffee Roasters (`aurearoasters.com`)** and **Mosaic Coffee Roasters (`mosaicroasters.com`)**.
+Verisource runs a stateless **Streamable HTTP** MCP server built on `@modelcontextprotocol/server` v2 at `https://mcp.verisource.dev/mcp` (published on `registry.modelcontextprotocol.io` as `dev.verisource/mcp@1.0.0`, zero deprecated `/sse` routes).
 
-> **Windows PowerShell Note:** If PowerShell blocks `npx.ps1` via `ExecutionPolicy`, wrap commands in `cmd /c "..."` as shown below.
+Add this entry to `claude_desktop_config.json`, `.cursor/mcp.json`, or your MCP client settings:
 
-### 1. Run the Web SaaS & 3-Tab Console (`http://localhost:3000`)
-```bat
-cmd /c "cd /d C:\dev\verisource && npx --yes pnpm@9.15.0 dev:web"
-```
-* **Landing Page & Live Grader:** `http://localhost:3000`
-* **3-Tab GEO Console:** `http://localhost:3000/dashboard`
-* **Sample White-Label Agency Pitch URL:** `http://localhost:3000/audit/mosaic-springfield-audit`
-* **Pricing Ladder (\$19 Tripwire -> \$49 / \$99 / \$249):** `http://localhost:3000/pricing`
-
-### 2. Run the Streamable HTTP `/mcp` Worker (`http://localhost:8787/mcp`)
-```bat
-cmd /c "cd /d C:\dev\verisource && npx --yes pnpm@9.15.0 dev:mcp"
-```
-Connect Claude Desktop, Cursor, Windsurf, or Antigravity using Streamable HTTP (no deprecated `/sse`):
 ```json
 {
   "mcpServers": {
     "verisource": {
-      "url": "http://localhost:8787/mcp",
+      "url": "https://mcp.verisource.dev/mcp",
       "headers": {
-        "Authorization": "Bearer vs_demo_pro_key"
+        "Authorization": "Bearer vs_live_YOUR_API_KEY"
       }
     }
   }
 }
 ```
 
-### 3. Load the Chrome MV3 Side Panel Extension
-1. Open Google Chrome and navigate to `chrome://extensions`.
-2. Toggle **Developer mode** ON (top right).
-3. Click **Load unpacked** and select:
-   `C:\dev\verisource\apps\extension\.output\chrome-mv3`
-   *(Chrome Web Store release archive is packaged at `C:\dev\verisource\apps\extension\.output\verisourceextension-0.1.0-chrome.zip`.)*
-4. Click the **Verisource** extension icon on any tab to open the 3-Tab Side Panel.
+> **Zero-Key Preview:** Omit `headers` to invoke `scan_domain_ai_readiness` immediately for `0` credits (3 custom domains/IP/day, 24-hour edge KV cache). Mint a `vs_live_` SHA-256 Bearer key on Pro (`$99/mo` · `1,000` credits/mo, `$0.00` 7-day trial) or Agency (`$249/mo` · `5,000` credits/mo) at [verisource.dev/pricing](https://verisource.dev/pricing).
+
+### Exposed MCP Tools
+1. `scan_domain_ai_readiness` (**Free · 0 credits**): Returns AI Visibility Score (`0–100`), 7-platform CMS fingerprint, 3-pillar `JSON-LD` inspection (`Entity Identity`, `FAQPage` Q&A count, `Offer` pricing), 5-bot WAF & `/robots.txt` status, Shopify `/api/ucp/mcp` + `/agents.md` classification, and sample buyer prompt citation check.
+2. `get_citation_gaps_and_fanouts` (**Pro / Agency · 1 cached / 10 live credits**): Returns Mention vs. Citation rates across ChatGPT, Gemini, and Perplexity, Source-Type categorized citation gaps (`Reddit`, `G2`, `Clutch`, editorial media), and observed search fanout sub-queries.
+3. `check_brand_hallucinations` (**Pro / Agency · 1 cached / 10 live credits**): Diffs multi-engine claims per bullet against your verified Brand Truth Sheet so rival prices never trigger false alerts.
+4. `generate_geo_fix_bundle` (**Pro / Agency · 1 cached / 10 live credits**): Outputs syntax-validated `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, Shopify `templates/agents.md.liquid`, and 1-Click AI Remediation Prompts.
 
 ---
 
-## Verification & Automated Test Suites
+## Key Empirical Findings (2026 40-Domain HTTPS Benchmark)
 
-Run every unit, security, `/mcp` protocol, and live HTTP end-to-end test suite from `C:\dev\verisource`:
+Direct HTTP probes across 40 commercial domains ([full dataset](https://verisource.dev/benchmarks/ai-search-readiness-2026)):
+* **Silent Edge WAF `HTTP 403` Blocks:** `0/40` disallowed `GPTBot` in `/robots.txt`, yet **5.0%** returned `HTTP 403 Forbidden` at the CDN edge when probed with real `GPTBot/1.2` or `PerplexityBot/1.0` headers.
+* **SPA Soft-404s & Unedited `/llms.txt` Boilerplate:** `30/40` returned status `200` on `GET /llms.txt`, but **25.0%** were either client-side `text/html` soft-404 shells (`7.5%`) or unedited plugin dumps (`17.5%`). Only **50.0%** serve curated Markdown specifications.
+* **80-Point Shopify Agent Truth Gap:** **80.0%** of audited Shopify D2C stores respond on `/api/ucp/mcp`, yet **0.0%** customized `/agents.md` with real shipping thresholds or return windows (`5.0%` across all 40 brands).
+* **Missing Answer-First `FAQPage` Schema:** **82.5%** ship base `JSON-LD`, while only **7.5%** include `FAQPage` Q&A nodes.
 
-```bat
-:: 1. Core GEO Engine, 9.5/10 Critic, SSRF & RLS Schema Invariants (7 tests)
-cmd /c "cd /d C:\dev\verisource && npx --yes pnpm@9.15.0 --filter @verisource/core-geo test"
+---
 
-:: 2. Stateless Streamable HTTP /mcp Tools & Credit Metering (4 tests)
-cmd /c "cd /d C:\dev\verisource && npx --yes pnpm@9.15.0 --filter @verisource/mcp-worker test"
+## Monorepo Architecture
 
-:: 3. Production Next.js Live HTTP E2E & Adversarial Route Suite (9 checks)
-cmd /c "cd /d C:\dev\verisource && npx --yes pnpm@9.15.0 --filter @verisource/web test:e2e"
+| Workspace Package | Purpose | Stack |
+| :--- | :--- | :--- |
+| `packages/core-geo` | WinterCG-portable intelligence engine: hop-validated SSRF guard, 5-bot WAF prober, 7-CMS detector, 3-pillar `JSON-LD` inspector, Shopify `/api/ucp/mcp` adapter, Hallucination Watchdog, and `vs_live_` SHA-256 key utilities. | TypeScript 5.7, Zod, Web Crypto |
+| `packages/ui` | Shared Warm Architectural Paper & Obsidian design system: tactile instrument bezels (`.vs-bezel`), `ThreeTabShell`, `ConsoleQuickJumpBar`, `ConsoleZoneHeader`, `CodeArtifactCard`, `MetricLedgerCell`, `StatusBadge`. | React 19 |
+| `apps/web` | Public Instant Grader (`/`), 4-Vertical Motion Storyboard, 3-Step Subscriber Console (`/dashboard`), White-Label Agency Scorecards (`/audit/[slug]`), Free Validators (`/tools/*`), Origin/HMAC Pixel (`/api/pixel`), and Stripe Billing. | Next.js 15 App Router, Supabase, Stripe |
+| `apps/mcp-worker` | Stateless Streamable HTTP `/mcp` server (`createMcpHandler`), RFC 9728 Protected Resource metadata, KV-cached SHA-256 Bearer + OAuth 2.0 auth, atomic credit metering, and scheduled cron scanner. | Cloudflare Workers (`nodejs_compat`) |
+| `apps/extension` | Least-privilege (`['sidePanel', 'activeTab']` only) Chrome Side Panel sharing `packages/ui` and `packages/core-geo`. | WXT 0.19, Manifest V3 |
 
-:: 4. Full Monorepo Strict Typecheck & Production Build (5 packages)
-cmd /c "cd /d C:\dev\verisource && npx --yes pnpm@9.15.0 -r typecheck && npx --yes pnpm@9.15.0 -r build"
+---
+
+## Local Development & Verification Suite
+
+Out of the box, `PROVIDER_MODE=mock` runs real outbound HTTPS/WAF probes while simulating LLM answer snapshots, Supabase state, and Stripe checkout locally with zero external API keys required.
+
+```bash
+# Install workspace dependencies
+pnpm install
+
+# Start the Next.js Web Platform & 3-Step Console (http://localhost:3000)
+pnpm dev:web
+
+# Start the Cloudflare Streamable HTTP /mcp Worker (http://localhost:8787/mcp)
+pnpm dev:mcp
+
+# Run all unit, /mcp Worker, production build, and live HTTP E2E suites
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm --filter @verisource/web test:e2e
 ```
 
 ---
 
-## Production Cutover Checklist (`verisource.dev` & `mcp.verisource.dev`)
+## Discovery & Protocol Endpoints
 
-1. **Supabase PostgreSQL + RLS Setup:**
-   * Create a new Supabase project and run `C:\dev\verisource\schema.sql` in the SQL Editor (creates all 8 tables, RLS policies, `trg_protect_profile_billing`, `consume_mcp_credits`, `consume_mcp_credits_for_user`, and `get_public_pitch_report`).
-   * Optionally run `C:\dev\verisource\seed.sql` to preload Patient Zero benchmarks.
-2. **Environment Configuration:**
-   * Copy `C:\dev\verisource\.env.example` to `C:\dev\verisource\apps\web\.env.local`.
-   * Set `PROVIDER_MODE=live` (or leave unset for per-provider auto-upgrade as keys are added) and populate `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, and `GEMINI_API_KEY` (plus optional `OPENAI_API_KEY`, `PERPLEXITY_API_KEY`, `FIRECRAWL_API_KEY`).
-3. **Deploy Web App & `/mcp` Worker:**
-   * Deploy `apps/web` to Vercel or Cloudflare Pages bound to `verisource.dev`, pointing Stripe webhooks (`checkout.session.completed`, `customer.subscription.deleted`, `invoice.paid`) to `https://verisource.dev/api/webhooks/stripe`.
-   * Create a Cloudflare KV namespace for `VERISOURCE_CACHE`, add Worker secrets via `wrangler secret put`, and deploy `apps/mcp-worker` to `mcp.verisource.dev`.
+* **Web Origin MCP Manifest:** [https://verisource.dev/.well-known/mcp.json](https://verisource.dev/.well-known/mcp.json)
+* **Worker Origin MCP Manifest:** [https://mcp.verisource.dev/.well-known/mcp.json](https://mcp.verisource.dev/.well-known/mcp.json)
+* **RFC 9728 OAuth Protected Resource:** [https://mcp.verisource.dev/.well-known/oauth-protected-resource](https://mcp.verisource.dev/.well-known/oauth-protected-resource)
+* **Self-GEO `/llms.txt` & `/agents.md`:** [https://verisource.dev/llms.txt](https://verisource.dev/llms.txt) · [https://verisource.dev/agents.md](https://verisource.dev/agents.md)
+* **Privacy & Terms:** [https://verisource.dev/privacy](https://verisource.dev/privacy) · [https://verisource.dev/terms](https://verisource.dev/terms)

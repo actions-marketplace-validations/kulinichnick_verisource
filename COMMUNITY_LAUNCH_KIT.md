@@ -156,10 +156,10 @@ Disclosure: I'm the engineer behind Verisource (`dev.verisource/mcp@1.0.0` in th
 - **Launch Status Framing:** `v1.0 Production Live` — **Founding Partner Rate Lock** (first 30 Pro `$99/mo` and Agency White-Label `$249/mo` workspaces lock current pricing for life; Starter `$49/mo` and Pro `$99/mo` include a 7-day `$0.00` card-upfront trial, plus a `$19` One-Time Audit Pass with zero recurring billing).
 - **5-Slide Gallery Sequence:**
   1. `1080p` 4m45s end-to-end remediation & `/mcp` walkthrough video.
-  2. Homepage 60-second **Site Diagnosis & Action Plan** + auto-detected CMS badge.
+  2. Homepage 4-vertical **Before -> After Motion SVG Storyboard** (`/#sample-workflow`) + auto-detected CMS badge.
   3. Step 02 **1-Click AI Fix Prompt** + `4/4 VERIFIED LIVE` HTTP verification banner.
-  4. White-label `/audit/[slug]` agency client brief + **`CTA CLICKED`** deal alert badge.
-  5. 2026 40-Domain AI Search Readiness Matrix (`50.0%` custom `/llms.txt`, `5.0%` custom `/agents.md`, `5.0%` silent `GPTBot` `HTTP 403`).
+  4. White-label `/audit/[slug]` agency client brief + **`OPENED` / `PDF SAVED` / `CTA CLICKED`** deal alert badges (`/agencies#sandbox`).
+  5. 2026 40-Domain AI Search Readiness Matrix (`50.0%` custom `/llms.txt`, `5.0%` custom `/agents.md`, `5.0%` silent `GPTBot` `HTTP 403`) + `/pricing#vs-pricing-roi-calculator`.
 
 ### Maker First Comment (Copy-Paste)
 ```text

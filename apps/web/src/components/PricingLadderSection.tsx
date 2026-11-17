@@ -659,137 +659,156 @@ export function PricingLadderSection(props: {
       ) : null}
 
       <div className={isPaidAccount ? 'vs-grid-3' : 'vs-grid-4'}>
-        {allTiers.map((tier) => (
-          <div
-            key={tier.id}
-            className="vs-card"
-            style={{
-              padding: '22px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              borderColor: tier.highlight
-                ? 'var(--vs-ink)'
-                : 'var(--vs-border)',
-              borderWidth: tier.highlight ? '2px' : '1px',
-              background: tier.isCurrentExactPlan
-                ? 'var(--vs-surface-warm)'
-                : '#FFFFFF',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '8px',
-                  marginBottom: '12px',
-                }}
-              >
-                <span style={{ fontWeight: 700, fontSize: '15.5px' }}>
-                  {tier.name}
-                </span>
-                <StatusBadge tone={tier.badgeTone}>{tier.badge}</StatusBadge>
-              </div>
-
-              <div style={{ marginBottom: '6px' }}>
-                <span
-                  className="vs-mono"
+        {allTiers.map((tier) => {
+          const cardInner = (
+            <div
+              className={`vs-card${tier.highlight ? '' : ' vs-card-interactive'}`}
+              style={{
+                padding: '22px',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                borderColor: tier.highlight
+                  ? 'var(--vs-ink)'
+                  : undefined,
+                borderWidth: tier.highlight ? '1.5px' : '1px',
+                background: tier.isCurrentExactPlan
+                  ? 'var(--vs-surface-warm)'
+                  : '#FFFFFF',
+              }}
+            >
+              <div>
+                <div
                   style={{
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    letterSpacing: '-0.02em',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '12px',
                   }}
                 >
-                  {tier.price}
-                </span>
-                <span
-                  style={{
-                    fontSize: '12.5px',
-                    color: 'var(--vs-ink-muted)',
-                    marginLeft: '6px',
-                  }}
-                >
-                  {tier.cadence}
-                </span>
-              </div>
+                  <span style={{ fontWeight: 700, fontSize: '15.5px' }}>
+                    {tier.name}
+                  </span>
+                  <StatusBadge tone={tier.badgeTone}>{tier.badge}</StatusBadge>
+                </div>
 
-              <div
-                className="vs-mono"
-                style={{
-                  fontSize: '11.5px',
-                  color:
-                    tier.isCurrentExactPlan ||
-                    (!isPaidAccount &&
-                      !annual &&
-                      (tier.id === 'starter_49' || tier.id === 'pro_99'))
-                      ? 'var(--vs-pass-fg)'
-                      : 'var(--vs-ink-muted)',
-                  fontWeight:
-                    tier.isCurrentExactPlan ||
-                    (!isPaidAccount &&
-                      !annual &&
-                      (tier.id === 'starter_49' || tier.id === 'pro_99'))
-                      ? 600
-                      : 400,
-                  marginBottom: '12px',
-                }}
-              >
-                {tier.billingNote}
-              </div>
-
-              <p
-                style={{
-                  fontSize: '13px',
-                  color: 'var(--vs-ink-secondary)',
-                  marginTop: 0,
-                  marginBottom: '16px',
-                }}
-              >
-                {tier.summary}
-              </p>
-
-              <ul
-                style={{
-                  listStyle: 'none',
-                  padding: '14px 0 0 0',
-                  margin: '0 0 22px 0',
-                  borderTop: '1px solid var(--vs-border)',
-                  fontSize: '12.5px',
-                }}
-              >
-                {tier.specs.map((spec) => (
-                  <li
-                    key={spec}
+                <div style={{ marginBottom: '6px' }}>
+                  <span
+                    className="vs-mono"
                     style={{
-                      marginBottom: '8px',
-                      color: 'var(--vs-ink-secondary)',
-                      display: 'flex',
-                      gap: '8px',
+                      fontSize: '32px',
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
                     }}
                   >
-                    <span
-                      className="vs-mono"
-                      style={{ color: 'var(--vs-ink)', fontWeight: 700 }}
-                    >
-                      +
-                    </span>
-                    <span>{spec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    {tier.price}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '12.5px',
+                      color: 'var(--vs-ink-muted)',
+                      marginLeft: '6px',
+                    }}
+                  >
+                    {tier.cadence}
+                  </span>
+                </div>
 
-            <a
-              href={tier.href}
-              className={tier.highlight ? 'vs-btn' : 'vs-btn vs-btn-secondary'}
-              style={{ width: '100%' }}
+                <div
+                  className="vs-mono"
+                  style={{
+                    fontSize: '11.5px',
+                    color:
+                      tier.isCurrentExactPlan ||
+                      (!isPaidAccount &&
+                        !annual &&
+                        (tier.id === 'starter_49' || tier.id === 'pro_99'))
+                        ? 'var(--vs-pass-fg)'
+                        : 'var(--vs-ink-muted)',
+                    fontWeight:
+                      tier.isCurrentExactPlan ||
+                      (!isPaidAccount &&
+                        !annual &&
+                        (tier.id === 'starter_49' || tier.id === 'pro_99'))
+                        ? 600
+                        : 400,
+                    marginBottom: '12px',
+                  }}
+                >
+                  {tier.billingNote}
+                </div>
+
+                <p
+                  style={{
+                    fontSize: '13px',
+                    color: 'var(--vs-ink-secondary)',
+                    marginTop: 0,
+                    marginBottom: '16px',
+                  }}
+                >
+                  {tier.summary}
+                </p>
+
+                <ul
+                  style={{
+                    listStyle: 'none',
+                    padding: '14px 0 0 0',
+                    margin: '0 0 22px 0',
+                    borderTop: '1px solid var(--vs-border)',
+                    fontSize: '12.5px',
+                  }}
+                >
+                  {tier.specs.map((spec) => (
+                    <li
+                      key={spec}
+                      style={{
+                        marginBottom: '8px',
+                        color: 'var(--vs-ink-secondary)',
+                        display: 'flex',
+                        gap: '8px',
+                      }}
+                    >
+                      <span
+                        className="vs-mono"
+                        style={{ color: 'var(--vs-pass-fg)', fontWeight: 700 }}
+                      >
+                        ✓
+                      </span>
+                      <span>{spec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <a
+                href={tier.href}
+                className={tier.highlight ? 'vs-btn' : 'vs-btn vs-btn-secondary'}
+                style={{ width: '100%' }}
+              >
+                {tier.cta}
+              </a>
+            </div>
+          );
+
+          return tier.highlight ? (
+            <div
+              key={tier.id}
+              className="vs-bezel-obsidian"
+              style={{ display: 'flex', flexDirection: 'column' }}
             >
-              {tier.cta}
-            </a>
-          </div>
-        ))}
+              {cardInner}
+            </div>
+          ) : (
+            <div
+              key={tier.id}
+              style={{ display: 'flex', flexDirection: 'column' }}
+            >
+              {cardInner}
+            </div>
+          );
+        })}
       </div>
 
       {isPaidAccount ? (
@@ -842,51 +861,165 @@ export function PricingLadderSection(props: {
           </div>
         </div>
       ) : (
-        <div
-          className="vs-card"
-          style={{
-            marginTop: '16px',
-            padding: '16px 20px',
-            background: 'var(--vs-surface-warm)',
-          }}
-        >
+        <div className="vs-bezel" style={{ marginTop: '22px' }}>
           <div
+            className="vs-card"
             style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '8px',
-              marginBottom: '10px',
+              padding: '18px 22px',
+              background: 'var(--vs-surface-warm)',
             }}
           >
-            <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-              HOW THE 7-DAY FREE TRIAL WORKS (STARTER &amp; PRO MONTHLY)
-            </span>
-            <StatusBadge tone="pass">$0.00 DUE TODAY · 1-CLICK CANCEL</StatusBadge>
-          </div>
-          <div className="vs-grid-2" style={{ gap: '14px', fontSize: '12.5px' }}>
-            <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
-              <strong style={{ color: 'var(--vs-ink)' }}>
-                Days 1–2 (Deploy Fixes in &lt; 10 Min):
-              </strong>{' '}
-              Scan your site across ChatGPT, Gemini, and Perplexity, verify your
-              Brand Truth Sheet, and paste the 1-Click AI Fix Prompt (
-              <code className="vs-mono">JSON-LD</code>,{' '}
-              <code className="vs-mono">/llms.txt</code>,{' '}
-              <code className="vs-mono">/agents.md</code>) into Claude, Cursor,
-              Antigravity, or Shopify.
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+                marginBottom: '12px',
+              }}
+            >
+              <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                HOW THE 7-DAY FREE TRIAL WORKS (STARTER &amp; PRO MONTHLY)
+              </span>
+              <StatusBadge tone="pass">$0.00 DUE TODAY · 1-CLICK CANCEL</StatusBadge>
             </div>
-            <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
-              <strong style={{ color: 'var(--vs-ink)' }}>
-                Days 3–7 (Verify Bot Crawls &amp; Decide):
-              </strong>{' '}
-              Watch live <code className="vs-mono">GPTBot</code> and{' '}
-              <code className="vs-mono">PerplexityBot</code> crawls hit your Step
-              01 Ledger before your first invoice runs on Day 7. Cancel in 1 click
-              inside Stripe Billing Portal, or pick the{' '}
-              <strong style={{ color: 'var(--vs-ink)' }}>$19 Audit Pass</strong>{' '}
-              if you prefer zero recurring billing.
+
+            {/* Zero-Lag Motion SVG 7-Day Trial Timeline (Desktop > 640px + Mobile <= 640px) */}
+            <div
+              style={{
+                marginBottom: '14px',
+                padding: '10px 12px',
+                borderRadius: '8px',
+                background: '#FFFFFF',
+                border: '1px solid var(--vs-border)',
+              }}
+            >
+              <svg
+                className="vs-schematic-desktop"
+                viewBox="0 0 880 78"
+                width="100%"
+                role="img"
+                aria-label="Animated 7-day free trial timeline: Day 0 $0.00 charged today and 1-Click AI Fix Prompt, Day 2 4/4 live verification, Days 3 to 7 live AI bot crawls, Day 7 stay active or 1-click cancel."
+              >
+                <path d="M 206 39 L 236 39" fill="none" stroke="#DDD9CE" strokeWidth="2" />
+                <path className="vs-signal-path" d="M 206 39 L 236 39" fill="none" stroke="#0A0E17" strokeWidth="2.4" />
+                <path d="M 432 39 L 462 39" fill="none" stroke="#A7F3D0" strokeWidth="2" />
+                <path className="vs-signal-path-out" d="M 432 39 L 462 39" fill="none" stroke="#059669" strokeWidth="2.4" />
+                <path d="M 658 39 L 688 39" fill="none" stroke="#A7F3D0" strokeWidth="2" />
+                <path className="vs-signal-path-out" d="M 658 39 L 688 39" fill="none" stroke="#059669" strokeWidth="2.4" />
+
+                <g transform="translate(8, 10)">
+                  <rect width="198" height="58" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+                  <circle className="vs-live-dot" cx="15" cy="19" r="3.5" fill="#059669" />
+                  <text x="25" y="22" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                    DAY 0 · $0.00 TODAY
+                  </text>
+                  <text x="15" y="42" fill="#686D78" fontSize="9" fontFamily="var(--vs-mono)">
+                    Copy 1-Click AI Fix Prompt
+                  </text>
+                </g>
+
+                <g transform="translate(236, 10)">
+                  <rect width="196" height="58" rx="6" fill="#ECFDF5" stroke="#A7F3D0" />
+                  <text x="14" y="22" fill="#065F46" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                    ✓ DAY 1–2 · 4/4 LIVE
+                  </text>
+                  <text x="14" y="42" fill="#0A0E17" fontSize="9" fontFamily="var(--vs-mono)">
+                    JSON-LD + /agents.md live
+                  </text>
+                </g>
+
+                <g transform="translate(462, 10)">
+                  <rect width="196" height="58" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+                  <text x="14" y="22" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                    DAYS 3–6 · BOT PROOF
+                  </text>
+                  <text x="14" y="42" fill="#686D78" fontSize="9" fontFamily="var(--vs-mono)">
+                    GPTBot &amp; Perplexity crawls
+                  </text>
+                </g>
+
+                <g transform="translate(688, 10)">
+                  <rect width="184" height="58" rx="6" fill="#0A0E17" />
+                  <text x="14" y="22" fill="#34D399" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                    DAY 7 · YOU DECIDE
+                  </text>
+                  <text x="14" y="42" fill="#EAE8E1" fontSize="9" fontFamily="var(--vs-mono)">
+                    Keep fixes · 1-click cancel
+                  </text>
+                </g>
+              </svg>
+
+              <svg
+                className="vs-schematic-mobile"
+                viewBox="0 0 320 124"
+                width="100%"
+                role="img"
+                aria-label="Mobile 7-day trial timeline from Day 0 $0.00 charged today to Day 7 1-click cancel."
+              >
+                <g transform="translate(4, 6)">
+                  <rect width="150" height="50" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+                  <text x="10" y="20" fill="#0A0E17" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                    1. DAY 0 ($0 TODAY)
+                  </text>
+                  <text x="10" y="37" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)">
+                    Copy 1-Click AI Prompt
+                  </text>
+                </g>
+                <g transform="translate(166, 6)">
+                  <rect width="150" height="50" rx="6" fill="#ECFDF5" stroke="#A7F3D0" />
+                  <text x="10" y="20" fill="#065F46" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                    2. DAY 2 (4/4 LIVE)
+                  </text>
+                  <text x="10" y="37" fill="#0A0E17" fontSize="8.5" fontFamily="var(--vs-mono)">
+                    Verify site uplift
+                  </text>
+                </g>
+                <g transform="translate(4, 68)">
+                  <rect width="150" height="50" rx="6" fill="#FAF9F6" stroke="#CFCBC0" />
+                  <text x="10" y="20" fill="#0A0E17" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                    3. DAYS 3–6 (CRAWLS)
+                  </text>
+                  <text x="10" y="37" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)">
+                    Watch live AI bot hits
+                  </text>
+                </g>
+                <g transform="translate(166, 68)">
+                  <rect width="150" height="50" rx="6" fill="#0A0E17" />
+                  <text x="10" y="20" fill="#34D399" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+                    4. DAY 7 (CHOICE)
+                  </text>
+                  <text x="10" y="37" fill="#EAE8E1" fontSize="8.5" fontFamily="var(--vs-mono)">
+                    Stay on or 1-click cancel
+                  </text>
+                </g>
+              </svg>
+            </div>
+
+            <div className="vs-grid-2" style={{ gap: '14px', fontSize: '12.5px' }}>
+              <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
+                <strong style={{ color: 'var(--vs-ink)' }}>
+                  Days 1–2 (Deploy Fixes in &lt; 10 Min):
+                </strong>{' '}
+                Scan your site across ChatGPT, Gemini, and Perplexity, verify your
+                Brand Truth Sheet, and paste the 1-Click AI Fix Prompt (
+                <code className="vs-mono">JSON-LD</code>,{' '}
+                <code className="vs-mono">/llms.txt</code>,{' '}
+                <code className="vs-mono">/agents.md</code>) into Claude, Cursor,
+                Antigravity, or Shopify.
+              </div>
+              <div style={{ color: 'var(--vs-ink-secondary)', lineHeight: 1.55 }}>
+                <strong style={{ color: 'var(--vs-ink)' }}>
+                  Days 3–7 (Verify Bot Crawls &amp; Decide):
+                </strong>{' '}
+                Watch live <code className="vs-mono">GPTBot</code> and{' '}
+                <code className="vs-mono">PerplexityBot</code> crawls hit your Step
+                01 Ledger before your first invoice runs on Day 7. Cancel in 1 click
+                inside Stripe Billing Portal, or pick the{' '}
+                <strong style={{ color: 'var(--vs-ink)' }}>$19 Audit Pass</strong>{' '}
+                if you prefer zero recurring billing.
+              </div>
             </div>
           </div>
         </div>

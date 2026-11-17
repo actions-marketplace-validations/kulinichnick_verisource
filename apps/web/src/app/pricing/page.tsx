@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import React from 'react';
@@ -143,7 +144,7 @@ export default async function PricingPage({
             {PRICING_FAQS.map((faq) => (
               <div
                 key={faq.question}
-                className="vs-card"
+                className="vs-card vs-card-interactive"
                 style={{ padding: '20px 22px' }}
               >
                 <h3
@@ -169,6 +170,59 @@ export default async function PricingPage({
                 </p>
               </div>
             ))}
+          </div>
+
+          <div
+            className="vs-band-obsidian"
+            style={{
+              marginTop: '44px',
+              marginBottom: '20px',
+              padding: '26px 28px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+            }}
+          >
+            <div style={{ maxWidth: '620px' }}>
+              <div
+                className="vs-eyebrow"
+                style={{ color: '#34D399', marginBottom: '4px' }}
+              >
+                WANT TO SEE YOUR SCORE FIRST?
+              </div>
+              <strong style={{ fontSize: '18px', color: '#FFFFFF' }}>
+                Run a free 60-second audit on your domain before choosing a plan.
+              </strong>
+              <div
+                style={{
+                  fontSize: '13.5px',
+                  color: '#CBD5E1',
+                  marginTop: '4px',
+                }}
+              >
+                Check ChatGPT, Gemini, and Perplexity buyer visibility, auto-detect
+                your CMS, and preview your 1-Click AI Fix Prompt with zero account
+                required.
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <Link href="/#grader" className="vs-btn vs-btn-secondary">
+                Run Free Domain Audit →
+              </Link>
+              <Link
+                href="/agencies#sandbox"
+                className="vs-btn"
+                style={{
+                  background: '#FFFFFF',
+                  color: '#0A0E17',
+                  borderColor: '#FFFFFF',
+                }}
+              >
+                Agency Sandbox ($249/mo) →
+              </Link>
+            </div>
           </div>
         </section>
       ) : null}

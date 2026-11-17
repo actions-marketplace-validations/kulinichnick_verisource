@@ -4223,7 +4223,65 @@ async function run() {
         ),
       'Found /10, plain-English, Beta, or coffee-store echo on M81 redesigned homepage'
     );
-    console.log('✔ [77/77] M81 Tactile Bezels, 8+ Inline Motion SVGs, Sample Business Storyboard, 6-Card Standout Bento & Console Quick-Jump Zone Separation verified!');
+    console.log('✔ [77/78] M81 Tactile Bezels, 8+ Inline Motion SVGs, Sample Business Storyboard, 6-Card Standout Bento & Console Quick-Jump Zone Separation verified!');
+
+    // 76. M82 Tactile & Motion SVG Funnel Parity Across /pricing, /agencies & /tutorial + Zero-Slop Gate
+    const [m82PricingHtml, m82AgenciesHtml, m82TutorialHtml] =
+      await Promise.all([
+        fetch(`${BASE}/pricing`).then((r) => r.text()),
+        fetch(`${BASE}/agencies`).then((r) => r.text()),
+        fetch(`${BASE}/tutorial`).then((r) => r.text()),
+      ]);
+
+    assert.ok(
+      m82PricingHtml.includes('vs-bezel-obsidian') &&
+        m82PricingHtml.includes('DAY 0 · $0.00 TODAY') &&
+        m82PricingHtml.includes('Cited AI Search Clicks') &&
+        m82PricingHtml.includes('vs-band-obsidian'),
+      'Expected guest /pricing to render tactile obsidian bezel, 7-day trial Motion SVG timeline, ROI conversion SVG bar, and closing obsidian band'
+    );
+
+    assert.ok(
+      m82AgenciesHtml.includes('vs-bezel-obsidian') &&
+        m82AgenciesHtml.includes('QUICK-LOAD SAMPLE CLIENT:') &&
+        m82AgenciesHtml.includes('OPENED · PDF · CTA') &&
+        m82AgenciesHtml.includes('vs-band-obsidian'),
+      'Expected /agencies to render tactile bezels, quick-load sample client pills in #sandbox, OPENED · PDF · CTA motion schematic, and obsidian CTA band'
+    );
+
+    assert.ok(
+      m82TutorialHtml.includes('FIG 04 · 90-SECOND INTERACTIVE TOUR MAP') &&
+        m82TutorialHtml.includes('vs-bezel-obsidian') &&
+        m82TutorialHtml.includes('OR JUMP WITH A SAMPLE DOMAIN:') &&
+        m82TutorialHtml.includes('href="/connectors"'),
+      'Expected /tutorial to render FIG 04 hero Motion SVG, tactile bezels, sample domain pills, and /connectors link'
+    );
+
+    for (const [rLabel, rHtml] of [
+      ['/pricing', m82PricingHtml],
+      ['/agencies', m82AgenciesHtml],
+      ['/tutorial', m82TutorialHtml],
+    ]) {
+      const vis = rHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (vis.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on M82 ${rLabel}`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(vis) &&
+          !PLAIN_ENGLISH_JARGON.test(vis) &&
+          !/\bbeta\b/i.test(vis) &&
+          !/aurearoasters|mosaicroasters|Aurea Coffee|Mosaic Coffee/i.test(
+            rHtml
+          ),
+        `Found /10, plain-English, Beta, or coffee-store echo on M82 ${rLabel}`
+      );
+    }
+    console.log('✔ [78/78] M82 Tactile Bezels & Motion SVG Funnel Parity Across /pricing, /agencies & /tutorial verified!');
   } finally {
     server.kill();
   }

@@ -103,27 +103,63 @@ export function AgencyLiveSandboxClient(): React.ReactElement {
 
   return (
     <div className="vs-stack" style={{ gap: '18px' }}>
-      <div className="vs-card" style={{ padding: '22px 24px' }}>
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '10px',
-            marginBottom: '14px',
-          }}
-        >
-          <div>
-            <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
-              LIVE WHITE-LABEL CLIENT SANDBOX · ZERO SIGNUP REQUIRED
+      <div className="vs-bezel-obsidian">
+        <div className="vs-card" style={{ padding: '22px 24px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              marginBottom: '14px',
+            }}
+          >
+            <div>
+              <div className="vs-eyebrow" style={{ marginBottom: '3px' }}>
+                LIVE WHITE-LABEL CLIENT SANDBOX · ZERO SIGNUP REQUIRED
+              </div>
+              <strong style={{ fontSize: '16.5px', letterSpacing: '-0.015em' }}>
+                Test your agency brand, accent color, and booking CTA on any real client domain
+              </strong>
             </div>
-            <strong style={{ fontSize: '16.5px', letterSpacing: '-0.015em' }}>
-              Test your agency brand, accent color, and booking CTA on any real client domain
-            </strong>
+            <StatusBadge tone="pass">PURE WHITE-LABEL PREVIEW</StatusBadge>
           </div>
-          <StatusBadge tone="pass">PURE WHITE-LABEL PREVIEW</StatusBadge>
-        </div>
+
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '6px',
+              marginBottom: '14px',
+              paddingBottom: '12px',
+              borderBottom: '1px solid var(--vs-border)',
+            }}
+          >
+            <span
+              className="vs-eyebrow"
+              style={{ fontSize: '10.5px', marginRight: '4px' }}
+            >
+              QUICK-LOAD SAMPLE CLIENT:
+            </span>
+            {(['stripe.com', 'linear.app', 'cal.com', 'shopify.com'] as const).map(
+              (sampleClient) => (
+                <button
+                  key={sampleClient}
+                  type="button"
+                  disabled={loading}
+                  className="vs-pill-btn vs-pill-btn-sm"
+                  onClick={() => {
+                    setProspectDomainInput(sampleClient);
+                    void runClientPreviewScan(sampleClient);
+                  }}
+                >
+                  {sampleClient}
+                </button>
+              )
+            )}
+          </div>
 
         <form
           onSubmit={(e) => {
@@ -292,19 +328,21 @@ export function AgencyLiveSandboxClient(): React.ReactElement {
             </button>
           </div>
         </form>
+        </div>
       </div>
 
       {scanResult && sandboxPreview ? (
         <div className="vs-stack" style={{ gap: '18px' }}>
           {/* Pure White-Label Client Scorecard Specimen (Zero Verisource Strings Inside) */}
-          <div
-            id="vs-agency-sandbox-preview"
-            className="vs-card"
-            style={{
-              padding: '22px 24px',
-              borderTop: `4px solid ${sandboxPreview.brandColor}`,
-            }}
-          >
+          <div className="vs-bezel">
+            <div
+              id="vs-agency-sandbox-preview"
+              className="vs-card"
+              style={{
+                padding: '22px 24px',
+                borderTop: `4px solid ${sandboxPreview.brandColor}`,
+              }}
+            >
             <div
               style={{
                 display: 'flex',
@@ -511,6 +549,7 @@ export function AgencyLiveSandboxClient(): React.ReactElement {
                 {`EXECUTIVE BRIEF HANDOFF · PREPARED BY ${sandboxPreview.agencyName.toUpperCase()}`}
               </span>
               <span className="vs-mono">{sandboxPreview.bookingUrl}</span>
+            </div>
             </div>
           </div>
 
