@@ -211,9 +211,100 @@ function mirrorFileIfNeeded(relPath, content) {
   }
 }
 
+function isCleanDeliverableEmail(raw) {
+  const trimmed = String(raw ?? '').trim();
+  if (!trimmed || /\s|verify|none/i.test(trimmed)) return false;
+  return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(trimmed);
+}
+
+async function dispatchFounderOutreachViaResend({
+  toEmail,
+  subject,
+  bodyText,
+}) {
+  const apiKey = (process.env.RESEND_API_KEY ?? '').trim();
+  const replyTo = (
+    process.env.OUTBOUND_REPLY_TO_EMAIL ?? 'kulinichnick@gmail.com'
+  ).trim();
+
+  if (apiKey && apiKey.startsWith('re_')) {
+    const fromEmail = (
+      process.env.OUTBOUND_FROM_EMAIL ?? 'Nick Kulinich <nick@verisource.dev>'
+    ).trim();
+
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [toEmail],
+        reply_to: replyTo,
+        bcc: [replyTo],
+        subject,
+        text: bodyText,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      return {
+        sent: false,
+        reason: `HTTP_${res.status}:${errText.slice(0, 120)}`,
+        id: null,
+      };
+    }
+    const json = await res.json();
+    return { sent: true, reason: null, id: json.id ?? null };
+  }
+
+  // Relay via authenticated production endpoint when RESEND_API_KEY lives in Vercel secrets
+  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const appOrigin = (
+    process.env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev'
+  ).replace(/\/+$/, '');
+  if (!serviceKey) {
+    return { sent: false, reason: 'RESEND_AND_SERVICE_KEY_MISSING', id: null };
+  }
+
+  const relayRes = await fetch(`${appOrigin}/api/dashboard/outbound-send`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: toEmail,
+      subject,
+      text: bodyText,
+      replyTo,
+    }),
+    signal: AbortSignal.timeout(12000),
+  });
+
+  if (!relayRes.ok) {
+    const errText = await relayRes.text().catch(() => '');
+    return {
+      sent: false,
+      reason: `RELAY_HTTP_${relayRes.status}:${errText.slice(0, 120)}`,
+      id: null,
+    };
+  }
+  const relayJson = await relayRes.json();
+  return {
+    sent: Boolean(relayJson.delivered),
+    reason: null,
+    id: relayJson.providerMessageId ?? null,
+  };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
+  const sendEmail = args.includes('--send-email') && !dryRun;
   const rawAgencies = Number(getArgValue(args, '--agencies', '2'));
   const agencyCount = Math.max(
     0,
@@ -265,8 +356,50 @@ async function main() {
         agency.auditedAt = nowIso;
       }
 
+      let emailDispatch = { sent: false, id: null, reason: null };
+      if (
+        sendEmail &&
+        !agency.emailSentAt &&
+        !agency.resendMessageId &&
+        isCleanDeliverableEmail(agency.publicContactChannel)
+      ) {
+        const subjectLine = `${summary.hostname} — AI search & /agents.md check for ${agency.agencyName}`;
+        const fullEmailBody = [
+          `Hi ${firstName},`,
+          ``,
+          enforcedNote.content,
+          ``,
+          `Best,`,
+          `Nick Kulinich`,
+          `Founder, Verisource`,
+          `https://verisource.dev`,
+        ].join('\n');
+
+        emailDispatch = await dispatchFounderOutreachViaResend({
+          toEmail: agency.publicContactChannel.trim(),
+          subject: subjectLine,
+          bodyText: fullEmailBody,
+        });
+
+        if (emailDispatch.sent) {
+          agency.status = 'sent';
+          agency.emailSentAt = nowIso;
+          agency.resendMessageId = emailDispatch.id;
+          agency.channelsSent = ['email_resend'];
+          agency.followUpDueDate = new Date(
+            Date.now() + 4 * 86400 * 1000
+          )
+            .toISOString()
+            .slice(0, 10);
+        }
+      }
+
       console.log(
-        `  ✔ ${agency.agencyName} -> client ${summary.hostname} (${summary.visibilityScore}/100) | Quality ${enforcedNote.score}/10`
+        `  ✔ ${agency.agencyName} -> client ${summary.hostname} (${summary.visibilityScore}/100) | Quality ${enforcedNote.score}/10${
+          emailDispatch.sent
+            ? ` | Auto-Sent via Resend (${emailDispatch.id})`
+            : ''
+        }`
       );
 
       return {
@@ -278,6 +411,8 @@ async function main() {
         threeSentenceEmail: enforcedNote.content,
         linkedinDm,
         qualityScore: enforcedNote.score,
+        emailSent: emailDispatch.sent,
+        resendMessageId: emailDispatch.id,
       };
     }
   );
