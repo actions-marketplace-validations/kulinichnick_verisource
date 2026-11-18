@@ -37,3 +37,8 @@ chrome-store-assets/
 verisource-chrome-mv3-*.zip
 growth_ops/queue/
 growth_ops/ledger/
+.verisource/config.json
+.verisource/last-run.json
+.verisource/last-map.json
+.verisource/browser-session.json
+.verisource/artifacts/

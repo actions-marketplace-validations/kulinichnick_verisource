@@ -165,7 +165,7 @@ export function PartnerHubClient(): React.ReactElement {
               value={starterCount}
               aria-label="Referred Starter Brand workspaces"
               onChange={(e) => setStarterCount(Number(e.target.value))}
-              style={{ width: '100%', accentColor: '#0A0E17' }}
+              style={{ width: '100%', accentColor: 'var(--vs-accent)' }}
             />
             <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
               {cycle === 'annual'
@@ -194,7 +194,7 @@ export function PartnerHubClient(): React.ReactElement {
               value={proCount}
               aria-label="Referred Pro + MCP workspaces"
               onChange={(e) => setProCount(Number(e.target.value))}
-              style={{ width: '100%', accentColor: '#0A0E17' }}
+              style={{ width: '100%', accentColor: 'var(--vs-accent)' }}
             />
             <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
               {cycle === 'annual'
@@ -223,7 +223,7 @@ export function PartnerHubClient(): React.ReactElement {
               value={agencyCount}
               aria-label="Referred Agency White-Label workspaces"
               onChange={(e) => setAgencyCount(Number(e.target.value))}
-              style={{ width: '100%', accentColor: '#0A0E17' }}
+              style={{ width: '100%', accentColor: 'var(--vs-accent)' }}
             />
             <div style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}>
               {cycle === 'annual'
@@ -358,9 +358,9 @@ export function PartnerHubClient(): React.ReactElement {
               marginTop: '14px',
               padding: '10px 14px',
               borderRadius: '6px',
-              border: '1px solid #FCA5A5',
-              background: '#FEF2F2',
-              color: '#991B1B',
+              border: '1px solid var(--vs-crit-border)',
+              background: 'var(--vs-crit-bg)',
+              color: 'var(--vs-crit-fg)',
               fontSize: '13px',
             }}
           >

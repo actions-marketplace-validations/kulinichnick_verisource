@@ -18,7 +18,7 @@ We are building a **Universal B2B Generative Engine Optimization (GEO) & Paid MC
 4. **Mid-Market D2C & Specialty Shopify Brands ($49–$99/mo Tiers):** Native `/api/ucp/mcp` + `agents.md.liquid` commerce readiness. *(Internal test fixtures for `aurearoasters.com` and `mosaicroasters.com` remain backend-only regression fixtures and are never displayed as customer-facing homepage presets, tables, or unauthenticated demo workspaces.)*
 
 ### Public Marketing vs. Subscriber Console Boundary
-* **Route-Aware Navigation:** Public routes (`/`, `/pricing`, `/tutorial`, `/compare`, `/guides`, `/templates`, `/benchmarks`, `/connectors`, `/partners`, `/tools`, `/agencies`, `/mcp-guide`, `/sample-audit`) display product navigation plus `Sign In` and `Audit Your Site →`. Inside `/dashboard` (and `/login`), marketing CTAs like `Open Console →` are suppressed in favor of a dedicated Console header.
+* **Route-Aware Navigation:** Public routes (`/`, `/features`, `/scanner`, `/pricing`, `/tutorial`, `/compare`, `/guides`, `/templates`, `/benchmarks`, `/connectors`, `/partners`, `/tools`, `/agencies`, `/mcp-guide`, `/sample-audit`) display product navigation plus `Sign In` and `Audit Your Site →`. Inside `/dashboard` (and `/login`), marketing CTAs like `Open Console →` are suppressed in favor of a dedicated Console header.
 * **Front-Page Free Website Audit (`/`):** Zero preset pills and zero intimidating raw tracking `<script>` dumps on `/`. Prospective customers enter **their own website URL** to receive an easy-to-follow **Site Diagnosis & Action Plan** (`What's Wrong`, `Why It Costs You Customers`, `How You Fix It Without Coding`), AI Visibility Score, an interactive **6-Platform Tailored 1-Click AI Fix Prompt Preview** (with anti-scraping redacted schema payloads), and 1 live buyer prompt preview with blurred competitor citation URLs—paired with a 3-Step "How Verisource Works (No Coding Required)" workflow and interactive 5-pillar showcase.
 * **Subscriber-Locked Admin Console (`/dashboard`):** Strictly gated behind authentication + active plan (`tripwire_19`, `starter_49`, `pro_99`, `agency_249`, or verified Founder/Owner account). Defaults to **Guided Mode** with a top **Site Diagnosis & Action Plan**, a 1-2-3 **1-Click AI Fix Prompt** hero flow (`Claude · ChatGPT · Antigravity · Cursor · Shopify`), and `<details>` progressive disclosure collapsing optional visitor-tracking codes and manual raw code files until needed.
 
@@ -78,6 +78,7 @@ To prevent UI bloat, both the Subscriber Web Console and Chrome Extension Side P
 │   ├── mcp-worker/               # Cloudflare Worker (`createMcpHandler` + MCP SDK v2 at `/mcp` + Cron Scanner)
 │   └── extension/                # WXT Manifest V3 Chrome Extension (Side Panel UI)
 └── packages/
-    ├── ui/                       # Shared editorial 3-Tab React components across Web & Extension
-    └── core-geo/                 # Shared TypeScript logic: LLM fanout scanner, Hallucination diff, Shopify UCP/MCP reader, 9.5/10 Critic
+    ├── ui/                       # Shared Obsidian & Warm Brass 3-Tab React components (+ Light-Paper /audit/[slug] isolation)
+    ├── cli/                      # @verisource/cli: scan, verify, show, query, map, browse, record, run, log & agent --skill
+    └── core-geo/                 # Shared TypeScript logic: LLM fanout scanner, 20p site health crawler, Hallucination diff, Shopify UCP/MCP, 9.5/10 Critic
 ```

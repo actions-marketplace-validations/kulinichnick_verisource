@@ -208,119 +208,177 @@ export default function RootLayout({
           className="vs-site-chrome"
           style={{
             borderTop: '1px solid var(--vs-border)',
-            background: 'var(--vs-surface)',
+            background: 'var(--vs-band-alt)',
             marginTop: '80px',
-            padding: '36px 0',
+            padding: '48px 0 32px 0',
             fontSize: '13px',
             color: 'var(--vs-ink-muted)',
           }}
         >
-          <div
-            className="vs-container"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '14px',
-            }}
-          >
-            <div>
-              <strong style={{ color: 'var(--vs-ink)' }}>Verisource</strong> (
-              <code className="vs-mono">verisource.dev</code>) — AI Brand Truth
-              &amp; Streamable HTTP MCP Engine.
-            </div>
+          <div className="vs-container">
             <div
-              className="vs-mono"
+              className="vs-footer-grid"
               style={{
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '14px',
-                flexWrap: 'wrap',
+                paddingBottom: '32px',
+                borderBottom: '1px solid var(--vs-border)',
               }}
             >
-              <Link
-                href="/tutorial"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /tutorial
-              </Link>
-              <Link
-                href="/compare"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /compare
-              </Link>
-              <Link
-                href="/guides"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /guides
-              </Link>
-              <Link
-                href="/templates"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /templates
-              </Link>
-              <Link
-                href="/benchmarks"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /benchmarks
-              </Link>
-              <Link
-                href="/connectors"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /connectors
-              </Link>
-              <Link
-                href="/partners"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /partners
-              </Link>
-              <Link
-                href="/tools"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /tools
-              </Link>
-              <Link
-                href="/mcp-guide"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /mcp-guide
-              </Link>
-              <a
-                href="/llms.txt"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /llms.txt
-              </a>
-              <a
-                href="/agents.md"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                /agents.md
-              </a>
-              <Link
-                href="/privacy"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/terms"
-                style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'none' }}
-              >
-                Terms
-              </Link>
-              <span style={{ overflowWrap: 'anywhere' }}>
-                Endpoint: https://mcp.verisource.dev/mcp
-              </span>
+              <div>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '9px',
+                    color: 'var(--vs-ink)',
+                    fontWeight: 700,
+                    fontSize: '15.5px',
+                    letterSpacing: '-0.025em',
+                    marginBottom: '10px',
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '19px',
+                      height: '19px',
+                      background: 'var(--vs-accent)',
+                      borderRadius: '4px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        transform: 'rotate(45deg)',
+                        border: '1.6px solid #161004',
+                      }}
+                    />
+                  </span>
+                  verisource
+                </div>
+                <p
+                  style={{
+                    margin: '0 0 12px 0',
+                    fontSize: '13px',
+                    lineHeight: 1.58,
+                    color: 'var(--vs-ink-secondary)',
+                    maxWidth: '340px',
+                  }}
+                >
+                  AI search visibility, brand-truth verification, multi-page site
+                  health scanning, and Streamable HTTP{' '}
+                  <code className="vs-mono">/mcp</code> remediation.
+                </p>
+                <div className="vs-mono" style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}>
+                  Endpoint: https://mcp.verisource.dev/mcp
+                </div>
+              </div>
+
+              <div>
+                <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)', marginBottom: '10px' }}>
+                  Platform
+                </div>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  <Link href="/features" className="vs-nav-link">
+                    Features &amp; CLI
+                  </Link>
+                  <Link href="/#scan" className="vs-nav-link">
+                    Scan Your Site
+                  </Link>
+                  <Link href="/tutorial" className="vs-nav-link">
+                    Interactive Tour
+                  </Link>
+                  <Link href="/pricing" className="vs-nav-link">
+                    Pricing &amp; Plans
+                  </Link>
+                  <Link href="/agencies" className="vs-nav-link">
+                    Agency White-Label
+                  </Link>
+                  <Link href="/mcp-guide" className="vs-nav-link">
+                    MCP &amp; Agent Setup
+                  </Link>
+                  <Link href="/scanner" className="vs-nav-link">
+                    The Scanner
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)', marginBottom: '10px' }}>
+                  Validators &amp; Research
+                </div>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  <Link href="/tools" className="vs-nav-link">
+                    Free Protocol Validators
+                  </Link>
+                  <Link href="/templates" className="vs-nav-link">
+                    7-CMS Starter Templates
+                  </Link>
+                  <Link href="/connectors" className="vs-nav-link">
+                    WordPress &amp; Shopify Bridges
+                  </Link>
+                  <Link href="/benchmarks" className="vs-nav-link">
+                    2026 Readiness Study
+                  </Link>
+                  <Link href="/compare" className="vs-nav-link">
+                    Platform Comparisons
+                  </Link>
+                  <Link href="/guides" className="vs-nav-link">
+                    Engineering Guides
+                  </Link>
+                </div>
+              </div>
+
+              <div>
+                <div className="vs-eyebrow" style={{ color: 'var(--vs-ink)', marginBottom: '10px' }}>
+                  Account &amp; Specs
+                </div>
+                <div style={{ display: 'grid', gap: '7px' }}>
+                  <Link href="/dashboard" className="vs-nav-link">
+                    Subscriber Console
+                  </Link>
+                  <Link href="/partners" className="vs-nav-link">
+                    25% Partner Program
+                  </Link>
+                  <a href="/llms.txt" className="vs-nav-link vs-mono" style={{ fontSize: '12px' }}>
+                    /llms.txt
+                  </a>
+                  <a href="/agents.md" className="vs-nav-link vs-mono" style={{ fontSize: '12px' }}>
+                    /agents.md
+                  </a>
+                  <Link href="/privacy" className="vs-nav-link">
+                    Privacy Policy
+                  </Link>
+                  <Link href="/terms" className="vs-nav-link">
+                    Terms of Service
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                paddingTop: '18px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+                fontSize: '12px',
+              }}
+            >
+              <div>
+                <strong style={{ color: 'var(--vs-ink-secondary)' }}>Verisource</strong> (
+                <code className="vs-mono">verisource.dev</code>) — Syntax &amp;
+                Brand-Truth Verified GEO Platform.
+              </div>
+              <div className="vs-mono" style={{ color: 'var(--vs-ink-muted)' }}>
+                MCP SDK v2 · Streamable HTTP · Chrome MV3
+              </div>
             </div>
           </div>
         </footer>

@@ -832,7 +832,7 @@ export function SampleBusinessMotionShowcase(): React.ReactElement {
                   style={{
                     padding: '10px 12px',
                     borderRadius: '7px',
-                    background: '#FFFFFF',
+                    background: 'var(--vs-surface)',
                     border: '1px solid var(--vs-border)',
                     fontSize: '12.5px',
                     color: 'var(--vs-ink-secondary)',

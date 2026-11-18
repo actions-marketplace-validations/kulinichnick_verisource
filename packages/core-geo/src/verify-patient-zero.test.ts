@@ -4660,3 +4660,42 @@ test('M88 computeDomainDriftDiff + 5 Autonomous Subagents + Chrome MV3 Paywall &
     assert.ok(content.includes('mainAgent: false'));
   }
 });
+
+test('M88 Multi-Page Site Health Crawler enforces SSRF blocks and emits compact short handles', async () => {
+  const { crawlDomainSiteHealth } = await import(
+    './scanner/site-health-crawler.js'
+  );
+
+  await assert.rejects(
+    () =>
+      crawlDomainSiteHealth({
+        domainInput: 'http://169.254.169.254/latest/meta-data/',
+      }),
+    /Refusing to scan/
+  );
+  await assert.rejects(
+    () =>
+      crawlDomainSiteHealth({
+        domainInput: 'http://0.0.0.0:3000/',
+      }),
+    /Refusing to scan/
+  );
+
+  const aureaHealth = await crawlDomainSiteHealth({
+    domainInput: 'aurearoasters.com',
+    mode: 'quick',
+    skipNetwork: true,
+  });
+  assert.equal(aureaHealth.status, 'pass');
+  assert.equal(aureaHealth.healthScore, 100);
+  assert.equal(aureaHealth.robotsTxtObeyed, true);
+
+  const mosaicHealth = await crawlDomainSiteHealth({
+    domainInput: 'mosaicroasters.com',
+    mode: 'workspace',
+    skipNetwork: true,
+  });
+  assert.equal(mosaicHealth.status, 'warn');
+  assert.equal(mosaicHealth.maxPages, 20);
+  assert.equal(mosaicHealth.findings[0]?.handle, 'a1');
+});

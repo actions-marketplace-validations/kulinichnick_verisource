@@ -109,7 +109,7 @@ export function AgencyRoiCalculator(): React.ReactElement {
             onChange={(e) => setClientCount(Number(e.target.value))}
             style={{
               width: '100%',
-              accentColor: '#0A0E17',
+              accentColor: 'var(--vs-accent)',
               cursor: 'pointer',
             }}
           />
@@ -161,7 +161,7 @@ export function AgencyRoiCalculator(): React.ReactElement {
             onChange={(e) => setRetainerUsd(Number(e.target.value))}
             style={{
               width: '100%',
-              accentColor: '#0A0E17',
+              accentColor: 'var(--vs-accent)',
               cursor: 'pointer',
             }}
           />

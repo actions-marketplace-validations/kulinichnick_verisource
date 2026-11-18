@@ -1665,7 +1665,7 @@ export default function App(): React.ReactElement {
                           padding: '7px 9px',
                           borderRadius: '5px',
                           border: '1px solid var(--vs-border)',
-                          background: '#FFFFFF',
+                          background: 'var(--vs-surface-subtle)',
                           fontSize: '11px',
                           display: 'flex',
                           flexDirection: 'column',

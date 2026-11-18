@@ -214,11 +214,6 @@ export default async function PricingPage({
               <Link
                 href="/agencies#sandbox"
                 className="vs-btn"
-                style={{
-                  background: '#FFFFFF',
-                  color: '#0A0E17',
-                  borderColor: '#FFFFFF',
-                }}
               >
                 Agency Sandbox ($249/mo) →
               </Link>

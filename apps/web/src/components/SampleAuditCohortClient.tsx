@@ -157,7 +157,6 @@ export function SampleAuditCohortClient(props: {
               minWidth: 0,
               padding: '6px 10px',
               fontSize: '12.5px',
-              background: '#FFFFFF',
             }}
           />
           <button

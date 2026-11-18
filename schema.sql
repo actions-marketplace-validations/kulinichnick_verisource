@@ -49,9 +49,13 @@ create table if not exists public.domains (
   visibility_score integer not null default 0 check (visibility_score >= 0 and visibility_score <= 100),
   accuracy_score integer not null default 100 check (accuracy_score >= 0 and accuracy_score <= 100),
   tracking_pixel_token uuid default gen_random_uuid() unique not null,
+  crawl_health_summary jsonb default '{}'::jsonb,
   last_scanned_at timestamptz,
   created_at timestamptz not null default now()
 );
+
+alter table public.domains
+  add column if not exists crawl_health_summary jsonb default '{}'::jsonb;
 
 -- ============================================================================
 -- 3. Buyer Prompts & Decompiled Query Fanouts

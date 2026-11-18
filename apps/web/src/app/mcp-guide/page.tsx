@@ -443,11 +443,6 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
               <a
                 href="/api/checkout?plan=pro_99&cycle=monthly"
                 className="vs-btn"
-                style={{
-                  background: '#FFFFFF',
-                  color: '#0A0E17',
-                  borderColor: '#FFFFFF',
-                }}
               >
                 Activate Pro + MCP ($99/mo) →
               </a>

@@ -531,9 +531,9 @@ export function InteractiveTutorialClient(): React.ReactElement {
                     padding: '12px 14px',
                     borderRadius: '6px',
                     border: isActive
-                      ? '1.5px solid var(--vs-ink)'
+                      ? '1.5px solid var(--vs-accent)'
                       : '1px solid var(--vs-border)',
-                    background: isActive ? '#FFFFFF' : 'var(--vs-surface-warm)',
+                    background: isActive ? 'var(--vs-surface-raised)' : 'var(--vs-surface)',
                     cursor: 'pointer',
                     transition: 'border-color 120ms ease, background 120ms ease',
                   }}
@@ -633,7 +633,7 @@ export function InteractiveTutorialClient(): React.ReactElement {
         </div>
 
         {/* Right Interactive Console Specimen */}
-        <div style={{ padding: '22px', background: '#FFFFFF' }}>
+        <div style={{ padding: '22px', background: 'var(--vs-surface)' }}>
           <div
             style={{
               display: 'flex',

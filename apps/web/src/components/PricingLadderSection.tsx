@@ -670,12 +670,12 @@ export function PricingLadderSection(props: {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 borderColor: tier.highlight
-                  ? 'var(--vs-ink)'
+                  ? 'var(--vs-accent-border)'
                   : undefined,
                 borderWidth: tier.highlight ? '1.5px' : '1px',
                 background: tier.isCurrentExactPlan
                   ? 'var(--vs-surface-warm)'
-                  : '#FFFFFF',
+                  : 'var(--vs-surface)',
               }}
             >
               <div>

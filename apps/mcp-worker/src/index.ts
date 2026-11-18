@@ -115,7 +115,7 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
       {
         title: 'Scan Domain AI & MCP Readiness (Free Preview)',
         description:
-          'Returns AI Visibility Score (0-100), 7-platform CMS detection, 3-pillar JSON-LD readiness (Entity, FAQPage Q&A count, Offer pricing), GPTBot/PerplexityBot/ClaudeBot WAF & robots.txt access, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation preview.',
+          'Returns AI Visibility Score (0-100), 7-platform CMS detection, 3-pillar JSON-LD readiness (Entity, FAQPage Q&A count, Offer pricing), GPTBot/PerplexityBot/ClaudeBot WAF & robots.txt access, multi-page broken-link & #anchor health handles, Shopify /api/ucp/mcp + /agents.md status, and 1 sample prompt citation preview.',
         inputSchema: z.object({
           domain: z
             .string()

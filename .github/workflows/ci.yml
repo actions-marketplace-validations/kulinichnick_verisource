@@ -34,13 +34,13 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck all 5 workspaces (cold-clone safe)
+      - name: Typecheck all 6 workspaces (cold-clone safe)
         run: pnpm typecheck
 
-      - name: Run @verisource/core-geo & @verisource/mcp-worker unit tests
+      - name: Run @verisource/core-geo, @verisource/cli & @verisource/mcp-worker unit tests
         run: pnpm test
 
-      - name: Build all 5 workspaces (Next.js, Worker dry-run, Chrome MV3)
+      - name: Build all 6 workspaces (Next.js, Worker dry-run, CLI, Chrome MV3)
         run: pnpm build
 
       - name: Run live Next.js E2E & >=9.5/10 Quality Gate verification

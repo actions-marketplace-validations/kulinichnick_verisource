@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const alt =
-  'Verisource — B2B Generative Engine Optimization & Streamable HTTP MCP Platform';
+  'Verisource — B2B Generative Engine Optimization, Site Verification & Streamable HTTP MCP Platform';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -15,9 +15,9 @@ export default function OpenGraphImage(): ImageResponse {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: '#FAF9F6',
+          backgroundColor: '#0E1116',
           padding: '52px 60px',
-          color: '#0A0E17',
+          color: '#EEF1F6',
           fontFamily: 'sans-serif',
         }}
       >
@@ -33,15 +33,15 @@ export default function OpenGraphImage(): ImageResponse {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div
               style={{
-                width: '28px',
-                height: '28px',
-                backgroundColor: '#0A0E17',
-                borderRadius: '5px',
+                width: '30px',
+                height: '30px',
+                backgroundColor: '#E5A93C',
+                borderRadius: '6px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#FFFFFF',
-                fontSize: '16px',
+                color: '#161004',
+                fontSize: '17px',
                 fontWeight: 700,
               }}
             >
@@ -49,12 +49,13 @@ export default function OpenGraphImage(): ImageResponse {
             </div>
             <span
               style={{
-                fontSize: '22px',
+                fontSize: '23px',
                 fontWeight: 700,
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.025em',
+                color: '#EEF1F6',
               }}
             >
-              VERISOURCE
+              verisource
             </span>
           </div>
 
@@ -63,11 +64,11 @@ export default function OpenGraphImage(): ImageResponse {
               display: 'flex',
               alignItems: 'center',
               padding: '8px 14px',
-              backgroundColor: '#FFFFFF',
-              border: '1px solid #CFCBC0',
-              borderRadius: '6px',
+              backgroundColor: '#171C26',
+              border: '1px solid #364156',
+              borderRadius: '7px',
               fontSize: '16px',
-              color: '#3A3F4B',
+              color: '#E5A93C',
               fontWeight: 600,
             }}
           >
@@ -79,27 +80,30 @@ export default function OpenGraphImage(): ImageResponse {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div
             style={{
-              fontSize: '54px',
+              display: 'flex',
+              flexDirection: 'column',
+              fontSize: '52px',
               fontWeight: 700,
-              lineHeight: 1.12,
+              lineHeight: 1.1,
               letterSpacing: '-0.03em',
-              maxWidth: '1020px',
+              maxWidth: '1040px',
             }}
           >
-            Control How AI Search Recommends Your Brand &amp; Ship the Fixes
-            Agents Read.
+            <span>AI answers buyers about your brand.</span>
+            <span style={{ color: '#E5A93C' }}>
+              Verisource checks—and ships the fix.
+            </span>
           </div>
           <div
             style={{
-              fontSize: '23px',
-              color: '#475569',
-              lineHeight: 1.4,
+              fontSize: '22px',
+              color: '#B4BCC9',
+              lineHeight: 1.42,
               maxWidth: '960px',
             }}
           >
-            Answer Engine Insights, Rival Share of Voice, Edge AI Bot Logs &amp;
-            Syntax-Validated JSON-LD + /agents.md fixes for ChatGPT, Gemini
-            &amp; Perplexity.
+            Multi-engine Share-of-Voice, pricing hallucination alerts, multi-page
+            site health checks, and 1-click JSON-LD + /agents.md remediation.
           </div>
         </div>
 
@@ -108,9 +112,9 @@ export default function OpenGraphImage(): ImageResponse {
           style={{
             display: 'flex',
             width: '100%',
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #CBD5E1',
-            borderRadius: '8px',
+            backgroundColor: '#171C26',
+            border: '1px solid #262E3D',
+            borderRadius: '10px',
             overflow: 'hidden',
           }}
         >
@@ -120,7 +124,7 @@ export default function OpenGraphImage(): ImageResponse {
               flexDirection: 'column',
               flex: 1,
               padding: '22px 26px',
-              borderRight: '1px solid #E2E8F0',
+              borderRight: '1px solid #262E3D',
               gap: '6px',
             }}
           >
@@ -128,17 +132,17 @@ export default function OpenGraphImage(): ImageResponse {
               style={{
                 fontSize: '13px',
                 fontWeight: 700,
-                color: '#64748B',
+                color: '#E5A93C',
                 letterSpacing: '0.05em',
               }}
             >
               01 · CRAWLER &amp; CLAIM WATCHDOG
             </span>
-            <span style={{ fontSize: '20px', fontWeight: 700 }}>
-              GPTBot · OAI-SearchBot · PerplexityBot
+            <span style={{ fontSize: '20px', fontWeight: 700, color: '#EEF1F6' }}>
+              GPTBot · PerplexityBot · Site Health
             </span>
-            <span style={{ fontSize: '15px', color: '#475569' }}>
-              Flags 403 WAF blocks &amp; false SKU/pricing claims
+            <span style={{ fontSize: '15px', color: '#848E9F' }}>
+              Flags 403 blocks, broken links &amp; false prices
             </span>
           </div>
 
@@ -148,7 +152,7 @@ export default function OpenGraphImage(): ImageResponse {
               flexDirection: 'column',
               flex: 1,
               padding: '22px 26px',
-              borderRight: '1px solid #E2E8F0',
+              borderRight: '1px solid #262E3D',
               gap: '6px',
             }}
           >
@@ -156,17 +160,17 @@ export default function OpenGraphImage(): ImageResponse {
               style={{
                 fontSize: '13px',
                 fontWeight: 700,
-                color: '#065F46',
+                color: '#6EE7B7',
                 letterSpacing: '0.05em',
               }}
             >
               02 · SCHEMA &amp; FACT VERIFIED
             </span>
-            <span style={{ fontSize: '20px', fontWeight: 700 }}>
+            <span style={{ fontSize: '20px', fontWeight: 700, color: '#EEF1F6' }}>
               JSON-LD · /llms.txt · /agents.md
             </span>
-            <span style={{ fontSize: '15px', color: '#475569' }}>
-              Syntax-verified schema &amp; Liquid overrides
+            <span style={{ fontSize: '15px', color: '#848E9F' }}>
+              1-click prompt, CLI verifier &amp; Liquid overrides
             </span>
           </div>
 
@@ -183,17 +187,17 @@ export default function OpenGraphImage(): ImageResponse {
               style={{
                 fontSize: '13px',
                 fontWeight: 700,
-                color: '#64748B',
+                color: '#93C5FD',
                 letterSpacing: '0.05em',
               }}
             >
-              03 · MONETIZED /MCP ENGINE
+              03 · MONETIZED /MCP &amp; CLI
             </span>
-            <span style={{ fontSize: '20px', fontWeight: 700 }}>
+            <span style={{ fontSize: '20px', fontWeight: 700, color: '#EEF1F6' }}>
               Claude · Cursor · Antigravity
             </span>
-            <span style={{ fontSize: '15px', color: '#475569' }}>
-              SHA-256 vs_live_ Bearer &amp; 60s Pitch Links
+            <span style={{ fontSize: '15px', color: '#848E9F' }}>
+              Streamable HTTP /mcp &amp; 60s Agency Pitch Links
             </span>
           </div>
         </div>

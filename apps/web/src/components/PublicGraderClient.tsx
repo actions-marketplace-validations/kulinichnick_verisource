@@ -262,31 +262,68 @@ export function PublicGraderClient(): React.ReactElement {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="vs-grader-form">
-        <input
-          type="text"
-          value={domainInput}
-          onChange={(e) => setDomainInput(e.target.value)}
-          placeholder="Enter your website domain (e.g. yourcompany.com)"
-          className="vs-input"
-          aria-label="Your website domain to audit"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="vs-btn"
-          style={{ padding: '10px 24px', flexShrink: 0 }}
+      <div
+        style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid var(--vs-border)',
+        }}
+      >
+        <form onSubmit={handleSubmit} className="vs-scan-bar">
+          <span className="vs-scan-prefix" aria-hidden="true">
+            https://
+          </span>
+          <input
+            type="text"
+            value={domainInput}
+            onChange={(e) => setDomainInput(e.target.value)}
+            placeholder="your-site.com"
+            className="vs-scan-input"
+            aria-label="Your website domain to audit"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="vs-btn"
+            style={{ padding: '10px 22px', flexShrink: 0 }}
+          >
+            {loading ? 'Scanning Site...' : 'Run Free AI Audit →'}
+          </button>
+        </form>
+        <div
+          style={{
+            marginTop: '9px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '6px 14px',
+            fontSize: '12px',
+            color: 'var(--vs-ink-muted)',
+          }}
         >
-          {loading ? 'Scanning Your Website...' : 'Run Free AI Audit →'}
-        </button>
-      </form>
+          <span>
+            Read-only <code className="vs-mono">GET</code>/<code className="vs-mono">HEAD</code>{' '}
+            check · <code className="vs-mono">/robots.txt</code> obeyed (
+            <a
+              href="/scanner"
+              style={{ color: 'var(--vs-ink-secondary)', textDecoration: 'underline' }}
+            >
+              VerisourceScan spec
+            </a>
+            )
+          </span>
+          <span>
+            Up to 5 pages free · 20 pages + full fix bundle in Console
+          </span>
+        </div>
+      </div>
 
       {!result ? (
         <div
           style={{
             padding: '9px 20px',
             borderBottom: '1px solid var(--vs-border)',
-            background: '#FFFFFF',
+            background: 'var(--vs-surface-subtle)',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -474,7 +511,7 @@ export function PublicGraderClient(): React.ReactElement {
                   border: '1px solid var(--vs-border)',
                   borderRadius: '8px',
                   overflow: 'hidden',
-                  background: '#FFFFFF',
+                  background: 'var(--vs-surface)',
                 }}
               >
                 <div
@@ -933,7 +970,7 @@ export function PublicGraderClient(): React.ReactElement {
                 padding: '14px 16px',
                 border: '1px solid var(--vs-border)',
                 borderRadius: '8px',
-                background: '#FFFFFF',
+                background: 'var(--vs-surface)',
               }}
             >
               <div
@@ -1010,6 +1047,108 @@ export function PublicGraderClient(): React.ReactElement {
                 </div>
               </div>
             </div>
+
+            {/* 3B. Multi-Page Site Health, Broken Links & Dead Anchor Check */}
+            {result.siteHealth ? (
+              <div
+                style={{
+                  marginBottom: '14px',
+                  padding: '13px 16px',
+                  border: '1px solid var(--vs-border)',
+                  borderRadius: '8px',
+                  background: 'var(--vs-surface)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px',
+                    marginBottom:
+                      result.siteHealth.findings.length > 0 ? '10px' : '4px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
+                      MULTI-PAGE SITE HEALTH &amp; LINK VERIFIER
+                    </span>
+                    <StatusBadge
+                      tone={
+                        result.siteHealth.status === 'pass'
+                          ? 'pass'
+                          : result.siteHealth.status === 'warn'
+                            ? 'warn'
+                            : 'critical'
+                      }
+                    >
+                      {result.siteHealth.status === 'pass'
+                        ? `PASS · ${result.siteHealth.healthScore}/100`
+                        : `${result.siteHealth.status.toUpperCase()} · ${result.siteHealth.findings.length} ISSUE(S)`}
+                    </StatusBadge>
+                  </div>
+                  <span
+                    className="vs-mono"
+                    style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+                  >
+                    {`${result.siteHealth.pagesScanned} page(s) · ${result.siteHealth.linksChecked} links · ${result.siteHealth.assetsChecked} assets`}
+                  </span>
+                </div>
+
+                {result.siteHealth.findings.length > 0 ? (
+                  <div style={{ display: 'grid', gap: '6px' }}>
+                    {result.siteHealth.findings.slice(0, 4).map((f) => (
+                      <div
+                        key={f.handle}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          background: 'var(--vs-terminal)',
+                          border: '1px solid var(--vs-border)',
+                          fontSize: '12px',
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          alignItems: 'baseline',
+                          gap: '8px',
+                        }}
+                      >
+                        <code
+                          className="vs-mono"
+                          style={{
+                            color:
+                              f.severity === 'critical'
+                                ? 'var(--vs-crit-fg)'
+                                : 'var(--vs-accent)',
+                            fontWeight: 700,
+                          }}
+                        >
+                          [{f.handle}]
+                        </code>
+                        <span style={{ color: 'var(--vs-ink)' }}>{f.summary}</span>
+                        <span style={{ color: 'var(--vs-ink-muted)' }}>
+                          — {f.fixHint}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div
+                    className="vs-mono"
+                    style={{ fontSize: '12px', color: 'var(--vs-pass-fg)' }}
+                  >
+                    ✓ {result.siteHealth.compactCliSummary}
+                  </div>
+                )}
+              </div>
+            ) : null}
 
             {/* 4. Optional Progressive Disclosure for Raw Bot & Developer Telemetry */}
             <details className="vs-disclosure">

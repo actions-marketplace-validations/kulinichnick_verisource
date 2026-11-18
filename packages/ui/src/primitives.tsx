@@ -349,7 +349,7 @@ export function ThreeTabShell(props: {
                   fontWeight: 700,
                   letterSpacing: '0.06em',
                   marginBottom: '2px',
-                  color: isActive ? 'var(--vs-ink)' : 'var(--vs-ink-muted)',
+                  color: isActive ? 'var(--vs-accent)' : 'var(--vs-ink-muted)',
                 }}
               >
                 {isGuided ? `STEP ${tab.index}` : `TAB ${tab.index}`}
@@ -469,6 +469,88 @@ export function ConsoleZoneHeader(props: {
           {props.badgeText}
         </StatusBadge>
       ) : null}
+    </div>
+  );
+}
+
+export function CopyCommandPill(props: {
+  command: string;
+  promptPrefix?: string;
+  copyLabel?: string;
+}): React.ReactElement {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(props.command);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // Clipboard API unavailable in non-secure test frame
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="vs-copy-cmd"
+      title={`Copy command: ${props.command}`}
+    >
+      <span className="vs-copy-cmd-prompt">{props.promptPrefix ?? '$'}</span>
+      <span className="vs-copy-cmd-text">{props.command}</span>
+      <span className="vs-copy-cmd-action">
+        {copied ? 'copied ✓' : (props.copyLabel ?? 'copy')}
+      </span>
+    </button>
+  );
+}
+
+export function LightBrowserFrame(props: {
+  url: string;
+  statusLabel?: string;
+  statusTone?: 'pass' | 'warn' | 'critical' | 'rec' | 'neutral';
+  children: React.ReactNode;
+}): React.ReactElement {
+  const pillColors =
+    props.statusTone === 'pass'
+      ? { bg: '#DCFCE7', fg: '#166534', border: '#86EFAC' }
+      : props.statusTone === 'critical'
+        ? { bg: '#FEE2E2', fg: '#991B1B', border: '#FCA5A5' }
+        : props.statusTone === 'rec'
+          ? { bg: '#DC2626', fg: '#FFFFFF', border: '#DC2626' }
+          : props.statusTone === 'warn'
+            ? { bg: '#FEF3C7', fg: '#92400E', border: '#FDE68A' }
+            : { bg: '#E2E8F0', fg: '#334155', border: '#CBD5E1' };
+
+  return (
+    <div className="vs-browser-frame">
+      <div className="vs-browser-chrome">
+        <span className="vs-browser-dots" aria-hidden="true">
+          <span className="vs-browser-dot" style={{ background: '#F87171' }} />
+          <span className="vs-browser-dot" style={{ background: '#FBBF24' }} />
+          <span className="vs-browser-dot" style={{ background: '#34D399' }} />
+        </span>
+        <span className="vs-browser-url">{props.url}</span>
+        {props.statusLabel ? (
+          <span
+            className="vs-mono"
+            style={{
+              fontSize: '10.5px',
+              fontWeight: 700,
+              padding: '2px 7px',
+              borderRadius: '999px',
+              background: pillColors.bg,
+              color: pillColors.fg,
+              border: `1px solid ${pillColors.border}`,
+              flexShrink: 0,
+            }}
+          >
+            {props.statusLabel}
+          </span>
+        ) : null}
+      </div>
+      <div className="vs-browser-body">{props.children}</div>
     </div>
   );
 }

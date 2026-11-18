@@ -134,7 +134,7 @@ export function PricingRoiCalculatorClient(props: {
             step={activePreset.visitStep}
             value={monthlyVisits}
             onChange={(e) => setMonthlyVisits(Number(e.target.value))}
-            style={{ width: '100%', accentColor: '#0A0E17' }}
+            style={{ width: '100%', accentColor: 'var(--vs-accent)' }}
           />
           <div
             style={{
@@ -176,7 +176,7 @@ export function PricingRoiCalculatorClient(props: {
             step={activePreset.valueStepUsd}
             value={customerValue}
             onChange={(e) => setCustomerValue(Number(e.target.value))}
-            style={{ width: '100%', accentColor: '#0A0E17' }}
+            style={{ width: '100%', accentColor: 'var(--vs-accent)' }}
           />
           <div
             style={{

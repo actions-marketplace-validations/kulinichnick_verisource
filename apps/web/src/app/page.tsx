@@ -1,650 +1,526 @@
 import Link from 'next/link';
 import React from 'react';
-import { StatusBadge } from '@verisource/ui';
-import { HeroSignalSchematic } from '../components/HeroSignalSchematic';
-import { PlatformModulesShowcase } from '../components/PlatformModulesShowcase';
+import { CopyCommandPill, StatusBadge } from '@verisource/ui';
+import { AgentSplitPlayground } from '../components/AgentSplitPlayground';
+import { HeroCommandSwitcher } from '../components/HeroCommandSwitcher';
 import { PricingLadderSection } from '../components/PricingLadderSection';
 import { PublicGraderClient } from '../components/PublicGraderClient';
 import { SampleBusinessMotionShowcase } from '../components/SampleBusinessMotionShowcase';
 import { StandoutFeaturesBento } from '../components/StandoutFeaturesBento';
+import { SuiteReplayPlayground } from '../components/SuiteReplayPlayground';
+import { TokenBenchmarkCard } from '../components/TokenBenchmarkCard';
 
 export default function HomePage(): React.ReactElement {
   return (
     <div>
-      {/* Profound-Caliber Editorial AI Search Platform Hero */}
+      {/* Band 1 — Centered Full-Viewport Obsidian & Warm Brass Studio Hero */}
       <section
         className="vs-arch-backdrop"
         style={{
+          minHeight: 'calc(92svh - 60px)',
+          display: 'flex',
+          alignItems: 'center',
           borderBottom: '1px solid var(--vs-border)',
-          padding: '48px 0 52px 0',
-          marginBottom: '36px',
+          padding: '64px 0 72px 0',
         }}
       >
-        <div className="vs-container vs-hero-grid">
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '8px',
-                marginBottom: '16px',
-              }}
-            >
-              <StatusBadge tone="pass">
-                CHATGPT · PERPLEXITY · GEMINI · CLAUDE
-              </StatusBadge>
-              <StatusBadge>NO CODING REQUIRED · 1-CLICK AI PROMPT</StatusBadge>
-              <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
-            </div>
-
-            <h1
-              style={{
-                fontSize: 'clamp(33px, 4.3vw, 48px)',
-                lineHeight: 1.07,
-                letterSpacing: '-0.032em',
-                fontWeight: 700,
-                margin: '0 0 16px 0',
-              }}
-            >
-              Control how AI search recommends your brand.{' '}
-              <span
-                className="vs-display-serif"
-                style={{ fontSize: '1.08em', fontWeight: 400 }}
-              >
-                And let your own AI fix your site.
-              </span>
-            </h1>
-
-            <p
-              style={{
-                fontSize: '16px',
-                lineHeight: 1.62,
-                color: 'var(--vs-ink-secondary)',
-                margin: '0 0 24px 0',
-                maxWidth: '600px',
-              }}
-            >
-              40%–58% of buyers now ask ChatGPT, Perplexity, and Google Gemini
-              who to hire or buy from—and AI-referred visitors convert at{' '}
-              <strong className="vs-mono">14.2%–15.9%</strong> vs. Google
-              organic&rsquo;s <strong className="vs-mono">1.76%–2.8%</strong>.
-              Verisource scans your website, shows clearly why
-              competitors get recommended instead (or where AI quotes wrong
-              prices), and gives you{' '}
-              <strong style={{ color: 'var(--vs-ink)' }}>
-                one ready-made prompt to paste into ChatGPT, Claude, Antigravity,
-                Cursor, or Shopify
-              </strong>{' '}
-              to fix everything on your site.
-            </p>
-
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                gap: '10px',
-                marginBottom: '22px',
-              }}
-            >
-              <a href="#grader" className="vs-btn">
-                Scan My Website Free ↓
-              </a>
-              <Link href="/pricing" className="vs-btn vs-btn-secondary">
-                Start 7-Day Free Trial ($0 Today) →
-              </Link>
-              <Link href="/tutorial" className="vs-btn vs-btn-secondary">
-                Interactive 90s Tour →
-              </Link>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '18px',
-                paddingTop: '14px',
-                borderTop: '1px solid var(--vs-border)',
-                fontSize: '12.5px',
-                color: 'var(--vs-ink-secondary)',
-              }}
-            >
-              <span>
-                <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-                  01
-                </strong>{' '}
-                Scan your site &amp; see what to fix
-              </span>
-              <span>
-                <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-                  02
-                </strong>{' '}
-                Copy 1 Verisource prompt into your AI tool
-              </span>
-              <span>
-                <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-                  03
-                </strong>{' '}
-                Verify live fixes &amp; win buyer shortlists
-              </span>
-            </div>
+        <div
+          className="vs-container"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            maxWidth: '940px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '22px',
+            }}
+          >
+            <StatusBadge tone="pass">
+              CHATGPT · PERPLEXITY · GEMINI · CLAUDE
+            </StatusBadge>
+            <StatusBadge>1-CLICK AI FIX PROMPT · CLI · /MCP</StatusBadge>
+            <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
           </div>
 
-          <HeroSignalSchematic />
+          <h1
+            style={{
+              fontSize: 'clamp(34px, 4.8vw, 58px)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.038em',
+              fontWeight: 700,
+              margin: '0 0 20px 0',
+              maxWidth: '18.5ch',
+            }}
+          >
+            Control how AI search recommends your brand.{' '}
+            <span
+              style={{
+                display: 'block',
+                color: 'var(--vs-accent)',
+                marginTop: '4px',
+              }}
+            >
+              Verisource checks—and ships the fix.
+            </span>
+          </h1>
+
+          <p
+            style={{
+              fontSize: '16.5px',
+              lineHeight: 1.64,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 28px 0',
+              maxWidth: '62ch',
+            }}
+          >
+            AI-referred buyers convert at{' '}
+            <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+              14.2%–15.9%
+            </strong>{' '}
+            vs. Google organic&rsquo;s{' '}
+            <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+              1.76%–2.8%
+            </strong>
+            . Verisource checks real buyer citations across 3 AI engines, flags
+            invented pricing claims and broken pages, and gives your team—or
+            your coding agent—validated{' '}
+            <code className="vs-mono">JSON-LD</code>,{' '}
+            <code className="vs-mono">/agents.md</code>, and real-browser{' '}
+            <code className="vs-mono">PASS/FAIL</code> proof.
+          </p>
+
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '28px',
+            }}
+          >
+            <a
+              href="#scan"
+              className="vs-btn"
+              style={{ padding: '12px 22px', fontSize: '14px' }}
+            >
+              Scan Your Site Free ↓
+            </a>
+            <Link
+              href="/pricing"
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '12px 20px', fontSize: '14px' }}
+            >
+              Start 7-Day Free Trial ($0 Today) →
+            </Link>
+            <Link
+              href="/features"
+              className="vs-btn vs-btn-secondary"
+              style={{ padding: '12px 18px', fontSize: '14px' }}
+            >
+              Explore All 11 Capabilities →
+            </Link>
+          </div>
+
+          <HeroCommandSwitcher />
         </div>
       </section>
 
-      <div className="vs-container">
-        {/* Customer Tests Their Own Domain — Spotlighted Inside Tactile Obsidian Bezel */}
-        <div id="audit" className="vs-bezel-obsidian">
-          <PublicGraderClient />
-        </div>
-
-        {/* Empirical Proof & Quick Entry Bar Right Beneath the Live Scanner */}
-        <div
-          className="vs-card"
-          style={{
-            marginTop: '18px',
-            padding: '13px 18px',
-            background: 'var(--vs-surface-warm)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '10px 18px',
-            fontSize: '12.5px',
-            color: 'var(--vs-ink-secondary)',
-          }}
-        >
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px' }}>
-            <span>
-              <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-                95%
-              </strong>{' '}
-              of 40 audited sites lack <code className="vs-mono">/agents.md</code>
-            </span>
-            <span>
-              <strong className="vs-mono" style={{ color: 'var(--vs-pass-fg)' }}>
-                14.2%–15.9%
-              </strong>{' '}
-              AI referral buyer conversion
-            </span>
-            <span>
-              <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-                7 CMS
-              </strong>{' '}
-              platforms auto-detected in 1 click
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-            <Link
-              href="/benchmarks/ai-search-readiness-2026"
+      {/* Band 2 — Focused Live Site, AI Readiness & Broken-Link Scanner */}
+      <section id="scan" className="vs-sec-alt">
+        <div className="vs-container">
+          <div
+            style={{
+              textAlign: 'center',
+              maxWidth: '680px',
+              margin: '0 auto 26px auto',
+            }}
+          >
+            <div className="vs-kicker" style={{ marginBottom: '8px' }}>
+              Free · No signup required
+            </div>
+            <h2
               style={{
-                color: 'var(--vs-ink)',
-                fontWeight: 600,
-                textDecoration: 'underline',
+                fontSize: 'clamp(25px, 3vw, 34px)',
+                fontWeight: 700,
+                letterSpacing: '-0.03em',
+                margin: '0 0 10px 0',
               }}
             >
-              2026 40-Domain Study →
-            </Link>
-            <Link
-              href="/agencies#sandbox"
+              Scan your site for AI visibility, wrong prices, and broken links.
+            </h2>
+            <p
               style={{
-                color: 'var(--vs-ink)',
-                fontWeight: 600,
-                textDecoration: 'underline',
+                margin: 0,
+                fontSize: '14.5px',
+                lineHeight: 1.6,
+                color: 'var(--vs-ink-secondary)',
               }}
             >
-              Agency White-Label Sandbox →
-            </Link>
+              Checks ChatGPT, Gemini, and Perplexity buyer mentions,{' '}
+              <code className="vs-mono">GPTBot</code>/
+              <code className="vs-mono">PerplexityBot</code> access,{' '}
+              <code className="vs-mono">JSON-LD</code> facts, and internal link
+              health—then drafts one ready-to-paste prompt for your AI tool.
+            </p>
+          </div>
+
+          <div id="audit" className="vs-bezel-obsidian">
+            <PublicGraderClient />
+          </div>
+
+          <div
+            className="vs-card"
+            style={{
+              marginTop: '18px',
+              padding: '13px 18px',
+              background: 'var(--vs-surface)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px 18px',
+              fontSize: '12.5px',
+              color: 'var(--vs-ink-secondary)',
+            }}
+          >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px' }}>
+              <span>
+                <strong className="vs-mono" style={{ color: 'var(--vs-accent)' }}>
+                  95%
+                </strong>{' '}
+                of 40 audited sites lack <code className="vs-mono">/agents.md</code>
+              </span>
+              <span>
+                <strong className="vs-mono" style={{ color: 'var(--vs-pass-fg)' }}>
+                  14.2%–15.9%
+                </strong>{' '}
+                AI referral buyer conversion
+              </span>
+              <span>
+                <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+                  7 CMS
+                </strong>{' '}
+                platforms auto-detected in 1 click
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
+              <Link
+                href="/benchmarks/ai-search-readiness-2026"
+                style={{
+                  color: 'var(--vs-ink)',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                }}
+              >
+                2026 40-Domain Study →
+              </Link>
+              <Link
+                href="/agencies#sandbox"
+                style={{
+                  color: 'var(--vs-accent)',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                }}
+              >
+                Agency White-Label Sandbox →
+              </Link>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Interactive Sample Business Before/After Motion SVG Storyboard */}
-        <SampleBusinessMotionShowcase />
-
-        {/* 6 Standout Motion-SVG Capabilities Built for Non-Pros & Pros */}
-        <StandoutFeaturesBento />
-
-        {/* Calm 3-Step Workflow: How Business Owners Use Verisource Without Coding */}
-        <section id="how-it-works" style={{ marginTop: '72px' }}>
+      {/* Band 3 — Split-Screen Coding Agent & AI Verification Playground */}
+      <section id="agents" className="vs-sec">
+        <div className="vs-container">
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'flex-end',
               justifyContent: 'space-between',
-              gap: '14px',
-              marginBottom: '18px',
+              gap: '16px',
+              marginBottom: '22px',
             }}
           >
-            <div style={{ maxWidth: '720px' }}>
-              <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-                HOW VERISOURCE WORKS · BUILT FOR BUSINESS OWNERS &amp; TEAMS
+            <div style={{ maxWidth: '680px' }}>
+              <div className="vs-kicker" style={{ marginBottom: '8px' }}>
+                For Claude Code, Cursor, Codex, Antigravity &amp; ChatGPT
               </div>
               <h2
                 style={{
-                  fontSize: 'clamp(24px, 2.8vw, 30px)',
+                  fontSize: 'clamp(25px, 3vw, 35px)',
                   fontWeight: 700,
-                  letterSpacing: '-0.025em',
-                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.03em',
+                  margin: '0 0 10px 0',
                 }}
               >
-                Get recommended by AI search in 3 steps—without touching raw code.
+                Your AI updates your site. Verisource proves it works in the real world.
               </h2>
               <p
                 style={{
                   margin: 0,
                   fontSize: '14.5px',
-                  lineHeight: 1.58,
+                  lineHeight: 1.6,
                   color: 'var(--vs-ink-secondary)',
                 }}
               >
-                You don&rsquo;t need to be an SEO specialist or software
-                engineer. Verisource finds every problem holding your business
-                back in AI search and hands you a single prompt for whatever AI
-                assistant you already use.
+                Whether you paste our 1-Click Fix Prompt into ChatGPT or wire{' '}
+                <code className="vs-mono">@verisource/cli</code> +{' '}
+                <code className="vs-mono">/mcp</code> into a coding agent,
+                Verisource verifies live schema, bot readability, browser flows,
+                and backend error logs before anything ships.
               </p>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
-              <StatusBadge tone="pass">
-                WORKS WITH CHATGPT · CLAUDE · ANTIGRAVITY · CURSOR · SHOPIFY
-              </StatusBadge>
-              <Link
-                href="/tutorial"
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '7px 12px', fontSize: '12px' }}
-              >
-                Open Interactive 5-Step Sandbox →
-              </Link>
-            </div>
+            <CopyCommandPill command="npx @verisource/cli agent --skill --install all" />
           </div>
 
-          <div className="vs-bezel">
-            <div className="vs-card" style={{ overflow: 'hidden' }}>
-              <div className="vs-ledger-strip-3">
-              <div style={{ padding: '22px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                    marginBottom: '10px',
-                  }}
-                >
-                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-                    STEP 01 · DIAGNOSE
-                  </span>
-                  <StatusBadge>60 SECONDS</StatusBadge>
-                </div>
-                <h3
-                  style={{
-                    fontSize: '16.5px',
-                    fontWeight: 700,
-                    margin: '0 0 8px 0',
-                    letterSpacing: '-0.015em',
-                  }}
-                >
-                  See why AI skips your business (or states wrong prices)
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 12px 0',
-                    fontSize: '13.5px',
-                    lineHeight: 1.55,
-                    color: 'var(--vs-ink-secondary)',
-                  }}
-                >
-                  Enter your website URL. Verisource checks real buyer questions
-                  across ChatGPT, Gemini, and Perplexity, flags invented pricing
-                  claims, and gives you an easy-to-follow breakdown of what is
-                  missing on your site.
-                </p>
-                <div
-                  className="vs-mono"
-                  style={{
-                    fontSize: '11.5px',
-                    color: 'var(--vs-ink-muted)',
-                    paddingTop: '10px',
-                    borderTop: '1px solid var(--vs-border)',
-                  }}
-                >
-                  Checks: Real Prices · Bot Access · Competitor Shortlists
-                </div>
-              </div>
+          <AgentSplitPlayground />
+        </div>
+      </section>
 
-              <div
+      {/* Band 4 — Codebase-Free Site Checks & Token Overhead Benchmark */}
+      <section id="any-site" className="vs-sec-alt">
+        <div className="vs-container">
+          <div
+            className="vs-grid-split"
+            style={{
+              alignItems: 'center',
+              gap: '28px',
+              marginBottom: '28px',
+            }}
+          >
+            <div>
+              <div className="vs-kicker" style={{ marginBottom: '8px' }}>
+                verisource scan &lt;any-url&gt; · mcp.verisource.dev/mcp
+              </div>
+              <h2
                 style={{
-                  padding: '22px',
-                  background: 'var(--vs-surface-warm)',
+                  fontSize: 'clamp(24px, 2.9vw, 33px)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.03em',
+                  margin: '0 0 12px 0',
                 }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                    marginBottom: '10px',
-                  }}
-                >
-                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-                    STEP 02 · COPY 1 AI PROMPT
-                  </span>
-                  <StatusBadge tone="pass">ZERO MANUAL CODING</StatusBadge>
-                </div>
-                <h3
-                  style={{
-                    fontSize: '16.5px',
-                    fontWeight: 700,
-                    margin: '0 0 8px 0',
-                    letterSpacing: '-0.015em',
-                  }}
-                >
-                  Paste 1 Verisource prompt into your own AI to fix your site
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 12px 0',
-                    fontSize: '13.5px',
-                    lineHeight: 1.55,
-                    color: 'var(--vs-ink-secondary)',
-                  }}
-                >
-                  Verisource bundles every needed fix—structured{' '}
-                  <code className="vs-mono">JSON-LD</code> facts,{' '}
-                  <code className="vs-mono">/llms.txt</code>,{' '}
-                  <code className="vs-mono">/agents.md</code>, and crawler
-                  access—into <strong>one ready-to-paste prompt</strong>. Paste
-                  it into Claude, ChatGPT, Antigravity, Cursor, or Lovable and
-                  let your AI apply the changes.
-                </p>
-                <div
-                  className="vs-mono"
-                  style={{
-                    fontSize: '11.5px',
-                    color: 'var(--vs-ink-muted)',
-                    paddingTop: '10px',
-                    borderTop: '1px solid var(--vs-border)',
-                  }}
-                >
-                  Works with: Coding Agents · WordPress/Webflow · Shopify
-                </div>
+                No source code needed. Point it at any live store, SaaS app, or rival domain.
+              </h2>
+              <p
+                style={{
+                  margin: '0 0 18px 0',
+                  fontSize: '14.5px',
+                  lineHeight: 1.62,
+                  color: 'var(--vs-ink-secondary)',
+                }}
+              >
+                Audit Shopify storefronts (including{' '}
+                <code className="vs-mono">/api/ucp/mcp</code>), WordPress,
+                Webflow, or custom Next.js apps over live HTTP. Compare your
+                domain head-to-head against a competitor, inspect exact{' '}
+                <code className="vs-mono">GPTBot</code> DOM streams, and drill
+                into short handle IDs without flooding your agent&rsquo;s context
+                window.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
+                  30s MCP Setup Guide →
+                </Link>
+                <Link href="/features" className="vs-btn vs-btn-secondary">
+                  CLI &amp; Scanner Specs →
+                </Link>
               </div>
+            </div>
 
-              <div style={{ padding: '22px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '8px',
-                    marginBottom: '10px',
-                  }}
-                >
-                  <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-                    STEP 03 · GROW CUSTOMERS
-                  </span>
-                  <StatusBadge>WEEKLY TRACKING</StatusBadge>
+            <div className="vs-terminal-frame">
+              <div className="vs-terminal-chrome">
+                <span>Terminal · Live Multi-Page + GEO Check</span>
+                <StatusBadge tone="pass">EXIT 0 · 1.6S</StatusBadge>
+              </div>
+              <div className="vs-terminal-body">
+                <div style={{ color: '#EEF1F6', fontWeight: 600, marginBottom: '6px' }}>
+                  <span style={{ color: 'var(--vs-accent)', marginRight: '8px' }}>$</span>
+                  verisource scan https://acmecloud.io --depth 2
                 </div>
-                <h3
-                  style={{
-                    fontSize: '16.5px',
-                    fontWeight: 700,
-                    margin: '0 0 8px 0',
-                    letterSpacing: '-0.015em',
-                  }}
-                >
-                  Verify live fixes, overtake rivals &amp; track AI leads
-                </h3>
-                <p
-                  style={{
-                    margin: '0 0 12px 0',
-                    fontSize: '13.5px',
-                    lineHeight: 1.55,
-                    color: 'var(--vs-ink-secondary)',
-                  }}
-                >
-                  Click <strong>✓ Verify Live Fixes</strong> to confirm your new
-                  AI files are live and watch your Visibility Score climb. Launch
-                  1-click <strong>You vs. Competitor</strong> pages and track
-                  visits &amp; sales coming from ChatGPT and Perplexity.
-                </p>
-                <div
-                  className="vs-mono"
-                  style={{
-                    fontSize: '11.5px',
-                    color: 'var(--vs-ink-muted)',
-                    paddingTop: '10px',
-                    borderTop: '1px solid var(--vs-border)',
-                  }}
-                >
-                  Includes: vs. Rival Page Studio · Reddit/G2 Playbooks · ROI
+                <div style={{ color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                  robots.txt obeyed · probing 14 routes + 3 AI engines...
+                </div>
+                <div style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
+                  ✓ [bots]   GPTBot, OAI-SearchBot, PerplexityBot  HTTP 200
+                </div>
+                <div style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
+                  ✓ [schema] Organization + OfferCatalog + FAQPage  valid
+                </div>
+                <div style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
+                  ✓ [truth]  0 pricing or policy hallucinations     100%
+                </div>
+                <div style={{ color: 'var(--vs-pass-fg)', fontWeight: 600, marginTop: '8px' }}>
+                  PASS  acmecloud.io · 14/14 pages · 38/38 links · 1.6s
                 </div>
               </div>
             </div>
           </div>
-          </div>
-        </section>
 
-        {/* Interactive 5-Pillar Platform Showcase (Inspired by Category Leaders, Powered by Action Tools) */}
-        <PlatformModulesShowcase />
-
-        {/* Passive GEO Trackers vs. Verisource Read-Write Action Engine */}
-        <section style={{ marginTop: '72px', minWidth: 0, maxWidth: '100%' }}>
-          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-            READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION
-          </div>
-          <h2
-            style={{
-              fontSize: 'clamp(24px, 2.8vw, 29px)',
-              fontWeight: 700,
-              letterSpacing: '-0.025em',
-              margin: '0 0 8px 0',
-            }}
-          >
-            Why business owners and agencies switch from $499/mo chart-only tools.
-          </h2>
-          <p
-            style={{
-              fontSize: '14.5px',
-              lineHeight: 1.58,
-              color: 'var(--vs-ink-secondary)',
-              margin: '0 0 18px 0',
-              maxWidth: '760px',
-            }}
-          >
-            Knowing ChatGPT left out your business is useless if you don&rsquo;t
-            know how to fix it. Verisource pairs multi-engine visibility
-            tracking with a 1-click prompt that fixes your site through your own
-            AI tool.
-          </p>
-
-          <div className="vs-bezel">
-            <div className="vs-card" style={{ overflow: 'hidden' }}>
-              <div className="vs-table-wrap">
-                <table className="vs-table">
-              <thead>
-                <tr>
-                  <th>Capability</th>
-                  <th>Passive Enterprise Trackers ($245–$499+/mo)</th>
-                  <th>Verisource Action Console ($0 7-Day Trial · $49–$249/mo)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <strong>Easy-to-Use Diagnosis &amp; Pricing Check</strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
-                    Raw charts &amp; SEO jargon only
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">INCLUDED ALL PLANS</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      ChatGPT, Perplexity &amp; Gemini + wrong-price alerts
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>1-Click Prompt for Your Own AI Tool</strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-crit-fg)' }}>
-                    Not included — hire a developer
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">READY TO PASTE</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Paste 1 prompt into ChatGPT, Claude, Antigravity, Cursor,
-                      or Shopify
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>
-                      Verified Website AI Files (<code className="vs-mono">JSON-LD</code>
-                      , <code className="vs-mono">/llms.txt</code>,{' '}
-                      <code className="vs-mono">/agents.md</code>)
-                    </strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-crit-fg)' }}>
-                    Not included — charts only
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">SYNTAX VALIDATED</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Auto-generated for your business + 1-click live verifier
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>You vs. Competitor Comparison Page Studio</strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-crit-fg)' }}>
-                    Not included — manual copywriting
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">1-CLICK STUDIO</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Truth-locked{' '}
-                      <code className="vs-mono">/compare/you-vs-rival</code>{' '}
-                      pages + AI builder prompt
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>Reddit, G2 &amp; Review Citation Playbooks</strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-ink-secondary)' }}>
-                    Enterprise add-on
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">1-CLICK ACTIVATION</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Exact sources AI trusts + ready-to-post outreach drafts
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>Optional AI Visitor Tracker &amp; /mcp Server</strong>
-                  </td>
-                  <td style={{ color: 'var(--vs-crit-fg)' }}>
-                    Closed web UI or custom enterprise API
-                  </td>
-                  <td>
-                    <StatusBadge tone="pass">BUILT IN</StatusBadge>{' '}
-                    <span style={{ fontSize: '13px', marginLeft: '6px' }}>
-                      Track AI-referred sales + connect Cursor &amp; Claude in 30s
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-              </div>
+          <div style={{ marginBottom: '12px' }}>
+            <div className="vs-eyebrow">
+              READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION &amp; COMPACT VERIFICATION
             </div>
           </div>
-        </section>
+          <TokenBenchmarkCard />
+        </div>
+      </section>
 
-        {/* Transparent Pricing Ladder */}
-        <PricingLadderSection />
-
-        {/* Closing High-Contrast Conversion Band */}
-        <section
-          className="vs-band-obsidian"
-          style={{
-            marginTop: '64px',
-            marginBottom: '28px',
-            padding: '32px 28px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '20px',
-          }}
-        >
-          <div style={{ maxWidth: '640px' }}>
-            <div
-              className="vs-eyebrow"
-              style={{ color: '#34D399', marginBottom: '6px' }}
-            >
-              START IN 60 SECONDS · $0.00 DUE TODAY ON 7-DAY FREE TRIAL
+      {/* Band 5 — Guided No-Code Recorder & Parallel 4-Target Suite Replay */}
+      <section id="demo" className="vs-sec">
+        <div className="vs-container">
+          <div style={{ maxWidth: '720px', marginBottom: '20px' }}>
+            <div className="vs-kicker" style={{ marginBottom: '6px' }}>
+              HOW VERISOURCE WORKS · FOR FOUNDERS, AGENCIES &amp; TEAMS
             </div>
             <h2
               style={{
-                margin: '0 0 8px 0',
-                fontSize: 'clamp(22px, 2.8vw, 28px)',
+                fontSize: 'clamp(25px, 3vw, 34px)',
                 fontWeight: 700,
-                letterSpacing: '-0.025em',
-                color: '#FFFFFF',
+                letterSpacing: '-0.03em',
+                margin: '0 0 10px 0',
               }}
             >
-              Stop letting ChatGPT and Perplexity send your buyers to competitors.
+              Fix your site without writing code—or replay every key flow after a deploy.
             </h2>
             <p
               style={{
                 margin: 0,
-                fontSize: '14px',
-                lineHeight: 1.58,
-                color: '#CBD5E1',
+                fontSize: '14.5px',
+                lineHeight: 1.6,
+                color: 'var(--vs-ink-secondary)',
               }}
             >
-              Run a free audit on your domain right now, or start a 7-day free
-              trial ($0.00 charged today, cancel in 1 click) to copy your
-              1-Click AI Fix Prompt, verify all 4 files live, and track weekly
-              Share-of-Voice.
+              Switch Console Guided Mode on for step-by-step instructions tailored
+              to your website builder, record browser checks once in Chrome, or
+              batch-audit 15 agency client domains into white-label{' '}
+              <code className="vs-mono">/audit/[slug]</code> pitch links.
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            <a
-              href="#grader"
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '11px 18px' }}
-            >
-              Scan My Website Free ↑
-            </a>
-            <Link
-              href="/pricing"
-              className="vs-btn"
-              style={{
-                padding: '11px 20px',
-                background: '#FFFFFF',
-                color: '#0A0E17',
-                borderColor: '#FFFFFF',
-              }}
-            >
-              Start 7-Day Free Trial →
-            </Link>
+          <div
+            className="vs-card vs-ledger-strip-3"
+            style={{ marginBottom: '20px', overflow: 'hidden' }}
+          >
+            <div style={{ padding: '14px 18px' }}>
+              <div className="vs-eyebrow" style={{ color: 'var(--vs-accent)', marginBottom: '4px' }}>
+                STEP 01 · DIAGNOSE &amp; CRAWL
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+                Scan AI citations, wrong prices, and broken links across your pages.
+              </div>
+            </div>
+            <div style={{ padding: '14px 18px', background: 'var(--vs-surface-warm)' }}>
+              <div className="vs-eyebrow" style={{ color: 'var(--vs-accent)', marginBottom: '4px' }}>
+                STEP 02 · COPY 1 AI PROMPT
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+                Paste 1 ready-made prompt into ChatGPT, Claude, Cursor, or Shopify.
+              </div>
+            </div>
+            <div style={{ padding: '14px 18px' }}>
+              <div className="vs-eyebrow" style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
+                STEP 03 · VERIFY LIVE
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
+                Confirm 4/4 files live, replay flows, and track weekly Share-of-Voice.
+              </div>
+            </div>
           </div>
-        </section>
-      </div>
+
+          <SuiteReplayPlayground />
+        </div>
+      </section>
+
+      {/* Band 6 — Real-Business Uplift Storyboard & 6-Capability Motion Showcase */}
+      <section className="vs-sec-alt">
+        <div className="vs-container">
+          <SampleBusinessMotionShowcase />
+          <StandoutFeaturesBento />
+        </div>
+      </section>
+
+      {/* Band 7 — Transparent Pricing Ladder ($19 Pass · $49 Starter · $99 Pro+MCP · $249 Agency) */}
+      <section className="vs-sec">
+        <div className="vs-container">
+          <PricingLadderSection />
+        </div>
+      </section>
+
+      {/* Band 8 — Closing High-Contrast Conversion Band */}
+      <section className="vs-sec-alt" style={{ borderBottom: 'none' }}>
+        <div className="vs-container">
+          <div
+            className="vs-band-obsidian"
+            style={{
+              padding: '36px 32px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '22px',
+            }}
+          >
+            <div style={{ maxWidth: '640px' }}>
+              <div className="vs-kicker" style={{ marginBottom: '8px' }}>
+                Start in 60 seconds · $0.00 due today on 7-day free trial
+              </div>
+              <h2
+                style={{
+                  margin: '0 0 10px 0',
+                  fontSize: 'clamp(22px, 2.8vw, 30px)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.025em',
+                  color: 'var(--vs-ink)',
+                }}
+              >
+                Stop letting AI search quote wrong prices or send your buyers to competitors.
+              </h2>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  lineHeight: 1.6,
+                  color: 'var(--vs-ink-secondary)',
+                }}
+              >
+                Run a free audit on your domain right now, or start a 7-day free
+                trial ($0.00 charged today, cancel in 1 click) to activate your
+                1-Click AI Fix Prompt, 20-page site health crawls, and weekly
+                Share-of-Voice tracking.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <a
+                href="#scan"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '11px 18px' }}
+              >
+                Scan My Site Free ↑
+              </a>
+              <Link
+                href="/pricing"
+                className="vs-btn"
+                style={{ padding: '11px 20px' }}
+              >
+                Start 7-Day Free Trial →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -618,11 +618,6 @@ export default function AgenciesPartnerPage(): React.ReactElement {
               <a
                 href="/api/checkout?plan=agency_249&cycle=monthly"
                 className="vs-btn"
-                style={{
-                  background: '#FFFFFF',
-                  color: '#0A0E17',
-                  borderColor: '#FFFFFF',
-                }}
               >
                 Start Agency White-Label ($249/mo) →
               </a>

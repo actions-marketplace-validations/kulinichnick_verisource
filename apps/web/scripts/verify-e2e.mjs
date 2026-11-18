@@ -4565,6 +4565,76 @@ async function run() {
       'Expected Chrome MV3 extension bundle to wire live VS_ACTIVE_TAB_SYNC tab-switch listener and $19 Step 02/03 paywall'
     );
     console.log('✔ [83/83] M88 /api/cron/drift-watchdog (401/200), /report/[domain] Programmatic SEO + Sitemap, & Chrome MV3 Paywall + Tab Sync verified!');
+
+    // 82. M87–M92 Dark Instrument Studio, 8-Band Homepage, /features, /scanner & 20-Page /api/dashboard/site-scan
+    const [m90FeaturesRes, m90ScannerRes, m90HomeHtml, m90Sitemap] =
+      await Promise.all([
+        fetch(`${BASE}/features`),
+        fetch(`${BASE}/scanner`),
+        fetch(`${BASE}/`).then((r) => r.text()),
+        fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+      ]);
+    assert.equal(m90FeaturesRes.status, 200);
+    assert.equal(m90ScannerRes.status, 200);
+    const m90FeaturesHtml = await m90FeaturesRes.text();
+    const m90ScannerHtml = await m90ScannerRes.text();
+
+    assert.ok(
+      m90HomeHtml.includes('Verisource checks') &&
+        m90HomeHtml.includes('id="scan"') &&
+        m90HomeHtml.includes('id="agents"') &&
+        m90HomeHtml.includes('id="any-site"') &&
+        m90HomeHtml.includes('id="demo"') &&
+        m90HomeHtml.includes('npx @verisource/cli'),
+      'Expected 8-band Dark Studio homepage with #scan, #agents, #any-site, #demo, and @verisource/cli pill'
+    );
+    assert.ok(
+      m90FeaturesHtml.includes('verisource log vercel | supabase | cloudflare') &&
+        m90FeaturesHtml.includes('verisource map') &&
+        m90FeaturesHtml.includes('application/ld+json'),
+      'Expected 11-capability /features page with route mapper, log correlation, and FAQPage JSON-LD'
+    );
+    assert.ok(
+      m90ScannerHtml.includes('VerisourceScan/1.0') &&
+        m90ScannerHtml.includes('Disallow: /') &&
+        m90Sitemap.includes('https://verisource.dev/features') &&
+        m90Sitemap.includes('https://verisource.dev/scanner'),
+      'Expected /scanner bot transparency spec and sitemap.xml registration'
+    );
+
+    for (const [routeLabel, rawHtml] of [
+      ['/features', m90FeaturesHtml],
+      ['/scanner', m90ScannerHtml],
+    ]) {
+      const stripped = rawHtml
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      const hits = stripped.match(BANNED_LEXICON) ?? [];
+      assert.equal(
+        hits.length,
+        0,
+        `Found banned lexicon on ${routeLabel}: ${hits.join(', ')}`
+      );
+    }
+
+    const unauthSiteScan = await fetch(`${BASE}/api/dashboard/site-scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain_id: '11111111-1111-4000-8000-000000000001' }),
+    });
+    assert.equal(unauthSiteScan.status, 401);
+
+    const authSiteScan = await fetch(`${BASE}/api/dashboard/site-scan`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ domain_id: '11111111-1111-4000-8000-000000000001' }),
+    });
+    assert.equal(authSiteScan.status, 200);
+    const authSiteScanJson = await authSiteScan.json();
+    assert.equal(authSiteScanJson.report.maxPages, 20);
+    assert.equal(authSiteScanJson.report.robotsTxtObeyed, true);
+    console.log('✔ [84/84] M87–M92 Dark Instrument Studio, 8-Band /, /features, /scanner & 20-page /api/dashboard/site-scan verified!');
   } finally {
     server.kill();
   }

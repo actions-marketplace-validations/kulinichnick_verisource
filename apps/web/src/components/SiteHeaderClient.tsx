@@ -10,6 +10,16 @@ const RESOURCE_MENU_ITEMS: ReadonlyArray<{
   sublabel: string;
 }> = [
   {
+    href: '/tutorial',
+    label: 'Interactive 90s Tour',
+    sublabel: 'Step-by-step live Console sandbox',
+  },
+  {
+    href: '/scanner',
+    label: 'VerisourceScan Spec',
+    sublabel: 'Read-only bot & /robots.txt rules',
+  },
+  {
     href: '/benchmarks/ai-search-readiness-2026',
     label: '2026 AI Readiness Study',
     sublabel: '40-domain live HTTPS dataset',
@@ -80,7 +90,7 @@ export function SiteHeaderClient(): React.ReactElement {
     <header
       className="vs-site-chrome"
       style={{
-        background: '#FAF9F6',
+        background: 'rgba(14, 17, 22, 0.94)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--vs-border)',
@@ -105,8 +115,8 @@ export function SiteHeaderClient(): React.ReactElement {
               textDecoration: 'none',
               color: 'var(--vs-ink)',
               fontWeight: 700,
-              fontSize: '15.5px',
-              letterSpacing: '-0.025em',
+              fontSize: '16px',
+              letterSpacing: '-0.03em',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '9px',
@@ -118,23 +128,24 @@ export function SiteHeaderClient(): React.ReactElement {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '18px',
-                height: '18px',
-                background: 'var(--vs-ink)',
-                borderRadius: '4px',
+                width: '21px',
+                height: '21px',
+                background: 'var(--vs-accent)',
+                borderRadius: '5px',
                 flexShrink: 0,
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.35)',
               }}
             >
               <span
                 style={{
-                  width: '6px',
-                  height: '6px',
+                  width: '7px',
+                  height: '7px',
                   transform: 'rotate(45deg)',
-                  border: '1.5px solid #FAF9F6',
+                  border: '1.8px solid #161004',
                 }}
               />
             </span>
-            VERISOURCE
+            verisource
           </Link>
 
           {isConsoleRoute ? (
@@ -186,8 +197,11 @@ export function SiteHeaderClient(): React.ReactElement {
               className="vs-nav-links vs-desktop-nav"
               aria-label="Primary navigation"
             >
-              <Link href="/tutorial" className="vs-nav-link">
-                Interactive Tour
+              <Link href="/features" className="vs-nav-link">
+                Features
+              </Link>
+              <Link href="/#scan" className="vs-nav-link">
+                Scan Your Site
               </Link>
 
               <details ref={dropdownRef} className="vs-nav-dropdown">
@@ -279,6 +293,7 @@ export function SiteHeaderClient(): React.ReactElement {
               }}
             >
               {[
+                { href: '/features', label: 'All 11 Features' },
                 { href: '/tutorial', label: 'Interactive Tour' },
                 { href: '/pricing', label: 'Pricing & Plans' },
                 { href: '/agencies', label: 'Agencies ($249/mo)' },

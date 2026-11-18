@@ -148,6 +148,7 @@ export type DomainRow = {
   visibility_score: number;
   accuracy_score: number;
   tracking_pixel_token: string;
+  crawl_health_summary?: Record<string, unknown> | null;
   last_scanned_at: string | null;
   created_at: string;
 };

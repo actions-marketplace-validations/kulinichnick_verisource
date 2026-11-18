@@ -41,6 +41,10 @@ import {
   type WebsitePlatformId,
 } from '../scanner/cms-detector.js';
 import {
+  crawlDomainSiteHealth,
+  type SiteHealthScanReport,
+} from '../scanner/site-health-crawler.js';
+import {
   generateDefaultPromptsForDomain,
   runMultiEnginePromptScan,
   type EngineScanResult,
@@ -75,6 +79,7 @@ export interface ReadinessScanSummary {
   jsonLdCount: number;
   jsonLdReadiness?: JsonLdAiReadinessSummary;
   crawlerReadability?: CrawlerReadabilityReport;
+  siteHealth?: SiteHealthScanReport;
   samplePromptResult: {
     promptText: string;
     aiEngine: string;
@@ -775,14 +780,26 @@ export async function runDomainReadinessScan(
     }
   }
 
-  let teaserScans = await runMultiEnginePromptScan({
-    prompts: [firstPrompt],
-    engines: teaserEngines,
-    domain: probe.domain,
-    brandName,
-    truthSheet,
-    env,
-  });
+  const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
+    matchesPublicHostname(d.domain_url, probe.domain.hostname)
+  );
+
+  const [initialTeaserScans, siteHealth] = await Promise.all([
+    runMultiEnginePromptScan({
+      prompts: [firstPrompt],
+      engines: teaserEngines,
+      domain: probe.domain,
+      brandName,
+      truthSheet,
+      env,
+    }),
+    crawlDomainSiteHealth({
+      domainInput: probe.domain.origin,
+      mode: 'quick',
+      skipNetwork: env.providerMode === 'mock' && Boolean(fixture),
+    }).catch(() => undefined),
+  ]);
+  let teaserScans = initialTeaserScans;
 
   if (
     env.providerMode === 'live' &&
@@ -814,10 +831,6 @@ export async function runDomainReadinessScan(
 
   const sample = teaserScans[0]!;
   const allHallucinations = teaserScans.flatMap((s) => s.hallucinationDetails);
-
-  const fixture = PATIENT_ZERO_DOMAINS.find((d) =>
-    matchesPublicHostname(d.domain_url, probe.domain.hostname)
-  );
 
   const visibilityScore =
     env.providerMode === 'mock' && fixture
@@ -872,6 +885,7 @@ export async function runDomainReadinessScan(
           3
         )
       ),
+    ...(siteHealth ? { siteHealth } : {}),
     samplePromptResult: {
       promptText: sample.promptText,
       aiEngine: sample.aiEngine,

@@ -6,6 +6,7 @@ export * from './config/env.js';
 export * from './critic/quality-gate.js';
 export * from './scanner/bot-waf-prober.js';
 export * from './scanner/cms-detector.js';
+export * from './scanner/site-health-crawler.js';
 export * from './scanner/subpage-inspector.js';
 export * from './scanner/competitor-xray.js';
 export * from './scanner/citation-mention-verifier.js';

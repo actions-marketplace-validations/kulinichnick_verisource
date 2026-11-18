@@ -145,7 +145,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                   borderLeft: isSelected
                     ? '3px solid var(--vs-ink)'
                     : '3px solid transparent',
-                  background: isSelected ? '#FFFFFF' : 'transparent',
+                  background: isSelected ? 'var(--vs-surface)' : 'transparent',
                   cursor: 'pointer',
                   transition: 'background 120ms ease',
                 }}
@@ -193,7 +193,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
             flexDirection: 'column',
             justifyContent: 'space-between',
             gap: '20px',
-            background: '#FFFFFF',
+            background: 'var(--vs-surface)',
           }}
         >
           <div>
@@ -389,7 +389,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                     fontSize: '12px',
                     lineHeight: 1.7,
                     padding: '10px 12px',
-                    background: '#FFFFFF',
+                    background: 'var(--vs-terminal)',
                     border: '1px solid var(--vs-border)',
                     borderRadius: '4px',
                     overflowWrap: 'anywhere',
@@ -503,7 +503,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
                     fontSize: '12px',
                     lineHeight: 1.65,
                     padding: '10px 12px',
-                    background: '#FFFFFF',
+                    background: 'var(--vs-terminal)',
                     border: '1px solid var(--vs-border)',
                     borderRadius: '4px',
                     overflowWrap: 'anywhere',

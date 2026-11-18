@@ -81,10 +81,10 @@ export default async function AgencyPitchReportPage({
 
   return (
     <div
-      className={`${isVerisourceDirect ? '' : 'vs-whitelabel-audit-root '}vs-container`}
+      className={`${isVerisourceDirect ? '' : 'vs-whitelabel-audit-root '}vs-audit-paper-surface vs-container`}
       style={{
         paddingTop: '36px',
-        paddingBottom: isVerisourceDirect ? undefined : '56px',
+        paddingBottom: '56px',
         maxWidth: '940px',
       }}
     >

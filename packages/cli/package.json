@@ -1,0 +1,29 @@
+{
+  "name": "@verisource/cli",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "verisource": "./dist/bin.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "test": "tsc && node --test dist/cli.test.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@verisource/core-geo": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
+  }
+}

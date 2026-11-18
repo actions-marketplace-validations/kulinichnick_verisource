@@ -56,6 +56,7 @@ import {
   type ProfileRow,
   type QualityRubricBreakdown,
   type ScoreDeltaSummary,
+  type SiteHealthScanReport,
   type SubPageBotInspectionReport,
   type SubscriberReferralDestinationId,
   type TrackedPromptRow,
@@ -198,6 +199,10 @@ export function DashboardConsoleClient(props: {
   const [addingDomain, setAddingDomain] = useState(false);
   const [rescanningDomain, setRescanningDomain] = useState(false);
   const [deletingDomain, setDeletingDomain] = useState(false);
+  const [runningSiteHealth, setRunningSiteHealth] = useState(false);
+  const [siteHealthByDomainId, setSiteHealthByDomainId] = useState<
+    Record<string, SiteHealthScanReport>
+  >({});
   const [dismissedHandoffHost, setDismissedHandoffHost] = useState<
     string | null
   >(null);
@@ -1625,6 +1630,38 @@ export function DashboardConsoleClient(props: {
       setTimeout(() => setCopiedStudioFollowUpPrompt(false), 2600);
     } catch {
       // Ignore clipboard permission denial
+    }
+  }
+
+  async function handleRunWorkspaceSiteScan() {
+    if (!activeDomain) return;
+    setRunningSiteHealth(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/site-scan', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ domain_id: activeDomain.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        report?: SiteHealthScanReport;
+      };
+      if (!res.ok || json.error || !json.report) {
+        setBannerError(
+          json.message ?? 'Unable to complete 20-page site health crawl.'
+        );
+      } else {
+        setSiteHealthByDomainId((prev) => ({
+          ...prev,
+          [activeDomain.id]: json.report!,
+        }));
+      }
+    } catch {
+      setBannerError('Network error while running 20-page site health crawl.');
+    } finally {
+      setRunningSiteHealth(false);
     }
   }
 
@@ -3264,7 +3301,7 @@ export function DashboardConsoleClient(props: {
                     background:
                       tier.plan === 'pro_99'
                         ? 'var(--vs-surface-warm)'
-                        : '#FFFFFF',
+                        : 'var(--vs-surface)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -3483,7 +3520,7 @@ export function DashboardConsoleClient(props: {
                 onChange={(e) => setNewDomainUrl(e.target.value)}
                 placeholder="Add domain (e.g. stripe.com)"
                 className="vs-input"
-                style={{ width: '215px', padding: '6px 10px', fontSize: '12px', background: '#FFFFFF' }}
+                style={{ width: '215px', padding: '6px 10px', fontSize: '12px', background: 'var(--vs-terminal)' }}
               />
               <button
                 type="submit"
@@ -5717,6 +5754,232 @@ export function DashboardConsoleClient(props: {
                     />
                   )}
 
+                  {/* M88: 20-Page Read-Only Site Health, Broken Links & Dead Anchor Verifier */}
+                  {(() => {
+                    const persistedHealth =
+                      activeDomain.crawl_health_summary &&
+                      typeof (activeDomain.crawl_health_summary as { pagesScanned?: unknown })
+                        .pagesScanned === 'number'
+                        ? (activeDomain.crawl_health_summary as unknown as SiteHealthScanReport)
+                        : null;
+                    const activeHealth =
+                      siteHealthByDomainId[activeDomain.id] ?? persistedHealth;
+
+                    return (
+                      <div
+                        style={{
+                          marginTop: '16px',
+                          border: '1px solid var(--vs-border)',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          background: 'var(--vs-surface)',
+                        }}
+                      >
+                        <div
+                          style={{
+                            padding: '11px 14px',
+                            background: 'var(--vs-surface-warm)',
+                            borderBottom: activeHealth
+                              ? '1px solid var(--vs-border)'
+                              : undefined,
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                          }}
+                        >
+                          <div>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '7px',
+                                flexWrap: 'wrap',
+                                marginBottom: '2px',
+                              }}
+                            >
+                              <span
+                                className="vs-eyebrow"
+                                style={{ color: 'var(--vs-ink)' }}
+                              >
+                                20-PAGE SITE HEALTH, BROKEN LINKS &amp; ANCHOR CRAWLER
+                              </span>
+                              <StatusBadge
+                                tone={
+                                  activeHealth
+                                    ? activeHealth.status === 'pass'
+                                      ? 'pass'
+                                      : activeHealth.status === 'warn'
+                                        ? 'warn'
+                                        : 'critical'
+                                    : 'neutral'
+                                }
+                              >
+                                {activeHealth
+                                  ? `${activeHealth.status.toUpperCase()} · ${activeHealth.healthScore}/100`
+                                  : 'UP TO 20 PAGES · 2 LINKS DEEP'}
+                              </StatusBadge>
+                            </div>
+                            <div
+                              style={{
+                                fontSize: '12px',
+                                color: 'var(--vs-ink-secondary)',
+                              }}
+                            >
+                              Crawls internal pages on{' '}
+                              <code className="vs-mono">{activeDomainHostname}</code>{' '}
+                              (obeying <code className="vs-mono">/robots.txt</code>) to
+                              flag HTTP <code className="vs-mono">4xx</code>/
+                              <code className="vs-mono">5xx</code> routes, dead
+                              links, missing <code className="vs-mono">#anchor</code>{' '}
+                              targets, and thin non-JS commercial pages.
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={runningSiteHealth}
+                            onClick={() => void handleRunWorkspaceSiteScan()}
+                            className="vs-btn"
+                            style={{ padding: '6px 13px', fontSize: '12px' }}
+                          >
+                            {runningSiteHealth
+                              ? 'Crawling Up to 20 Pages...'
+                              : activeHealth
+                                ? '↻ Re-Run 20-Page Crawl'
+                                : 'Run 20-Page Site Crawl →'}
+                          </button>
+                        </div>
+
+                        {activeHealth ? (
+                          <div style={{ padding: '12px 14px' }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '8px',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              <span
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '12px',
+                                  color:
+                                    activeHealth.status === 'pass'
+                                      ? 'var(--vs-pass-fg)'
+                                      : 'var(--vs-ink)',
+                                }}
+                              >
+                                {activeHealth.compactCliSummary}
+                              </span>
+                              <span
+                                className="vs-mono"
+                                style={{
+                                  fontSize: '11.5px',
+                                  color: 'var(--vs-ink-muted)',
+                                }}
+                              >
+                                {`${activeHealth.pagesScanned} pages · ${activeHealth.linksChecked} links · ${activeHealth.assetsChecked} assets`}
+                              </span>
+                            </div>
+
+                            {activeHealth.findings.length > 0 ? (
+                              <div
+                                style={{
+                                  display: 'grid',
+                                  gap: '6px',
+                                  marginBottom: '10px',
+                                }}
+                              >
+                                {activeHealth.findings.slice(0, 6).map((f) => (
+                                  <div
+                                    key={f.handle}
+                                    style={{
+                                      padding: '8px 10px',
+                                      borderRadius: '6px',
+                                      background: 'var(--vs-terminal)',
+                                      border: '1px solid var(--vs-border)',
+                                      fontSize: '12px',
+                                      display: 'flex',
+                                      flexWrap: 'wrap',
+                                      alignItems: 'baseline',
+                                      gap: '8px',
+                                    }}
+                                  >
+                                    <code
+                                      className="vs-mono"
+                                      style={{
+                                        color:
+                                          f.severity === 'critical'
+                                            ? 'var(--vs-crit-fg)'
+                                            : 'var(--vs-accent)',
+                                        fontWeight: 700,
+                                      }}
+                                    >
+                                      [{f.handle}]
+                                    </code>
+                                    <span>{f.summary}</span>
+                                    <span style={{ color: 'var(--vs-ink-muted)' }}>
+                                      — {f.fixHint}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null}
+
+                            {activeHealth.pages.length > 0 ? (
+                              <div className="vs-table-wrap">
+                                <table
+                                  className="vs-table"
+                                  style={{ fontSize: '12px' }}
+                                >
+                                  <thead>
+                                    <tr>
+                                      <th>Crawled Route</th>
+                                      <th>HTTP</th>
+                                      <th>Non-JS Words</th>
+                                      <th>JSON-LD Types</th>
+                                      <th>Latency</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="vs-mono">
+                                    {activeHealth.pages.slice(0, 8).map((pg) => (
+                                      <tr key={pg.url}>
+                                        <td>{pg.path}</td>
+                                        <td>
+                                          <StatusBadge
+                                            tone={
+                                              pg.httpStatus && pg.httpStatus < 400
+                                                ? 'pass'
+                                                : 'critical'
+                                            }
+                                          >
+                                            {pg.httpStatus ?? 'TIMEOUT'}
+                                          </StatusBadge>
+                                        </td>
+                                        <td>{pg.visibleWordCount}</td>
+                                        <td>
+                                          {pg.jsonLdTypes.length > 0
+                                            ? pg.jsonLdTypes.join(', ')
+                                            : 'None'}
+                                        </td>
+                                        <td>{pg.durationMs}ms</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
+
                   {/* M49: Live Sub-Page AI Bot Extraction Inspector (GPTBot & PerplexityBot View) */}
                   <div
                     style={{
@@ -5724,7 +5987,7 @@ export function DashboardConsoleClient(props: {
                       border: '1px solid var(--vs-border)',
                       borderRadius: '6px',
                       overflow: 'hidden',
-                      background: '#FFFFFF',
+                      background: 'var(--vs-surface)',
                     }}
                   >
                     <div
@@ -5813,7 +6076,7 @@ export function DashboardConsoleClient(props: {
                             width: '185px',
                             padding: '5px 9px',
                             fontSize: '12px',
-                            background: '#FFFFFF',
+                            background: 'var(--vs-terminal)',
                           }}
                         />
                         <button
@@ -6190,7 +6453,7 @@ export function DashboardConsoleClient(props: {
                         padding: '10px 12px',
                         borderRadius: '6px',
                         border: '1px solid var(--vs-border)',
-                        background: '#FFFFFF',
+                        background: 'var(--vs-surface)',
                         fontSize: '12px',
                         color: 'var(--vs-ink-secondary)',
                       }}
@@ -6299,7 +6562,7 @@ export function DashboardConsoleClient(props: {
                 </div>
 
                 {expandedAiFixPrompt ? (
-                  <div style={{ padding: '14px 18px', background: '#FFFFFF' }}>
+                  <div style={{ padding: '14px 18px', background: 'var(--vs-surface)' }}>
                     <CodeArtifactCard
                       title={`Master AI Remediation Prompt (${activeDomain.brand_name})`}
                       fileHint="Paste directly into Antigravity, Claude Code, ChatGPT, Cursor, Windsurf, or Lovable"
@@ -6467,7 +6730,7 @@ export function DashboardConsoleClient(props: {
                   style={{
                     padding: '13px 18px',
                     borderTop: '1px solid var(--vs-border)',
-                    background: '#FFFFFF',
+                    background: 'var(--vs-surface)',
                     display: 'flex',
                     flexWrap: 'wrap',
                     alignItems: 'center',
@@ -6598,7 +6861,7 @@ export function DashboardConsoleClient(props: {
                     style={{
                       padding: '14px 18px',
                       borderTop: '1px solid var(--vs-border)',
-                      background: '#FFFFFF',
+                      background: 'var(--vs-surface)',
                     }}
                   >
                     <CodeArtifactCard
@@ -6945,7 +7208,7 @@ export function DashboardConsoleClient(props: {
                   <div
                     style={{
                       borderTop: '1px solid var(--vs-border)',
-                      background: '#FFFFFF',
+                      background: 'var(--vs-surface)',
                     }}
                   >
                     <div
@@ -7051,7 +7314,7 @@ export function DashboardConsoleClient(props: {
                           key={chk.id}
                           style={{
                             padding: '11px 13px',
-                            background: '#FFFFFF',
+                            background: 'var(--vs-surface)',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '5px',
@@ -7214,7 +7477,7 @@ export function DashboardConsoleClient(props: {
                       <div
                         style={{
                           padding: '0 18px 14px 18px',
-                          background: '#FFFFFF',
+                          background: 'var(--vs-surface)',
                         }}
                       >
                         <CodeArtifactCard
@@ -7240,7 +7503,7 @@ export function DashboardConsoleClient(props: {
                   <div
                     style={{
                       padding: '14px 18px',
-                      background: '#FFFFFF',
+                      background: 'var(--vs-surface)',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '14px',
@@ -7405,7 +7668,7 @@ export function DashboardConsoleClient(props: {
                       key={attr.id}
                       style={{
                         padding: '12px 14px',
-                        background: '#FFFFFF',
+                        background: 'var(--vs-surface)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
@@ -7793,7 +8056,7 @@ export function DashboardConsoleClient(props: {
                       width: '220px',
                       padding: '6px 10px',
                       fontSize: '12px',
-                      background: '#FFFFFF',
+                      background: 'var(--vs-terminal)',
                     }}
                   />
                   <button
@@ -8610,7 +8873,7 @@ export function DashboardConsoleClient(props: {
                             padding: '10px 12px',
                             borderRadius: '6px',
                             border: '1px solid var(--vs-border)',
-                            background: '#FFFFFF',
+                            background: 'var(--vs-surface)',
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between',
