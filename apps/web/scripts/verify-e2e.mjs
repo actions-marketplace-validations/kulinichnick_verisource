@@ -4733,6 +4733,45 @@ async function run() {
       'Found banned lexicon on /reports'
     );
     console.log('✔ [87/87] M95 Public /reports Directory Hub (50+ Scorecards), /report/supabase.com & GitHub Action PR Gate verified!');
+
+    // 86. M96 In-Console Agency CSV Batch Importer, Live Engagement Sync & 18-Column CSV Export
+    const unauthPitchGet = await fetch(`${BASE}/api/dashboard/pitch`);
+    assert.equal(unauthPitchGet.status, 401);
+
+    const [authPitchGet, authPitchCsvRes, m96Tab3Html] = await Promise.all([
+      fetch(`${BASE}/api/dashboard/pitch`, { headers: OWNER_HEADERS }),
+      fetch(`${BASE}/api/dashboard/pitch?format=csv`, { headers: OWNER_HEADERS }),
+      fetch(`${BASE}/dashboard?tab=tab3_offsite`, {
+        headers: OWNER_HEADERS,
+      }).then((r) => r.text()),
+    ]);
+    assert.equal(authPitchGet.status, 200);
+    assert.equal(authPitchCsvRes.status, 200);
+    assert.ok(
+      authPitchCsvRes.headers.get('content-type')?.includes('text/csv')
+    );
+
+    const authPitchJson = await authPitchGet.json();
+    const authPitchCsv = await authPitchCsvRes.text();
+    assert.ok(
+      Array.isArray(authPitchJson.reports) &&
+        typeof authPitchJson.counts?.allCount === 'number',
+      'Expected GET /api/dashboard/pitch to return workspace reports and engagement counts'
+    );
+    assert.ok(
+      authPitchCsv.startsWith(
+        'prospect_brand_name,prospect_domain,detected_cms,visibility_score,hallucination_count,engagement_stage,views_count,pdf_exports_count,cta_clicks_count,recommended_next_touch,audit_share_url,linkedin_note_195,warm_followup_body,email_subject,email_body,quality_gate_score,followup_day3_body,followup_day7_body\n'
+      ),
+      'Expected GET /api/dashboard/pitch?format=csv to stream 18-column engagement CSV'
+    );
+    assert.ok(
+      m96Tab3Html.includes('Sync Opens') &&
+        m96Tab3Html.includes('Export CSV (18 Cols)') &&
+        m96Tab3Html.includes('Warm Reply') &&
+        m96Tab3Html.includes('LinkedIn &lt;=195c'),
+      'Expected Step 03 UI to render Sync Opens, Export CSV (18 Cols), Warm Reply, and LinkedIn <=195c'
+    );
+    console.log('✔ [88/88] M96 Agency CSV Importer, GET /api/dashboard/pitch (401/200/CSV), Sync Opens & Warm/LinkedIn Sequence verified!');
   } finally {
     server.kill();
   }

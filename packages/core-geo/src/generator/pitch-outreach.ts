@@ -160,6 +160,304 @@ export function buildBatchOutreachCsv(
   return [header, ...rows].join('\n');
 }
 
+export type PitchEngagementStage =
+  | 'CTA_CLICKED'
+  | 'PDF_SAVED'
+  | 'HOT_3PLUS_VIEWS'
+  | 'OPENED'
+  | 'AWAITING_OPEN';
+
+function splitCsvRow(line: string, delimiter: string): string[] {
+  const cells: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i]!;
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (!inQuotes && ch === delimiter) {
+      cells.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+function looksLikeDomainCandidate(token: string): boolean {
+  const cleaned = token
+    .trim()
+    .replace(/^['"]+|['"]+$/g, '')
+    .replace(/^https?:\/\//i, '')
+    .split(/[/?#]/)[0] ?? '';
+  if (!cleaned || cleaned.includes('@') || /\s/.test(cleaned)) return false;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(cleaned) || cleaned === 'localhost') {
+    return true;
+  }
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,24}$/i.test(cleaned);
+}
+
+export function extractProspectCsvDomains(
+  rawCsvOrText: string,
+  maxDomains = 10
+): {
+  domains: string[];
+  totalDetected: number;
+  truncatedCount: number;
+} {
+  const lines = String(rawCsvOrText ?? '')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) {
+    return { domains: [], totalDetected: 0, truncatedCount: 0 };
+  }
+
+  const firstLine = lines[0]!;
+  const delimiter = firstLine.includes('\t')
+    ? '\t'
+    : firstLine.includes(';') && !firstLine.includes(',')
+      ? ';'
+      : ',';
+
+  const headerCells = splitCsvRow(firstLine, delimiter).map((c) =>
+    c.toLowerCase().replace(/[^a-z0-9_]/g, '')
+  );
+  const domainHeaderNames = new Set([
+    'domain',
+    'website',
+    'url',
+    'companydomain',
+    'company_domain',
+    'prospectdomain',
+    'prospect_domain',
+    'storeurl',
+    'store_url',
+    'site',
+    'clientdomain',
+    'client_domain',
+    'homepage',
+  ]);
+  const headerIdx = headerCells.findIndex((h) => domainHeaderNames.has(h));
+
+  const candidateTokens: string[] = [];
+  const startRow = headerIdx >= 0 ? 1 : 0;
+
+  for (let r = startRow; r < lines.length; r += 1) {
+    const row = lines[r]!;
+    if (headerIdx >= 0) {
+      const cells = splitCsvRow(row, delimiter);
+      const cell = cells[headerIdx];
+      if (cell && looksLikeDomainCandidate(cell)) {
+        candidateTokens.push(cell);
+      }
+    } else {
+      const parts = row.includes(delimiter)
+        ? splitCsvRow(row, delimiter)
+        : row.split(/[\s,;]+/);
+      for (const part of parts) {
+        if (looksLikeDomainCandidate(part)) {
+          candidateTokens.push(part);
+        }
+      }
+    }
+  }
+
+  const seen = new Set<string>();
+  const allValid: string[] = [];
+  for (const token of candidateTokens) {
+    const normalized = normalizePublicDomain(token);
+    if (!seen.has(normalized.hostname)) {
+      seen.add(normalized.hostname);
+      allValid.push(normalized.hostname);
+    }
+  }
+
+  const domains = allValid.slice(0, maxDomains);
+  return {
+    domains,
+    totalDetected: allValid.length,
+    truncatedCount: Math.max(0, allValid.length - domains.length),
+  };
+}
+
+export function classifyPitchEngagementStage(report: AgencyPitchReportRow): {
+  stage: PitchEngagementStage;
+  recommendedNextTouch: string;
+} {
+  const ctaClicks = report.summary_payload?.cta_clicks_count ?? 0;
+  const pdfExports = report.summary_payload?.pdf_exports_count ?? 0;
+  const views = report.views_count ?? 0;
+
+  if (ctaClicks >= 1) {
+    return {
+      stage: 'CTA_CLICKED',
+      recommendedNextTouch: 'WARM_BOOKING_INTENT_REPLY',
+    };
+  }
+  if (pdfExports >= 1) {
+    return {
+      stage: 'PDF_SAVED',
+      recommendedNextTouch: 'WARM_STAKEHOLDER_PDF_REPLY',
+    };
+  }
+  if (views >= 3) {
+    return {
+      stage: 'HOT_3PLUS_VIEWS',
+      recommendedNextTouch: 'WARM_OPENED_REPLY',
+    };
+  }
+  if (views >= 1) {
+    return {
+      stage: 'OPENED',
+      recommendedNextTouch: 'WARM_OPENED_REPLY',
+    };
+  }
+  return {
+    stage: 'AWAITING_OPEN',
+    recommendedNextTouch: 'SEND_DAY_0_OR_DAY_3',
+  };
+}
+
+export function buildWarmEngagementFollowUp(
+  report: AgencyPitchReportRow,
+  baseUrl = 'https://verisource.dev'
+): EnforcedQualityArtifact {
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const shareUrl = `${cleanBase}/audit/${report.share_slug}`;
+  const host = report.prospect_domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+  const platformLabel =
+    report.summary_payload?.detected_platform_label ?? 'web';
+  const topGap =
+    report.summary_payload?.top_gaps?.[0] ??
+    'missing /agents.md and FAQPage JSON-LD coverage';
+  const ctaUrl =
+    report.agency_cta_url_snapshot?.trim() || `${cleanBase}/agencies#sandbox`;
+  const agencyBrand =
+    report.agency_brand_name_snapshot?.trim() || 'Verisource Partner Agency';
+  const { stage } = classifyPitchEngagementStage(report);
+
+  const closingLine =
+    stage === 'CTA_CLICKED'
+      ? `If you want to walk through the deployment steps live, grab any 15-minute slot on ${ctaUrl} or reply and I will send the raw files directly.`
+      : stage === 'PDF_SAVED'
+        ? `If you are sharing the audit internally with your engineering or marketing lead, reply here and I will attach the finished ${platformLabel} JSON-LD and /agents.md files (${ctaUrl}).`
+        : `Happy to send the ready-to-paste ${platformLabel} JSON-LD, /llms.txt, and /agents.md bundle right in this thread, or walk through it in 15 minutes (${ctaUrl}).`;
+
+  const draft = [
+    `Subject: Re: ${report.prospect_brand_name} — ${platformLabel} JSON-LD & /agents.md fix pack`,
+    '',
+    `Following up on the ${host} AI search scorecard (${shareUrl}).`,
+    `Addressing ${topGap} is typically a single-afternoon update that lets GPTBot, OAI-SearchBot, and PerplexityBot verify your pricing and FAQ answers directly (${report.visibility_score}/100 current readiness).`,
+    closingLine,
+    '',
+    `— ${agencyBrand}`,
+  ].join('\n');
+
+  return enforceQualityGate95(draft, 'citation_outreach_brief');
+}
+
+export function buildLinkedinConnectionNote195(
+  report: AgencyPitchReportRow,
+  baseUrl = 'https://verisource.dev'
+): EnforcedQualityArtifact & { charCount: number } {
+  const cleanBase = baseUrl.replace(/\/+$/, '');
+  const shareUrl = `${cleanBase}/audit/${report.share_slug}`;
+  const host = report.prospect_domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+
+  let candidate = `Checked ${host} over HTTP (${report.visibility_score}/100 AI search readiness; JSON-LD & /agents.md gaps). Built a quick scorecard: ${shareUrl}`;
+  if (candidate.length > 195) {
+    candidate = `Audited ${host} (${report.visibility_score}/100 AI readiness; JSON-LD & /agents.md). Scorecard: ${shareUrl}`;
+  }
+  if (candidate.length > 195) {
+    candidate = `${host.slice(0, 28)} (${report.visibility_score}/100 AI check; JSON-LD & /agents.md): ${shareUrl}`.slice(
+      0,
+      195
+    );
+  }
+
+  const enforced = enforceQualityGate95(candidate);
+  const clipped =
+    enforced.content.length <= 195
+      ? enforced.content
+      : enforced.content.slice(0, 195);
+
+  return {
+    ...enforced,
+    content: clipped,
+    charCount: clipped.length,
+  };
+}
+
+export function buildAgencyEngagementBatchCsv(
+  reports: AgencyPitchReportRow[],
+  baseUrl = 'https://verisource.dev'
+): string {
+  const header = [
+    'prospect_brand_name',
+    'prospect_domain',
+    'detected_cms',
+    'visibility_score',
+    'hallucination_count',
+    'engagement_stage',
+    'views_count',
+    'pdf_exports_count',
+    'cta_clicks_count',
+    'recommended_next_touch',
+    'audit_share_url',
+    'linkedin_note_195',
+    'warm_followup_body',
+    'email_subject',
+    'email_body',
+    'quality_gate_score',
+    'followup_day3_body',
+    'followup_day7_body',
+  ].join(',');
+
+  const rows = reports.map((report) => {
+    const item = extractColdOutreachParts(report, baseUrl);
+    const { stage, recommendedNextTouch } = classifyPitchEngagementStage(report);
+    const warm = buildWarmEngagementFollowUp(report, baseUrl);
+    const parsedWarm = stripSubjectHeader(warm.content);
+    const linkedin = buildLinkedinConnectionNote195(report, baseUrl);
+    const cmsLabel =
+      report.summary_payload?.detected_platform_label ?? 'Custom Code / Next.js';
+
+    return [
+      sanitizeCsvCell(item.prospectBrandName),
+      sanitizeCsvCell(item.prospectDomain),
+      sanitizeCsvCell(cmsLabel),
+      sanitizeCsvCell(item.visibilityScore),
+      sanitizeCsvCell(item.hallucinationCount),
+      sanitizeCsvCell(stage),
+      sanitizeCsvCell(report.views_count ?? 0),
+      sanitizeCsvCell(report.summary_payload?.pdf_exports_count ?? 0),
+      sanitizeCsvCell(report.summary_payload?.cta_clicks_count ?? 0),
+      sanitizeCsvCell(recommendedNextTouch),
+      sanitizeCsvCell(item.shareUrl),
+      sanitizeCsvCell(linkedin.content),
+      sanitizeCsvCell(parsedWarm.body),
+      sanitizeCsvCell(item.subject),
+      sanitizeCsvCell(item.body),
+      sanitizeCsvCell(item.qualityScore.toFixed(1)),
+      sanitizeCsvCell(item.followUpDay3Body),
+      sanitizeCsvCell(item.followUpDay7Body),
+    ].join(',');
+  });
+
+  return [header, ...rows].join('\n');
+}
+
 export function buildBatchOutreachMarkdown(
   reports: AgencyPitchReportRow[],
   baseUrl = 'https://verisource.dev'

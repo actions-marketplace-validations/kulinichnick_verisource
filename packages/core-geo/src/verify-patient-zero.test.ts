@@ -4699,3 +4699,73 @@ test('M88 Multi-Page Site Health Crawler enforces SSRF blocks and emits compact 
   assert.equal(mosaicHealth.maxPages, 20);
   assert.equal(mosaicHealth.findings[0]?.handle, 'a1');
 });
+
+test('M96 Agency CSV Importer, Engagement Stage Classifier, Warm Reply, LinkedIn <=195c & 18-Column CSV pass >= 9.5/10 Critic & SSRF guard', async () => {
+  const {
+    buildAgencyEngagementBatchCsv,
+    buildLinkedinConnectionNote195,
+    buildWarmEngagementFollowUp,
+    classifyPitchEngagementStage,
+    extractProspectCsvDomains,
+  } = await import('./generator/pitch-outreach.js');
+
+  const apolloCsv = [
+    '"Company Name","Website","Industry"',
+    '"Linear","https://linear.app/features","B2B SaaS"',
+    '"Supabase","supabase.com","DevTools"',
+    '"Linear Duplicate","https://www.linear.app/pricing","B2B SaaS"',
+    '"Stripe","https://stripe.com","Fintech"',
+  ].join('\n');
+
+  const imported = extractProspectCsvDomains(apolloCsv, 2);
+  assert.deepEqual(imported.domains, ['linear.app', 'supabase.com']);
+  assert.equal(imported.totalDetected, 3);
+  assert.equal(imported.truncatedCount, 1);
+
+  assert.throws(
+    () =>
+      extractProspectCsvDomains(
+        '"Company","Website"\n"Internal","http://169.254.169.254/latest"'
+      ),
+    /Refusing to scan|private|metadata|valid/i
+  );
+
+  const ctaReport = {
+    ...PATIENT_ZERO_PITCH_REPORT,
+    prospect_brand_name: '=SUM(1,2) Linear',
+    prospect_domain: 'https://linear.app',
+    share_slug: 'linear-app-demo',
+    views_count: 4,
+    summary_payload: {
+      ...PATIENT_ZERO_PITCH_REPORT.summary_payload,
+      detected_platform_label: 'Custom Code / Next.js',
+      pdf_exports_count: 1,
+      cta_clicks_count: 2,
+    },
+  };
+
+  const classified = classifyPitchEngagementStage(ctaReport);
+  assert.equal(classified.stage, 'CTA_CLICKED');
+  assert.equal(classified.recommendedNextTouch, 'WARM_BOOKING_INTENT_REPLY');
+
+  const warm = buildWarmEngagementFollowUp(ctaReport);
+  assert.ok(warm.score >= 9.5, `Expected warm follow-up >= 9.5, got ${warm.score}`);
+  assert.ok(!/clicked 2 times|saw you open/i.test(warm.content));
+
+  const linkedin = buildLinkedinConnectionNote195(ctaReport);
+  assert.ok(linkedin.charCount <= 195);
+  assert.ok(linkedin.score >= 9.5);
+  assert.ok(linkedin.content.includes('/audit/linear-app-demo'));
+
+  const engagementCsv = buildAgencyEngagementBatchCsv([
+    ctaReport,
+    PATIENT_ZERO_PITCH_REPORT,
+  ]);
+  assert.ok(
+    engagementCsv.startsWith(
+      'prospect_brand_name,prospect_domain,detected_cms,visibility_score,hallucination_count,engagement_stage,views_count,pdf_exports_count,cta_clicks_count,recommended_next_touch,audit_share_url,linkedin_note_195,warm_followup_body,email_subject,email_body,quality_gate_score,followup_day3_body,followup_day7_body\n'
+    )
+  );
+  assert.ok(engagementCsv.includes(`"'=SUM(1,2) Linear"`));
+  assert.ok(engagementCsv.includes('"CTA_CLICKED","4","1","2"'));
+});

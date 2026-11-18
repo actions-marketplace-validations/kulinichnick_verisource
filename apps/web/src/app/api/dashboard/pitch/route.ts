@@ -1,10 +1,14 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import {
+  buildAgencyEngagementBatchCsv,
   DEMO_PROFILE,
+  filterAndRankPitchReports,
   parseBatchProspectDomains,
   runFullGeoAudit,
+  summarizePitchEngagementCounts,
   type AgencyPitchReportRow,
+  type PitchEngagementFilter,
 } from '@verisource/core-geo';
 import {
   getLocalMockStore,
@@ -68,6 +72,108 @@ async function mapWithConcurrency<T, R>(
   );
 
   return results;
+}
+
+export async function GET(request: Request): Promise<NextResponse> {
+  try {
+    const isServiceAdmin = isServiceRoleAdminBearer(request);
+    const access = isServiceAdmin
+      ? null
+      : await resolveConsoleRequestAccess(request);
+
+    if (!isServiceAdmin && access?.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message:
+            'Sign in to your Verisource Console to sync or export prospect engagement.',
+        },
+        { status: 401 }
+      );
+    }
+
+    const activeProfile =
+      access && access.status !== 'unauthenticated' ? access.profile : null;
+    const serviceSupabase =
+      (access && access.status !== 'unauthenticated' ? access.supabase : null) ??
+      getServiceSupabaseClient();
+    const store = getLocalMockStore();
+
+    let reports: AgencyPitchReportRow[] = store.pitchReports;
+    if (serviceSupabase && (activeProfile || isServiceAdmin)) {
+      let query = serviceSupabase
+        .from('agency_pitch_reports')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!isServiceAdmin && activeProfile) {
+        query = query.eq('agency_user_id', activeProfile.id);
+      }
+      const { data: dbRows } = await query;
+      if (Array.isArray(dbRows)) {
+        reports = dbRows as AgencyPitchReportRow[];
+      }
+    }
+
+    const reqUrl = new URL(request.url);
+    const rawFilter = reqUrl.searchParams.get('filter') ?? 'all';
+    const allowedFilters = new Set<PitchEngagementFilter>([
+      'all',
+      'cta_clicked',
+      'opened_hot',
+      'awaiting_open',
+    ]);
+    const filter: PitchEngagementFilter = allowedFilters.has(
+      rawFilter as PitchEngagementFilter
+    )
+      ? (rawFilter as PitchEngagementFilter)
+      : 'all';
+
+    const counts = summarizePitchEngagementCounts(reports);
+    const filtered = filterAndRankPitchReports(reports, filter);
+
+    if (reqUrl.searchParams.get('format') === 'csv') {
+      const origin =
+        process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, '') ||
+        'https://verisource.dev';
+      const csv = buildAgencyEngagementBatchCsv(filtered, origin);
+      const filename =
+        filter === 'cta_clicked'
+          ? 'verisource-agency-cta-clicked.csv'
+          : filter === 'opened_hot'
+            ? 'verisource-agency-opened-prospects.csv'
+            : filter === 'awaiting_open'
+              ? 'verisource-agency-awaiting-open.csv'
+              : 'verisource-agency-engagement-batch.csv';
+
+      return new NextResponse(csv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    return NextResponse.json({
+      reports,
+      filteredCount: filtered.length,
+      counts,
+      syncedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: 'PITCH_SYNC_FAILED',
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Unable to sync pitch engagement.',
+      },
+      { status: 400 }
+    );
+  }
 }
 
 export async function POST(request: Request): Promise<NextResponse> {

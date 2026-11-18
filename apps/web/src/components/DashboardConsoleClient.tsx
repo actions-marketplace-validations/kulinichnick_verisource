@@ -6,10 +6,10 @@ import { createClient } from '@supabase/supabase-js';
 import {
   buildAgencyColdOutreachNote,
   buildAgencyColdOutreachSequence,
+  buildAgencyEngagementBatchCsv,
   buildAiAttributionSnippet,
   buildAiRemediationMasterPrompt,
   buildAnalyticsInstallAiPrompt,
-  buildBatchOutreachCsv,
   buildBatchOutreachMarkdown,
   buildCitationAnswerPageBundle,
   buildCitationGapActionPlaybookMarkdown,
@@ -17,16 +17,19 @@ import {
   buildExecutiveAuditReportMarkdown,
   buildFollowUpVerificationAiPrompt,
   buildImplementationBundleMarkdown,
+  buildLinkedinConnectionNote195,
   buildMcpClientSetupBundle,
   buildPlainEnglishSiteDiagnosis,
   buildShopifyCustomerEventsPixel,
   buildSubscriberReferralBundle,
   buildTargetedCitationOutreachDraft,
+  buildWarmEngagementFollowUp,
   buildWhiteLabelExecutiveBriefMarkdown,
   computeShopifyCheckoutKey,
   deriveWorkspacePartnerSlug,
   evaluateCommerceAttributeReadiness,
   evaluatePublishedCitationPage,
+  extractProspectCsvDomains,
   filterAndRankPitchReports,
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
@@ -2474,6 +2477,88 @@ export function DashboardConsoleClient(props: {
     pitchEngagementFilter
   );
 
+  const [syncingPitchOpens, setSyncingPitchOpens] = useState(false);
+
+  const batchQueuedDomainPreview = React.useMemo(() => {
+    if (!batchPitchDomains.trim()) {
+      return { count: 0, error: null as string | null };
+    }
+    try {
+      const parsed = extractProspectCsvDomains(batchPitchDomains, 10);
+      return { count: parsed.domains.length, error: null as string | null };
+    } catch (err) {
+      return {
+        count: 0,
+        error: err instanceof Error ? err.message : 'Invalid domain entry.',
+      };
+    }
+  }, [batchPitchDomains]);
+
+  function handleImportProspectCsvFile(
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBannerError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const text = typeof reader.result === 'string' ? reader.result : '';
+        const parsed = extractProspectCsvDomains(text, 10);
+        if (parsed.domains.length === 0) {
+          setBannerError(
+            'No valid public domains found in uploaded file. Include a domain/website column or 1 domain per line.'
+          );
+          return;
+        }
+        setBatchPitchDomains(parsed.domains.join('\n'));
+        setBannerSuccess(
+          parsed.truncatedCount > 0
+            ? `Imported ${parsed.domains.length} unique domains from ${file.name} (${parsed.truncatedCount} extra row(s) skipped — 10 max per batch).`
+            : `Imported ${parsed.domains.length} unique prospect domain(s) from ${file.name}.`
+        );
+      } catch (err) {
+        setBannerError(
+          err instanceof Error ? err.message : 'Unable to parse uploaded CSV.'
+        );
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  async function handleSyncPitchEngagement(): Promise<void> {
+    setSyncingPitchOpens(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/pitch', {
+        method: 'GET',
+        headers: authHeaders,
+      });
+      const json = (await res.json()) as {
+        reports?: AgencyPitchReportRow[];
+        message?: string;
+      };
+      if (!res.ok || !Array.isArray(json.reports)) {
+        setBannerError(
+          json.message ?? 'Unable to sync live prospect open telemetry.'
+        );
+        return;
+      }
+      setData((prev) => ({
+        ...prev,
+        pitchReports: json.reports!,
+      }));
+      setBannerSuccess(
+        `Synced live open, PDF export, and booking click counts across ${json.reports.length} prospect brief(s).`
+      );
+    } catch {
+      setBannerError('Network error while syncing prospect engagement.');
+    } finally {
+      setSyncingPitchOpens(false);
+    }
+  }
+
   function handleExportOutreachCsv() {
     const exportSource =
       filteredPitchReports.length > 0
@@ -2484,7 +2569,7 @@ export function DashboardConsoleClient(props: {
       typeof window !== 'undefined'
         ? window.location.origin
         : 'https://verisource.dev';
-    const csvContent = buildBatchOutreachCsv(exportSource, origin);
+    const csvContent = buildAgencyEngagementBatchCsv(exportSource, origin);
     const blob = new Blob([csvContent], {
       type: 'text/csv;charset=utf-8',
     });
@@ -2498,7 +2583,7 @@ export function DashboardConsoleClient(props: {
           ? 'verisource-opened-prospects.csv'
           : pitchEngagementFilter === 'awaiting_open'
             ? 'verisource-awaiting-open-followup.csv'
-            : 'verisource-outreach-batch.csv';
+            : 'verisource-agency-engagement-batch.csv';
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
@@ -2541,7 +2626,7 @@ export function DashboardConsoleClient(props: {
     data.pitchReports[0];
 
   const [selectedOutreachTouch, setSelectedOutreachTouch] = useState<
-    'day0' | 'day3' | 'day7'
+    'day0' | 'day3' | 'day7' | 'warm_reply' | 'linkedin_195'
   >('day0');
 
   const pitchOutreachSequence = selectedPitchReport
@@ -2551,14 +2636,24 @@ export function DashboardConsoleClient(props: {
       )
     : null;
 
-  const pitchOutreachArtifact = pitchOutreachSequence
-    ? pitchOutreachSequence[selectedOutreachTouch]
-    : selectedPitchReport
-      ? buildAgencyColdOutreachNote(
+  const pitchOutreachArtifact = selectedPitchReport
+    ? selectedOutreachTouch === 'warm_reply'
+      ? buildWarmEngagementFollowUp(
           selectedPitchReport,
           'https://verisource.dev'
         )
-      : null;
+      : selectedOutreachTouch === 'linkedin_195'
+        ? buildLinkedinConnectionNote195(
+            selectedPitchReport,
+            'https://verisource.dev'
+          )
+        : pitchOutreachSequence
+          ? pitchOutreachSequence[selectedOutreachTouch]
+          : buildAgencyColdOutreachNote(
+              selectedPitchReport,
+              'https://verisource.dev'
+            )
+    : null;
 
   const [copiedAnalyticsPrompt, setCopiedAnalyticsPrompt] = useState(false);
   const [sendingTrialGuide, setSendingTrialGuide] = useState(false);
@@ -9183,11 +9278,58 @@ export function DashboardConsoleClient(props: {
                   </>
                 ) : (
                   <>
-                    <label style={{ fontSize: '12px', fontWeight: 600 }}>
-                      {isGuided
-                        ? 'Client Websites (1 per line — up to 10)'
-                        : 'Prospect Domains Batch (1 per line or comma-separated, max 10)'}
-                    </label>
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <label style={{ fontSize: '12px', fontWeight: 600 }}>
+                        {isGuided
+                          ? 'Client Websites (1 per line — up to 10)'
+                          : 'Prospect Domains Batch (1 per line or CSV, max 10)'}
+                      </label>
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <StatusBadge
+                          tone={
+                            batchQueuedDomainPreview.error
+                              ? 'critical'
+                              : batchQueuedDomainPreview.count > 0
+                                ? 'pass'
+                                : 'neutral'
+                          }
+                        >
+                          {`${batchQueuedDomainPreview.count}/10 QUEUED`}
+                        </StatusBadge>
+                        <label
+                          className="vs-btn vs-btn-secondary"
+                          style={{
+                            padding: '3px 9px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                          }}
+                          title="Import .csv, .tsv, or .txt prospect list (Apollo, Clay, StoreLeads, HubSpot)"
+                        >
+                          ↑ Upload CSV
+                          <input
+                            type="file"
+                            accept=".csv,.tsv,.txt,text/csv,text/plain"
+                            onChange={handleImportProspectCsvFile}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                      </div>
+                    </div>
                     <textarea
                       required
                       rows={4}
@@ -9314,12 +9456,22 @@ export function DashboardConsoleClient(props: {
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                       <button
                         type="button"
+                        disabled={syncingPitchOpens}
+                        onClick={() => void handleSyncPitchEngagement()}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                        title="Pull live prospect opens, PDF saves, and booking CTA clicks without re-running LLM scans"
+                      >
+                        {syncingPitchOpens ? 'Syncing...' : '↻ Sync Opens'}
+                      </button>
+                      <button
+                        type="button"
                         onClick={handleExportOutreachCsv}
                         className="vs-btn vs-btn-secondary"
                         style={{ padding: '4px 10px', fontSize: '11.5px' }}
-                        title="Download RFC 4180 CSV with subjects, outreach notes, and /audit/[slug] URLs"
+                        title="Download 18-column Engagement & Outreach CSV (opens, PDF saves, CTA clicks, LinkedIn <=195c, Warm Reply & 3-touch sequence)"
                       >
-                        ↓ Export CSV
+                        ↓ Export CSV (18 Cols)
                       </button>
                       <button
                         type="button"
@@ -9639,6 +9791,8 @@ export function DashboardConsoleClient(props: {
                           { id: 'day0', label: 'Touch 1 · Day 0' },
                           { id: 'day3', label: 'Touch 2 · Day 3' },
                           { id: 'day7', label: 'Touch 3 · Day 7' },
+                          { id: 'warm_reply', label: 'Warm Reply' },
+                          { id: 'linkedin_195', label: 'LinkedIn <=195c' },
                         ] as const
                       ).map((step) => {
                         const active = selectedOutreachTouch === step.id;
@@ -9664,7 +9818,11 @@ export function DashboardConsoleClient(props: {
                       ? `Touch 1 (Day 0) — Diagnostic Scorecard (${selectedPitchReport.prospect_brand_name})`
                       : selectedOutreachTouch === 'day3'
                         ? `Touch 2 (Day 3) — Technical Gap Reply (${selectedPitchReport.prospect_brand_name})`
-                        : `Touch 3 (Day 7) — Direct Fix Handoff (${selectedPitchReport.prospect_brand_name})`
+                        : selectedOutreachTouch === 'day7'
+                          ? `Touch 3 (Day 7) — Direct Fix Handoff (${selectedPitchReport.prospect_brand_name})`
+                          : selectedOutreachTouch === 'warm_reply'
+                            ? `Warm Engagement Reply — Opened / PDF Saved (${selectedPitchReport.prospect_brand_name})`
+                            : `LinkedIn Connection Note <= 195 Chars (${selectedPitchReport.prospect_brand_name})`
                   }
                   plainSummary={
                     isGuided
@@ -9672,10 +9830,14 @@ export function DashboardConsoleClient(props: {
                         ? 'First message introducing the client audit link.'
                         : selectedOutreachTouch === 'day3'
                           ? 'Polite Day 3 thread reply highlighting why competitors rank higher in AI.'
-                          : 'Calm Day 7 final follow-up offering the finished website fixes.'
+                          : selectedOutreachTouch === 'day7'
+                            ? 'Calm Day 7 final follow-up offering the finished website fixes.'
+                            : selectedOutreachTouch === 'warm_reply'
+                              ? 'Zero-creepiness warm follow-up after a prospect opens the brief or saves the PDF.'
+                              : 'Compact <= 195-character note that fits free-tier LinkedIn connection requests.'
                       : undefined
                   }
-                  fileHint={`Target: https://verisource.dev/audit/${selectedPitchReport.share_slug} · Export CSV above for all 3 touches`}
+                  fileHint={`Target: https://verisource.dev/audit/${selectedPitchReport.share_slug} · Export Engagement CSV above for all 18 columns`}
                   code={pitchOutreachArtifact.content}
                   qualityScore={pitchOutreachArtifact.score}
                   qualityBreakdown={pitchOutreachArtifact.breakdown}
