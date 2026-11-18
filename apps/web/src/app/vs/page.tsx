@@ -1,18 +1,80 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
+import { normalizePublicDomain } from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
 import { DomainHeadToHeadClient } from '../../components/DomainHeadToHeadClient';
 
-export const metadata: Metadata = {
-  title:
-    'Head-to-Head Domain AI Search X-Ray: Compare Any Two Websites | Verisource',
-  description:
-    'Compare any two public domains across 6 AI search & crawler dimensions: GPTBot/PerplexityBot WAF access, non-JS HTML signal, schema.org JSON-LD @graph, /llms.txt, and /agents.md.',
-  alternates: {
-    canonical: 'https://verisource.dev/vs',
-  },
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ a?: string; b?: string }>;
+}): Promise<Metadata> {
+  const resolved = await searchParams;
+  const rawA = typeof resolved?.a === 'string' ? resolved.a.trim() : '';
+  const rawB = typeof resolved?.b === 'string' ? resolved.b.trim() : '';
+
+  let cleanA = '';
+  let cleanB = '';
+  if (rawA && rawB) {
+    try {
+      cleanA = normalizePublicDomain(rawA).hostname;
+      cleanB = normalizePublicDomain(rawB).hostname;
+    } catch {
+      cleanA = '';
+      cleanB = '';
+    }
+  }
+
+  const title =
+    cleanA && cleanB
+      ? `${cleanA} vs. ${cleanB} — AI Search Readiness X-Ray | Verisource`
+      : 'Head-to-Head Domain AI Search X-Ray: Compare Any Two Websites | Verisource';
+  const description =
+    cleanA && cleanB
+      ? `Live 6-dimension HTTP AI search benchmark comparing ${cleanA} against ${cleanB} across GPTBot WAF access, SSR token density, schema.org JSON-LD, /llms.txt, and /agents.md.`
+      : 'Compare any two public domains across 6 AI search & crawler dimensions: GPTBot/PerplexityBot WAF access, non-JS HTML signal, schema.org JSON-LD @graph, /llms.txt, and /agents.md.';
+  const ogImageUrl =
+    cleanA && cleanB
+      ? `https://verisource.dev/api/og/vs?a=${encodeURIComponent(
+          cleanA
+        )}&b=${encodeURIComponent(cleanB)}`
+      : 'https://verisource.dev/api/og/vs';
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: 'https://verisource.dev/vs',
+    },
+    openGraph: {
+      title,
+      description,
+      url:
+        cleanA && cleanB
+          ? `https://verisource.dev/vs?a=${encodeURIComponent(
+              cleanA
+            )}&b=${encodeURIComponent(cleanB)}`
+          : 'https://verisource.dev/vs',
+      siteName: 'Verisource',
+      type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  };
+}
 
 const VS_FAQS = [
   {

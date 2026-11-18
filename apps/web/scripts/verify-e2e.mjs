@@ -5000,7 +5000,57 @@ async function run() {
         m101ReportsHtml.includes('/report/pinecone.io'),
       'Expected /reports hub to index 70 live scorecards including firecrawl.dev & pinecone.io'
     );
-    console.log('✔ [92/92] M101 Public Head-to-Head Domain X-Ray (/vs + /api/tools/xray) & 70-Domain /reports Hub verified!');
+    console.log('✔ [92/93] M101 Public Head-to-Head Domain X-Ray (/vs + /api/tools/xray) & 70-Domain /reports Hub verified!');
+
+    // 91. M102 Dynamic 1200x630 OpenGraph Social Cards (/report/[domain]/opengraph-image + /api/og/vs) & 80-Domain /reports Hub
+    const [
+      reportOgRes,
+      vsOgMatchRes,
+      vsOgSsrfRes,
+      vsMetaHtmlRes,
+      m102ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/report/firecrawl.dev/opengraph-image`),
+      fetch(`${BASE}/api/og/vs?a=whoop.com&b=ouraring.com`),
+      fetch(`${BASE}/api/og/vs?a=http://169.254.169.254&b=supabase.com`),
+      fetch(`${BASE}/vs?a=whoop.com&b=ouraring.com`),
+      fetch(`${BASE}/reports`),
+    ]);
+
+    assert.equal(reportOgRes.status, 200);
+    assert.ok(
+      (reportOgRes.headers.get('content-type') || '').includes('image/png')
+    );
+    const reportOgBuf = new Uint8Array(await reportOgRes.arrayBuffer());
+    assert.equal(reportOgBuf[0], 137);
+    assert.equal(reportOgBuf[1], 80);
+    assert.equal(reportOgBuf[2], 78);
+    assert.equal(reportOgBuf[3], 71);
+
+    assert.equal(vsOgMatchRes.status, 200);
+    assert.ok(
+      (vsOgMatchRes.headers.get('content-type') || '').includes('image/png')
+    );
+    const vsOgBuf = new Uint8Array(await vsOgMatchRes.arrayBuffer());
+    assert.equal(vsOgBuf[0], 137);
+    assert.equal(vsOgBuf[1], 80);
+
+    assert.equal(vsOgSsrfRes.status, 400);
+
+    const vsMetaHtml = await vsMetaHtmlRes.text();
+    assert.ok(
+      vsMetaHtml.includes('whoop.com vs. ouraring.com') &&
+        vsMetaHtml.includes('/api/og/vs?a=whoop.com&amp;b=ouraring.com'),
+      'Expected /vs?a=whoop.com&b=ouraring.com to emit dynamic matchup <title> and /api/og/vs og:image'
+    );
+
+    const m102ReportsHtml = await m102ReportsRes.text();
+    assert.ok(
+      m102ReportsHtml.includes('/report/bombas.com') &&
+        m102ReportsHtml.includes('/report/huckberry.com'),
+      'Expected /reports hub to index 80 live scorecards including bombas.com & huckberry.com'
+    );
+    console.log('✔ [93/93] M102 Dynamic 1200x630 OpenGraph Cards (/report/[domain] + /api/og/vs) & 80-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

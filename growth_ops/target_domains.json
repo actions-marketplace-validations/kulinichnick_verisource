@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-18T22:10:40.270Z",
+  "updatedAt": "2026-11-18T22:29:04.164Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -426,52 +426,62 @@
     {
       "domain": "awaytravel.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "cuyana.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "rothys.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "bombas.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "untuckit.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "mackweldon.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "taylorstitch.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "huckberry.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "rumpl.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "blueland.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:29:04.164Z"
     },
     {
       "domain": "arcjet.com",
