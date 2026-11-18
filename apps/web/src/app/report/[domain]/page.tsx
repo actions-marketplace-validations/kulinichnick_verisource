@@ -2,8 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React from 'react';
-import { getWebsitePlatformMeta } from '@verisource/core-geo';
-import { MetricLedgerCell, StatusBadge } from '@verisource/ui';
+import {
+  buildReadinessBadgeEmbedSnippets,
+  getWebsitePlatformMeta,
+  renderReadinessBadgeSvg,
+} from '@verisource/core-geo';
+import { CodeArtifactCard, MetricLedgerCell, StatusBadge } from '@verisource/ui';
 import {
   findPublishedScorecardByDomain,
   getPublishedDomainScorecards,
@@ -80,6 +84,14 @@ export default async function PublicDomainReportPage({
     (scorecard.jsonLdPillarsPassed >= 3 ? 1 : 0);
 
   const canonicalUrl = `https://verisource.dev/report/${scorecard.domain}`;
+  const badgeSvg = renderReadinessBadgeSvg({
+    hostname: scorecard.domain,
+    score: scorecard.readinessScore,
+  });
+  const badgeEmbeds = buildReadinessBadgeEmbedSnippets({
+    hostname: scorecard.domain,
+    brandName: scorecard.brandName,
+  });
   const jsonLdGraph = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -393,6 +405,48 @@ export default async function PublicDomainReportPage({
             >
               Re-Scan Live on Grader
             </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Live Embeddable Readiness Shield Badge */}
+      <div className="vs-bezel">
+        <div className="vs-card" style={{ padding: '20px 22px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '14px',
+              marginBottom: '16px',
+            }}
+          >
+            <div>
+              <div className="vs-eyebrow" style={{ marginBottom: '4px' }}>
+                LIVE SVG SHIELD · README.MD &amp; DOCS EMBED
+              </div>
+              <strong style={{ fontSize: '15.5px' }}>
+                Embed the live AI Search Readiness badge for {scorecard.domain}
+              </strong>
+            </div>
+            <div
+              dangerouslySetInnerHTML={{ __html: badgeSvg }}
+              style={{ display: 'inline-flex', alignItems: 'center' }}
+            />
+          </div>
+
+          <div className="vs-grid-2">
+            <CodeArtifactCard
+              title="Markdown Shield"
+              fileHint="README.md"
+              code={badgeEmbeds.markdownEmbed}
+            />
+            <CodeArtifactCard
+              title="HTML Anchor Shield"
+              fileHint="Footer / Docs"
+              code={badgeEmbeds.htmlEmbed}
+            />
           </div>
         </div>
       </div>

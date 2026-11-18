@@ -4905,3 +4905,40 @@ test('M98 Cross-Platform Brand Unification enforces Obsidian + Warm Brass (#E5A9
   assert.ok(!whiteLabelWeekly.html.includes('#E5A93C'));
   assert.ok(whiteLabelWeekly.html.includes('#2563EB'));
 });
+
+test('M100 Live SVG AI Readiness Shield Badge enforces SSRF guard, XML escaping & Obsidian/Warm Brass tokens', async () => {
+  const {
+    buildReadinessBadgeEmbedSnippets,
+    classifyReadinessBadgeTier,
+    renderReadinessBadgeSvg,
+  } = await import('./generator/readiness-badge.js');
+
+  assert.equal(classifyReadinessBadgeTier(82).tier, 'READY');
+  assert.equal(classifyReadinessBadgeTier(64).tier, 'PARTIAL');
+  assert.equal(classifyReadinessBadgeTier(34).tier, 'AT RISK');
+  assert.equal(classifyReadinessBadgeTier(null).tier, 'UNSCANNED');
+
+  const svg = renderReadinessBadgeSvg({
+    hostname: 'supabase.com',
+    score: 84,
+    customLabel: 'AI SEARCH <script>',
+  });
+  assert.ok(svg.includes('#0E1116') && svg.includes('#E5A93C') && svg.includes('#161004'));
+  assert.ok(svg.includes('84/100 · READY'));
+  assert.ok(!svg.includes('<script>'));
+  assert.ok(svg.includes('&lt;SCRIPT&gt;'));
+
+  assert.throws(
+    () => renderReadinessBadgeSvg({ hostname: 'http://169.254.169.254', score: 90 }),
+    /Refusing to scan|private|metadata|valid/i
+  );
+
+  const embeds = buildReadinessBadgeEmbedSnippets({
+    hostname: 'gymshark.com',
+    brandName: 'Gymshark',
+  });
+  assert.equal(embeds.badgeUrl, 'https://verisource.dev/api/badge/gymshark.com');
+  assert.equal(embeds.reportUrl, 'https://verisource.dev/report/gymshark.com');
+  assert.ok(embeds.markdownEmbed.includes('[![Gymshark AI Search Readiness — Verisource]'));
+  assert.ok(embeds.htmlEmbed.includes('<img src="https://verisource.dev/api/badge/gymshark.com"'));
+});

@@ -4885,7 +4885,60 @@ async function run() {
         m85SidepanelJs.includes('verisource'),
       'Expected Chrome MV3 Side Panel bundle to match exact Warm Brass diamond mark and lowercase verisource wordmark'
     );
-    console.log('✔ [90/90] M98 Cross-Platform Logo Pack (/brand/*, /icon.png), Email Design System & Chrome Extension Parity verified!');
+    console.log('✔ [90/91] M98 Cross-Platform Logo Pack (/brand/*, /icon.png), Email Design System & Chrome Extension Parity verified!');
+
+    // 89. M100 Live SVG AI Readiness Shield Badge (/api/badge/[domain]), 60-Domain /reports Hub & Scorecard Embeds
+    const ssrfBadgeRes = await fetch(`${BASE}/api/badge/169.254.169.254`);
+    assert.equal(ssrfBadgeRes.status, 400);
+
+    const [selfBadgeRes, gymsharkBadgeRes, gymsharkReportRes, m100ReportsRes] =
+      await Promise.all([
+        fetch(`${BASE}/api/badge/verisource.dev`),
+        fetch(`${BASE}/api/badge/gymshark.com`),
+        fetch(`${BASE}/report/gymshark.com`),
+        fetch(`${BASE}/reports`),
+      ]);
+    assert.equal(selfBadgeRes.status, 200);
+    assert.ok(
+      (selfBadgeRes.headers.get('content-type') || '').includes('image/svg+xml')
+    );
+    const selfBadgeSvg = await selfBadgeRes.text();
+    assert.ok(
+      selfBadgeSvg.includes('96/100 · READY') &&
+        selfBadgeSvg.includes('#0E1116') &&
+        selfBadgeSvg.includes('#E5A93C')
+    );
+
+    assert.equal(gymsharkBadgeRes.status, 200);
+    const gymsharkBadgeSvg = await gymsharkBadgeRes.text();
+    assert.ok(gymsharkBadgeSvg.includes('/100'));
+
+    assert.equal(gymsharkReportRes.status, 200);
+    const gymsharkReportHtml = await gymsharkReportRes.text();
+    assert.ok(
+      gymsharkReportHtml.includes('LIVE SVG SHIELD') &&
+        gymsharkReportHtml.includes('/api/badge/gymshark.com'),
+      'Expected /report/gymshark.com to include Live SVG Shield embed widget'
+    );
+    const strippedGymsharkVisible = gymsharkReportHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      !SELF_SCORE_JARGON.test(strippedGymsharkVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(strippedGymsharkVisible),
+      'Expected zero /10 or Critic jargon on /report/gymshark.com'
+    );
+
+    assert.equal(m100ReportsRes.status, 200);
+    const m100ReportsHtml = await m100ReportsRes.text();
+    assert.ok(
+      m100ReportsHtml.includes('/report/gymshark.com') &&
+        m100ReportsHtml.includes('/report/whoop.com') &&
+        m100ReportsHtml.includes('/report/supabase.com'),
+      'Expected /reports directory to index 60 live brand scorecards including gymshark.com, whoop.com & supabase.com'
+    );
+    console.log('✔ [91/91] M100 Live SVG AI Readiness Shield (/api/badge/[domain]), 60-Domain /reports Hub & Sticky PR Bot verified!');
   } finally {
     server.kill();
   }

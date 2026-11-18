@@ -1,5 +1,7 @@
 # Verisource — B2B Generative Engine Optimization (GEO) & Streamable HTTP `/mcp` Platform
 
+[![AI Search Readiness — Verisource](https://verisource.dev/api/badge/verisource.dev)](https://verisource.dev/reports)
+
 **Live Platform:** [https://verisource.dev](https://verisource.dev) · **Streamable HTTP MCP:** `https://mcp.verisource.dev/mcp` · **Official MCP Registry:** `dev.verisource/mcp@1.0.0` · **Cursor Directory:** [verisource-geo-ai-citation-mcp](https://cursor.directory/plugins/verisource-geo-ai-citation-mcp) · **Chrome Web Store:** [Install Side Panel](https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb)
 
 Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** cite your brand, catches hallucinated pricing and policy claims against a verified **Brand Truth Sheet**, and generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, and **You vs. Competitor** HTML comparison pages across **7 CMS platforms** (`Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, and `Next.js`).
@@ -11,6 +13,7 @@ Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** 
 | Resource | URL | What It Does |
 | :--- | :--- | :--- |
 | **Free 60-Second Domain Audit** | [verisource.dev/#scan](https://verisource.dev/#scan) | Probes 5 AI crawlers, 3 answer engines, 5-page link health (`VerisourceScan/1.0`), CMS stack, and 3-pillar `JSON-LD` readiness. |
+| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol scorecards and live SVG readiness badges across 60+ audited SaaS and commerce domains. |
 | **11-Capability Platform & CLI Tour** | [verisource.dev/features](https://verisource.dev/features) | Interactive split-screen walkthroughs for AI search verification, browser flow replay, route mapping, and log correlation. |
 | **Crawler Transparency Spec** | [verisource.dev/scanner](https://verisource.dev/scanner) | Public `VerisourceScan/1.0` User-Agent specification, rate limits, and `/robots.txt` opt-out controls. |
 | **2026 40-Domain AI Readiness Study** | [verisource.dev/benchmarks/ai-search-readiness-2026](https://verisource.dev/benchmarks/ai-search-readiness-2026) | Empirical HTTPS crawl dataset across B2B SaaS, Shopify D2C, agencies, and local brands. |

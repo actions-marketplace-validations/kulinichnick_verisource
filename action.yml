@@ -33,6 +33,14 @@ inputs:
     description: 'Optional vs_live_ API key to push CI telemetry to your Verisource Cloud Console.'
     required: false
     default: ''
+  post-pr-comment:
+    description: 'Create or update an idempotent sticky Pull Request comment when triggered on a pull_request ("true" or "false").'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'GitHub token used to post or update sticky Pull Request comments.'
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   status:
@@ -61,6 +69,8 @@ runs:
         VS_REQ_AGENTS: ${{ inputs.require-agents-md }}
         VS_ALLOW_BROKEN: ${{ inputs.allow-broken-links }}
         VERISOURCE_API_KEY: ${{ inputs.api-key }}
+        VS_POST_PR_COMMENT: ${{ inputs.post-pr-comment }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
         VS_ACTION_DIR: ${{ github.action_path }}
       run: |
         set -euo pipefail
@@ -97,6 +107,9 @@ runs:
         EXTRA_FLAGS=()
         if [ -n "${VERISOURCE_API_KEY:-}" ]; then
           EXTRA_FLAGS+=("--push")
+        fi
+        if [ "${VS_POST_PR_COMMENT:-true}" = "true" ]; then
+          EXTRA_FLAGS+=("--pr-comment")
         fi
 
         set +e

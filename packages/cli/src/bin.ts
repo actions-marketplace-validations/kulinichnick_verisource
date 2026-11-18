@@ -24,6 +24,11 @@ import {
   type CliCloudSyncResult,
 } from './cloud.js';
 import {
+  upsertGithubPrComment,
+  VERISOURCE_PR_COMMENT_MARKER,
+  type GithubPrCommentResult,
+} from './github-pr.js';
+import {
   queryCorrelatedBackendLogs,
   type LogProviderId,
 } from './logs.js';
@@ -54,8 +59,8 @@ function printHelp(): void {
 
 Usage:
   verisource auth [--key vs_live_...] [--status|--logout] Save or verify Verisource Cloud API key (.verisource/config.json)
-  verisource scan <url> [--push] [--json] [--github-summary] Scan AI readiness, bots, JSON-LD & 20-page link health
-  verisource verify <url> [--init] [--push] [--json] [--github-summary] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
+  verisource scan <url> [--push] [--json] [--github-summary] [--pr-comment] Scan AI readiness, bots, JSON-LD & 20-page link health
+  verisource verify <url> [--init] [--push] [--json] [--github-summary] [--pr-comment] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
   verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1)
   verisource query "<text>" [--json]                 Filter recent handles by keyword or status code
   verisource map [url | ./dir] [--diff] [--json]     Map live domain routes or static Next.js/React routes
@@ -92,8 +97,13 @@ export function buildGithubStepSummaryMarkdown(params: {
       : params.status === 'WARN'
         ? 'WARN'
         : 'FAIL';
+  const badgeUrl = `https://verisource.dev/api/badge/${encodeURIComponent(params.hostname)}`;
+  const reportUrl = `https://verisource.dev/report/${encodeURIComponent(params.hostname)}`;
   const lines: string[] = [
+    VERISOURCE_PR_COMMENT_MARKER,
     `### Verisource AI Search & Site Health Gate — \`${badge}\``,
+    '',
+    `[![AI Search Readiness](${badgeUrl})](${reportUrl})`,
     '',
     '| Check | Measured Value | Status |',
     '| :--- | :--- | :--- |',
@@ -288,7 +298,8 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         cwd
       );
 
-      if (hasFlag(args, '--github-summary')) {
+      let prComment: GithubPrCommentResult | null = null;
+      if (hasFlag(args, '--github-summary') || hasFlag(args, '--pr-comment')) {
         const botsAllowed =
           Boolean(readiness.robotsAiBotStatus.GPTBot) &&
           Boolean(readiness.robotsAiBotStatus.PerplexityBot) &&
@@ -308,7 +319,12 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
           jsonLdCount: readiness.jsonLdCount,
           handles,
         });
-        writeGithubSummaryArtifact(md, cwd);
+        if (hasFlag(args, '--github-summary')) {
+          writeGithubSummaryArtifact(md, cwd);
+        }
+        if (hasFlag(args, '--pr-comment')) {
+          prComment = await upsertGithubPrComment({ markdownBody: md });
+        }
       }
 
       let cloudSync: CliCloudSyncResult | null = null;
@@ -362,6 +378,7 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
               },
               handles,
               ...(cloudSync ? { cloudSync } : {}),
+              ...(prComment ? { prComment } : {}),
             },
             null,
             2
@@ -437,7 +454,8 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
       }
 
       const passed = failures.length === 0;
-      if (hasFlag(args, '--github-summary')) {
+      let prComment: GithubPrCommentResult | null = null;
+      if (hasFlag(args, '--github-summary') || hasFlag(args, '--pr-comment')) {
         const botsAllowed =
           Boolean(readiness.robotsAiBotStatus.GPTBot) &&
           Boolean(readiness.robotsAiBotStatus.PerplexityBot) &&
@@ -457,7 +475,12 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
           jsonLdCount: readiness.jsonLdCount,
           failures,
         });
-        writeGithubSummaryArtifact(md, cwd);
+        if (hasFlag(args, '--github-summary')) {
+          writeGithubSummaryArtifact(md, cwd);
+        }
+        if (hasFlag(args, '--pr-comment')) {
+          prComment = await upsertGithubPrComment({ markdownBody: md });
+        }
       }
       let cloudSync: CliCloudSyncResult | null = null;
       if (hasFlag(args, '--push')) {
@@ -509,6 +532,7 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
               visibilityScore: readiness.visibilityScore,
               failures,
               ...(cloudSync ? { cloudSync } : {}),
+              ...(prComment ? { prComment } : {}),
             },
             null,
             2

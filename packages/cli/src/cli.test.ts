@@ -18,7 +18,9 @@ import {
   resolveVerisourceCloudCredentials,
   runSavedWorkflow,
   saveBrowseSessionAsWorkflow,
+  upsertGithubPrComment,
   validateWorkflowFiles,
+  VERISOURCE_PR_COMMENT_MARKER,
 } from './index.js';
 
 test('static Next.js App Router codebase mapper detects pages, APIs, and JSON-LD', () => {
@@ -334,5 +336,137 @@ test('verisource auth --key, --status, --logout and pushCliRunToCloud work end-t
   } finally {
     server.close();
     fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+test('upsertGithubPrComment creates once, updates idempotently in place, and skips 403 forks cleanly', async () => {
+  const storedComments: Array<{ id: number; body: string }> = [];
+
+  const ghServer = http.createServer((req, res) => {
+    const auth = req.headers.authorization ?? '';
+    if (auth === 'Bearer fork_readonly_token') {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ message: 'Resource not accessible by integration' }));
+      return;
+    }
+
+    if (
+      req.method === 'GET' &&
+      req.url?.startsWith('/repos/acme/web/issues/42/comments')
+    ) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(storedComments));
+      return;
+    }
+
+    if (
+      req.method === 'POST' &&
+      req.url === '/repos/acme/web/issues/42/comments'
+    ) {
+      let raw = '';
+      req.on('data', (c) => (raw += c));
+      req.on('end', () => {
+        const parsed = JSON.parse(raw) as { body: string };
+        const created = { id: 901, body: parsed.body };
+        storedComments.push(created);
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            id: 901,
+            html_url: 'https://github.com/acme/web/pull/42#issuecomment-901',
+          })
+        );
+      });
+      return;
+    }
+
+    if (
+      req.method === 'PATCH' &&
+      req.url === '/repos/acme/web/issues/comments/901'
+    ) {
+      let raw = '';
+      req.on('data', (c) => (raw += c));
+      req.on('end', () => {
+        const parsed = JSON.parse(raw) as { body: string };
+        storedComments[0] = { id: 901, body: parsed.body };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            id: 901,
+            html_url: 'https://github.com/acme/web/pull/42#issuecomment-901',
+          })
+        );
+      });
+      return;
+    }
+
+    res.writeHead(404);
+    res.end();
+  });
+
+  await new Promise<void>((resolve) => ghServer.listen(0, '127.0.0.1', resolve));
+  const addr = ghServer.address() as { port: number };
+  const apiBaseUrl = `http://127.0.0.1:${addr.port}`;
+
+  try {
+    const md1 = buildGithubStepSummaryMarkdown({
+      mode: 'verify',
+      status: 'WARN',
+      hostname: 'preview-42.acme.dev',
+      visibilityScore: 68,
+      healthScore: 95,
+      pagesScanned: 4,
+      linksChecked: 12,
+      botsAllowed: true,
+      llmsTxtStatus: 'present',
+      agentsMdStatus: 'missing',
+      jsonLdCount: 2,
+    });
+    assert.ok(md1.includes(VERISOURCE_PR_COMMENT_MARKER));
+    assert.ok(md1.includes('/api/badge/preview-42.acme.dev'));
+
+    const first = await upsertGithubPrComment({
+      markdownBody: md1,
+      context: {
+        token: 'ghs_valid',
+        repository: 'acme/web',
+        prNumber: 42,
+        apiBaseUrl,
+      },
+    });
+    assert.equal(first.posted, true);
+    assert.equal(first.action, 'created');
+    assert.equal(first.commentId, 901);
+    assert.equal(storedComments.length, 1);
+
+    const second = await upsertGithubPrComment({
+      markdownBody: md1.replace('WARN', 'PASS'),
+      context: {
+        token: 'ghs_valid',
+        repository: 'acme/web',
+        prNumber: 42,
+        apiBaseUrl,
+      },
+    });
+    assert.equal(second.posted, true);
+    assert.equal(second.action, 'updated');
+    assert.equal(second.commentId, 901);
+    assert.equal(storedComments.length, 1);
+    assert.ok(storedComments[0]?.body.includes('PASS'));
+
+    const forkRes = await upsertGithubPrComment({
+      markdownBody: md1,
+      context: {
+        token: 'fork_readonly_token',
+        repository: 'acme/web',
+        prNumber: 42,
+        apiBaseUrl,
+      },
+    });
+    assert.equal(forkRes.posted, false);
+    assert.equal(forkRes.action, 'skipped');
+    assert.equal(forkRes.reason, 'GITHUB_API_403');
+  } finally {
+    ghServer.close();
   }
 });

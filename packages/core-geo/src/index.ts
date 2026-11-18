@@ -20,6 +20,7 @@ export * from './generator/citation-page-studio.js';
 export * from './generator/pitch-outreach.js';
 export * from './generator/agency-partner-outreach.js';
 export * from './generator/local-service-outreach.js';
+export * from './generator/readiness-badge.js';
 export * from './alerts/drift-alert.js';
 export * from './alerts/prospect-open-alert.js';
 export * from './alerts/post-purchase-alert.js';
