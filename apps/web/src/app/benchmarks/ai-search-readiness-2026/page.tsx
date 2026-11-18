@@ -524,6 +524,178 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
           </div>
         </section>
 
+        {/* Expanded 90-Domain Cohort: The Headless Commerce AI Readiness Gap */}
+        <section id="headless-commerce-gap" style={{ marginBottom: '38px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            EXPANDED HTTP INDEX (N = 90 LIVE SCORECARDS) · HEADLESS VS. NATIVE SHOPIFY
+          </div>
+          <h2
+            style={{
+              fontSize: '22px',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 10px 0',
+            }}
+          >
+            The 35.3-point Headless Commerce AI penalty:{' '}
+            <span className="vs-mono" style={{ color: '#FCA5A5' }}>
+              41.9
+            </span>{' '}
+            vs.{' '}
+            <span className="vs-mono" style={{ color: '#6EE7B7' }}>
+              77.2
+            </span>{' '}
+            on native Shopify OS 2.0.
+          </h2>
+          <p
+            style={{
+              fontSize: '14px',
+              lineHeight: 1.62,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 18px 0',
+              maxWidth: '850px',
+            }}
+          >
+            Expanding the live HTTP index to 90 public domains (45 consumer
+            commerce storefronts and 45 B2B SaaS / AI infrastructure platforms,
+            all individually inspectable at{' '}
+            <Link href="/reports" className="vs-mono" style={{ color: 'var(--vs-accent)' }}>
+              /reports
+            </Link>
+            ) exposed a sharp architectural divide. Consumer brands running
+            custom headless Next.js storefronts (<code className="vs-mono">whoop.com</code>{' '}
+            34, <code className="vs-mono">drinkag1.com</code> 34,{' '}
+            <code className="vs-mono">huckberry.com</code> 34,{' '}
+            <code className="vs-mono">seed.com</code> 34,{' '}
+            <code className="vs-mono">solostove.com</code> 34,{' '}
+            <code className="vs-mono">bombas.com</code> 39) average{' '}
+            <strong>41.9 out of 100</strong>—trailing native Shopify OS 2.0
+            peers (<strong>77.2 out of 100</strong> across 34 stores) by{' '}
+            <strong>35.3 points</strong> because custom headless builds drop{' '}
+            <code className="vs-mono">/api/ucp/mcp</code>, strip server-rendered{' '}
+            <code className="vs-mono">Product</code> /{' '}
+            <code className="vs-mono">Offer</code>{' '}
+            <code className="vs-mono">JSON-LD</code>, or trigger CDN WAF 403
+            blocks on <code className="vs-mono">GPTBot</code> and{' '}
+            <code className="vs-mono">PerplexityBot</code>.
+          </p>
+
+          {/* High-Contrast Dark-Studio SVG Bar Chart */}
+          <div className="vs-bezel" style={{ marginBottom: '18px' }}>
+            <div
+              className="vs-card"
+              style={{
+                padding: '20px 22px',
+                background: 'var(--vs-terminal)',
+              }}
+            >
+              <div
+                className="vs-eyebrow"
+                style={{ marginBottom: '12px', color: '#E5A93C' }}
+              >
+                FIG 13 · MEAN AI SEARCH READINESS BY ARCHITECTURE (N = 90 PUBLIC DOMAINS)
+              </div>
+              <svg
+                viewBox="0 0 760 176"
+                width="100%"
+                role="img"
+                aria-label="Mean AI search readiness score by web architecture across 90 audited domains"
+                style={{ display: 'block', height: 'auto' }}
+              >
+                {/* Row 1: Native Shopify OS 2.0 */}
+                <text
+                  x="0"
+                  y="32"
+                  fill="#EEF1F6"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  Native Shopify OS 2.0 (N=34)
+                </text>
+                <rect x="256" y="16" width="410" height="22" rx="5" fill="#171C26" />
+                <rect x="256" y="16" width="316.5" height="22" rx="5" fill="#10B981" />
+                <text
+                  x="678"
+                  y="32"
+                  fill="#6EE7B7"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  77.2 / 100
+                </text>
+
+                {/* Row 2: B2B SaaS & AI Infra */}
+                <text
+                  x="0"
+                  y="88"
+                  fill="#EEF1F6"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  B2B SaaS &amp; AI Infra (N=45)
+                </text>
+                <rect x="256" y="72" width="410" height="22" rx="5" fill="#171C26" />
+                <rect x="256" y="72" width="299.3" height="22" rx="5" fill="#E5A93C" />
+                <text
+                  x="678"
+                  y="88"
+                  fill="#E5A93C"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  73.0 / 100
+                </text>
+
+                {/* Row 3: Custom Headless Commerce */}
+                <text
+                  x="0"
+                  y="144"
+                  fill="#EEF1F6"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  Headless Next.js DTC (N=10)
+                </text>
+                <rect x="256" y="128" width="410" height="22" rx="5" fill="#171C26" />
+                <rect x="256" y="128" width="171.8" height="22" rx="5" fill="#EF4444" />
+                <text
+                  x="678"
+                  y="144"
+                  fill="#FCA5A5"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  41.9 / 100
+                </text>
+              </svg>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <Link
+              href="/vs?a=huckberry.com&b=rothys.com"
+              className="vs-btn"
+            >
+              Inspect Huckberry (34) vs. Rothy&apos;s (81) Live →
+            </Link>
+            <Link
+              href="/vs?a=seed.com&b=ritual.com"
+              className="vs-btn vs-btn-secondary"
+            >
+              Inspect Seed (34) vs. Ritual (81) Live →
+            </Link>
+            <Link href="/reports" className="vs-btn vs-btn-secondary">
+              Browse All 90 Domain Scorecards →
+            </Link>
+          </div>
+        </section>
+
         {/* Frequently Asked Questions */}
         <section style={{ marginBottom: '20px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>

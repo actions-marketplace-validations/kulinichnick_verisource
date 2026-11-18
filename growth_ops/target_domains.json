@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-18T22:29:04.164Z",
+  "updatedAt": "2026-11-18T22:41:19.489Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -486,51 +486,211 @@
     {
       "domain": "arcjet.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "svix.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "hookdeck.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "june.so",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "unstructured.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "bitetoothpastebits.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "seed.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "ritual.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "mudwtr.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
     },
     {
       "domain": "chamberlaincoffee.com",
       "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-18T22:37:58.454Z"
+    },
+    {
+      "domain": "aloyoga.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "carawayhome.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "ourplace.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "greatjonesgoods.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "brightland.co",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "poppi.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "spindriftfresh.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "cadence.co",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "beis.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "therabody.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "hyperice.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "railway.app",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "modal.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "replicate.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "together.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "baseten.co",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "groq.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "cohere.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "mistral.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "perplexity.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "cursor.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "valtown.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "deno.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "zed.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "warp.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "chroniclehq.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pylon.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "parachutehome.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "casper.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "graphite.dev",
+      "vertical": "b2b_saas",
       "status": "queued"
     }
   ]

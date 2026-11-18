@@ -193,3 +193,32 @@ Developers are indexing their docs for LLMs, yet leaving pricing tiers, rate lim
 Full addendum & 40-domain benchmark: https://verisource.dev/benchmarks/ai-search-readiness-2026
 Or test your own repo/domain via our free MCP tool: https://mcp.verisource.dev/mcp
 ```
+
+---
+
+## 7. Expanded 90-Domain HTTP Study — The 35.3-Point Headless Commerce AI Penalty
+
+### A. Hacker News / LinkedIn Data Post
+```text
+We expanded our live HTTP AI-readiness crawl to 90 commercial domains (45 consumer commerce storefronts and 45 B2B SaaS / AI infrastructure platforms — full searchable index at https://verisource.dev/reports).
+
+The sharpest architectural split in the dataset was Headless Next.js Commerce vs. Native Shopify OS 2.0:
+
+- 34 native Shopify OS 2.0 brands (Brooklinen, Away, Cuyana, Rothy's, Ritual, Monos) averaged 77.2 out of 100 on technical AI search readiness because Shopify exposes /api/ucp/mcp and server-rendered Product schema out of the box (though 31 of 34 still serve unedited stock /agents.md boilerplate).
+- 10 custom headless Next.js consumer storefronts (WHOOP 34, AG1 34, Huckberry 34, Seed 34, Solo Stove 34, Bombas 39, Eight Sleep 52) averaged 41.9 out of 100 — a 35.3-point drop caused by stripped /api/ucp/mcp feeds, missing Offer/FAQPage JSON-LD, and edge WAF 403 blocks on GPTBot and PerplexityBot.
+- Across all 45 B2B SaaS & AI infrastructure sites, 97.8% (44 of 45) now serve /llms.txt, while only 31.1% (14 of 45) publish a custom /agents.md pricing and rate-limit specification.
+
+Live side-by-side protocol diff (Huckberry 34 vs. Rothy's 81): https://verisource.dev/vs?a=huckberry.com&b=rothys.com
+Full 2026 methodology & cohort breakdown: https://verisource.dev/benchmarks/ai-search-readiness-2026
+```
+
+### B. X (Twitter) Rivalry Card Post
+```text
+Brands spend $200k+ going headless on Next.js, then lose half their AI search readiness overnight.
+
+Across 90 live HTTP audits:
+• Native Shopify OS 2.0 (34 stores): 77.2 out of 100 avg
+• Custom Headless Next.js DTC (10 stores): 41.9 out of 100 avg (-35.3 pts)
+
+Compare any 2 domains live: https://verisource.dev/vs?a=huckberry.com&b=rothys.com
+```

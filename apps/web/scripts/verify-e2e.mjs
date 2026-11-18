@@ -5050,7 +5050,36 @@ async function run() {
         m102ReportsHtml.includes('/report/huckberry.com'),
       'Expected /reports hub to index 80 live scorecards including bombas.com & huckberry.com'
     );
-    console.log('✔ [93/93] M102 Dynamic 1200x630 OpenGraph Cards (/report/[domain] + /api/og/vs) & 80-Domain /reports Hub verified!');
+    console.log('✔ [93/94] M102 Dynamic 1200x630 OpenGraph Cards (/report/[domain] + /api/og/vs) & 80-Domain /reports Hub verified!');
+
+    // 92. M103 90-Domain /reports Index & Headless Commerce vs. Native Shopify Benchmark Study (/benchmarks/ai-search-readiness-2026)
+    const [m103BenchmarkRes, m103ReportsRes] = await Promise.all([
+      fetch(`${BASE}/benchmarks/ai-search-readiness-2026`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m103BenchmarkRes.status, 200);
+    const m103BenchmarkHtml = await m103BenchmarkRes.text();
+    const m103BenchmarkVisible = m103BenchmarkHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m103BenchmarkHtml.includes('FIG 13 · MEAN AI SEARCH READINESS BY ARCHITECTURE') &&
+        m103BenchmarkHtml.includes('77.2 / 100') &&
+        m103BenchmarkHtml.includes('41.9 / 100') &&
+        !SELF_SCORE_JARGON.test(m103BenchmarkVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(m103BenchmarkVisible),
+      'Expected 90-domain Headless vs. Native Shopify study & FIG 13 SVG chart on /benchmarks/ai-search-readiness-2026'
+    );
+
+    const m103ReportsHtml = await m103ReportsRes.text();
+    assert.ok(
+      m103ReportsHtml.includes('/report/seed.com') &&
+        m103ReportsHtml.includes('/report/ritual.com') &&
+        m103ReportsHtml.includes('/report/svix.com'),
+      'Expected /reports hub to index 90 live scorecards including seed.com, ritual.com & svix.com'
+    );
+    console.log('✔ [94/94] M103 90-Domain /reports Index & Headless vs. Native Shopify Study (FIG 13) verified!');
   } finally {
     server.kill();
   }
