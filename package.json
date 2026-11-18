@@ -12,6 +12,7 @@
     "build": "pnpm -r build",
     "stripe:live": "pnpm --filter @verisource/web stripe:live",
     "ops:daily": "node scripts/growth_workflows/ops-daily.mjs --send-email",
+    "ops:followup": "node scripts/growth_workflows/ops-warm-followup.mjs --send-email",
     "ops:weekly": "node scripts/growth_workflows/ops-weekly.mjs",
     "clean": "pnpm -r clean"
   },

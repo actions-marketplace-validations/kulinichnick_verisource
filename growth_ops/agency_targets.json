@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-18T18:47:01.635Z",
+  "updatedAt": "2026-11-18T21:24:25.071Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -21,7 +21,9 @@
         "email",
         "linkedin"
       ],
-      "followUpDueDate": "2026-11-21"
+      "followUpDueDate": "2026-11-21",
+      "warmFollowUpSentAt": "2026-11-18T21:24:25.071Z",
+      "warmResendMessageId": "01a1f08b-f304-7828-a8a0-e022040ecc57"
     },
     {
       "agencyName": "Edgar Allan",
@@ -41,7 +43,9 @@
         "email",
         "linkedin"
       ],
-      "followUpDueDate": "2026-11-21"
+      "followUpDueDate": "2026-11-21",
+      "warmFollowUpSentAt": "2026-11-18T21:24:25.071Z",
+      "warmResendMessageId": "01a1f08b-f394-7e67-a11c-5f33c2784c79"
     },
     {
       "agencyName": "Siege Media",
@@ -61,7 +65,9 @@
       "channelsSent": [
         "email_resend"
       ],
-      "followUpDueDate": "2026-11-21"
+      "followUpDueDate": "2026-11-21",
+      "warmFollowUpSentAt": "2026-11-18T21:24:25.071Z",
+      "warmResendMessageId": "01a1f08b-f420-7959-955d-78dbbcc9d1e4"
     },
     {
       "agencyName": "Underwaterpistol",
@@ -81,7 +87,9 @@
       "channelsSent": [
         "email_resend"
       ],
-      "followUpDueDate": "2026-11-21"
+      "followUpDueDate": "2026-11-21",
+      "warmFollowUpSentAt": "2026-11-18T21:24:25.071Z",
+      "warmResendMessageId": "01a1f08b-f4a1-7d52-80ad-267d7cf9777c"
     },
     {
       "agencyName": "Refokus",

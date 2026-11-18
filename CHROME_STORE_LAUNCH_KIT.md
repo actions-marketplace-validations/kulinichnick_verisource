@@ -8,7 +8,7 @@ Ready-to-submit Chrome Web Store listing copy, least-privilege permission justif
 
 ## 1. Store Listing Metadata
 
-* **Package Archive:** `verisource-chrome-mv3-v1.0.1.zip` (`161.9 KB`, `manifest_version: 3`, `version: "1.0.1"`)
+* **Package Archive:** `verisource-chrome-mv3-v1.0.1.zip` (`168.6 KB`, `manifest_version: 3`, `version: "1.0.1"`)
 * **Extension Name (`41 / 45 chars`):** `Verisource — GEO & AI Citation Inspector`
 * **Short Summary (`110 / 132 chars`):** `Inspect search citation readiness, claim accuracy, JSON-LD schema, and /agents.md files on any public website.`
 * **Category:** `Developer Tools` (Secondary: `Productivity`)

@@ -4751,6 +4751,10 @@ test('M96 Agency CSV Importer, Engagement Stage Classifier, Warm Reply, LinkedIn
   const warm = buildWarmEngagementFollowUp(ctaReport);
   assert.ok(warm.score >= 9.5, `Expected warm follow-up >= 9.5, got ${warm.score}`);
   assert.ok(!/clicked 2 times|saw you open/i.test(warm.content));
+  assert.ok(
+    !/\.\s+is typically/i.test(warm.content),
+    `Expected zero sentence-splice punctuation artifact in warm follow-up: ${warm.content}`
+  );
 
   const linkedin = buildLinkedinConnectionNote195(ctaReport);
   assert.ok(linkedin.charCount <= 195);

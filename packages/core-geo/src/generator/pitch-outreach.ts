@@ -338,14 +338,21 @@ export function buildWarmEngagementFollowUp(
   const host = report.prospect_domain.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
   const platformLabel =
     report.summary_payload?.detected_platform_label ?? 'web';
-  const topGap =
+  const rawTopGap = (
     report.summary_payload?.top_gaps?.[0] ??
-    'missing /agents.md and FAQPage JSON-LD coverage';
+    'missing /agents.md and FAQPage JSON-LD coverage'
+  )
+    .trim()
+    .replace(/\.+$/, '');
   const ctaUrl =
     report.agency_cta_url_snapshot?.trim() || `${cleanBase}/agencies#sandbox`;
   const agencyBrand =
     report.agency_brand_name_snapshot?.trim() || 'Verisource Partner Agency';
   const { stage } = classifyPitchEngagementStage(report);
+
+  const gapSentence = /^(missing|stale|no|generic|unverified)\b/i.test(rawTopGap)
+    ? `Fixing ${rawTopGap.charAt(0).toLowerCase()}${rawTopGap.slice(1)} is typically a single-afternoon update that lets GPTBot, OAI-SearchBot, and PerplexityBot verify your pricing and FAQ answers directly (${report.visibility_score}/100 current readiness).`
+    : `${rawTopGap.charAt(0).toUpperCase()}${rawTopGap.slice(1)}—closing that gap is typically a single-afternoon update so GPTBot, OAI-SearchBot, and PerplexityBot cite your verified pricing and FAQs directly (${report.visibility_score}/100 current readiness).`;
 
   const closingLine =
     stage === 'CTA_CLICKED'
@@ -358,7 +365,7 @@ export function buildWarmEngagementFollowUp(
     `Subject: Re: ${report.prospect_brand_name} — ${platformLabel} JSON-LD & /agents.md fix pack`,
     '',
     `Following up on the ${host} AI search scorecard (${shareUrl}).`,
-    `Addressing ${topGap} is typically a single-afternoon update that lets GPTBot, OAI-SearchBot, and PerplexityBot verify your pricing and FAQ answers directly (${report.visibility_score}/100 current readiness).`,
+    gapSentence,
     closingLine,
     '',
     `— ${agencyBrand}`,
