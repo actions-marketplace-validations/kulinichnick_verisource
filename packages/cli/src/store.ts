@@ -33,6 +33,10 @@ export interface LastRunLedger {
 }
 
 export interface LocalProviderConfig {
+  verisourceCloud?: {
+    apiKey: string;
+    apiOrigin?: string;
+  };
   vercel?: {
     token: string;
     projectId?: string;
@@ -152,6 +156,14 @@ export function loadLocalProviderConfig(
   }
 
   return {
+    verisourceCloud:
+      diskConfig.verisourceCloud ??
+      (process.env.VERISOURCE_API_KEY
+        ? {
+            apiKey: process.env.VERISOURCE_API_KEY,
+            apiOrigin: process.env.VERISOURCE_API_ORIGIN,
+          }
+        : undefined),
     vercel: diskConfig.vercel ?? (process.env.VERCEL_TOKEN
       ? {
           token: process.env.VERCEL_TOKEN,

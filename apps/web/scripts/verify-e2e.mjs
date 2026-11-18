@@ -4772,6 +4772,98 @@ async function run() {
       'Expected Step 03 UI to render Sync Opens, Export CSV (18 Cols), Warm Reply, and LinkedIn <=195c'
     );
     console.log('✔ [88/88] M96 Agency CSV Importer, GET /api/dashboard/pitch (401/200/CSV), Sync Opens & Warm/LinkedIn Sequence verified!');
+
+    // 87. M97 @verisource/cli Cloud Workspace Sync (/api/cli/sync SHA-256 vs_live_ Auth, SSRF Guard & Domain Sync)
+    const unauthCliSync = await fetch(`${BASE}/api/cli/sync`);
+    assert.equal(unauthCliSync.status, 401);
+
+    const badFormatCliSync = await fetch(`${BASE}/api/cli/sync`, {
+      headers: { Authorization: 'Bearer vs_live_short' },
+    });
+    assert.equal(badFormatCliSync.status, 401);
+
+    const unknownKeyCliSync = await fetch(`${BASE}/api/cli/sync`, {
+      headers: { Authorization: `Bearer vs_live_${'f'.repeat(48)}` },
+    });
+    assert.equal(unknownKeyCliSync.status, 401);
+
+    const m97KeyRes = await fetch(`${BASE}/api/dashboard/mcp-keys`, {
+      method: 'POST',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({ label: 'M97 CLI Cloud Sync Key' }),
+    });
+    assert.equal(m97KeyRes.status, 200);
+    const m97KeyJson = await m97KeyRes.json();
+    const m97RawKey = m97KeyJson.rawKeyOnce;
+
+    const validCliStatusRes = await fetch(`${BASE}/api/cli/sync`, {
+      headers: { Authorization: `Bearer ${m97RawKey}` },
+    });
+    assert.equal(validCliStatusRes.status, 200);
+    const validCliStatus = await validCliStatusRes.json();
+    assert.equal(validCliStatus.authenticated, true);
+
+    const ssrfCliPost = await fetch(`${BASE}/api/cli/sync`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${m97RawKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: 'http://169.254.169.254/latest/meta-data/',
+        mode: 'verify',
+        status: 'PASS',
+        visibilityScore: 80,
+        llmsTxtStatus: 'present',
+        agentsMdStatus: 'custom_enriched',
+        robotsAiBotStatus: {
+          GPTBot: true,
+          'OAI-SearchBot': true,
+          PerplexityBot: true,
+          ClaudeBot: true,
+        },
+        handles: [],
+      }),
+    });
+    assert.equal(ssrfCliPost.status, 400);
+
+    const validCliPostRes = await fetch(`${BASE}/api/cli/sync`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${m97RawKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        domain: 'https://aurearoasters.com',
+        mode: 'verify',
+        status: 'PASS',
+        visibilityScore: 91,
+        llmsTxtStatus: 'present',
+        agentsMdStatus: 'custom_enriched',
+        robotsAiBotStatus: {
+          GPTBot: true,
+          'OAI-SearchBot': true,
+          PerplexityBot: true,
+          ClaudeBot: true,
+        },
+        siteHealth: {
+          healthScore: 98,
+          pagesScanned: 12,
+          linksChecked: 44,
+        },
+        handles: [],
+        gitMeta: {
+          sha: 'abc1234',
+          branch: 'main',
+          repo: 'acme/storefront',
+        },
+      }),
+    });
+    assert.equal(validCliPostRes.status, 200);
+    const validCliPost = await validCliPostRes.json();
+    assert.equal(validCliPost.synced, true);
+    assert.equal(validCliPost.hostname, 'aurearoasters.com');
+    console.log('✔ [89/89] M97 @verisource/cli Cloud Workspace Sync (/api/cli/sync SHA-256 Auth, SSRF Defense & Live Console Sync) verified!');
   } finally {
     server.kill();
   }

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   crawlDomainSiteHealth,
   matchesPublicHostname,
+  normalizePublicDomain,
   PATIENT_ZERO_DOMAINS,
   type DomainRow,
 } from '@verisource/core-geo';
@@ -105,8 +106,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     const isMockMode = (process.env.PROVIDER_MODE ?? 'mock') === 'mock';
+    const targetHost = normalizePublicDomain(domain.domain_url).hostname;
     const isFixture = PATIENT_ZERO_DOMAINS.some((d) =>
-      matchesPublicHostname(d.domain_url, domain!.domain_url)
+      matchesPublicHostname(d.domain_url, targetHost)
     );
 
     const report = await crawlDomainSiteHealth({

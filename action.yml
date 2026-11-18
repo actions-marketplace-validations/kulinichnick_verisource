@@ -29,6 +29,10 @@ inputs:
     description: 'Allow broken internal links or 4xx/5xx pages ("true" or "false").'
     required: false
     default: 'false'
+  api-key:
+    description: 'Optional vs_live_ API key to push CI telemetry to your Verisource Cloud Console.'
+    required: false
+    default: ''
 
 outputs:
   status:
@@ -56,6 +60,7 @@ runs:
         VS_REQ_LLMS: ${{ inputs.require-llms-txt }}
         VS_REQ_AGENTS: ${{ inputs.require-agents-md }}
         VS_ALLOW_BROKEN: ${{ inputs.allow-broken-links }}
+        VERISOURCE_API_KEY: ${{ inputs.api-key }}
         VS_ACTION_DIR: ${{ github.action_path }}
       run: |
         set -euo pipefail
@@ -89,8 +94,13 @@ runs:
           CMD_MODE="scan"
         fi
 
+        EXTRA_FLAGS=()
+        if [ -n "${VERISOURCE_API_KEY:-}" ]; then
+          EXTRA_FLAGS+=("--push")
+        fi
+
         set +e
-        JSON_OUT="$(node "$TMP_CLI_DIR/package/dist/bin.js" "$CMD_MODE" "$VS_TARGET_URL" --json --github-summary)"
+        JSON_OUT="$(node "$TMP_CLI_DIR/package/dist/bin.js" "$CMD_MODE" "$VS_TARGET_URL" --json --github-summary "${EXTRA_FLAGS[@]}")"
         EXIT_CODE=$?
         set -e
 

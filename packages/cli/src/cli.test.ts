@@ -12,8 +12,10 @@ import {
   findStoredHandle,
   installAgentSkills,
   mapStaticCodebase,
+  pushCliRunToCloud,
   queryStoredHandles,
   recordBaselineWorkflow,
+  resolveVerisourceCloudCredentials,
   runSavedWorkflow,
   saveBrowseSessionAsWorkflow,
   validateWorkflowFiles,
@@ -202,4 +204,135 @@ test('GitHub Step Summary formatter and composite action.yml pass zero-slop chec
   );
   assert.ok(actionYml.includes("using: 'composite'"));
   assert.ok(actionYml.includes('--github-summary'));
+  assert.ok(actionYml.includes('VERISOURCE_API_KEY'));
+});
+
+test('verisource auth --key, --status, --logout and pushCliRunToCloud work end-to-end', async () => {
+  const validKey = `vs_live_${'a'.repeat(48)}`;
+  let receivedSyncPayload: Record<string, unknown> | null = null;
+
+  const server = http.createServer((req, res) => {
+    const auth = req.headers.authorization ?? '';
+    if (auth !== `Bearer ${validKey}`) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'INVALID_OR_REVOKED_KEY' }));
+      return;
+    }
+
+    if (req.url === '/api/cli/sync' && req.method === 'GET') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          ok: true,
+          authenticated: true,
+          email: 'ni***@verisource.dev',
+          planTier: 'pro_99',
+          keyPrefix: 'vs_live_aaaaaa',
+          keyLabel: 'CI Key',
+          trackedDomainCount: 1,
+          domainCap: 3,
+          dashboardUrl: 'https://verisource.dev/dashboard',
+        })
+      );
+      return;
+    }
+
+    if (req.url === '/api/cli/sync' && req.method === 'POST') {
+      let raw = '';
+      req.on('data', (chunk) => {
+        raw += chunk;
+      });
+      req.on('end', () => {
+        receivedSyncPayload = JSON.parse(raw) as Record<string, unknown>;
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify({
+            ok: true,
+            synced: true,
+            autoRegistered: false,
+            hostname: 'verisource.dev',
+            planTier: 'pro_99',
+            dashboardUrl: 'https://verisource.dev/dashboard',
+          })
+        );
+      });
+      return;
+    }
+
+    res.writeHead(404);
+    res.end();
+  });
+
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const addr = server.address() as { port: number };
+  const apiOrigin = `http://127.0.0.1:${addr.port}`;
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vs-cli-auth-'));
+
+  try {
+    const badExit = await runCli(
+      ['node', 'bin.js', 'auth', '--key', 'invalid_short_key'],
+      tmpDir
+    );
+    assert.equal(badExit, 2);
+
+    const loginExit = await runCli(
+      [
+        'node',
+        'bin.js',
+        'auth',
+        '--key',
+        validKey,
+        '--api-origin',
+        apiOrigin,
+        '--json',
+      ],
+      tmpDir
+    );
+    assert.equal(loginExit, 0);
+
+    const statusExit = await runCli(
+      ['node', 'bin.js', 'auth', '--status', '--json'],
+      tmpDir
+    );
+    assert.equal(statusExit, 0);
+
+    const syncRes = await pushCliRunToCloud({
+      apiKey: validKey,
+      apiOrigin,
+      payload: {
+        domain: 'https://verisource.dev',
+        mode: 'verify',
+        status: 'PASS',
+        visibilityScore: 94,
+        llmsTxtStatus: 'present',
+        agentsMdStatus: 'custom_enriched',
+        robotsAiBotStatus: {
+          GPTBot: true,
+          'OAI-SearchBot': true,
+          PerplexityBot: true,
+          ClaudeBot: true,
+        },
+        siteHealth: { healthScore: 100, pagesScanned: 5, linksChecked: 18 },
+        handles: [],
+      },
+    });
+    assert.equal(syncRes.synced, true);
+    assert.equal(
+      (receivedSyncPayload as { visibilityScore?: number } | null)?.visibilityScore,
+      94
+    );
+
+    const logoutExit = await runCli(
+      ['node', 'bin.js', 'auth', '--logout', '--json'],
+      tmpDir
+    );
+    assert.equal(logoutExit, 0);
+    assert.equal(
+      resolveVerisourceCloudCredentials({ cwd: tmpDir }).apiKey,
+      null
+    );
+  } finally {
+    server.close();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 });

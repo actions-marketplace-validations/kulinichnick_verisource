@@ -74,8 +74,9 @@ Verisource fingerprints \`shopify\`, \`wordpress\`, \`webflow\`, \`wix\`, \`squa
 ## 6. Local-First CLI, Browser Flow Verifier & Agent Skill Installer (\`@verisource/cli\`)
 
 Coding agents and CI pipelines can invoke \`npx @verisource/cli\` directly on Node.js 20+ with zero runtime sub-dependencies:
-- \`npx @verisource/cli scan <url> [--json]\` — Audits AI crawler WAF access, \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, \`/ai-facts\`, and 20-page link health (\`VerisourceScan/1.0\`), storing compact handles (\`[h1]\`, \`[b1]\`, \`[l1]\`, \`[a1]\`, \`[n1]\`, \`[g1]\`) in \`.verisource/last-run.json\`.
-- \`npx @verisource/cli verify <url> [--init] [--json]\` — Evaluates live thresholds in \`.verisource/checks.json\` with deterministic exit codes (\`0\` pass, \`1\` policy failure, \`2\` invalid input or network failure).
+- \`npx @verisource/cli auth --key vs_live_YOUR_API_KEY\` — Authenticates local or CI environments against \`https://verisource.dev/api/cli/sync\` so \`--push\` syncs readiness scores and link health directly to \`/dashboard\`.
+- \`npx @verisource/cli scan <url> [--push] [--json]\` — Audits AI crawler WAF access, \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, \`/ai-facts\`, and 20-page link health (\`VerisourceScan/1.0\`), storing compact handles (\`[h1]\`, \`[b1]\`, \`[l1]\`, \`[a1]\`, \`[n1]\`, \`[g1]\`) in \`.verisource/last-run.json\`.
+- \`npx @verisource/cli verify <url> [--init] [--push] [--github-summary] [--json]\` — Evaluates live thresholds in \`.verisource/checks.json\` with deterministic exit codes (\`0\` pass, \`1\` policy failure, \`2\` invalid input or network failure).
 - \`npx @verisource/cli show <handle>\` & \`npx @verisource/cli query "<text>"\` — Drills into a single stored finding handle without flooding agent context windows.
 - \`npx @verisource/cli map [url | ./dir] [--diff]\` — Maps live domain routes or static Next.js / React routes, API endpoints, and \`application/ld+json\` emitters.
 - \`npx @verisource/cli browse <open|click|save>\`, \`record <name> <url>\`, \`run [name] [--headed]\` & \`workflow check\` — Captures and replays deterministic \`.verisource/workflows/*.json\` suites with zero LLM calls.

@@ -15,6 +15,15 @@ import {
   type VerisourceWorkflowSpec,
 } from './browser.js';
 import {
+  clearVerisourceCloudCredentials,
+  collectGitEnvironmentMeta,
+  pushCliRunToCloud,
+  resolveVerisourceCloudCredentials,
+  saveVerisourceCloudCredentials,
+  verifyCliCloudAuth,
+  type CliCloudSyncResult,
+} from './cloud.js';
+import {
   queryCorrelatedBackendLogs,
   type LogProviderId,
 } from './logs.js';
@@ -44,8 +53,9 @@ function printHelp(): void {
   console.log(`verisource — AI Search GEO, Site Health & Browser Flow Verifier
 
 Usage:
-  verisource scan <url> [--json] [--github-summary]  Scan AI readiness, bots, JSON-LD & 20-page link health
-  verisource verify <url> [--init] [--json] [--github-summary] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
+  verisource auth [--key vs_live_...] [--status|--logout] Save or verify Verisource Cloud API key (.verisource/config.json)
+  verisource scan <url> [--push] [--json] [--github-summary] Scan AI readiness, bots, JSON-LD & 20-page link health
+  verisource verify <url> [--init] [--push] [--json] [--github-summary] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
   verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1)
   verisource query "<text>" [--json]                 Filter recent handles by keyword or status code
   verisource map [url | ./dir] [--diff] [--json]     Map live domain routes or static Next.js/React routes
@@ -148,6 +158,72 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
   }
 
   try {
+    if (cmd === 'auth') {
+      const explicitOrigin = getFlagValue(args, '--api-origin');
+      if (hasFlag(args, '--logout')) {
+        const cfgPath = clearVerisourceCloudCredentials(cwd);
+        if (jsonOut) {
+          console.log(JSON.stringify({ ok: true, loggedOut: true, cfgPath }, null, 2));
+        } else {
+          console.log(`✓ Removed Verisource Cloud API key from ${cfgPath}`);
+        }
+        return 0;
+      }
+
+      const providedKey = getFlagValue(args, '--key');
+      if (providedKey) {
+        const cleanKey = providedKey.trim().replace(/^Bearer\s+/i, '').trim();
+        if (!/^vs_live_[0-9a-f]{48}$/.test(cleanKey)) {
+          console.error(
+            'Invalid API key format. Expected vs_live_<48 lowercase hex chars> from https://verisource.dev/dashboard?tab=tab3_offsite.'
+          );
+          return 2;
+        }
+        const status = await verifyCliCloudAuth({
+          apiKey: cleanKey,
+          apiOrigin: explicitOrigin,
+        });
+        const savedPath = saveVerisourceCloudCredentials({
+          apiKey: cleanKey,
+          apiOrigin: explicitOrigin,
+          cwd,
+        });
+        if (jsonOut) {
+          console.log(
+            JSON.stringify({ ...status, savedConfigPath: savedPath }, null, 2)
+          );
+        } else {
+          console.log(
+            `✓ Authenticated ${status.email} (${status.planTier} · ${status.trackedDomainCount}/${status.domainCap} domains) -> saved to ${savedPath}`
+          );
+        }
+        return 0;
+      }
+
+      const resolved = resolveVerisourceCloudCredentials({
+        explicitApiOrigin: explicitOrigin,
+        cwd,
+      });
+      if (!resolved.apiKey) {
+        console.error(
+          'Not authenticated. Run `verisource auth --key vs_live_...` or set VERISOURCE_API_KEY.'
+        );
+        return 1;
+      }
+      const status = await verifyCliCloudAuth({
+        apiKey: resolved.apiKey,
+        apiOrigin: resolved.apiOrigin,
+      });
+      if (jsonOut) {
+        console.log(JSON.stringify(status, null, 2));
+      } else {
+        console.log(
+          `PASS  Authenticated as ${status.email} (${status.planTier}) · key ${status.keyPrefix}•••• · ${status.trackedDomainCount}/${status.domainCap} tracked domains`
+        );
+      }
+      return 0;
+    }
+
     if (cmd === 'scan') {
       const target = args[1];
       if (!target || target.startsWith('-')) {
@@ -235,6 +311,40 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         writeGithubSummaryArtifact(md, cwd);
       }
 
+      let cloudSync: CliCloudSyncResult | null = null;
+      if (hasFlag(args, '--push')) {
+        const creds = resolveVerisourceCloudCredentials({
+          explicitApiKey: getFlagValue(args, '--api-key'),
+          explicitApiOrigin: getFlagValue(args, '--api-origin'),
+          cwd,
+        });
+        if (!creds.apiKey) {
+          throw new Error(
+            'Missing API key for --push. Run `verisource auth --key vs_live_...` or set VERISOURCE_API_KEY.'
+          );
+        }
+        cloudSync = await pushCliRunToCloud({
+          apiKey: creds.apiKey,
+          apiOrigin: creds.apiOrigin,
+          payload: {
+            domain: readiness.domainUrl,
+            mode: 'scan',
+            status: overallStatus,
+            visibilityScore: readiness.visibilityScore,
+            llmsTxtStatus: readiness.llmsTxtStatus,
+            agentsMdStatus: readiness.agentsMdStatus,
+            robotsAiBotStatus: readiness.robotsAiBotStatus,
+            siteHealth: {
+              healthScore: health.healthScore,
+              pagesScanned: health.pagesScanned,
+              linksChecked: health.linksChecked,
+            },
+            handles,
+            gitMeta: collectGitEnvironmentMeta(),
+          },
+        });
+      }
+
       if (jsonOut) {
         console.log(
           JSON.stringify(
@@ -251,6 +361,7 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
                 linksChecked: health.linksChecked,
               },
               handles,
+              ...(cloudSync ? { cloudSync } : {}),
             },
             null,
             2
@@ -262,6 +373,13 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         );
         for (const h of handles) {
           console.log(`  [${h.handle}] ${h.summary}`);
+        }
+        if (cloudSync?.synced) {
+          console.log(
+            `✓ Synced to Verisource Cloud (${cloudSync.planTier}) -> ${cloudSync.dashboardUrl}`
+          );
+        } else if (cloudSync?.message) {
+          console.log(`ℹ Cloud Sync: ${cloudSync.message}`);
         }
       }
       return overallStatus === 'FAIL' ? 1 : 0;
@@ -341,6 +459,47 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         });
         writeGithubSummaryArtifact(md, cwd);
       }
+      let cloudSync: CliCloudSyncResult | null = null;
+      if (hasFlag(args, '--push')) {
+        const creds = resolveVerisourceCloudCredentials({
+          explicitApiKey: getFlagValue(args, '--api-key'),
+          explicitApiOrigin: getFlagValue(args, '--api-origin'),
+          cwd,
+        });
+        if (!creds.apiKey) {
+          throw new Error(
+            'Missing API key for --push. Run `verisource auth --key vs_live_...` or set VERISOURCE_API_KEY.'
+          );
+        }
+        cloudSync = await pushCliRunToCloud({
+          apiKey: creds.apiKey,
+          apiOrigin: creds.apiOrigin,
+          payload: {
+            domain: readiness.domainUrl,
+            mode: 'verify',
+            status: passed ? 'PASS' : 'FAIL',
+            visibilityScore: readiness.visibilityScore,
+            llmsTxtStatus: readiness.llmsTxtStatus,
+            agentsMdStatus: readiness.agentsMdStatus,
+            robotsAiBotStatus: readiness.robotsAiBotStatus,
+            siteHealth: {
+              healthScore: health.healthScore,
+              pagesScanned: health.pagesScanned,
+              linksChecked: health.linksChecked,
+            },
+            handles: health.findings.map((f) => ({
+              handle: f.handle,
+              kind: f.category === 'ai_readability_gap' ? 'ai_readability' : f.category,
+              severity: f.severity,
+              summary: f.summary,
+              url: f.targetUrl,
+              httpStatus: f.httpStatus,
+              fixHint: f.fixHint,
+            })),
+            gitMeta: collectGitEnvironmentMeta(),
+          },
+        });
+      }
       if (jsonOut) {
         console.log(
           JSON.stringify(
@@ -349,6 +508,7 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
               hostname: readiness.hostname,
               visibilityScore: readiness.visibilityScore,
               failures,
+              ...(cloudSync ? { cloudSync } : {}),
             },
             null,
             2
@@ -361,6 +521,11 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
       } else {
         console.log(
           `FAIL  ${readiness.hostname} · ${failures.length} check(s) failed: ${failures.join('; ')}`
+        );
+      }
+      if (!jsonOut && cloudSync?.synced) {
+        console.log(
+          `✓ Synced to Verisource Cloud (${cloudSync.planTier}) -> ${cloudSync.dashboardUrl}`
         );
       }
       return passed ? 0 : 1;
