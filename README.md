@@ -10,7 +10,9 @@ Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** 
 
 | Resource | URL | What It Does |
 | :--- | :--- | :--- |
-| **Free 60-Second Domain Audit** | [verisource.dev/#grader](https://verisource.dev/#grader) | Probes 5 AI crawlers, 3 answer engines, CMS stack, and 3-pillar `JSON-LD` readiness. |
+| **Free 60-Second Domain Audit** | [verisource.dev/#scan](https://verisource.dev/#scan) | Probes 5 AI crawlers, 3 answer engines, 5-page link health (`VerisourceScan/1.0`), CMS stack, and 3-pillar `JSON-LD` readiness. |
+| **11-Capability Platform & CLI Tour** | [verisource.dev/features](https://verisource.dev/features) | Interactive split-screen walkthroughs for AI search verification, browser flow replay, route mapping, and log correlation. |
+| **Crawler Transparency Spec** | [verisource.dev/scanner](https://verisource.dev/scanner) | Public `VerisourceScan/1.0` User-Agent specification, rate limits, and `/robots.txt` opt-out controls. |
 | **2026 40-Domain AI Readiness Study** | [verisource.dev/benchmarks/ai-search-readiness-2026](https://verisource.dev/benchmarks/ai-search-readiness-2026) | Empirical HTTPS crawl dataset across B2B SaaS, Shopify D2C, agencies, and local brands. |
 | **4 Free Protocol Validators** | [verisource.dev/tools](https://verisource.dev/tools) | Zero-signup checkers for 3-pillar `JSON-LD` & `FAQPage`, `/llms.txt`, 5-Bot WAF, and Shopify AI. |
 | **Interactive 90-Second Console Tour** | [verisource.dev/tutorial](https://verisource.dev/tutorial) | Click-through sandbox for Business Owners, White-Label Agencies, and `/mcp` Developers. |
@@ -50,6 +52,27 @@ Add this entry to `claude_desktop_config.json`, `.cursor/mcp.json`, or your MCP 
 
 ---
 
+## Local-First CLI & Deterministic Browser Flow Verifier (`@verisource/cli`)
+
+Run AI readiness checks, 20-page link health crawls, static Next.js/React route mapping, and deterministic `.verisource/workflows/*.json` replays from any terminal or CI runner on Node.js 20+ (zero runtime sub-dependencies):
+
+```bash
+# Audit AI crawler WAF rules, JSON-LD, /llms.txt, /agents.md & 20-page site health
+npx @verisource/cli scan https://verisource.dev
+
+# Enforce CI policy checks (.verisource/checks.json -> exit 0 pass, 1 fail, 2 error)
+npx @verisource/cli verify https://verisource.dev --init
+
+# Map static Next.js / React routes + JSON-LD emitters or install coding agent skills
+npx @verisource/cli map . --diff
+npx @verisource/cli agent --skill --install all
+
+# Direct zero-auth HTTPS tarball execution (works anywhere before npm login)
+npx https://verisource.dev/downloads/verisource-cli.tgz --help
+```
+
+---
+
 ## Key Empirical Findings (2026 40-Domain HTTPS Benchmark)
 
 Direct HTTP probes across 40 commercial domains ([full dataset](https://verisource.dev/benchmarks/ai-search-readiness-2026)):
@@ -64,9 +87,10 @@ Direct HTTP probes across 40 commercial domains ([full dataset](https://verisour
 
 | Workspace Package | Purpose | Stack |
 | :--- | :--- | :--- |
-| `packages/core-geo` | WinterCG-portable intelligence engine: hop-validated SSRF guard, 5-bot WAF prober, 7-CMS detector, 3-pillar `JSON-LD` inspector, Shopify `/api/ucp/mcp` adapter, Hallucination Watchdog, and `vs_live_` SHA-256 key utilities. | TypeScript 5.7, Zod, Web Crypto |
-| `packages/ui` | Shared Warm Architectural Paper & Obsidian design system: tactile instrument bezels (`.vs-bezel`), `ThreeTabShell`, `ConsoleQuickJumpBar`, `ConsoleZoneHeader`, `CodeArtifactCard`, `MetricLedgerCell`, `StatusBadge`. | React 19 |
-| `apps/web` | Public Instant Grader (`/`), 4-Vertical Motion Storyboard, 3-Step Subscriber Console (`/dashboard`), White-Label Agency Scorecards (`/audit/[slug]`), Free Validators (`/tools/*`), Origin/HMAC Pixel (`/api/pixel`), and Stripe Billing. | Next.js 15 App Router, Supabase, Stripe |
+| `packages/core-geo` | WinterCG-portable intelligence engine: hop-validated SSRF guard, 5-bot WAF prober, `VerisourceScan/1.0` site health crawler, 7-CMS detector, 3-pillar `JSON-LD` inspector, Shopify `/api/ucp/mcp` adapter, Hallucination Watchdog, and `vs_live_` SHA-256 key utilities. | TypeScript 5.7, Zod, Web Crypto |
+| `packages/cli` | Standalone `esbuild`-bundled `@verisource/cli` binary: `scan`, `verify`, `show`, `query`, `map`, `browse`, `record`, `run`, `workflow check`, `log`, and `agent --skill --install`. | Node.js 20+ ESM |
+| `packages/ui` | Shared Obsidian Slate & Warm Brass design system (`.vs-audit-paper-surface` light-paper report isolation): `ThreeTabShell`, `CopyCommandPill`, `LightBrowserFrame`, `ConsoleQuickJumpBar`, `CodeArtifactCard`, `MetricLedgerCell`, `StatusBadge`. | React 19 |
+| `apps/web` | 8-Band Dark Studio Homepage (`/`), 11-Capability `/features` & `/scanner`, 3-Step Subscriber Console (`/dashboard`), White-Label Agency Scorecards (`/audit/[slug]`), Free Validators (`/tools/*`), Origin/HMAC Pixel (`/api/pixel`), and Stripe Billing. | Next.js 15 App Router, Supabase, Stripe |
 | `apps/mcp-worker` | Stateless Streamable HTTP `/mcp` server (`createMcpHandler`), RFC 9728 Protected Resource metadata, KV-cached SHA-256 Bearer + OAuth 2.0 auth, atomic credit metering, and scheduled cron scanner. | Cloudflare Workers (`nodejs_compat`) |
 | `apps/extension` | Least-privilege (`['sidePanel', 'activeTab']` only) Chrome Side Panel sharing `packages/ui` and `packages/core-geo`. | WXT 0.19, Manifest V3 |
 

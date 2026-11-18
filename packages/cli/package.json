@@ -36,6 +36,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc && node scripts/bundle.mjs",
+    "pack:public": "node scripts/bundle.mjs && node -e \"const cp=require('node:child_process'),fs=require('node:fs'),p=require('node:path');const d=p.resolve('../../apps/web/public/downloads');fs.mkdirSync(d,{recursive:true});const t=cp.execSync('npm pack --quiet',{encoding:'utf8'}).trim();fs.renameSync(t,p.join(d,'verisource-cli.tgz'));console.log('✓ Packed',p.join(d,'verisource-cli.tgz'));\"",
     "test": "tsc && node scripts/bundle.mjs && node --test dist/cli.test.js",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\""
   },

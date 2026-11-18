@@ -4685,6 +4685,18 @@ async function run() {
       'Expected high-contrast SVG bar chart labels on /pricing ROI calculator'
     );
     console.log('✔ [85/85] M93 Dark-Mode SVG Contrast, /llms.txt + /agents.md CLI/Scanner Self-GEO & @verisource/cli verified!');
+
+    // 84. M94 Self-Hosted Zero-Auth npx Tarball (/downloads/verisource-cli.tgz) & SQL Migration Pack
+    const m94TgzRes = await fetch(`${BASE}/downloads/verisource-cli.tgz`);
+    assert.equal(m94TgzRes.status, 200);
+    const m94TgzBuf = Buffer.from(await m94TgzRes.arrayBuffer());
+    assert.ok(
+      m94TgzBuf.length > 100_000 &&
+        m94TgzBuf[0] === 0x1f &&
+        m94TgzBuf[1] === 0x8b,
+      'Expected /downloads/verisource-cli.tgz to serve a valid >100KB gzipped npm tarball'
+    );
+    console.log('✔ [86/86] M94 Zero-Auth npx HTTPS Tarball (/downloads/verisource-cli.tgz) verified!');
   } finally {
     server.kill();
   }

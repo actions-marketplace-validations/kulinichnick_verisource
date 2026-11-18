@@ -60,3 +60,18 @@ jobs:
           path: build/verisource-chrome-mv3-v1.0.1.zip
           include-hidden-files: true
           if-no-files-found: error
+
+      - name: Package & upload standalone @verisource/cli tarball
+        run: |
+          cd packages/cli
+          npm pack --pack-destination ../../build
+          mv ../../build/verisource-cli-1.0.0.tgz ../../build/verisource-cli-v1.0.0.tgz
+          ls -lh ../../build/verisource-cli-v1.0.0.tgz
+
+      - name: Upload @verisource/cli .tgz artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: verisource-cli-tarball
+          path: build/verisource-cli-v1.0.0.tgz
+          include-hidden-files: true
+          if-no-files-found: error
