@@ -5,7 +5,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { runCli } from './bin.js';
+import { buildGithubStepSummaryMarkdown, runCli } from './bin.js';
 import {
   browseClickHandle,
   browseOpenUrl,
@@ -165,4 +165,41 @@ test('standalone dist/bin.js bundle has zero workspace runtime dependencies and 
     false,
     'Expected zero banned AI lexicon words in packages/cli/README.md'
   );
+});
+
+test('GitHub Step Summary formatter and composite action.yml pass zero-slop checks', () => {
+  const md = buildGithubStepSummaryMarkdown({
+    mode: 'verify',
+    status: 'FAIL',
+    hostname: 'preview.acme.dev',
+    detectedPlatformLabel: 'Custom Code / Next.js',
+    visibilityScore: 72,
+    healthScore: 88,
+    pagesScanned: 5,
+    linksChecked: 19,
+    botsAllowed: true,
+    llmsTxtStatus: 'present',
+    agentsMdStatus: 'missing',
+    jsonLdCount: 2,
+    failures: ['/agents.md is missing'],
+    handles: [
+      {
+        handle: 'a1',
+        kind: 'dead_anchor',
+        severity: 'warn',
+        summary: 'Dead #pricing-faq anchor on /pricing',
+        fixHint: 'Add id="pricing-faq" target element.',
+      },
+    ],
+  });
+  assert.ok(md.includes('### Verisource AI Search & Site Health Gate — `FAIL`'));
+  assert.ok(md.includes('`preview.acme.dev`'));
+  assert.ok(md.includes('`[a1]`'));
+
+  const actionYml = fs.readFileSync(
+    path.resolve(process.cwd(), '..', '..', 'action.yml'),
+    'utf8'
+  );
+  assert.ok(actionYml.includes("using: 'composite'"));
+  assert.ok(actionYml.includes('--github-summary'));
 });

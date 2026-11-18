@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-17T22:01:16.558Z",
+  "updatedAt": "2026-11-18T18:47:01.635Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -133,7 +133,15 @@
       "publicContactChannel": "hello@8020.inc",
       "caseStudyClientDomain": "wave.co",
       "caseStudyClientName": "Wave",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-18T18:47:01.635Z",
+      "auditSlug": "wave-co-6y1v",
+      "emailSentAt": "2026-11-18T18:47:01.635Z",
+      "resendMessageId": "01a1effb-f8e0-7337-a14a-b974466a4c1f",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-22"
     },
     {
       "agencyName": "Charle",
@@ -145,7 +153,15 @@
       "publicContactChannel": "hello@charleagency.com",
       "caseStudyClientDomain": "111skin.com",
       "caseStudyClientName": "111SKIN",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-18T18:47:01.635Z",
+      "auditSlug": "111skin-com-fj2l",
+      "emailSentAt": "2026-11-18T18:47:01.635Z",
+      "resendMessageId": "01a1effb-edbf-79c7-b904-014a23548d1d",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-22"
     },
     {
       "agencyName": "SVZ",

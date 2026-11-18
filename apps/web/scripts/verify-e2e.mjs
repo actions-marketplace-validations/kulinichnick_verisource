@@ -4697,6 +4697,42 @@ async function run() {
       'Expected /downloads/verisource-cli.tgz to serve a valid >100KB gzipped npm tarball'
     );
     console.log('✔ [86/86] M94 Zero-Auth npx HTTPS Tarball (/downloads/verisource-cli.tgz) verified!');
+
+    // 85. M95 Public /reports Directory Hub (50+ Domains), /report/supabase.com & GitHub Action PR Gate
+    const [m95ReportsRes, m95SupabaseRes, m95SitemapXml] = await Promise.all([
+      fetch(`${BASE}/reports`),
+      fetch(`${BASE}/report/supabase.com`),
+      fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+    ]);
+    assert.equal(m95ReportsRes.status, 200);
+    assert.equal(m95SupabaseRes.status, 200);
+    const m95ReportsHtml = await m95ReportsRes.text();
+    const m95SupabaseHtml = await m95SupabaseRes.text();
+
+    assert.ok(
+      m95ReportsHtml.includes('Every domain probed over HTTPS.') &&
+        m95ReportsHtml.includes('CollectionPage') &&
+        m95ReportsHtml.includes('ItemList') &&
+        m95ReportsHtml.includes('uses: kulinichnick/verisource@main') &&
+        m95ReportsHtml.includes('/report/supabase.com'),
+      'Expected /reports directory hub with CollectionPage + ItemList JSON-LD, 50+ domain links, and GitHub Action YAML'
+    );
+    assert.ok(
+      m95SupabaseHtml.includes('All Audited Domain Scorecards') &&
+        m95SitemapXml.includes('https://verisource.dev/reports') &&
+        m95SitemapXml.includes('https://verisource.dev/report/supabase.com'),
+      'Expected /report/supabase.com back-link to /reports and sitemap.xml coverage'
+    );
+    const m95Stripped = m95ReportsHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (m95Stripped.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on /reports'
+    );
+    console.log('✔ [87/87] M95 Public /reports Directory Hub (50+ Scorecards), /report/supabase.com & GitHub Action PR Gate verified!');
   } finally {
     server.kill();
   }

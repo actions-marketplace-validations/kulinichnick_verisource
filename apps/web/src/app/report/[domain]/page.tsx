@@ -171,6 +171,19 @@ export default async function PublicDomainReportPage({
       />
 
       <div style={{ marginBottom: '22px' }}>
+        <div style={{ marginBottom: '12px' }}>
+          <Link
+            href="/reports"
+            style={{
+              fontSize: '12.5px',
+              fontWeight: 600,
+              color: 'var(--vs-ink-secondary)',
+              textDecoration: 'none',
+            }}
+          >
+            ← All Audited Domain Scorecards
+          </Link>
+        </div>
         <div
           style={{
             display: 'flex',

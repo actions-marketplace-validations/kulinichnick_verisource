@@ -3,7 +3,10 @@
 All empirical URLs, free zero-signup protocol validators, and Streamable HTTP endpoints referenced below are live in production (`HTTP 200`):
 
 - **2026 AI Search & Agent Readiness Study (`N = 40`):** `https://verisource.dev/benchmarks/ai-search-readiness-2026`
-- **Free 60-Second Domain Grader:** `https://verisource.dev/#grader`
+- **Free 60-Second Domain & 5-Page Link Scanner:** `https://verisource.dev/#scan`
+- **11-Capability Platform & Agent CLI Walkthrough:** `https://verisource.dev/features`
+- **Read-Only Crawler Transparency Spec (`VerisourceScan/1.0`):** `https://verisource.dev/scanner`
+- **Zero-Dependency Local CLI (`@verisource/cli`):** `npx https://verisource.dev/downloads/verisource-cli.tgz --help`
 - **Interactive 90-Second Product Tour:** `https://verisource.dev/tutorial`
 - **Interactive White-Label Agency Sandbox:** `https://verisource.dev/agencies#sandbox`
 - **7-CMS Starter Templates (`/agents.md` & `/llms.txt`):** `https://verisource.dev/templates`
@@ -37,9 +40,9 @@ Existing visibility trackers charge $245–$579/mo to plot mention percentages w
 
 - **Brand Truth & Hallucination Watchdog:** Extracts live storefront pricing and shipping banners into an editable Brand Truth Sheet, then diffs ChatGPT, Google Gemini, and Perplexity answers per bullet so competitor prices never cross-contaminate your alerts.
 - **7-CMS Auto-Detection & `/ai-facts` Routing:** Fingerprints `Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, and `Next.js`, generating syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, Shopify `templates/agents.md.liquid`, and `<article class="verisource-ai-facts">` feeds for hosted site builders that forbid root static file uploads.
-- **Stateless Streamable HTTP MCP v2 (`dev.verisource/mcp@1.0.0`):** Built on `@modelcontextprotocol/server` v2 on Cloudflare Workers (zero deprecated `/sse` endpoints). Unauthenticated callers can invoke `scan_domain_ai_readiness` for 0 credits right inside Claude Desktop, Cursor, Windsurf, or Antigravity.
+- **Stateless Streamable HTTP MCP v2 (`dev.verisource/mcp@1.0.0`) & Local `@verisource/cli`:** Built on `@modelcontextprotocol/server` v2 on Cloudflare Workers (zero deprecated `/sse` endpoints) plus a standalone Node 20+ CLI (`scan`, `verify`, `map`, `browse`, `record`, `run`, `log`, `agent --skill --install`) that emits compact `[h1]`/`[l1]`/`[n1]` handles instead of raw DOM dumps.
 
-You can test any domain without creating an account via the homepage grader (https://verisource.dev/#grader) or our zero-token protocol validators (https://verisource.dev/tools). Happy to answer questions on the HTTP study, Cloudflare Worker MCP metering, or Shopify `/api/ucp/mcp` behavior.
+You can test any domain without creating an account via the homepage scanner (https://verisource.dev/#scan), explore the interactive split-screen playgrounds (https://verisource.dev/features), or run our free protocol validators (https://verisource.dev/tools). Happy to answer questions on the HTTP study, `VerisourceScan/1.0` crawler rules, Cloudflare Worker MCP metering, or Shopify `/api/ucp/mcp` behavior.
 ```
 
 ---
@@ -170,7 +173,7 @@ Verisource is a read-write GEO & Paid MCP action engine:
 2. Auto-detects 7 CMS platforms (Shopify, WordPress, Webflow, Wix, Squarespace, Framer, Next.js) and generates syntax-validated JSON-LD, /llms.txt, /agents.md, /ai-facts, and Rival Comparison Pages with closed-loop HTTP verification.
 3. Ships a 60-second white-label /audit/[slug] agency pitch generator ($249/mo for 15 client sites) with instant prospect open and booking CTA click alerts, plus a stateless Streamable HTTP MCP server at https://mcp.verisource.dev/mcp.
 
-Try the free domain grader at https://verisource.dev/#grader, explore the 90-second interactive tour at https://verisource.dev/tutorial, or read our 40-domain 2026 HTTP Readiness Study at https://verisource.dev/benchmarks/ai-search-readiness-2026. The first 30 Pro and Agency workspaces lock our Founding Partner Rate for life.
+Try the free domain scanner at https://verisource.dev/#scan, explore the interactive split-screen playgrounds at https://verisource.dev/features, or read our 40-domain 2026 HTTP Readiness Study at https://verisource.dev/benchmarks/ai-search-readiness-2026. The first 30 Pro and Agency workspaces lock our Founding Partner Rate for life.
 ```
 
 ---

@@ -124,6 +124,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly' as const,
       priority: 0.85,
     })),
+    {
+      url: 'https://verisource.dev/reports',
+      lastModified: now,
+      changeFrequency: 'daily',
+      priority: 0.89,
+    },
     ...publishedReports.map((item) => ({
       url: `https://verisource.dev/report/${item.domain}`,
       lastModified: new Date(item.publishedAt || now.toISOString()),

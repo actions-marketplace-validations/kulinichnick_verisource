@@ -5,6 +5,7 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
+Live Domain Scorecards Directory (50+ Audited Sites): https://verisource.dev/reports
 Standalone npm CLI Binary: npx @verisource/cli
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
 GEO Platform Comparisons: https://verisource.dev/compare (https://verisource.dev/compare/profound-alternative, https://verisource.dev/compare/otterly-ai-alternative, https://verisource.dev/compare/peec-ai-alternative, https://verisource.dev/compare/athenahq-alternative, https://verisource.dev/compare/scrunch-ai-alternative)

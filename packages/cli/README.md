@@ -42,8 +42,18 @@ npx @verisource/cli agent --skill --install all
 ## GitHub Actions CI Gate
 
 ```yaml
+- name: Verisource AI Search & Site Health Gate
+  uses: kulinichnick/verisource@main
+  with:
+    url: ${{ env.PREVIEW_URL }}
+    min-visibility-score: '65'
+```
+
+Or run the CLI directly with native `$GITHUB_STEP_SUMMARY` Markdown tables:
+
+```yaml
 - name: Verify AI Search Readiness & Site Health
-  run: npx @verisource/cli verify ${{ env.PREVIEW_URL }}
+  run: npx @verisource/cli verify ${{ env.PREVIEW_URL }} --github-summary
 ```
 
 ## Documentation & MCP Server

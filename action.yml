@@ -1,0 +1,107 @@
+name: 'Verisource AI Search & Site Health Gate'
+description: 'Audit AI crawler WAF rules, JSON-LD schema, /llms.txt, /agents.md, and multi-page broken links on preview or production URLs.'
+author: 'Verisource'
+branding:
+  icon: 'shield'
+  color: 'yellow'
+
+inputs:
+  url:
+    description: 'Target preview or production URL to audit (e.g. https://verisource.dev).'
+    required: true
+  mode:
+    description: 'Execution mode: "verify" (enforce policy exit codes) or "scan" (audit + handles).'
+    required: false
+    default: 'verify'
+  min-visibility-score:
+    description: 'Minimum required AI Visibility Score (0-100) when .verisource/checks.json is not present.'
+    required: false
+    default: '50'
+  require-llms-txt:
+    description: 'Fail verification when /llms.txt is missing ("true" or "false").'
+    required: false
+    default: 'false'
+  require-agents-md:
+    description: 'Fail verification when custom /agents.md is missing ("true" or "false").'
+    required: false
+    default: 'false'
+  allow-broken-links:
+    description: 'Allow broken internal links or 4xx/5xx pages ("true" or "false").'
+    required: false
+    default: 'false'
+
+outputs:
+  status:
+    description: 'Gate outcome: PASS, WARN, or FAIL.'
+    value: ${{ steps.run-verisource.outputs.status }}
+  visibility-score:
+    description: 'Measured AI Visibility Score (0-100).'
+    value: ${{ steps.run-verisource.outputs.visibility_score }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js 20+
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run Verisource Gate & Publish PR Step Summary
+      id: run-verisource
+      shell: bash
+      env:
+        VS_TARGET_URL: ${{ inputs.url }}
+        VS_MODE: ${{ inputs.mode }}
+        VS_MIN_SCORE: ${{ inputs.min-visibility-score }}
+        VS_REQ_LLMS: ${{ inputs.require-llms-txt }}
+        VS_REQ_AGENTS: ${{ inputs.require-agents-md }}
+        VS_ALLOW_BROKEN: ${{ inputs.allow-broken-links }}
+        VS_ACTION_DIR: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        TMP_CLI_DIR="$(mktemp -d)"
+        trap 'rm -rf "$TMP_CLI_DIR"' EXIT
+
+        if [ -f "$VS_ACTION_DIR/apps/web/public/downloads/verisource-cli.tgz" ]; then
+          tar -xzf "$VS_ACTION_DIR/apps/web/public/downloads/verisource-cli.tgz" -C "$TMP_CLI_DIR"
+        else
+          curl -fsSL "https://verisource.dev/downloads/verisource-cli.tgz" | tar -xz -C "$TMP_CLI_DIR"
+        fi
+
+        if [ ! -f ".verisource/checks.json" ]; then
+          mkdir -p .verisource
+          node -e '
+            const fs = require("node:fs");
+            fs.writeFileSync(".verisource/checks.json", JSON.stringify({
+              target: process.env.VS_TARGET_URL,
+              minVisibilityScore: Number(process.env.VS_MIN_SCORE || 50),
+              requireLlmsTxt: process.env.VS_REQ_LLMS === "true",
+              requireAgentsMd: process.env.VS_REQ_AGENTS === "true",
+              minJsonLdNodes: 1,
+              allowBrokenLinks: process.env.VS_ALLOW_BROKEN === "true",
+              allowDeadAnchors: false
+            }, null, 2));
+          '
+        fi
+
+        CMD_MODE="verify"
+        if [ "$VS_MODE" = "scan" ]; then
+          CMD_MODE="scan"
+        fi
+
+        set +e
+        JSON_OUT="$(node "$TMP_CLI_DIR/package/dist/bin.js" "$CMD_MODE" "$VS_TARGET_URL" --json --github-summary)"
+        EXIT_CODE=$?
+        set -e
+
+        echo "$JSON_OUT"
+        node -e '
+          const fs = require("node:fs");
+          try {
+            const parsed = JSON.parse(process.argv[1]);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `status=${parsed.status || "UNKNOWN"}\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `visibility_score=${parsed.visibilityScore ?? ""}\n`);
+          } catch {}
+        ' "$JSON_OUT"
+
+        exit "$EXIT_CODE"

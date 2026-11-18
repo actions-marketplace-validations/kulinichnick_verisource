@@ -20,6 +20,11 @@ const RESOURCE_MENU_ITEMS: ReadonlyArray<{
     sublabel: 'Read-only bot & /robots.txt rules',
   },
   {
+    href: '/reports',
+    label: 'Live Domain Scorecards',
+    sublabel: '50+ audited SaaS & Shopify sites',
+  },
+  {
     href: '/benchmarks/ai-search-readiness-2026',
     label: '2026 AI Readiness Study',
     sublabel: '40-domain live HTTPS dataset',

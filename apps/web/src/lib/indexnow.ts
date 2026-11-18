@@ -14,6 +14,9 @@ export const VERISOURCE_INDEXNOW_KEY =
 export function getAllIndexableVerisourceUrls(): string[] {
   const coreUrls = [
     `${VERISOURCE_ORIGIN}`,
+    `${VERISOURCE_ORIGIN}/features`,
+    `${VERISOURCE_ORIGIN}/scanner`,
+    `${VERISOURCE_ORIGIN}/reports`,
     `${VERISOURCE_ORIGIN}/tutorial`,
     `${VERISOURCE_ORIGIN}/pricing`,
     `${VERISOURCE_ORIGIN}/agencies`,

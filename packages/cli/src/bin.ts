@@ -44,8 +44,8 @@ function printHelp(): void {
   console.log(`verisource — AI Search GEO, Site Health & Browser Flow Verifier
 
 Usage:
-  verisource scan <url> [--json]                     Scan AI readiness, bots, JSON-LD & 20-page link health
-  verisource verify <url> [--init] [--json]          Deterministic CI check (exit 0 pass, 1 fail, 2 error)
+  verisource scan <url> [--json] [--github-summary]  Scan AI readiness, bots, JSON-LD & 20-page link health
+  verisource verify <url> [--init] [--json] [--github-summary] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
   verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1)
   verisource query "<text>" [--json]                 Filter recent handles by keyword or status code
   verisource map [url | ./dir] [--diff] [--json]     Map live domain routes or static Next.js/React routes
@@ -58,6 +58,83 @@ Usage:
   verisource log <vercel|supabase|cloudflare>        Query error logs in recent 5-minute window
   verisource agent --skill --install <target>        Install agent skill (claude|cursor|codex|antigravity|all)
 `);
+}
+
+export function buildGithubStepSummaryMarkdown(params: {
+  mode: 'scan' | 'verify';
+  status: 'PASS' | 'WARN' | 'FAIL';
+  hostname: string;
+  detectedPlatformLabel?: string;
+  visibilityScore: number;
+  healthScore: number;
+  pagesScanned: number;
+  linksChecked: number;
+  botsAllowed: boolean;
+  llmsTxtStatus: string;
+  agentsMdStatus: string;
+  jsonLdCount: number;
+  failures?: string[];
+  handles?: StoredHandleItem[];
+}): string {
+  const badge =
+    params.status === 'PASS'
+      ? 'PASS'
+      : params.status === 'WARN'
+        ? 'WARN'
+        : 'FAIL';
+  const lines: string[] = [
+    `### Verisource AI Search & Site Health Gate — \`${badge}\``,
+    '',
+    '| Check | Measured Value | Status |',
+    '| :--- | :--- | :--- |',
+    `| **Target Domain** | \`${params.hostname}\` | \`${params.detectedPlatformLabel ?? 'Web'}\` |`,
+    `| **AI Visibility Score** | \`${params.visibilityScore} / 100\` | \`${params.visibilityScore >= 60 ? 'PASS' : 'NEEDS WORK'}\` |`,
+    `| **Site Health Crawler** | \`${params.healthScore} / 100\` (\`${params.pagesScanned}\` page(s) · \`${params.linksChecked}\` link(s)) | \`${params.healthScore >= 90 ? 'PASS' : 'CHECK LINKS'}\` |`,
+    `| **AI Crawler WAF** | \`GPTBot · OAI-SearchBot · PerplexityBot · ClaudeBot\` | \`${params.botsAllowed ? 'HTTP 200 ALLOWED' : 'RESTRICTED / 403'}\` |`,
+    `| **Protocol Artifacts** | \`/llms.txt\`: \`${params.llmsTxtStatus}\` · \`/agents.md\`: \`${params.agentsMdStatus}\` | \`JSON-LD: ${params.jsonLdCount} block(s)\` |`,
+  ];
+
+  if (params.failures && params.failures.length > 0) {
+    lines.push('', '#### Policy Threshold Failures');
+    for (const f of params.failures) {
+      lines.push(`- \`FAIL\` ${f}`);
+    }
+  }
+
+  if (params.handles && params.handles.length > 0) {
+    lines.push(
+      '',
+      '#### Compact Action Handles',
+      '',
+      '| Handle | Severity | Finding | Fix Hint |',
+      '| :--- | :--- | :--- | :--- |'
+    );
+    for (const h of params.handles.slice(0, 12)) {
+      lines.push(
+        `| \`[${h.handle}]\` | \`${h.severity.toUpperCase()}\` | ${h.summary.replace(/\|/g, '/')} | ${(h.fixHint ?? 'Inspect with verisource show ' + h.handle).replace(/\|/g, '/')} |`
+      );
+    }
+  }
+
+  lines.push(
+    '',
+    `<sub>Verified by <a href="https://verisource.dev/features">@verisource/cli</a> (\`VerisourceScan/1.0\`)</sub>`,
+    ''
+  );
+  return lines.join('\n');
+}
+
+function writeGithubSummaryArtifact(markdown: string, cwd: string): string {
+  const dir = path.resolve(cwd, '.verisource');
+  fs.mkdirSync(dir, { recursive: true });
+  const localPath = path.join(dir, 'github-summary.md');
+  fs.writeFileSync(localPath, markdown, 'utf8');
+
+  const stepSummaryPath = process.env.GITHUB_STEP_SUMMARY?.trim();
+  if (stepSummaryPath) {
+    fs.appendFileSync(stepSummaryPath, `${markdown}\n`, 'utf8');
+  }
+  return localPath;
 }
 
 export async function runCli(argv: string[], cwd: string = process.cwd()): Promise<number> {
@@ -134,6 +211,29 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         },
         cwd
       );
+
+      if (hasFlag(args, '--github-summary')) {
+        const botsAllowed =
+          Boolean(readiness.robotsAiBotStatus.GPTBot) &&
+          Boolean(readiness.robotsAiBotStatus.PerplexityBot) &&
+          !readiness.robotsAiBotStatus.waf_blocked;
+        const md = buildGithubStepSummaryMarkdown({
+          mode: 'scan',
+          status: overallStatus,
+          hostname: readiness.hostname,
+          detectedPlatformLabel: readiness.detectedPlatformLabel,
+          visibilityScore: readiness.visibilityScore,
+          healthScore: health.healthScore,
+          pagesScanned: health.pagesScanned,
+          linksChecked: health.linksChecked,
+          botsAllowed,
+          llmsTxtStatus: readiness.llmsTxtStatus,
+          agentsMdStatus: readiness.agentsMdStatus,
+          jsonLdCount: readiness.jsonLdCount,
+          handles,
+        });
+        writeGithubSummaryArtifact(md, cwd);
+      }
 
       if (jsonOut) {
         console.log(
@@ -219,6 +319,28 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
       }
 
       const passed = failures.length === 0;
+      if (hasFlag(args, '--github-summary')) {
+        const botsAllowed =
+          Boolean(readiness.robotsAiBotStatus.GPTBot) &&
+          Boolean(readiness.robotsAiBotStatus.PerplexityBot) &&
+          !readiness.robotsAiBotStatus.waf_blocked;
+        const md = buildGithubStepSummaryMarkdown({
+          mode: 'verify',
+          status: passed ? 'PASS' : 'FAIL',
+          hostname: readiness.hostname,
+          detectedPlatformLabel: readiness.detectedPlatformLabel,
+          visibilityScore: readiness.visibilityScore,
+          healthScore: health.healthScore,
+          pagesScanned: health.pagesScanned,
+          linksChecked: health.linksChecked,
+          botsAllowed,
+          llmsTxtStatus: readiness.llmsTxtStatus,
+          agentsMdStatus: readiness.agentsMdStatus,
+          jsonLdCount: readiness.jsonLdCount,
+          failures,
+        });
+        writeGithubSummaryArtifact(md, cwd);
+      }
       if (jsonOut) {
         console.log(
           JSON.stringify(
