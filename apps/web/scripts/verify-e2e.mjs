@@ -4635,6 +4635,56 @@ async function run() {
     assert.equal(authSiteScanJson.report.maxPages, 20);
     assert.equal(authSiteScanJson.report.robotsTxtObeyed, true);
     console.log('✔ [84/84] M87–M92 Dark Instrument Studio, 8-Band /, /features, /scanner & 20-page /api/dashboard/site-scan verified!');
+
+    // 83. M93 Dark-Mode SVG Contrast Audit, Self-GEO /llms.txt + /agents.md Update & Standalone @verisource/cli
+    const [m93LlmsRes, m93AgentsRes, m93PricingHtml] = await Promise.all([
+      fetch(`${BASE}/llms.txt`),
+      fetch(`${BASE}/agents.md`),
+      fetch(`${BASE}/pricing`).then((r) => r.text()),
+    ]);
+    assert.equal(m93LlmsRes.status, 200);
+    assert.equal(m93AgentsRes.status, 200);
+    const m93LlmsTxt = await m93LlmsRes.text();
+    const m93AgentsMd = await m93AgentsRes.text();
+
+    assert.ok(
+      m93LlmsTxt.includes('https://verisource.dev/features') &&
+        m93LlmsTxt.includes('https://verisource.dev/scanner') &&
+        m93LlmsTxt.includes('VerisourceScan/1.0') &&
+        m93LlmsTxt.includes('npx @verisource/cli'),
+      'Expected /llms.txt to advertise /features, /scanner, VerisourceScan/1.0, and npx @verisource/cli'
+    );
+    assert.ok(
+      m93AgentsMd.includes('https://verisource.dev/features') &&
+        m93AgentsMd.includes('https://verisource.dev/scanner') &&
+        m93AgentsMd.includes('npx @verisource/cli verify') &&
+        m93AgentsMd.includes('agent --skill --install'),
+      'Expected /agents.md to document /features, /scanner, and @verisource/cli commands'
+    );
+    assert.equal(
+      (m93LlmsTxt.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in /llms.txt'
+    );
+    assert.equal(
+      (m93AgentsMd.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon in /agents.md'
+    );
+
+    assert.ok(
+      m90HomeHtml.includes('fill="#EEF1F6"') &&
+        m90HomeHtml.includes('Traditional Search (2.1%)') &&
+        m90HomeHtml.includes('fill="#6EE7B7"') &&
+        !m90HomeHtml.includes('fill="#0A0E17" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="600">Traditional Search'),
+      'Expected high-contrast light SVG ink (#EEF1F6 & #6EE7B7) on Card 06 conversion bar chart'
+    );
+    assert.ok(
+      m93PricingHtml.includes('fill="#6EE7B7"') &&
+        m93PricingHtml.includes('Cited AI Search Clicks'),
+      'Expected high-contrast SVG bar chart labels on /pricing ROI calculator'
+    );
+    console.log('✔ [85/85] M93 Dark-Mode SVG Contrast, /llms.txt + /agents.md CLI/Scanner Self-GEO & @verisource/cli verified!');
   } finally {
     server.kill();
   }

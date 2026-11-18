@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
 import os from 'node:os';
@@ -8,14 +9,15 @@ import { runCli } from './bin.js';
 import {
   browseClickHandle,
   browseOpenUrl,
+  findStoredHandle,
+  installAgentSkills,
+  mapStaticCodebase,
+  queryStoredHandles,
   recordBaselineWorkflow,
   runSavedWorkflow,
   saveBrowseSessionAsWorkflow,
   validateWorkflowFiles,
-} from './browser.js';
-import { mapStaticCodebase } from './mapper.js';
-import { installAgentSkills } from './skills.js';
-import { findStoredHandle, queryStoredHandles } from './store.js';
+} from './index.js';
 
 test('static Next.js App Router codebase mapper detects pages, APIs, and JSON-LD', () => {
   const webRoot = path.resolve(process.cwd(), '..', '..', 'apps', 'web');
@@ -124,4 +126,43 @@ test('browse, record, workflow check, deterministic run, and handle show/query w
     server.close();
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+});
+
+test('standalone dist/bin.js bundle has zero workspace runtime dependencies and passes README quality gate', () => {
+  const pkgJson = JSON.parse(
+    fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')
+  ) as { dependencies?: Record<string, string> };
+  assert.equal(
+    Object.keys(pkgJson.dependencies ?? {}).length,
+    0,
+    'Expected zero runtime dependencies so npx @verisource/cli publishes cleanly'
+  );
+
+  const binPath = path.resolve(process.cwd(), 'dist', 'bin.js');
+  const binSource = fs.readFileSync(binPath, 'utf8');
+  assert.ok(
+    binSource.startsWith('#!/usr/bin/env node\n'),
+    'Expected single shebang at line 1 of dist/bin.js'
+  );
+  assert.ok(
+    !binSource.includes('@verisource/core-geo'),
+    'Expected @verisource/core-geo to be bundled into dist/bin.js'
+  );
+
+  const helpOut = execFileSync(process.execPath, [binPath, '--help'], {
+    encoding: 'utf8',
+  });
+  assert.ok(helpOut.includes('verisource scan <url>'));
+  assert.ok(helpOut.includes('verisource verify <url>'));
+
+  const readme = fs.readFileSync(
+    path.resolve(process.cwd(), 'README.md'),
+    'utf8'
+  );
+  const banned = /\b(delve|testament|tapestry|elevate|elevating|game-changer|game-changing|unleash|unlock|unlocks|unlocking|seamless|seamlessly|comprehensive|moreover|furthermore|beacon|symphony|turbocharge|turbocharged)\b/i;
+  assert.equal(
+    banned.test(readme),
+    false,
+    'Expected zero banned AI lexicon words in packages/cli/README.md'
+  );
 });

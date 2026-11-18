@@ -112,7 +112,7 @@ export function StandoutFeaturesBento(): React.ReactElement {
               style={{
                 borderRadius: '8px',
                 border: '1px solid var(--vs-border)',
-                background: 'var(--vs-surface-warm)',
+                background: 'var(--vs-terminal)',
                 padding: '10px 12px',
                 marginBottom: '12px',
               }}
@@ -126,86 +126,86 @@ export function StandoutFeaturesBento(): React.ReactElement {
                 <path
                   d="M 134 28 C 168 28, 168 59, 196 59"
                   fill="none"
-                  stroke="#DDD9CE"
+                  stroke="#364156"
                   strokeWidth="1.4"
                 />
                 <path
                   d="M 134 59 L 196 59"
                   fill="none"
-                  stroke="#DDD9CE"
+                  stroke="#364156"
                   strokeWidth="1.4"
                 />
                 <path
                   d="M 134 90 C 168 90, 168 59, 196 59"
                   fill="none"
-                  stroke="#DDD9CE"
+                  stroke="#364156"
                   strokeWidth="1.4"
                 />
                 <path
                   className="vs-signal-path"
                   d="M 134 28 C 168 28, 168 59, 196 59"
                   fill="none"
-                  stroke="#0A0E17"
+                  stroke="#E5A93C"
                   strokeWidth="2"
                 />
                 <path
                   className="vs-signal-path vs-signal-path-delay-1"
                   d="M 134 59 L 196 59"
                   fill="none"
-                  stroke="#0A0E17"
+                  stroke="#E5A93C"
                   strokeWidth="2"
                 />
                 <path
                   className="vs-signal-path vs-signal-path-delay-2"
                   d="M 134 90 C 168 90, 168 59, 196 59"
                   fill="none"
-                  stroke="#0A0E17"
+                  stroke="#E5A93C"
                   strokeWidth="2"
                 />
 
                 <path
                   d="M 308 59 L 346 59"
                   fill="none"
-                  stroke="#A7F3D0"
+                  stroke="#065F46"
                   strokeWidth="2"
                 />
                 <path
                   className="vs-signal-path-out"
                   d="M 308 59 L 346 59"
                   fill="none"
-                  stroke="#059669"
+                  stroke="#34D399"
                   strokeWidth="2.6"
                 />
 
                 {/* CMS Chips */}
                 <g transform="translate(8, 15)">
-                  <rect width="126" height="24" rx="5" fill="#FFFFFF" stroke="#CFCBC0" />
-                  <text x="63" y="15.5" textAnchor="middle" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
+                  <rect width="126" height="24" rx="5" fill="#FFFFFF" stroke="#CBD5E1" />
+                  <text x="63" y="15.5" textAnchor="middle" fill="#0F172A" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
                     Shopify · WordPress
                   </text>
                 </g>
                 <g transform="translate(8, 47)">
-                  <rect width="126" height="24" rx="5" fill="#FFFFFF" stroke="#CFCBC0" />
-                  <text x="63" y="15.5" textAnchor="middle" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
+                  <rect width="126" height="24" rx="5" fill="#FFFFFF" stroke="#CBD5E1" />
+                  <text x="63" y="15.5" textAnchor="middle" fill="#0F172A" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
                     Webflow · Wix · Framer
                   </text>
                 </g>
                 <g transform="translate(8, 79)">
-                  <rect width="126" height="24" rx="5" fill="#FFFFFF" stroke="#CFCBC0" />
-                  <text x="63" y="15.5" textAnchor="middle" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
+                  <rect width="126" height="24" rx="5" fill="#FFFFFF" stroke="#CBD5E1" />
+                  <text x="63" y="15.5" textAnchor="middle" fill="#0F172A" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="600">
                     Next.js · Custom Repo
                   </text>
                 </g>
 
                 {/* Center Router */}
                 <g transform="translate(196, 31)">
-                  <rect className="vs-pulse-ring" x="-4" y="-4" width="120" height="64" rx="10" fill="none" stroke="#059669" />
-                  <rect width="112" height="56" rx="7" fill="#0A0E17" />
+                  <rect className="vs-pulse-ring" x="-4" y="-4" width="120" height="64" rx="10" fill="none" stroke="#E5A93C" />
+                  <rect width="112" height="56" rx="7" fill="#171C26" stroke="#E5A93C" />
                   <circle className="vs-live-dot" cx="18" cy="20" r="3" fill="#34D399" />
-                  <text x="27" y="23" fill="#FFFFFF" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
+                  <text x="27" y="23" fill="#EEF1F6" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
                     AUTO-CMS FIX
                   </text>
-                  <text x="56" y="41" textAnchor="middle" fill="#A3A8B4" fontSize="8.5" fontFamily="var(--vs-mono)">
+                  <text x="56" y="41" textAnchor="middle" fill="#B4BCC9" fontSize="8.5" fontFamily="var(--vs-mono)">
                     1 Prompt / Plugin
                   </text>
                 </g>
@@ -313,7 +313,7 @@ export function StandoutFeaturesBento(): React.ReactElement {
               style={{
                 borderRadius: '8px',
                 border: '1px solid var(--vs-border)',
-                background: 'var(--vs-surface-warm)',
+                background: 'var(--vs-terminal)',
                 padding: '10px 12px',
                 marginBottom: '12px',
               }}
@@ -327,55 +327,55 @@ export function StandoutFeaturesBento(): React.ReactElement {
                 <path
                   d="M 192 59 L 254 30"
                   fill="none"
-                  stroke="#DDD9CE"
+                  stroke="#364156"
                   strokeWidth="1.4"
                 />
                 <path
                   d="M 192 59 L 254 59"
                   fill="none"
-                  stroke="#DDD9CE"
+                  stroke="#364156"
                   strokeWidth="1.4"
                 />
                 <path
                   d="M 192 59 L 254 88"
                   fill="none"
-                  stroke="#A7F3D0"
+                  stroke="#065F46"
                   strokeWidth="1.6"
                 />
                 <path
                   className="vs-signal-path"
                   d="M 192 59 L 254 30"
                   fill="none"
-                  stroke="#0A0E17"
+                  stroke="#E5A93C"
                   strokeWidth="2"
                 />
                 <path
                   className="vs-signal-path vs-signal-path-delay-1"
                   d="M 192 59 L 254 59"
                   fill="none"
-                  stroke="#0A0E17"
+                  stroke="#E5A93C"
                   strokeWidth="2"
                 />
                 <path
                   className="vs-signal-path-out"
                   d="M 192 59 L 254 88"
                   fill="none"
-                  stroke="#059669"
+                  stroke="#34D399"
                   strokeWidth="2.4"
                 />
 
                 {/* Left White-Label Card */}
                 <g transform="translate(8, 20)">
-                  <rect width="184" height="78" rx="7" fill="#0A0E17" />
+                  <rect width="184" height="78" rx="7" fill="#171C26" stroke="#364156" />
                   <circle className="vs-live-dot" cx="18" cy="20" r="3.5" fill="#34D399" />
-                  <text x="28" y="23" fill="#FFFFFF" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+                  <text x="28" y="23" fill="#EEF1F6" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
                     YOUR AGENCY LOGO
                   </text>
-                  <text x="14" y="44" fill="#A3A8B4" fontSize="9" fontFamily="var(--vs-mono)">
+                  <text x="14" y="44" fill="#B4BCC9" fontSize="9" fontFamily="var(--vs-mono)">
                     /audit/prospect-brief
                   </text>
-                  <rect x="14" y="53" width="156" height="17" rx="4" fill="#1E293B" />
-                  <text x="92" y="64.5" textAnchor="middle" fill="#EAE8E1" fontSize="8.5" fontFamily="var(--vs-mono)">
+                  <rect x="14" y="53" width="156" height="17" rx="4" fill="#252D3D" />
+                  <text x="92" y="64.5" textAnchor="middle" fill="#EEF1F6" fontSize="8.5" fontFamily="var(--vs-mono)">
                     Print PDF · Book Strategy Call
                   </text>
                 </g>
@@ -497,25 +497,25 @@ export function StandoutFeaturesBento(): React.ReactElement {
               style={{
                 borderRadius: '6px',
                 border: '1px solid var(--vs-border)',
-                background: 'var(--vs-surface-subtle)',
+                background: 'var(--vs-terminal)',
                 padding: '6px',
                 marginBottom: '10px',
               }}
             >
-              <rect x="8" y="14" width="152" height="46" rx="5" fill="#FFFFFF" stroke="#CFCBC0" />
-              <text x="18" y="33" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+              <rect x="8" y="14" width="152" height="46" rx="5" fill="#FFFFFF" stroke="#CBD5E1" />
+              <text x="18" y="33" fill="#0F172A" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
                 “You vs. RivalCloud”
               </text>
-              <text x="18" y="49" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)">
+              <text x="18" y="49" fill="#475569" fontSize="8.5" fontFamily="var(--vs-mono)">
                 Shortlist buyer query
               </text>
-              <path d="M 160 37 L 232 37" fill="none" stroke="#A7F3D0" strokeWidth="2" />
-              <path className="vs-signal-path-out" d="M 160 37 L 232 37" fill="none" stroke="#059669" strokeWidth="2.5" />
+              <path d="M 160 37 L 232 37" fill="none" stroke="#065F46" strokeWidth="2" />
+              <path className="vs-signal-path-out" d="M 160 37 L 232 37" fill="none" stroke="#34D399" strokeWidth="2.5" />
               <rect x="232" y="14" width="220" height="46" rx="5" fill="#ECFDF5" stroke="#A7F3D0" />
               <text x="244" y="33" fill="#065F46" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
                 ✓ /compare/you-vs-rivalcloud
               </text>
-              <text x="244" y="49" fill="#0A0E17" fontSize="8.5" fontFamily="var(--vs-mono)">
+              <text x="244" y="49" fill="#0F172A" fontSize="8.5" fontFamily="var(--vs-mono)">
                 &lt;table&gt; matrix + FAQPage JSON-LD
               </text>
             </svg>
@@ -590,26 +590,26 @@ export function StandoutFeaturesBento(): React.ReactElement {
               style={{
                 borderRadius: '6px',
                 border: '1px solid var(--vs-border)',
-                background: 'var(--vs-surface-subtle)',
+                background: 'var(--vs-terminal)',
                 padding: '6px',
                 marginBottom: '10px',
               }}
             >
-              <rect x="8" y="14" width="166" height="46" rx="5" fill="#FFFFFF" stroke="#CFCBC0" />
-              <text x="18" y="33" fill="#0A0E17" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
+              <rect x="8" y="14" width="166" height="46" rx="5" fill="#FFFFFF" stroke="#CBD5E1" />
+              <text x="18" y="33" fill="#0F172A" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
                 Claude · Cursor · AGY
               </text>
-              <text x="18" y="49" fill="#686D78" fontSize="8.5" fontFamily="var(--vs-mono)">
+              <text x="18" y="49" fill="#475569" fontSize="8.5" fontFamily="var(--vs-mono)">
                 tools/call JSON-RPC 2.0
               </text>
-              <path d="M 174 37 L 236 37" fill="none" stroke="#DDD9CE" strokeWidth="2" />
-              <path className="vs-signal-path" d="M 174 37 L 236 37" fill="none" stroke="#0A0E17" strokeWidth="2.5" />
-              <rect x="236" y="14" width="216" height="46" rx="5" fill="#0A0E17" />
+              <path d="M 174 37 L 236 37" fill="none" stroke="#364156" strokeWidth="2" />
+              <path className="vs-signal-path" d="M 174 37 L 236 37" fill="none" stroke="#E5A93C" strokeWidth="2.5" />
+              <rect x="236" y="14" width="216" height="46" rx="5" fill="#171C26" stroke="#364156" />
               <circle className="vs-live-dot" cx="250" cy="30" r="3" fill="#34D399" />
-              <text x="259" y="33" fill="#FFFFFF" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
+              <text x="259" y="33" fill="#EEF1F6" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
                 mcp.verisource.dev/mcp
               </text>
-              <text x="250" y="49" fill="#A3A8B4" fontSize="8.5" fontFamily="var(--vs-mono)">
+              <text x="250" y="49" fill="#B4BCC9" fontSize="8.5" fontFamily="var(--vs-mono)">
                 4 GEO Tools · SHA-256 Bearer
               </text>
             </svg>
@@ -686,7 +686,7 @@ export function StandoutFeaturesBento(): React.ReactElement {
               style={{
                 borderRadius: '6px',
                 border: '1px solid var(--vs-border)',
-                background: 'var(--vs-surface-subtle)',
+                background: 'var(--vs-terminal)',
                 padding: '6px',
                 marginBottom: '10px',
               }}
@@ -807,21 +807,21 @@ export function StandoutFeaturesBento(): React.ReactElement {
               style={{
                 borderRadius: '6px',
                 border: '1px solid var(--vs-border)',
-                background: 'var(--vs-surface-subtle)',
+                background: 'var(--vs-terminal)',
                 padding: '6px',
                 marginBottom: '10px',
               }}
             >
-              <text x="12" y="26" fill="#0A0E17" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="600">
+              <text x="12" y="26" fill="#EEF1F6" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="600">
                 Traditional Search (2.1%)
               </text>
-              <rect x="172" y="16" width="48" height="12" rx="3" fill="#CFCBC0" />
+              <rect x="176" y="16" width="48" height="12" rx="3" fill="#94A3B8" />
 
-              <text x="12" y="52" fill="#065F46" fontSize="9" fontFamily="var(--vs-mono)" fontWeight="700">
+              <text x="12" y="52" fill="#6EE7B7" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
                 AI Cited Referral (15.1%)
               </text>
-              <rect x="172" y="42" width="268" height="12" rx="3" fill="#059669" />
-              <circle className="vs-live-dot" cx="432" cy="48" r="3" fill="#ECFDF5" />
+              <rect x="176" y="42" width="264" height="12" rx="3" fill="#10B981" />
+              <circle className="vs-live-dot" cx="432" cy="48" r="3" fill="#FFFFFF" />
             </svg>
 
             <div style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>

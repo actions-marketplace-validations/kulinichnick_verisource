@@ -45,7 +45,7 @@ export function HeroSignalSchematic(): React.ReactElement {
           </span>
         </div>
 
-        <div style={{ padding: '14px 12px 10px 12px', background: 'var(--vs-surface)' }}>
+        <div style={{ padding: '14px 12px 10px 12px', background: '#FFFFFF' }}>
           {/* Desktop & Tablet Landscape Schematic (> 640px) */}
           <svg
             className="vs-schematic-desktop"

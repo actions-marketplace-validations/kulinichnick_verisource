@@ -228,7 +228,7 @@ export function PricingRoiCalculatorClient(props: {
           padding: '10px 14px',
           borderRadius: '8px',
           border: '1px solid var(--vs-border)',
-          background: 'var(--vs-surface-warm)',
+          background: 'var(--vs-terminal)',
         }}
       >
         <svg
@@ -240,7 +240,7 @@ export function PricingRoiCalculatorClient(props: {
           <text
             x="8"
             y="22"
-            fill="#686D78"
+            fill="#EEF1F6"
             fontSize="10"
             fontFamily="var(--vs-mono)"
             fontWeight="600"
@@ -253,12 +253,12 @@ export function PricingRoiCalculatorClient(props: {
             width={orgBarWidth}
             height="13"
             rx="4"
-            fill="#CFCBC0"
+            fill="#94A3B8"
           />
           <text
             x={256 + orgBarWidth}
             y="21.5"
-            fill="#686D78"
+            fill="#B4BCC9"
             fontSize="9.5"
             fontFamily="var(--vs-mono)"
           >
@@ -268,7 +268,7 @@ export function PricingRoiCalculatorClient(props: {
           <text
             x="8"
             y="48"
-            fill="#065F46"
+            fill="#6EE7B7"
             fontSize="10"
             fontFamily="var(--vs-mono)"
             fontWeight="700"
@@ -281,19 +281,19 @@ export function PricingRoiCalculatorClient(props: {
             width={aiBarWidth}
             height="13"
             rx="4"
-            fill="#059669"
+            fill="#10B981"
           />
           <circle
             className="vs-live-dot"
             cx={248 + aiBarWidth - 6}
             cy="43.5"
             r="3"
-            fill="#ECFDF5"
+            fill="#FFFFFF"
           />
           <text
             x={256 + aiBarWidth}
             y="47.5"
-            fill="#065F46"
+            fill="#6EE7B7"
             fontSize="9.8"
             fontFamily="var(--vs-mono)"
             fontWeight="700"

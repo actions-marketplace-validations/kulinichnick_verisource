@@ -47,7 +47,7 @@ export function McpStreamSchematic(): React.ReactElement {
         <div
           style={{
             padding: '14px 12px 10px 12px',
-            background: 'var(--vs-surface)',
+            background: '#FFFFFF',
           }}
         >
           {/* Desktop & Tablet Landscape Schematic (> 640px) */}

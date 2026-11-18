@@ -1,7 +1,27 @@
 {
   "name": "@verisource/cli",
   "version": "1.0.0",
+  "description": "Local-first AI Search GEO readiness scanner, 20-page link health crawler, codebase route mapper, and deterministic browser workflow verifier.",
+  "license": "MIT",
   "type": "module",
+  "homepage": "https://verisource.dev/features",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kulinichnick/verisource.git",
+    "directory": "packages/cli"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "!dist/*.test.*",
+    "README.md"
+  ],
   "bin": {
     "verisource": "./dist/bin.js"
   },
@@ -15,15 +35,22 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
-    "test": "tsc && node --test dist/cli.test.js",
-    "clean": "rm -rf dist"
+    "build": "tsc && node scripts/bundle.mjs",
+    "test": "tsc && node scripts/bundle.mjs && node --test dist/cli.test.js",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\""
   },
-  "dependencies": {
-    "@verisource/core-geo": "workspace:*"
+  "peerDependencies": {
+    "playwright": ">=1.40.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
+    "@verisource/core-geo": "workspace:*",
+    "esbuild": "0.25.12",
     "typescript": "^5.7.3"
   }
 }

@@ -559,14 +559,14 @@ export default function App(): React.ReactElement {
             aria-hidden="true"
             style={{ flexShrink: 0 }}
           >
-            <rect width="20" height="20" rx="4.5" fill="#0A0E17" />
+            <rect width="20" height="20" rx="4.5" fill="#E5A93C" />
             <path
               d="M10 4.5L15.5 10L10 15.5L4.5 10L10 4.5Z"
               fill="none"
-              stroke="#FFFFFF"
-              strokeWidth="1.6"
+              stroke="#161004"
+              strokeWidth="1.7"
             />
-            <circle className="vs-live-dot" cx="10" cy="10" r="1.9" fill="#34D399" />
+            <circle className="vs-live-dot" cx="10" cy="10" r="1.9" fill="#161004" />
           </svg>
           <span
             className="vs-mono"

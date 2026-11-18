@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Specification
 
 Canonical Origin: https://verisource.dev
+11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
+Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
+Standalone npm CLI Binary: npx @verisource/cli
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
 GEO Platform Comparisons: https://verisource.dev/compare (https://verisource.dev/compare/profound-alternative, https://verisource.dev/compare/otterly-ai-alternative, https://verisource.dev/compare/peec-ai-alternative, https://verisource.dev/compare/athenahq-alternative, https://verisource.dev/compare/scrunch-ai-alternative)
 Engineering & CMS Protocol Guides: https://verisource.dev/guides/shopify-agents-md-ucp-mcp, https://verisource.dev/guides/llms-txt-and-agents-md-setup, https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search
@@ -66,6 +69,17 @@ Verisource fingerprints \`shopify\`, \`wordpress\`, \`webflow\`, \`wix\`, \`squa
 
 - Plans: \`$19\` One-Time Audit Pass (zero recurring billing; 100% credited toward any monthly subscription within 7 days), \`$49/mo\` Starter Brand (includes 7-day free trial on first monthly signup), \`$99/mo\` Pro + MCP (includes 7-day free trial with \`150\` starter \`/mcp\` credits, stepping up to \`1,000\` credits/mo upon first paid invoice), \`$249/mo\` Agency White-Label (\`5,000\` credits/mo).
 - Exclusions: Verisource does NOT sell legacy backlink-farm packages, does NOT expose deprecated \`/sse\` MCP transports, and does NOT collect cross-site browsing history in its Manifest V3 Chrome Extension.
+
+## 6. Local-First CLI, Browser Flow Verifier & Agent Skill Installer (\`@verisource/cli\`)
+
+Coding agents and CI pipelines can invoke \`npx @verisource/cli\` directly on Node.js 20+ with zero runtime sub-dependencies:
+- \`npx @verisource/cli scan <url> [--json]\` — Audits AI crawler WAF access, \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, \`/ai-facts\`, and 20-page link health (\`VerisourceScan/1.0\`), storing compact handles (\`[h1]\`, \`[b1]\`, \`[l1]\`, \`[a1]\`, \`[n1]\`, \`[g1]\`) in \`.verisource/last-run.json\`.
+- \`npx @verisource/cli verify <url> [--init] [--json]\` — Evaluates live thresholds in \`.verisource/checks.json\` with deterministic exit codes (\`0\` pass, \`1\` policy failure, \`2\` invalid input or network failure).
+- \`npx @verisource/cli show <handle>\` & \`npx @verisource/cli query "<text>"\` — Drills into a single stored finding handle without flooding agent context windows.
+- \`npx @verisource/cli map [url | ./dir] [--diff]\` — Maps live domain routes or static Next.js / React routes, API endpoints, and \`application/ld+json\` emitters.
+- \`npx @verisource/cli browse <open|click|save>\`, \`record <name> <url>\`, \`run [name] [--headed]\` & \`workflow check\` — Captures and replays deterministic \`.verisource/workflows/*.json\` suites with zero LLM calls.
+- \`npx @verisource/cli log <vercel|supabase|cloudflare>\` — Correlates recent 5-minute backend error logs with browser and HTTP failures.
+- \`npx @verisource/cli agent --skill --install <claude|cursor|codex|antigravity|all>\` — Writes compact workspace agent instructions.
 `;
 
 export async function GET(): Promise<NextResponse> {

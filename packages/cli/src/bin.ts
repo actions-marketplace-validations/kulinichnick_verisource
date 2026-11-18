@@ -1,6 +1,6 @@
-#!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   crawlDomainSiteHealth,
   runDomainReadinessScan,
@@ -468,11 +468,19 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
   }
 }
 
-const isDirectExecution =
-  process.argv[1] &&
-  path.resolve(process.argv[1]).endsWith(path.join('dist', 'bin.js'));
+function checkIsDirectExecution(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    return (
+      fs.realpathSync(process.argv[1]) ===
+      fs.realpathSync(fileURLToPath(import.meta.url))
+    );
+  } catch {
+    return path.resolve(process.argv[1]).endsWith(path.join('dist', 'bin.js'));
+  }
+}
 
-if (isDirectExecution) {
+if (checkIsDirectExecution()) {
   runCli(process.argv).then((code) => {
     process.exitCode = code;
   });
