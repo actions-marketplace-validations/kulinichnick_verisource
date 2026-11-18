@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="vsBrassTile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ECC968"/>
+      <stop offset="14%" stop-color="#E5A93C"/>
+      <stop offset="100%" stop-color="#D89A2B"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="960" height="960" rx="228" fill="url(#vsBrassTile)"/>
+  <rect x="36" y="36" width="952" height="952" rx="224" fill="none" stroke="#FFFFFF" stroke-opacity="0.32" stroke-width="8"/>
+  <g transform="translate(512 512) rotate(45)">
+    <rect x="-186" y="-186" width="372" height="372" rx="10" fill="none" stroke="#161004" stroke-width="86" stroke-linejoin="round"/>
+  </g>
+</svg>

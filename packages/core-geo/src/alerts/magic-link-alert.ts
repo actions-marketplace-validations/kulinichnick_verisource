@@ -73,32 +73,33 @@ export function buildMagicLinkSignInAlert(
 
   const html = `<!doctype html>
 <html lang="en">
-  <body style="margin:0;padding:28px 16px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0A0E17;">
-    <div style="max-width:540px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-      <div style="padding:18px 24px;border-bottom:1px solid #E5E2DA;background:#F4F2EC;">
-        <div style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;font-weight:700;letter-spacing:0.06em;color:#525866;">
-          VERISOURCE · 1-CLICK CONSOLE SIGN-IN
-        </div>
+  <body style="margin:0;padding:28px 16px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0F172A;">
+    <div style="max-width:540px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+      <div style="padding:15px 22px;border-bottom:1px solid #262E3D;background:#131720;">
+        <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>
+        <span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;letter-spacing:0.05em;color:#EEF1F6;vertical-align:middle;">
+          VERISOURCE &middot; 1-CLICK CONSOLE SIGN-IN
+        </span>
       </div>
       <div style="padding:24px;">
-        <h1 style="margin:0 0 10px 0;font-size:20px;line-height:1.25;color:#0A0E17;">
+        <h1 style="margin:0 0 10px 0;font-size:20px;line-height:1.25;color:#0F172A;">
           Open your Verisource Console workspace
         </h1>
-        <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;color:#383E4C;">
+        <p style="margin:0 0 20px 0;font-size:14px;line-height:1.6;color:#334155;">
           Click the button below to sign in as <strong>${safeEmail}</strong> on ${safeOrigin}. This single-use link expires automatically after use.
         </p>
         <div style="margin:0 0 22px 0;">
-          <a href="${safeLink}" style="display:inline-block;padding:12px 20px;background:#0A0E17;color:#FFFFFF;text-decoration:none;font-size:14px;font-weight:600;border-radius:6px;">
-            Sign In to Console →
+          <a href="${safeLink}" style="display:inline-block;padding:12px 20px;background:#E5A93C;color:#161004;text-decoration:none;font-size:14px;font-weight:700;border-radius:6px;">
+            Sign In to Console &rarr;
           </a>
         </div>
-        <p style="margin:0 0 8px 0;font-size:12px;line-height:1.5;color:#666D7C;">
+        <p style="margin:0 0 8px 0;font-size:12px;line-height:1.5;color:#64748B;">
           Or paste this direct URL into your browser:
         </p>
-        <div style="padding:10px 12px;background:#FAF9F6;border:1px solid #E5E2DA;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;word-break:break-all;color:#383E4C;">
+        <div style="padding:10px 12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;word-break:break-all;color:#334155;">
           ${safeLink}
         </div>
-        <p style="margin:18px 0 0 0;font-size:12px;line-height:1.5;color:#666D7C;">
+        <p style="margin:18px 0 0 0;font-size:12px;line-height:1.5;color:#64748B;">
           If you did not request this email, you can safely ignore it.
         </p>
       </div>

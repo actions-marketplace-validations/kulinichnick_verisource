@@ -233,30 +233,30 @@ export function buildTrialActivationNudgeAlert(
 
     const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; 7-DAY FREE TRIAL QUICKSTART (NO CODING NEEDED)
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE &middot; 7-DAY FREE TRIAL QUICKSTART (NO CODING NEEDED)
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 10px 0;font-size:20px;color:#0A0E17;">${
+      <h2 style="margin:0 0 10px 0;font-size:20px;color:#0F172A;">${
         hostname
           ? `Let your AI fix ${escapeHtml(hostname)} in 5 minutes`
           : 'Scan your site & copy your 1-Click AI Fix Prompt'
       }</h2>
-      <p style="margin:0 0 14px 0;font-size:14px;line-height:1.58;color:#2E3440;">
+      <p style="margin:0 0 14px 0;font-size:14px;line-height:1.58;color:#334155;">
         ${escapeHtml(leadLine)}
       </p>
-      <div style="padding:14px 16px;background:#F7F5EF;border:1px solid #E5E2DA;border-radius:6px;margin-bottom:16px;font-size:13.5px;line-height:1.58;color:#0A0E17;">
+      <div style="padding:14px 16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:16px;font-size:13.5px;line-height:1.58;color:#0F172A;">
         <strong>3-Step Shortcut (Zero Manual Coding):</strong><br/>
         1. Open <strong>Step 02</strong> and choose your AI tool (ChatGPT, Claude, Antigravity, Cursor, or Shopify).<br/>
         2. Click <strong>Copy Prompt for My AI</strong> and paste that single prompt into your AI.<br/>
         3. Click <strong>Verify Live Fixes</strong> to confirm your higher AI Visibility Score.
       </div>
-      <a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:11px 18px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:600;margin-bottom:14px;">
+      <a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:11px 18px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:700;margin-bottom:14px;">
         Open Step 02 &amp; Copy My AI Fix Prompt &rarr;
       </a>
-      <p style="margin:0;font-size:12px;line-height:1.5;color:#686D78;">
+      <p style="margin:0;font-size:12px;line-height:1.5;color:#64748B;">
         ${escapeHtml(trialFooter)}
       </p>
     </div>
@@ -311,29 +311,29 @@ export function buildTrialActivationNudgeAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; DAY-5 TRIAL PROGRESS &amp; PRE-RENEWAL SUMMARY
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE &middot; DAY-5 TRIAL PROGRESS &amp; PRE-RENEWAL SUMMARY
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 10px 0;font-size:20px;color:#0A0E17;">${
+      <h2 style="margin:0 0 10px 0;font-size:20px;color:#0F172A;">${
         hostname
           ? hasProgress
             ? `Your ${escapeHtml(hostname)} AI readiness progress`
             : `2 days left: publish your ${escapeHtml(hostname)} AI Fix Prompt`
           : 'Day-5 check-in on your 7-day free trial'
       }</h2>
-      <p style="margin:0 0 12px 0;font-size:14px;line-height:1.58;color:#2E3440;">
+      <p style="margin:0 0 12px 0;font-size:14px;line-height:1.58;color:#334155;">
         ${escapeHtml(statusParagraph)}
       </p>
-      <div style="padding:14px 16px;background:#F7F5EF;border:1px solid #E5E2DA;border-radius:6px;margin-bottom:16px;font-size:13.5px;line-height:1.58;color:#0A0E17;">
+      <div style="padding:14px 16px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:16px;font-size:13.5px;line-height:1.58;color:#0F172A;">
         ${escapeHtml(nextWinParagraph)}
       </div>
-      <a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:11px 18px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:600;margin-bottom:14px;">
+      <a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:11px 18px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:700;margin-bottom:14px;">
         ${hasProgress ? 'Open Step 02 & Build vs. Competitor Page' : 'Open Step 02 & Copy My AI Fix Prompt'} &rarr;
       </a>
-      <p style="margin:0;font-size:12px;line-height:1.5;color:#686D78;">
+      <p style="margin:0;font-size:12px;line-height:1.5;color:#64748B;">
         ${escapeHtml(renewalClarity)}
       </p>
     </div>

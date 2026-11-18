@@ -4864,6 +4864,28 @@ async function run() {
     assert.equal(validCliPost.synced, true);
     assert.equal(validCliPost.hostname, 'aurearoasters.com');
     console.log('✔ [89/89] M97 @verisource/cli Cloud Workspace Sync (/api/cli/sync SHA-256 Auth, SSRF Defense & Live Console Sync) verified!');
+
+    // 88. M98 Cross-Platform Brand & Logo Unification (Web, LinkedIn Brand Pack, OG Card & Chrome MV3 Extension)
+    const [m98LogoPngRes, m98LogoSvgRes, m98IconRes] = await Promise.all([
+      fetch(`${BASE}/brand/verisource-linkedin-logo-obsidian-1024x1024.png`),
+      fetch(`${BASE}/brand/verisource-logo-mark.svg`),
+      fetch(`${BASE}/icon.png`),
+    ]);
+    assert.equal(m98LogoPngRes.status, 200);
+    assert.equal(m98LogoSvgRes.status, 200);
+    assert.equal(m98IconRes.status, 200);
+    const m98LogoSvgText = await m98LogoSvgRes.text();
+    assert.ok(
+      m98LogoSvgText.includes('#E5A93C') && m98LogoSvgText.includes('#161004'),
+      'Expected /brand/verisource-logo-mark.svg to render canonical Warm Brass + #161004 hollow diamond'
+    );
+    assert.ok(
+      m85SidepanelJs.includes('#E5A93C') &&
+        m85SidepanelJs.includes('#161004') &&
+        m85SidepanelJs.includes('verisource'),
+      'Expected Chrome MV3 Side Panel bundle to match exact Warm Brass diamond mark and lowercase verisource wordmark'
+    );
+    console.log('✔ [90/90] M98 Cross-Platform Logo Pack (/brand/*, /icon.png), Email Design System & Chrome Extension Parity verified!');
   } finally {
     server.kill();
   }

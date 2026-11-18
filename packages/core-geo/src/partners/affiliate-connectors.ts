@@ -178,16 +178,22 @@ export function buildPartnerOnboardingAlert(input: {
   const quality = enforceQualityGate95(rawBody, 'agents_md');
   const subject = `[Partner Active] Your Verisource 25% recurring link (/r/${safeSlug})`;
 
-  const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;max-width:620px;line-height:1.6;border:1px solid #E2E8F0;padding:24px;border-radius:8px;">
-  <div style="font-family:monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#475569;margin-bottom:8px;">VERISOURCE PARTNER ENGINE · 25% RECURRING</div>
-  <h2 style="margin:0 0 12px 0;font-size:20px;">Partner code <code>${escapeHtml(safeSlug)}</code> is ready, ${escapeHtml(input.partnerName.trim())}.</h2>
-  <p style="margin:0 0 14px 0;font-size:14px;color:#334155;">Visitors clicking any link below receive a 90-day <code>vs_ref</code> cookie carried into Stripe Checkout metadata across Starter (<code>$49/mo</code>), Pro + MCP (<code>$99/mo</code>), and Agency White-Label (<code>$249/mo</code>).</p>
-  <ul style="margin:0 0 16px 0;padding-left:18px;font-size:13.5px;color:#0F172A;">
-    <li><strong>Shortlink:</strong> <a href="${escapeHtml(referralShortUrl)}">${escapeHtml(referralShortUrl)}</a></li>
-    <li><strong>2026 HTTP Benchmark Study:</strong> <a href="${escapeHtml(benchmarkRefUrl)}">${escapeHtml(benchmarkRefUrl)}</a></li>
-    <li><strong>Free Protocol Validators:</strong> <a href="${escapeHtml(toolsRefUrl)}">${escapeHtml(toolsRefUrl)}</a></li>
-  </ul>
-  <p style="margin:0;font-size:12.5px;color:#64748B;">Channel on file: ${escapeHtml(input.channelUrl.trim())}</p>
+  const html = `<div style="background:#0E1116;padding:22px;border-radius:10px;">
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;max-width:620px;margin:0 auto;background:#FFFFFF;line-height:1.6;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;font-family:monospace;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#EEF1F6;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE PARTNER ENGINE &middot; 25% RECURRING
+    </div>
+    <div style="padding:22px 20px;">
+      <h2 style="margin:0 0 12px 0;font-size:20px;color:#0F172A;">Partner code <code>${escapeHtml(safeSlug)}</code> is ready, ${escapeHtml(input.partnerName.trim())}.</h2>
+      <p style="margin:0 0 14px 0;font-size:14px;color:#334155;">Visitors clicking any link below receive a 90-day <code>vs_ref</code> cookie carried into Stripe Checkout metadata across Starter (<code>$49/mo</code>), Pro + MCP (<code>$99/mo</code>), and Agency White-Label (<code>$249/mo</code>).</p>
+      <ul style="margin:0 0 16px 0;padding-left:18px;font-size:13.5px;color:#0F172A;">
+        <li><strong>Shortlink:</strong> <a href="${escapeHtml(referralShortUrl)}" style="color:#0F172A;font-weight:600;">${escapeHtml(referralShortUrl)}</a></li>
+        <li><strong>2026 HTTP Benchmark Study:</strong> <a href="${escapeHtml(benchmarkRefUrl)}" style="color:#0F172A;font-weight:600;">${escapeHtml(benchmarkRefUrl)}</a></li>
+        <li><strong>Free Protocol Validators:</strong> <a href="${escapeHtml(toolsRefUrl)}" style="color:#0F172A;font-weight:600;">${escapeHtml(toolsRefUrl)}</a></li>
+      </ul>
+      <p style="margin:0;font-size:12.5px;color:#64748B;">Channel on file: ${escapeHtml(input.channelUrl.trim())}</p>
+    </div>
+  </div>
 </div>`;
 
   return {
@@ -295,9 +301,15 @@ export function buildAffiliateConversionAlert(input: {
     ? `[Partner Trial Started] /r/${safeSlug} -> ${input.planTier}`
     : `[Partner Commission $${commissionUsd.toFixed(2)}] /r/${safeSlug} -> ${input.planTier}`;
 
-  const html = `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;max-width:600px;border:1px solid #E2E8F0;padding:20px;border-radius:8px;">
-  <strong style="font-size:15px;">${escapeHtml(subject)}</strong>
-  <p style="font-size:13.5px;color:#334155;margin:10px 0;">Gross: <code>$${grossAmountUsd.toFixed(2)} USD</code> · 25% Partner Share: <code>$${commissionUsd.toFixed(2)} USD</code> · Plan: <code>${escapeHtml(input.planTier)}</code> (${escapeHtml(input.billingCycle)})</p>
+  const html = `<div style="background:#0E1116;padding:18px;border-radius:10px;">
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;max-width:600px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:12px 18px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-family:monospace;font-size:11.5px;font-weight:700;">
+      <span style="display:inline-block;width:13px;height:13px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:13px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>${escapeHtml(subject)}
+    </div>
+    <div style="padding:18px;">
+      <p style="font-size:13.5px;color:#334155;margin:0;">Gross: <code>$${grossAmountUsd.toFixed(2)} USD</code> &middot; 25% Partner Share: <code>$${commissionUsd.toFixed(2)} USD</code> &middot; Plan: <code>${escapeHtml(input.planTier)}</code> (${escapeHtml(input.billingCycle)})</p>
+    </div>
+  </div>
 </div>`;
 
   return {

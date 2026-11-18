@@ -33,19 +33,28 @@ export default function OpenGraphImage(): ImageResponse {
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div
               style={{
-                width: '30px',
-                height: '30px',
+                width: '32px',
+                height: '32px',
                 backgroundColor: '#E5A93C',
-                borderRadius: '6px',
+                borderRadius: '7px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#161004',
-                fontSize: '17px',
-                fontWeight: 700,
               }}
             >
-              V
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  d="M10 3.2L16.8 10L10 16.8L3.2 10L10 3.2Z"
+                  fill="none"
+                  stroke="#161004"
+                  strokeWidth="2.4"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </div>
             <span
               style={{

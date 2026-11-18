@@ -551,32 +551,39 @@ export default function App(): React.ReactElement {
           borderBottom: '1px solid var(--vs-border)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-            style={{ flexShrink: 0 }}
-          >
-            <rect width="20" height="20" rx="4.5" fill="#E5A93C" />
-            <path
-              d="M10 4.5L15.5 10L10 15.5L4.5 10L10 4.5Z"
-              fill="none"
-              stroke="#161004"
-              strokeWidth="1.7"
-            />
-            <circle className="vs-live-dot" cx="10" cy="10" r="1.9" fill="#161004" />
-          </svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
-            className="vs-mono"
+            aria-hidden="true"
             style={{
-              fontWeight: 700,
-              fontSize: '12.5px',
-              letterSpacing: '-0.02em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '20px',
+              height: '20px',
+              background: '#E5A93C',
+              borderRadius: '5px',
+              flexShrink: 0,
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.35)',
             }}
           >
-            VERISOURCE
+            <span
+              style={{
+                width: '6.5px',
+                height: '6.5px',
+                transform: 'rotate(45deg)',
+                border: '1.8px solid #161004',
+              }}
+            />
+          </span>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: '14.5px',
+              letterSpacing: '-0.03em',
+              color: 'var(--vs-ink)',
+            }}
+          >
+            verisource
           </span>
           <UxModeSwitch mode={uxMode} onChange={handleChangeUxMode} compact />
         </div>

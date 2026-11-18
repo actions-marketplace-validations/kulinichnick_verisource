@@ -129,24 +129,24 @@ export function buildPostPurchaseWelcomeAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; ${escapeHtml(headerBadgeLabel)}
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE &middot; ${escapeHtml(headerBadgeLabel)}
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 8px 0;font-size:20px;">${
+      <h2 style="margin:0 0 8px 0;font-size:20px;color:#0F172A;">${
         cleanDomain
           ? `Your ${escapeHtml(cleanDomain)} Fix Bundle is ready`
           : 'Your Verisource workspace is live'
       }</h2>
-      <p style="margin:0 0 14px 0;font-size:14px;line-height:1.55;color:#2E3440;">
+      <p style="margin:0 0 14px 0;font-size:14px;line-height:1.55;color:#334155;">
         ${escapeHtml(secondParagraph)}
       </p>
-      <div style="padding:12px 14px;background:#F4F2EC;border:1px solid #E5E2DA;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0A0E17;">
+      <div style="padding:12px 14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0F172A;">
         ${escapeHtml(thirdParagraph)}
       </div>
-      <a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:11px 18px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:600;">
+      <a href="${escapeHtml(actionUrl)}" style="display:inline-block;padding:11px 18px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:700;">
         ${input.magicLinkUrl ? 'One-Click Sign In & Open Tab 2 Fixes' : 'Open Tab 2 Fix Bundle'} &rarr;
       </a>
     </div>

@@ -99,7 +99,7 @@ export function buildFreeAuditSummaryAlert(
   )}&env=${encodeURIComponent(resolvedEnv)}`;
   const auditReplayUrl = `${origin}/?domain=${encodeURIComponent(
     summary.hostname
-  )}#grader`;
+  )}#scan`;
 
   const subject = `AI Search Audit & Action Plan: ${summary.hostname} (${summary.visibilityScore}/100 Visibility)`;
 
@@ -144,37 +144,37 @@ export function buildFreeAuditSummaryAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; FREE AI SEARCH AUDIT &amp; ACTION PLAN
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE &middot; FREE AI SEARCH AUDIT &amp; ACTION PLAN
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 8px 0;font-size:20px;color:#0A0E17;">
+      <h2 style="margin:0 0 8px 0;font-size:20px;color:#0F172A;">
         ${escapeHtml(summary.brandName)} (${escapeHtml(summary.hostname)}) &mdash; ${summary.visibilityScore}/100 AI Visibility
       </h2>
-      <p style="margin:0 0 14px 0;font-size:13.5px;line-height:1.58;color:#3A3F4B;">
+      <p style="margin:0 0 14px 0;font-size:13.5px;line-height:1.58;color:#334155;">
         ${escapeHtml(leadParagraph)}
       </p>
       <div style="margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#686D78;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#64748B;margin-bottom:8px;">
           WHAT TO FIX FIRST ON ${escapeHtml(summary.hostname.toUpperCase())}
         </div>
         ${htmlIssues}
       </div>
-      <p style="margin:0 0 14px 0;font-size:13.5px;line-height:1.58;color:#0A0E17;">
+      <p style="margin:0 0 14px 0;font-size:13.5px;line-height:1.58;color:#0F172A;">
         ${escapeHtml(desktopNextStep)}
       </p>
       <div style="margin-bottom:16px;">
-        <a href="${escapeHtml(trialUrl)}" style="display:inline-block;padding:11px 18px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:600;margin-right:8px;margin-bottom:8px;">
+        <a href="${escapeHtml(trialUrl)}" style="display:inline-block;padding:11px 18px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:700;margin-right:8px;margin-bottom:8px;">
           Start 7-Day Free Trial &amp; Copy AI Prompt ($0 Today) &rarr;
         </a>
-        <a href="${escapeHtml(passUrl)}" style="display:inline-block;padding:10px 15px;background:#FFFFFF;color:#0A0E17;border:1px solid #CFCBC0;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;margin-bottom:8px;">
+        <a href="${escapeHtml(passUrl)}" style="display:inline-block;padding:10px 15px;background:#FFFFFF;color:#0F172A;border:1px solid #CBD5E1;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;margin-bottom:8px;">
           Or $19 One-Time Audit Pass
         </a>
       </div>
-      <p style="margin:0;font-size:12px;line-height:1.5;color:#686D78;">
-        <a href="${escapeHtml(auditReplayUrl)}" style="color:#0A0E17;">Re-open live scan summary</a> &middot; ${escapeHtml(footerNote)}
+      <p style="margin:0;font-size:12px;line-height:1.5;color:#64748B;">
+        <a href="${escapeHtml(auditReplayUrl)}" style="color:#0F172A;font-weight:600;">Re-open live scan summary</a> &middot; ${escapeHtml(footerNote)}
       </p>
     </div>
   </div>

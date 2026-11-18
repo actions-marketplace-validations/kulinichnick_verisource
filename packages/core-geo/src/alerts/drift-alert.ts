@@ -320,13 +320,13 @@ export function buildHallucinationDriftAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#F8FAFC;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
-  <div style="max-width:640px;margin:0 auto;background:#FFFFFF;border:1px solid #CBD5E1;border-radius:6px;overflow:hidden;">
-    <div style="padding:16px 20px;background:#0F172A;color:#FFFFFF;font-size:13px;font-weight:700;letter-spacing:0.03em;">
-      VERISOURCE · HALLUCINATION DRIFT WATCHDOG
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:640px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:15px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12.5px;font-weight:700;letter-spacing:0.04em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE · HALLUCINATION DRIFT WATCHDOG
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 8px 0;font-size:20px;">${escapeHtml(input.brandName)} (${escapeHtml(hostname)})</h2>
+      <h2 style="margin:0 0 8px 0;font-size:20px;color:#0F172A;">${escapeHtml(input.brandName)} (${escapeHtml(hostname)})</h2>
       <p style="margin:0 0 16px 0;font-size:14px;color:#475569;">
         AI Share-of-Voice: <strong>${input.visibilityScore}/100</strong> &middot; Brand Truth Accuracy: <strong>${input.accuracyScore}%</strong>
       </p>
@@ -343,7 +343,7 @@ export function buildHallucinationDriftAlert(
       <p style="margin:0 0 18px 0;font-size:12.5px;color:#475569;font-family:monospace;">
         ${escapeHtml(botLine)}
       </p>
-      <a href="${escapeHtml(consoleLink)}" style="display:inline-block;padding:10px 16px;background:#0F172A;color:#FFFFFF;text-decoration:none;border-radius:5px;font-size:13px;font-weight:600;">
+      <a href="${escapeHtml(consoleLink)}" style="display:inline-block;padding:11px 18px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13.5px;font-weight:700;">
         Open 3-Tab Remediation Console &rarr;
       </a>
     </div>

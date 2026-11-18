@@ -426,8 +426,14 @@ async function main() {
       const firstName = agency.contactName.split(/\s+/)[0];
       const pillars = countJsonLdPillars(summary);
       const primaryShareUrl = mintedBrief?.briefUrl ?? sandboxUrl;
+      const agentsLabel =
+        summary.agentsMdStatus === 'custom_enriched'
+          ? 'verified'
+          : summary.agentsMdStatus === 'default_boilerplate'
+            ? 'boilerplate'
+            : 'missing';
       const linkedinDm = enforceQualityGate95(
-        `Hi ${firstName} — checked ${summary.hostname} (${pillars}/3 JSON-LD, /agents.md ${summary.agentsMdStatus}). White-label brief: ${primaryShareUrl}`
+        `Hi ${firstName} — checked ${summary.hostname} (${pillars}/3 JSON-LD, /agents.md ${agentsLabel}). White-label brief: ${primaryShareUrl}`
       ).content;
 
       if (!dryRun) {

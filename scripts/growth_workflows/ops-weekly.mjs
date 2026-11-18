@@ -108,7 +108,7 @@ function renderSvgToPngIfAvailable(svgContent, relPngPath) {
   try {
     fs.writeFileSync(
       tmpHtml,
-      `<!doctype html><html><body style="margin:0;padding:0;overflow:hidden;width:1200px;height:628px;background:#F1F5F9;">${svgContent}</body></html>`,
+      `<!doctype html><html><body style="margin:0;padding:0;overflow:hidden;width:1200px;height:628px;background:#0E1116;">${svgContent}</body></html>`,
       'utf8'
     );
     execFileSync(chromeBin, [
@@ -168,28 +168,29 @@ function buildTeardownComparisonSvg({
     </clipPath>
   </defs>
 
-  <rect width="1200" height="628" fill="#F1F5F9"/>
+  <rect width="1200" height="628" fill="#0E1116"/>
 
   <g clip-path="url(#vsCardClip)">
-    <rect x="36" y="28" width="1128" height="572" fill="#FFFFFF"/>
+    <rect x="36" y="28" width="1128" height="572" fill="#131720"/>
 
-    <!-- Top Masthead -->
-    <rect x="36" y="28" width="1128" height="60" fill="#0A0E17"/>
+    <!-- Top Obsidian Masthead with Canonical Warm Brass Diamond Mark -->
+    <rect x="36" y="28" width="1128" height="62" fill="#090B0E"/>
+    <line x1="36" y1="90" x2="1164" y2="90" stroke="#262E3D" stroke-width="1"/>
     <g transform="translate(68, 48)">
-      <rect width="20" height="20" rx="4.5" fill="#1E293B"/>
-      <path d="M10 4.5L15.5 10L10 15.5L4.5 10L10 4.5Z" fill="none" stroke="#FFFFFF" stroke-width="1.6"/>
-      <circle cx="10" cy="10" r="2" fill="#34D399"/>
+      <rect width="22" height="22" rx="5" fill="#E5A93C"/>
+      <path d="M11 4.8L17.2 11L11 17.2L4.8 11L11 4.8Z" fill="none" stroke="#161004" stroke-width="2" stroke-linejoin="round"/>
     </g>
-    <text x="98" y="63" fill="#FFFFFF" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14.5" font-weight="700" letter-spacing="0.02em">VERISOURCE · LIVE AI CITATION &amp; PROTOCOL TEARDOWN</text>
-    <text x="1132" y="63" text-anchor="end" fill="#34D399" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700">PLATFORM: ${escapeXml(platformLabel.toUpperCase())}</text>
+    <text x="100" y="64" fill="#EEF1F6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="16" font-weight="700" letter-spacing="-0.02em">verisource</text>
+    <text x="192" y="64" fill="#848E9F" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="600">· LIVE AI CITATION &amp; PROTOCOL TEARDOWN</text>
+    <text x="1132" y="64" text-anchor="end" fill="#E5A93C" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" font-weight="700">PLATFORM: ${escapeXml(platformLabel.toUpperCase())}</text>
 
-    <!-- Title & Score Badge Row (32px side margins: x=68 to x=1132) -->
-    <text x="68" y="136" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="29" font-weight="800">${escapeXml(brandName)} <tspan fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" font-weight="600">(${escapeXml(domain)})</tspan></text>
+    <!-- Title & Warm Brass Readiness Badge Row -->
+    <text x="68" y="138" fill="#EEF1F6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="29" font-weight="800">${escapeXml(brandName)} <tspan fill="#B4BCC9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="19" font-weight="600">(${escapeXml(domain)})</tspan></text>
 
-    <rect x="908" y="106" width="224" height="42" rx="7" fill="#FFFBEB" stroke="#FDE68A" stroke-width="1.5"/>
-    <text x="1020" y="132" text-anchor="middle" fill="#B45309" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" font-weight="700">READINESS: ${readinessScore}/100</text>
+    <rect x="904" y="108" width="228" height="42" rx="7" fill="#171C26" stroke="#E5A93C" stroke-width="1.5"/>
+    <text x="1018" y="134" text-anchor="middle" fill="#E5A93C" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15.5" font-weight="700">READINESS: ${readinessScore}/100</text>
 
-    <!-- Left Column: x=68, width=516 (inner x=92..560 = 468px) -->
+    <!-- Left Light-in-Dark Stage: BEFORE -->
     <rect x="68" y="168" width="516" height="362" rx="8" fill="#FEF2F2" stroke="#FECACA" stroke-width="1.5"/>
     <text x="92" y="202" fill="#991B1B" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" letter-spacing="0.03em">BEFORE · LIVE CRAWLER &amp; CITATION GAP</text>
     ${leftHeadlineSvg}
@@ -200,7 +201,7 @@ function buildTeardownComparisonSvg({
     <rect x="92" y="472" width="468" height="36" rx="6" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="1"/>
     <text x="108" y="495" fill="#991B1B" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700">STATUS: AI FALLS BACK TO THIRD-PARTY REVIEW SITES</text>
 
-    <!-- Right Column: x=616, width=516 (32px center gutter, inner x=640..1108 = 468px) -->
+    <!-- Right Light-in-Dark Stage: AFTER -->
     <rect x="616" y="168" width="516" height="362" rx="8" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1.5"/>
     <text x="640" y="202" fill="#065F46" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5" font-weight="700" letter-spacing="0.03em">AFTER · VERIFIED 4/4 PROTOCOL BUNDLE</text>
     ${rightHeadlineSvg}
@@ -211,14 +212,14 @@ function buildTeardownComparisonSvg({
     <rect x="640" y="472" width="468" height="36" rx="6" fill="#D1FAE5" stroke="#6EE7B7" stroke-width="1"/>
     <text x="656" y="495" fill="#065F46" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12" font-weight="700">STATUS: 4/4 READY IN &lt; 10 MIN VIA 1-CLICK AI PROMPT</text>
 
-    <!-- Balanced Full-Width Footer Bar -->
-    <rect x="36" y="548" width="1128" height="52" fill="#F8FAFC"/>
-    <line x1="36" y1="548" x2="1164" y2="548" stroke="#E2E8F0" stroke-width="1"/>
-    <text x="68" y="579" fill="#0F172A" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700">Inspect any domain free -&gt; verisource.dev</text>
-    <text x="1132" y="579" text-anchor="end" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5">GPTBot · OAI-SearchBot · PerplexityBot · JSON-LD · /agents.md</text>
+    <!-- Obsidian Footer Bar -->
+    <rect x="36" y="548" width="1128" height="52" fill="#090B0E"/>
+    <line x1="36" y1="548" x2="1164" y2="548" stroke="#262E3D" stroke-width="1"/>
+    <text x="68" y="579" fill="#E5A93C" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13.5" font-weight="700">Scan any domain free -&gt; verisource.dev</text>
+    <text x="1132" y="579" text-anchor="end" fill="#848E9F" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="12.5">GPTBot · OAI-SearchBot · PerplexityBot · JSON-LD · /agents.md</text>
   </g>
 
-  <rect x="36" y="28" width="1128" height="572" rx="12" fill="none" stroke="#CBD5E1" stroke-width="1.5"/>
+  <rect x="36" y="28" width="1128" height="572" rx="12" fill="none" stroke="#262E3D" stroke-width="1.5"/>
 </svg>`;
 }
 

@@ -4769,3 +4769,135 @@ test('M96 Agency CSV Importer, Engagement Stage Classifier, Warm Reply, LinkedIn
   assert.ok(engagementCsv.includes(`"'=SUM(1,2) Linear"`));
   assert.ok(engagementCsv.includes('"CTA_CLICKED","4","1","2"'));
 });
+
+test('M98 Cross-Platform Brand Unification enforces Obsidian + Warm Brass (#E5A93C) across all Verisource HTML emails while preserving white-label isolation', async () => {
+  const sampleSummary = await runDomainReadinessScan(
+    'https://aurearoasters.com',
+    { PROVIDER_MODE: 'mock' }
+  );
+  const magic = buildMagicLinkSignInAlert({
+    recipientEmail: 'founder@acme.dev',
+    actionLink: 'https://verisource.dev/dashboard#token',
+  });
+  const freeAudit = buildFreeAuditSummaryAlert({ summary: sampleSummary });
+  const welcome = buildPostPurchaseWelcomeAlert({
+    planTier: 'pro_99',
+    targetDomain: 'acme.dev',
+    visibilityScore: 78,
+  });
+  const drift = buildHallucinationDriftAlert({
+    brandName: 'Acme',
+    domainUrl: 'https://acme.dev',
+    visibilityScore: 72,
+    accuracyScore: 95,
+    hallucinations: [],
+    blockedBots: [],
+  });
+  const open = buildProspectOpenAlert({
+    prospectBrandName: 'Acme',
+    prospectDomain: 'acme.dev',
+    shareSlug: 'acme-dev',
+    visibilityScore: 72,
+    hallucinationCount: 0,
+    viewsCount: 2,
+  });
+  const cta = buildProspectCtaClickAlert({
+    prospectBrandName: 'Acme',
+    prospectDomain: 'acme.dev',
+    shareSlug: 'acme-dev',
+    visibilityScore: 72,
+    hallucinationCount: 0,
+    viewsCount: 2,
+    ctaClicksCount: 1,
+  });
+  const pdf = buildProspectPdfExportAlert({
+    prospectBrandName: 'Acme',
+    prospectDomain: 'acme.dev',
+    shareSlug: 'acme-dev',
+    visibilityScore: 72,
+    hallucinationCount: 0,
+    viewsCount: 2,
+    pdfExportsCount: 1,
+  });
+  const trial3 = buildTrialActivationNudgeAlert({
+    stage: 'day3_copy_ai_prompt',
+    planTier: 'pro_99',
+    brandName: 'Acme',
+    domainUrl: 'https://acme.dev',
+    visibilityScore: 72,
+  });
+  const trial5 = buildTrialActivationNudgeAlert({
+    stage: 'day5_value_proof',
+    planTier: 'pro_99',
+    brandName: 'Acme',
+    domainUrl: 'https://acme.dev',
+    visibilityScore: 72,
+  });
+  const proWeekly = buildWeeklyExecutiveDigest({
+    brandName: 'Acme',
+    domainUrl: 'https://acme.dev',
+    visibilityScore: 80,
+    accuracyScore: 100,
+    enginesCitingCount: 3,
+    totalSnapshotsScanned: 3,
+    aiReferralVisits7d: 5,
+    aiReferralRevenueUsd7d: 99,
+    appliedFixesCount: 4,
+    totalFixesCount: 4,
+    activeHallucinationCount: 0,
+    blockedBots: [],
+  });
+  const partnerWelcome = buildPartnerOnboardingAlert({
+    partnerName: 'Alex',
+    partnerEmail: 'alex@acme.dev',
+    partnerSlug: 'alex-geo',
+    channelUrl: 'https://acme.dev',
+  });
+  const partnerCommission = buildAffiliateConversionAlert({
+    partnerSlug: 'alex-geo',
+    planTier: 'pro_99',
+    billingCycle: 'monthly',
+    grossAmountCents: 9900,
+  });
+
+  for (const [name, html] of [
+    ['magic', magic.html],
+    ['freeAudit', freeAudit.html],
+    ['welcome', welcome.html],
+    ['drift', drift.html],
+    ['open', open.html],
+    ['cta', cta.html],
+    ['pdf', pdf.html],
+    ['trial3', trial3.html],
+    ['trial5', trial5.html],
+    ['proWeekly', proWeekly.html],
+    ['partnerWelcome', partnerWelcome.html],
+    ['partnerCommission', partnerCommission.html],
+  ] as const) {
+    assert.ok(
+      html.includes('#0E1116') && html.includes('#131720') && html.includes('#E5A93C'),
+      `Expected ${name} HTML email to render Obsidian (#0E1116/#131720) & Warm Brass (#E5A93C) Studio design`
+    );
+  }
+  assert.ok(freeAudit.auditReplayUrl.endsWith('#scan'));
+
+  const whiteLabelWeekly = buildWeeklyExecutiveDigest({
+    brandName: 'Client Co',
+    domainUrl: 'https://client.co',
+    visibilityScore: 80,
+    accuracyScore: 100,
+    enginesCitingCount: 3,
+    totalSnapshotsScanned: 3,
+    aiReferralVisits7d: 5,
+    aiReferralRevenueUsd7d: 99,
+    appliedFixesCount: 4,
+    totalFixesCount: 4,
+    activeHallucinationCount: 0,
+    blockedBots: [],
+    agencyBrandName: 'Apex Studio',
+    agencyPrimaryColor: '#2563EB',
+  });
+  assert.equal(whiteLabelWeekly.isWhiteLabel, true);
+  assert.ok(!whiteLabelWeekly.html.includes('#E5A93C'));
+  assert.ok(whiteLabelWeekly.html.includes('#2563EB'));
+});

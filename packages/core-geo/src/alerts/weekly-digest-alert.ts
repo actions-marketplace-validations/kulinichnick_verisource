@@ -173,12 +173,22 @@ export function buildWeeklyExecutiveDigest(
     ? `${escapeHtml(cleanAgencyName!.toUpperCase())} · WEEKLY AI SEARCH CLIENT DIGEST`
     : 'VERISOURCE · WEEKLY EXECUTIVE GEO DIGEST';
 
+  const outerBg = isWhiteLabel ? '#FAF9F6' : '#0E1116';
+  const cardBorder = isWhiteLabel ? '#E5E2DA' : '#262E3D';
+  const mastheadBg = isWhiteLabel ? escapeHtml(headerAccent) : '#131720';
+  const mastheadBadge = isWhiteLabel
+    ? ''
+    : '<span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>';
+  const buttonStyle = isWhiteLabel
+    ? `background:${escapeHtml(headerAccent)};color:#FAF9F6;font-weight:600;`
+    : 'background:#E5A93C;color:#161004;font-weight:700;';
+
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:640px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:6px;overflow:hidden;">
-    <div style="padding:15px 20px;background:${escapeHtml(headerAccent)};color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      ${headerTitle}
+<body style="margin:0;padding:24px;background:${outerBg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
+  <div style="max-width:640px;margin:0 auto;background:#FFFFFF;border:1px solid ${cardBorder};border-radius:8px;overflow:hidden;">
+    <div style="padding:15px 20px;background:${mastheadBg};color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      ${mastheadBadge}${headerTitle}
     </div>
     <div style="padding:22px 20px;">
       <div style="font-family:monospace;font-size:11px;color:#686D78;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">
@@ -215,7 +225,7 @@ export function buildWeeklyExecutiveDigest(
         ${rivalLine ? `<p style="margin:0;"><strong>Rivals Observed:</strong> ${escapeHtml(rivalList.join(', '))}</p>` : ''}
       </div>
 
-      <a href="${escapeHtml(primaryActionUrl)}" style="display:inline-block;padding:10px 16px;background:${escapeHtml(headerAccent)};color:#FAF9F6;text-decoration:none;border-radius:5px;font-size:13px;font-weight:600;">
+      <a href="${escapeHtml(primaryActionUrl)}" style="display:inline-block;padding:10px 16px;${buttonStyle}text-decoration:none;border-radius:5px;font-size:13px;">
         ${escapeHtml(primaryActionLabel)}
       </a>
     </div>

@@ -88,24 +88,24 @@ export function buildProspectOpenAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE · PROSPECT ENGAGEMENT SIGNAL
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE · PROSPECT ENGAGEMENT SIGNAL
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 6px 0;font-size:20px;">${escapeHtml(input.prospectBrandName)} opened their audit brief</h2>
-      <p style="margin:0 0 16px 0;font-size:13.5px;color:#3F4654;font-family:monospace;">
+      <h2 style="margin:0 0 6px 0;font-size:20px;color:#0F172A;">${escapeHtml(input.prospectBrandName)} opened their audit brief</h2>
+      <p style="margin:0 0 16px 0;font-size:13.5px;color:#334155;font-family:monospace;">
         ${escapeHtml(input.prospectDomain)} &middot; Human Views: <strong>${input.viewsCount}</strong> &middot; Score: <strong>${input.visibilityScore}/100</strong>
       </p>
-      <div style="padding:12px 14px;background:#F4F2EC;border:1px solid #E5E2DA;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0A0E17;">
+      <div style="padding:12px 14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0F172A;">
         <strong>Primary Gap Displayed:</strong> ${escapeHtml(primaryGap)}
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="${escapeHtml(consoleUrl)}" style="display:inline-block;padding:10px 16px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
+        <a href="${escapeHtml(consoleUrl)}" style="display:inline-block;padding:10px 16px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700;">
           Open Tab 3 Pitch Console &rarr;
         </a>
-        <a href="${escapeHtml(auditUrl)}" style="display:inline-block;padding:10px 16px;background:#FFFFFF;color:#0A0E17;border:1px solid #D5D0C5;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
+        <a href="${escapeHtml(auditUrl)}" style="display:inline-block;padding:10px 16px;background:#FFFFFF;color:#0F172A;border:1px solid #CBD5E1;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
           View Live Brief
         </a>
       </div>
@@ -227,24 +227,24 @@ export function buildProspectCtaClickAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; HIGH-INTENT BOOKING CTA CLICK
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE &middot; HIGH-INTENT BOOKING CTA CLICK
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 6px 0;font-size:20px;">${escapeHtml(input.prospectBrandName)} clicked your booking CTA</h2>
-      <p style="margin:0 0 16px 0;font-size:13.5px;color:#3F4654;font-family:monospace;">
+      <h2 style="margin:0 0 6px 0;font-size:20px;color:#0F172A;">${escapeHtml(input.prospectBrandName)} clicked your booking CTA</h2>
+      <p style="margin:0 0 16px 0;font-size:13.5px;color:#334155;font-family:monospace;">
         ${escapeHtml(input.prospectDomain)} &middot; CTA Clicks: <strong>${input.ctaClicksCount}</strong> &middot; Score: <strong>${input.visibilityScore}/100</strong>
       </p>
-      <div style="padding:12px 14px;background:#F4F2EC;border:1px solid #E5E2DA;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0A0E17;">
+      <div style="padding:12px 14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0F172A;">
         <strong>Primary Gap Displayed:</strong> ${escapeHtml(primaryGap)}
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="${escapeHtml(consoleUrl)}" style="display:inline-block;padding:10px 16px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
+        <a href="${escapeHtml(consoleUrl)}" style="display:inline-block;padding:10px 16px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700;">
           Open Step 03 Pitch Console &rarr;
         </a>
-        <a href="${escapeHtml(auditUrl)}" style="display:inline-block;padding:10px 16px;background:#FFFFFF;color:#0A0E17;border:1px solid #D5D0C5;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
+        <a href="${escapeHtml(auditUrl)}" style="display:inline-block;padding:10px 16px;background:#FFFFFF;color:#0F172A;border:1px solid #CBD5E1;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
           View Live Brief
         </a>
       </div>
@@ -365,24 +365,24 @@ export function buildProspectPdfExportAlert(
 
   const html = `<!doctype html>
 <html>
-<body style="margin:0;padding:24px;background:#FAF9F6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0A0E17;">
-  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #E5E2DA;border-radius:8px;overflow:hidden;">
-    <div style="padding:14px 20px;background:#0A0E17;color:#FAF9F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
-      VERISOURCE &middot; STAKEHOLDER BRIEF EXPORTED
+<body style="margin:0;padding:24px;background:#0E1116;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0F172A;">
+  <div style="max-width:620px;margin:0 auto;background:#FFFFFF;border:1px solid #262E3D;border-radius:10px;overflow:hidden;">
+    <div style="padding:14px 20px;background:#131720;border-bottom:1px solid #262E3D;color:#EEF1F6;font-size:12px;font-weight:700;letter-spacing:0.05em;">
+      <span style="display:inline-block;width:14px;height:14px;background:#E5A93C;border-radius:3px;vertical-align:middle;margin-right:8px;text-align:center;line-height:14px;color:#161004;font-size:9px;font-weight:900;">&#9671;</span>VERISOURCE &middot; STAKEHOLDER BRIEF EXPORTED
     </div>
     <div style="padding:22px 20px;">
-      <h2 style="margin:0 0 6px 0;font-size:20px;">${escapeHtml(input.prospectBrandName)} saved their executive brief</h2>
-      <p style="margin:0 0 16px 0;font-size:13.5px;color:#3F4654;font-family:monospace;">
+      <h2 style="margin:0 0 6px 0;font-size:20px;color:#0F172A;">${escapeHtml(input.prospectBrandName)} saved their executive brief</h2>
+      <p style="margin:0 0 16px 0;font-size:13.5px;color:#334155;font-family:monospace;">
         ${escapeHtml(input.prospectDomain)} &middot; Exports: <strong>${input.pdfExportsCount}</strong> &middot; Score: <strong>${input.visibilityScore}/100</strong>
       </p>
-      <div style="padding:12px 14px;background:#F4F2EC;border:1px solid #E5E2DA;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0A0E17;">
+      <div style="padding:12px 14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;margin-bottom:18px;font-size:13px;color:#0F172A;">
         <strong>Primary Gap Displayed:</strong> ${escapeHtml(primaryGap)}
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="${escapeHtml(consoleUrl)}" style="display:inline-block;padding:10px 16px;background:#0A0E17;color:#FFFFFF;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
+        <a href="${escapeHtml(consoleUrl)}" style="display:inline-block;padding:10px 16px;background:#E5A93C;color:#161004;text-decoration:none;border-radius:6px;font-size:13px;font-weight:700;">
           Open Step 03 Pitch Console &rarr;
         </a>
-        <a href="${escapeHtml(auditUrl)}" style="display:inline-block;padding:10px 16px;background:#FFFFFF;color:#0A0E17;border:1px solid #D5D0C5;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
+        <a href="${escapeHtml(auditUrl)}" style="display:inline-block;padding:10px 16px;background:#FFFFFF;color:#0F172A;border:1px solid #CBD5E1;text-decoration:none;border-radius:6px;font-size:13px;font-weight:600;">
           View Live Brief
         </a>
       </div>
