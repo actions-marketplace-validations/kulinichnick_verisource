@@ -17,6 +17,7 @@ export function getAllIndexableVerisourceUrls(): string[] {
     `${VERISOURCE_ORIGIN}/features`,
     `${VERISOURCE_ORIGIN}/scanner`,
     `${VERISOURCE_ORIGIN}/reports`,
+    `${VERISOURCE_ORIGIN}/vs`,
     `${VERISOURCE_ORIGIN}/tutorial`,
     `${VERISOURCE_ORIGIN}/pricing`,
     `${VERISOURCE_ORIGIN}/agencies`,

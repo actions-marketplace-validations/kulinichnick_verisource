@@ -4938,7 +4938,69 @@ async function run() {
         m100ReportsHtml.includes('/report/supabase.com'),
       'Expected /reports directory to index 60 live brand scorecards including gymshark.com, whoop.com & supabase.com'
     );
-    console.log('✔ [91/91] M100 Live SVG AI Readiness Shield (/api/badge/[domain]), 60-Domain /reports Hub & Sticky PR Bot verified!');
+    console.log('✔ [91/92] M100 Live SVG AI Readiness Shield (/api/badge/[domain]), 60-Domain /reports Hub & Sticky PR Bot verified!');
+
+    // 90. M101 Public Head-to-Head Domain Comparison X-Ray (/vs + /api/tools/xray) & 70-Domain /reports Hub
+    const [vsPageRes, xraySsrfRes, xraySameRes, xrayValidRes, m101ReportsRes] =
+      await Promise.all([
+        fetch(`${BASE}/vs?a=whoop.com&b=ouraring.com`),
+        fetch(`${BASE}/api/tools/xray`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domainA: 'http://169.254.169.254',
+            domainB: 'supabase.com',
+          }),
+        }),
+        fetch(`${BASE}/api/tools/xray`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domainA: 'supabase.com',
+            domainB: 'https://supabase.com',
+          }),
+        }),
+        fetch(`${BASE}/api/tools/xray`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domainA: 'verisource.dev',
+            domainB: 'supabase.com',
+          }),
+        }),
+        fetch(`${BASE}/reports`),
+      ]);
+
+    assert.equal(vsPageRes.status, 200);
+    const vsPageHtml = await vsPageRes.text();
+    const vsVisible = vsPageHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      vsPageHtml.includes('Compare any two domains head-to-head') &&
+        !SELF_SCORE_JARGON.test(vsVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(vsVisible),
+      'Expected /vs page to render cleanly with zero /10 or Critic jargon'
+    );
+
+    assert.equal(xraySsrfRes.status, 400);
+    assert.equal(xraySameRes.status, 400);
+    assert.equal(xrayValidRes.status, 200);
+    const xrayValidJson = await xrayValidRes.json();
+    assert.equal(xrayValidJson.ok, true);
+    assert.equal(xrayValidJson.report.dimensions.length, 6);
+    assert.ok(
+      xrayValidJson.report.publicPromptTeaser.includes('REDACTED IN PUBLIC PREVIEW')
+    );
+
+    const m101ReportsHtml = await m101ReportsRes.text();
+    assert.ok(
+      m101ReportsHtml.includes('/report/firecrawl.dev') &&
+        m101ReportsHtml.includes('/report/pinecone.io'),
+      'Expected /reports hub to index 70 live scorecards including firecrawl.dev & pinecone.io'
+    );
+    console.log('✔ [92/92] M101 Public Head-to-Head Domain X-Ray (/vs + /api/tools/xray) & 70-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

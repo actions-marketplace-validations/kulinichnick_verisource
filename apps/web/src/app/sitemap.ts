@@ -29,6 +29,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.78,
     },
     {
+      url: 'https://verisource.dev/vs',
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
       url: 'https://verisource.dev/pricing',
       lastModified: now,
       changeFrequency: 'weekly',

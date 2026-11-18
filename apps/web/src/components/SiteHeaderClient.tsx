@@ -22,7 +22,12 @@ const RESOURCE_MENU_ITEMS: ReadonlyArray<{
   {
     href: '/reports',
     label: 'Live Domain Scorecards',
-    sublabel: '50+ audited SaaS & Shopify sites',
+    sublabel: '70+ audited SaaS & Shopify sites',
+  },
+  {
+    href: '/vs',
+    label: 'Head-to-Head Domain X-Ray',
+    sublabel: 'Compare any 2 domains over HTTP',
   },
   {
     href: '/benchmarks/ai-search-readiness-2026',

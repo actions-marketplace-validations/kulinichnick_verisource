@@ -405,6 +405,12 @@ export default async function PublicDomainReportPage({
             >
               Re-Scan Live on Grader
             </Link>
+            <Link
+              href={`/vs?a=${encodeURIComponent(scorecard.domain)}`}
+              className="vs-btn vs-btn-secondary"
+            >
+              Compare vs. Competitor →
+            </Link>
           </div>
         </div>
       </div>

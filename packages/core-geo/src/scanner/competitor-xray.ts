@@ -12,7 +12,13 @@ import {
   normalizePublicDomain,
   probeDomainHttpReadiness,
   type CrawlerReadabilityReport,
+  type DomainHttpProbeResult,
 } from './bot-waf-prober.js';
+import {
+  getWebsitePlatformMeta,
+  type RecommendedRemediationEnv,
+  type WebsitePlatformId,
+} from './cms-detector.js';
 
 export interface CompetitorXrayDimension {
   id:
@@ -132,6 +138,8 @@ export async function runCompetitorTechnicalXray(options: {
   >;
   rivalDomainInput: string;
   rawEnv?: RawEnvInput;
+  preProbedOwn?: DomainHttpProbeResult;
+  preProbedRival?: DomainHttpProbeResult;
 }): Promise<CompetitorTechnicalXrayReport> {
   const env = resolveCoreGeoEnv(options.rawEnv);
   const ownNorm = normalizePublicDomain(options.ownDomain.domain_url);
@@ -156,8 +164,8 @@ export async function runCompetitorTechnicalXray(options: {
   }
 
   const [ownProbe, rivalProbe] = await Promise.all([
-    probeDomainHttpReadiness(ownNorm.origin, env),
-    probeDomainHttpReadiness(rivalNorm.origin, env),
+    options.preProbedOwn ?? probeDomainHttpReadiness(ownNorm.origin, env),
+    options.preProbedRival ?? probeDomainHttpReadiness(rivalNorm.origin, env),
   ]);
 
   const rivalShopify = await inspectShopifyStorefront(rivalProbe);
@@ -444,5 +452,187 @@ export async function runCompetitorTechnicalXray(options: {
     dimensions,
     overtakeActionPlan,
     aiOvertakePrompt,
+  };
+}
+
+export interface PublicHeadToHeadXrayReport {
+  ownHostname: string;
+  ownBrandName: string;
+  ownTechnicalScore: number;
+  ownPlatformId: WebsitePlatformId;
+  ownPlatformLabel: string;
+  ownRecommendedEnv: RecommendedRemediationEnv;
+  rivalHostname: string;
+  rivalBrandName: string;
+  rivalTechnicalScore: number;
+  rivalPlatformId: WebsitePlatformId;
+  rivalPlatformLabel: string;
+  rivalRecommendedEnv: RecommendedRemediationEnv;
+  scoreDelta: number;
+  trailingHostname: string;
+  trailingBrandName: string;
+  trailingRecommendedEnv: RecommendedRemediationEnv;
+  leadingHostname: string;
+  leadingBrandName: string;
+  ownJsonLdTypes: string[];
+  rivalJsonLdTypes: string[];
+  rivalExclusiveSchemaTypes: string[];
+  dimensions: CompetitorXrayDimension[];
+  overtakeActionPlan: string[];
+  publicPromptTeaser: string;
+}
+
+export async function runPublicDomainHeadToHeadXray(options: {
+  domainAInput: string;
+  domainBInput: string;
+  rawEnv?: RawEnvInput;
+}): Promise<PublicHeadToHeadXrayReport> {
+  const env = resolveCoreGeoEnv(options.rawEnv);
+
+  let normA: ReturnType<typeof normalizePublicDomain>;
+  let normB: ReturnType<typeof normalizePublicDomain>;
+  try {
+    normA = normalizePublicDomain(options.domainAInput);
+  } catch (err) {
+    throw new CompetitorXrayError(
+      'INVALID_RIVAL_DOMAIN',
+      err instanceof Error
+        ? err.message
+        : 'Enter a valid public domain for Domain A.'
+    );
+  }
+  try {
+    normB = normalizePublicDomain(options.domainBInput);
+  } catch (err) {
+    throw new CompetitorXrayError(
+      'INVALID_RIVAL_DOMAIN',
+      err instanceof Error
+        ? err.message
+        : 'Enter a valid public domain for Domain B.'
+    );
+  }
+
+  if (normA.hostname === normB.hostname) {
+    throw new CompetitorXrayError(
+      'SAME_DOMAIN_ERROR',
+      `Enter two distinct public domains rather than comparing ${normA.hostname} against itself.`
+    );
+  }
+
+  const [probeA, probeB] = await Promise.all([
+    probeDomainHttpReadiness(normA.origin, env),
+    probeDomainHttpReadiness(normB.origin, env),
+  ]);
+  const shopifyA = await inspectShopifyStorefront(probeA);
+
+  const platformIdA: WebsitePlatformId = shopifyA.isShopify
+    ? 'shopify'
+    : (probeA.detectedPlatform ?? 'nextjs_custom');
+  const metaA = getWebsitePlatformMeta(platformIdA);
+
+  const brandA = probeA.reachable
+    ? extractBrandNameFromTitle(
+        probeA.title,
+        normA.hostname,
+        normA.inferredBrandName,
+        probeA.jsonLdBlocks
+      )
+    : normA.inferredBrandName;
+
+  const fullReport = await runCompetitorTechnicalXray({
+    ownDomain: {
+      domain_url: normA.origin,
+      brand_name: brandA,
+      is_shopify: shopifyA.isShopify,
+      shopify_mcp_status: shopifyA.shopifyMcpStatus,
+      agents_md_status: probeA.reachable
+        ? shopifyA.agentsMdStatus
+        : 'missing',
+      llms_txt_status: probeA.reachable ? probeA.llmsTxtStatus : 'missing',
+      robots_ai_bot_status: probeA.reachable
+        ? probeA.robotsAiBotStatus
+        : {
+            GPTBot: true,
+            'OAI-SearchBot': true,
+            PerplexityBot: true,
+            ClaudeBot: true,
+            'Google-Extended': true,
+            waf_blocked: false,
+          },
+      brand_truth_sheet: {
+        is_user_verified: false,
+        core_offering: `${brandA} products and services.`,
+        verified_pricing_summary: `Published pricing on ${normA.hostname}.`,
+        shipping_or_service_area: `Published coverage on ${normA.hostname}.`,
+        key_differentiators: [],
+        discontinued_or_false_claims_to_flag: [],
+      },
+      visibility_score: 60,
+    },
+    rivalDomainInput: normB.origin,
+    rawEnv: options.rawEnv,
+    preProbedOwn: probeA,
+    preProbedRival: probeB,
+  });
+
+  const platformIdB: WebsitePlatformId = probeB.htmlSignalsShopify
+    ? 'shopify'
+    : (probeB.detectedPlatform ?? 'nextjs_custom');
+  const metaB = getWebsitePlatformMeta(platformIdB);
+
+  const aTrails = fullReport.ownTechnicalScore <= fullReport.rivalTechnicalScore;
+  const trailingHostname = aTrails
+    ? fullReport.ownHostname
+    : fullReport.rivalHostname;
+  const trailingBrandName = aTrails
+    ? fullReport.ownBrandName
+    : fullReport.rivalBrandName;
+  const trailingRecommendedEnv = aTrails
+    ? metaA.recommendedAiEnv
+    : metaB.recommendedAiEnv;
+  const leadingHostname = aTrails
+    ? fullReport.rivalHostname
+    : fullReport.ownHostname;
+  const leadingBrandName = aTrails
+    ? fullReport.rivalBrandName
+    : fullReport.ownBrandName;
+
+  const fullLines = fullReport.aiOvertakePrompt.content.split('\n');
+  const visibleHeaderLines = fullLines.slice(0, 6);
+  const publicPromptTeaser = [
+    ...visibleHeaderLines,
+    '',
+    '## 2. Tailored Schema.org JSON-LD, /llms.txt & /agents.md Implementation Payload',
+    '  [██████ REDACTED IN PUBLIC PREVIEW — FULL STACK-TAILORED PAYLOAD LOCKED ██████]',
+    `  • Target Stack: ${aTrails ? metaA.displayName : metaB.displayName} (${aTrails ? metaA.quickWhereToPasteSummary : metaB.quickWhereToPasteSummary})`,
+    '  • Includes: Validated @graph JSON-LD + /llms.txt + Brand-Truth /agents.md + Rival Comparison Route',
+    '  [██████ ACTIVATE $19 AUDIT PASS OR $0 7-DAY TRIAL TO COPY FULL PROMPT ██████]',
+  ].join('\n');
+
+  return {
+    ownHostname: fullReport.ownHostname,
+    ownBrandName: fullReport.ownBrandName,
+    ownTechnicalScore: fullReport.ownTechnicalScore,
+    ownPlatformId: platformIdA,
+    ownPlatformLabel: metaA.displayName,
+    ownRecommendedEnv: metaA.recommendedAiEnv,
+    rivalHostname: fullReport.rivalHostname,
+    rivalBrandName: fullReport.rivalBrandName,
+    rivalTechnicalScore: fullReport.rivalTechnicalScore,
+    rivalPlatformId: platformIdB,
+    rivalPlatformLabel: metaB.displayName,
+    rivalRecommendedEnv: metaB.recommendedAiEnv,
+    scoreDelta: fullReport.scoreDelta,
+    trailingHostname,
+    trailingBrandName,
+    trailingRecommendedEnv,
+    leadingHostname,
+    leadingBrandName,
+    ownJsonLdTypes: fullReport.ownJsonLdTypes,
+    rivalJsonLdTypes: fullReport.rivalJsonLdTypes,
+    rivalExclusiveSchemaTypes: fullReport.rivalExclusiveSchemaTypes,
+    dimensions: fullReport.dimensions,
+    overtakeActionPlan: fullReport.overtakeActionPlan,
+    publicPromptTeaser,
   };
 }

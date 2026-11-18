@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-18T21:40:14.925Z",
+  "updatedAt": "2026-11-18T22:10:40.270Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -366,52 +366,62 @@
     {
       "domain": "deepgram.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "assemblyai.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "browserbase.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "firecrawl.dev",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "exa.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "tavily.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "pinecone.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "weaviate.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "qdrant.tech",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "unkey.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-18T22:10:40.270Z"
     },
     {
       "domain": "awaytravel.com",

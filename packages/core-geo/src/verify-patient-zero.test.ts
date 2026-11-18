@@ -4942,3 +4942,39 @@ test('M100 Live SVG AI Readiness Shield Badge enforces SSRF guard, XML escaping 
   assert.ok(embeds.markdownEmbed.includes('[![Gymshark AI Search Readiness — Verisource]'));
   assert.ok(embeds.htmlEmbed.includes('<img src="https://verisource.dev/api/badge/gymshark.com"'));
 });
+
+test('M101 Public Head-to-Head Domain X-Ray enforces SSRF + self-domain blocks and redacts paid prompt payload', async () => {
+  const { runPublicDomainHeadToHeadXray } = await import(
+    './scanner/competitor-xray.js'
+  );
+
+  await assert.rejects(
+    () =>
+      runPublicDomainHeadToHeadXray({
+        domainAInput: 'http://169.254.169.254/latest',
+        domainBInput: 'https://supabase.com',
+        rawEnv: { PROVIDER_MODE: 'mock' },
+      }),
+    /Refusing to scan|private|metadata|valid/i
+  );
+
+  await assert.rejects(
+    () =>
+      runPublicDomainHeadToHeadXray({
+        domainAInput: 'https://supabase.com',
+        domainBInput: 'supabase.com',
+        rawEnv: { PROVIDER_MODE: 'mock' },
+      }),
+    /distinct public domains/i
+  );
+
+  const report = await runPublicDomainHeadToHeadXray({
+    domainAInput: 'https://aurearoasters.com',
+    domainBInput: 'https://mosaicroasters.com',
+    rawEnv: { PROVIDER_MODE: 'mock' },
+  });
+  assert.equal(report.ownHostname, 'aurearoasters.com');
+  assert.equal(report.rivalHostname, 'mosaicroasters.com');
+  assert.equal(report.dimensions.length, 6);
+  assert.ok(report.publicPromptTeaser.includes('REDACTED IN PUBLIC PREVIEW'));
+});
