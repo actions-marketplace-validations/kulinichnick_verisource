@@ -5193,7 +5193,61 @@ async function run() {
         !PLAIN_ENGLISH_JARGON.test(m107ReportsVisible),
       'Expected /reports leaderboard to render Headless Next.js DTC filter, LEADERBOARD SORT controls & zero /10 jargon'
     );
-    console.log('✔ [98/98] M107 110-Domain /reports Industry & Architecture Leaderboard verified!');
+    console.log('✔ [98/99] M107 110-Domain /reports Industry & Architecture Leaderboard verified!');
+
+    // 97. M108 /api/report/[domain] JSON/Markdown API, Alternate Markdown <link>, Owner Fix Teaser & 120-Domain /reports Hub
+    const [
+      apiReportSsrfRes,
+      apiReportJsonRes,
+      apiReportMdRes,
+      cursorPageRes,
+      m108ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/api/report/169.254.169.254`),
+      fetch(`${BASE}/api/report/cursor.com`),
+      fetch(`${BASE}/api/report/cursor.com?format=md`),
+      fetch(`${BASE}/report/cursor.com`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(apiReportSsrfRes.status, 400);
+    assert.equal(apiReportJsonRes.status, 200);
+    const apiReportJson = await apiReportJsonRes.json();
+    assert.equal(apiReportJson.ok, true);
+    assert.equal(apiReportJson.scorecard.domain, 'cursor.com');
+
+    assert.equal(apiReportMdRes.status, 200);
+    assert.ok(
+      (apiReportMdRes.headers.get('content-type') || '').includes('text/markdown')
+    );
+    const apiReportMd = await apiReportMdRes.text();
+    assert.ok(apiReportMd.includes('# Cursor (cursor.com)'));
+
+    assert.equal(cursorPageRes.status, 200);
+    const cursorPageHtml = await cursorPageRes.text();
+    const cursorPageVisible = cursorPageHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      cursorPageHtml.includes('type="text/markdown"') &&
+        cursorPageHtml.includes('CLAIM &amp; SHIP FIXES') &&
+        cursorPageHtml.includes('HEAD-TO-HEAD CATEGORY BENCHMARKS') &&
+        !SELF_SCORE_JARGON.test(cursorPageVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(cursorPageVisible),
+      'Expected /report/cursor.com to expose alternate text/markdown link, Claim & Ship Fixes teaser, and 3 peer rivalry cards'
+    );
+
+    const m108ReportsHtml = await m108ReportsRes.text();
+    const m108UniqueLinks = new Set(
+      Array.from(
+        m108ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m108UniqueLinks.size >= 120,
+      `Expected /reports leaderboard to index >= 120 unique domains, got ${m108UniqueLinks.size}`
+    );
+    console.log('✔ [99/99] M108 /api/report/[domain] JSON/Markdown API, Owner Fix Teaser, Peer Rivalry Cards & 120-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

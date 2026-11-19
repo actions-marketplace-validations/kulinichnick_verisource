@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import React from 'react';
 import {
+  buildPublicAiPromptTeaser,
   buildReadinessBadgeEmbedSnippets,
   getWebsitePlatformMeta,
   renderReadinessBadgeSvg,
@@ -40,7 +41,13 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: canonicalUrl },
+    alternates: {
+      canonical: canonicalUrl,
+      types: {
+        'text/markdown': `https://verisource.dev/api/report/${scorecard.domain}?format=md`,
+        'application/json': `https://verisource.dev/api/report/${scorecard.domain}`,
+      },
+    },
     robots: { index: true, follow: true },
     openGraph: {
       title,
@@ -92,6 +99,27 @@ export default async function PublicDomainReportPage({
     hostname: scorecard.domain,
     brandName: scorecard.brandName,
   });
+  const promptTeaser = buildPublicAiPromptTeaser({
+    brandName: scorecard.brandName,
+    hostname: scorecard.domain,
+    targetEnv: recommendedEnv,
+    robotsAiBotStatus: scorecard.robotsAiBotStatus,
+    llmsTxtStatus: scorecard.llmsTxtStatus,
+    agentsMdStatus: scorecard.agentsMdStatus,
+    jsonLdCount: scorecard.jsonLdCount,
+    isShopify: scorecard.isShopify,
+  });
+  const peerComparisons = getPublishedDomainScorecards()
+    .filter(
+      (item) =>
+        item.domain !== scorecard.domain && item.vertical === scorecard.vertical
+    )
+    .sort(
+      (a, b) =>
+        Math.abs(b.readinessScore - scorecard.readinessScore) -
+        Math.abs(a.readinessScore - scorecard.readinessScore)
+    )
+    .slice(0, 3);
   const jsonLdGraph = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -215,6 +243,20 @@ export default async function PublicDomainReportPage({
           >
             Verified {scorecard.publishedAt.slice(0, 10)}
           </span>
+          <a
+            href={`/api/report/${encodeURIComponent(scorecard.domain)}?format=md`}
+            className="vs-pill-btn vs-pill-btn-sm vs-mono"
+            style={{ padding: '3px 9px', fontSize: '11px', textDecoration: 'none' }}
+          >
+            ↓ Markdown (.md)
+          </a>
+          <a
+            href={`/api/report/${encodeURIComponent(scorecard.domain)}`}
+            className="vs-pill-btn vs-pill-btn-sm vs-mono"
+            style={{ padding: '3px 9px', fontSize: '11px', textDecoration: 'none' }}
+          >
+            JSON API
+          </a>
         </div>
 
         <h1
@@ -340,6 +382,46 @@ export default async function PublicDomainReportPage({
         </div>
       </div>
 
+      {/* Stack-Tailored 1-Click AI Fix Prompt Preview */}
+      <div className="vs-bezel" style={{ marginBottom: '24px' }}>
+        <div className="vs-card" style={{ padding: '20px 22px' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '8px',
+            }}
+          >
+            <span className="vs-eyebrow">
+              WORK AT {scorecard.brandName.toUpperCase()}? · CLAIM &amp; SHIP FIXES
+            </span>
+            <StatusBadge>{promptTeaser.envBadgeLabel}</StatusBadge>
+          </div>
+          <p
+            style={{
+              fontSize: '13.5px',
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 14px 0',
+              lineHeight: 1.55,
+            }}
+          >
+            {promptTeaser.whereToPasteLine}
+          </p>
+          <CodeArtifactCard
+            title={`1-Click Remediation Prompt Preview (${scorecard.domain})`}
+            fileHint="ACTIVATE FULL PAYLOAD · $19 PASS OR $0 TRIAL"
+            code={[
+              promptTeaser.visibleHeaderText,
+              '',
+              ...promptTeaser.redactedPayloadLines,
+            ].join('\n')}
+          />
+        </div>
+      </div>
+
       {/* Primary Conversion CTA Band */}
       <div className="vs-bezel-obsidian" style={{ marginBottom: '24px' }}>
         <div
@@ -456,6 +538,92 @@ export default async function PublicDomainReportPage({
           </div>
         </div>
       </div>
+
+      {/* Category Peer Head-to-Head Comparisons */}
+      {peerComparisons.length > 0 ? (
+        <div className="vs-bezel" style={{ marginTop: '24px' }}>
+          <div className="vs-card" style={{ padding: '20px 22px' }}>
+            <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+              HEAD-TO-HEAD CATEGORY BENCHMARKS
+            </div>
+            <strong
+              style={{
+                display: 'block',
+                fontSize: '15.5px',
+                marginBottom: '14px',
+              }}
+            >
+              Compare {scorecard.brandName} ({scorecard.readinessScore}/100) against
+              peer domains
+            </strong>
+            <div className="vs-grid-3">
+              {peerComparisons.map((peer) => {
+                const delta = scorecard.readinessScore - peer.readinessScore;
+                return (
+                  <div
+                    key={peer.domain}
+                    className="vs-card vs-card-interactive"
+                    style={{
+                      padding: '14px 16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '6px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <strong style={{ fontSize: '14px' }}>
+                          {peer.brandName}
+                        </strong>
+                        <StatusBadge
+                          tone={delta >= 0 ? 'pass' : 'warn'}
+                        >{`${peer.readinessScore}/100`}</StatusBadge>
+                      </div>
+                      <div
+                        className="vs-mono"
+                        style={{
+                          fontSize: '12px',
+                          color: 'var(--vs-ink-muted)',
+                        }}
+                      >
+                        {peer.domain} · {peer.detectedPlatformLabel}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <Link
+                        href={`/vs?a=${encodeURIComponent(
+                          scorecard.domain
+                        )}&b=${encodeURIComponent(peer.domain)}`}
+                        className="vs-btn vs-btn-secondary"
+                        style={{ padding: '5px 10px', fontSize: '12px', flex: 1, justifyContent: 'center' }}
+                      >
+                        vs. {peer.brandName} →
+                      </Link>
+                      <Link
+                        href={`/report/${encodeURIComponent(peer.domain)}`}
+                        className="vs-pill-btn vs-pill-btn-sm vs-mono"
+                        style={{ padding: '5px 9px', fontSize: '11px', textDecoration: 'none' }}
+                      >
+                        Report
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

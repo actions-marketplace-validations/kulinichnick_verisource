@@ -363,7 +363,7 @@ export function buildPublicAiPromptTeaser(
     actionsToApply.push(
       input.targetEnv === 'webflow_cms' ||
         input.targetEnv === 'wix_squarespace_framer'
-        ? 'publish /ai-facts brand & pricing rules'
+        ? 'publish /ai-facts brand & pricing rules (301 redirect from /agents.md)'
         : input.targetEnv === 'shopify_liquid'
           ? 'deploy templates/agents.md.liquid + /pages/ai-facts'
           : 'publish /agents.md brand & pricing rules'
@@ -428,7 +428,7 @@ export function buildPublicAiPromptTeaser(
     `# Task: Fix AI Search Visibility & Verified Brand Facts on ${host}`,
     `Target Website: https://${host} (${brand})`,
     `Mode: ${envBadgeLabel}`,
-    `Rule 1: Lock every price, plan, and service area strictly to ${brand}'s verified facts—do not invent discounts or unverified claims.`,
+    `Rule 1: Lock every price, plan, and service area strictly to ${brand}'s verified JSON-LD and GPTBot/PerplexityBot crawl facts—do not invent discounts or unverified claims.`,
     `Rule 2: Apply ${actionsToApply.join(' + ')}.`,
   ].join('\n');
 

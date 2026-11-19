@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T03:49:04.310Z",
+  "updatedAt": "2026-11-19T04:01:59.151Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -666,50 +666,210 @@
     {
       "domain": "cursor.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "valtown.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "deno.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "zed.dev",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "warp.dev",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "chroniclehq.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "pylon.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "parachutehome.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "casper.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
     },
     {
       "domain": "graphite.dev",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T03:59:07.890Z"
+    },
+    {
+      "domain": "skims.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "goodamerican.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "fabletics.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "ruggable.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "outer.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "burrow.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "floydhome.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "article.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "madeincookware.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "materialkitchen.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "hauslabs.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "rarebeauty.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "fentybeauty.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "summerfridays.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "saiehello.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "kosas.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "dae.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "crownaffair.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "amika.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "langsmith.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "langchain.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "llamaindex.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "mastra.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "crewai.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "e2b.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "daytona.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "stainless.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fernapi.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "speakeasy.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "readme.com",
       "vertical": "b2b_saas",
       "status": "queued"
     }

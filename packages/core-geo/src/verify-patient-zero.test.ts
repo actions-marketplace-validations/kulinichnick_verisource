@@ -4978,3 +4978,40 @@ test('M101 Public Head-to-Head Domain X-Ray enforces SSRF + self-domain blocks a
   assert.equal(report.dimensions.length, 6);
   assert.ok(report.publicPromptTeaser.includes('REDACTED IN PUBLIC PREVIEW'));
 });
+
+test('M108 buildPublicAiPromptTeaser passes >= 9.5/10 Quality Gate even when Webflow/Wix/Shopify sites already pass /llms.txt + JSON-LD + Bot checks', async () => {
+  const { buildPublicAiPromptTeaser } = await import(
+    './orchestrator/plain-diagnosis.js'
+  );
+  const allBotsOk = {
+    GPTBot: true,
+    'OAI-SearchBot': true,
+    PerplexityBot: true,
+    ClaudeBot: true,
+    'Google-Extended': true,
+    waf_blocked: false,
+  };
+
+  for (const targetEnv of [
+    'webflow_cms',
+    'wix_squarespace_framer',
+    'shopify_liquid',
+    'wordpress_cms',
+    'coding_agent',
+  ] as const) {
+    const teaser = buildPublicAiPromptTeaser({
+      brandName: 'Together AI',
+      hostname: 'together.ai',
+      targetEnv,
+      robotsAiBotStatus: allBotsOk,
+      llmsTxtStatus: 'present',
+      agentsMdStatus: 'missing',
+      jsonLdCount: 3,
+      isShopify: targetEnv === 'shopify_liquid',
+    });
+    assert.ok(
+      teaser.qualityScore >= 9.5,
+      `Expected teaser qualityScore >= 9.5 for ${targetEnv}, got ${teaser.qualityScore}`
+    );
+  }
+});
