@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:43:40.408Z",
+  "updatedAt": "2026-11-19T18:54:17.161Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2550,61 +2550,71 @@
       "domain": "gitlab.com",
       "brandName": "GitLab",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "bitbucket.org",
       "brandName": "Bitbucket",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "strapi.io",
       "brandName": "Strapi",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "storyblok.com",
       "brandName": "Storyblok",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "prismic.io",
       "brandName": "Prismic",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "hygraph.com",
       "brandName": "Hygraph",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "split.io",
       "brandName": "Split",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "eppo.cloud",
       "brandName": "Eppo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "temporal.io",
       "brandName": "Temporal",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "prefect.io",
       "brandName": "Prefect",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:52:36.730Z"
     },
     {
       "domain": "dagster.io",
@@ -2615,6 +2625,54 @@
     {
       "domain": "astronomer.io",
       "brandName": "Astronomer",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "gorgias.com",
+      "brandName": "Gorgias",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "kustomer.com",
+      "brandName": "Kustomer",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "close.com",
+      "brandName": "Close",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "copper.com",
+      "brandName": "Copper",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "smartsheet.com",
+      "brandName": "Smartsheet",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "wrike.com",
+      "brandName": "Wrike",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "basecamp.com",
+      "brandName": "Basecamp",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "lucid.co",
+      "brandName": "Lucid",
       "vertical": "b2b_saas",
       "status": "queued"
     }

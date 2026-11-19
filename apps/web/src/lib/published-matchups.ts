@@ -824,6 +824,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'WordPress vs. Next.js messaging platform AI bot access, /llms.txt feeds, and entity JSON-LD.',
   },
+  {
+    cohort: 'ENTERPRISE GIT & DEVSECOPS PLATFORMS',
+    domainA: 'gitlab.com',
+    domainB: 'bitbucket.org',
+    angle:
+      'Enterprise source-code platform AI crawler rules, /llms.txt coverage, and schema.org entity parity.',
+  },
+  {
+    cohort: 'HEADLESS CMS PLATFORMS',
+    domainA: 'strapi.io',
+    domainB: 'storyblok.com',
+    angle:
+      'Headless CMS SSR extractability, /llms.txt developer feeds, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'COMPOSABLE & GRAPHQL HEADLESS CMS',
+    domainA: 'prismic.io',
+    domainB: 'hygraph.com',
+    angle:
+      'Composable content API crawler readiness, /llms.txt docs index, and entity schema.',
+  },
+  {
+    cohort: 'DURABLE WORKFLOW & DATA ORCHESTRATION',
+    domainA: 'temporal.io',
+    domainB: 'prefect.io',
+    angle:
+      'Workflow engine /llms.txt + entity JSON-LD depth vs. Python orchestration crawler posture.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

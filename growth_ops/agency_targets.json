@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:43:36.020Z",
+  "updatedAt": "2026-11-19T18:54:13.238Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1324,7 +1324,20 @@
       "publicContactChannel": "hello@raggededge.com",
       "caseStudyClientDomain": "chillys.com",
       "caseStudyClientName": "Chilly's",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:52:36.730Z",
+      "auditSlug": "chillys-com-5a8n",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:52:36.730Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T18:52:36.730Z",
+      "resendMessageId": "01a1f527-8733-7365-b759-37877a4cb117",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Studio Freight",
@@ -1336,7 +1349,20 @@
       "publicContactChannel": "hello@studiofreight.com",
       "caseStudyClientDomain": "framer.com",
       "caseStudyClientName": "Framer",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:52:36.730Z",
+      "auditSlug": "framer-com-a48j",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:52:36.730Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T18:52:36.730Z",
+      "resendMessageId": "01a1f527-5cbf-755e-a2a7-f004be2907b4",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Huge",
@@ -1384,6 +1410,30 @@
       "publicContactChannel": "biz@basicagency.com",
       "caseStudyClientDomain": "patagonia.com",
       "caseStudyClientName": "Patagonia",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Bakken & Baeck",
+      "agencyDomain": "bakkenbaeck.com",
+      "specialty": "Digital Product & AI Design Studio",
+      "contactName": "Tobias Baeck",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Tobias%20Baeck%20Bakken%20%26%20Baeck",
+      "publicContactChannel": "hello@bakkenbaeck.com",
+      "caseStudyClientDomain": "kron.no",
+      "caseStudyClientName": "Kron",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Red Antler",
+      "agencyDomain": "redantler.com",
+      "specialty": "DTC Brand Launch & Commerce Agency",
+      "contactName": "JB Osborne",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=JB%20Osborne%20Red%20Antler",
+      "publicContactChannel": "hello@redantler.com",
+      "caseStudyClientDomain": "allbirds.com",
+      "caseStudyClientName": "Allbirds",
       "status": "queued"
     }
   ]
