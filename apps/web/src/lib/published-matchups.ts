@@ -222,6 +222,27 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Side-by-side Shopify Plus Product + Offer JSON-LD and /agents.md protocol parity.',
   },
+  {
+    cohort: 'CORPORATE SPEND & FINTECH',
+    domainA: 'brex.com',
+    domainB: 'ramp.com',
+    angle:
+      'Head-to-head B2B fintech crawler access, SSR copy density, and schema.org entity coverage.',
+  },
+  {
+    cohort: 'GLOBAL HRIS & PAYROLL',
+    domainA: 'deel.com',
+    domainB: 'rippling.com',
+    angle:
+      'Enterprise HRIS /llms.txt posture and structured JSON-LD readiness across global payroll platforms.',
+  },
+  {
+    cohort: 'MENSWEAR SHOPIFY VS. HEADLESS',
+    domainA: 'buckmason.com',
+    domainB: 'rhone.com',
+    angle:
+      'Shopify Product + Offer JSON-LD and SSR catalog copy vs. custom Next.js WAF/crawler gap.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

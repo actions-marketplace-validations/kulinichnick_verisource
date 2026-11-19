@@ -5548,7 +5548,51 @@ async function run() {
       m115UniqueLinks.size >= 170,
       `Expected /reports leaderboard to index >= 170 unique domains, got ${m115UniqueLinks.size}`
     );
-    console.log('✔ [105/105] M115 Anti-Bot Signup Guard, /api/vs/[matchup] JSON & Markdown API, 28 /vs/[matchup] Pages & 170-Domain /reports Hub verified!');
+    console.log('✔ [105/106] M115 Anti-Bot Signup Guard, /api/vs/[matchup] JSON & Markdown API, 28 /vs/[matchup] Pages & 170-Domain /reports Hub verified!');
+
+    // 104. M116 @verisource/cli matchup Self-GEO, Full /vs#all-published-matchups Directory (31 Routes) & 180-Domain /reports Milestone
+    const [
+      m116VsHubRes,
+      m116BrexRampMdRes,
+      m116AgentsMdRes,
+      m116ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/vs`),
+      fetch(`${BASE}/api/vs/brex-com-vs-ramp-com?format=md`),
+      fetch(`${BASE}/agents.md`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m116VsHubRes.status, 200);
+    assert.equal(m116BrexRampMdRes.status, 200);
+    assert.equal(m116AgentsMdRes.status, 200);
+    assert.equal(m116ReportsRes.status, 200);
+
+    const m116VsHubHtml = await m116VsHubRes.text();
+    assert.ok(
+      m116VsHubHtml.includes('id="all-published-matchups"') &&
+        m116VsHubHtml.includes('/vs/brex-com-vs-ramp-com') &&
+        m116VsHubHtml.includes('/vs/buckmason-com-vs-rhone-com'),
+      'Expected /vs hub to render #all-published-matchups linking all 31 static /vs/[matchup] routes'
+    );
+
+    const m116AgentsMd = await m116AgentsMdRes.text();
+    assert.ok(
+      m116AgentsMd.includes('npx @verisource/cli matchup') &&
+        m116AgentsMd.includes('/api/vs/{matchup}'),
+      'Expected /agents.md to document verisource matchup and /api/vs/{matchup}'
+    );
+
+    const m116ReportsHtml = await m116ReportsRes.text();
+    const m116UniqueLinks = new Set(
+      Array.from(
+        m116ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m116UniqueLinks.size >= 180,
+      `Expected /reports leaderboard to index >= 180 unique domains, got ${m116UniqueLinks.size}`
+    );
+    console.log('✔ [106/106] M116 @verisource/cli matchup, 31-Matchup /vs Directory & 180-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

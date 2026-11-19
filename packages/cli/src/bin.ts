@@ -66,7 +66,8 @@ Usage:
   verisource verify <url> [--init] [--push] [--json] [--github-summary] [--pr-comment] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
   verisource vs <domainA> <domainB> [--json] [--github-summary] [--pr-comment] Head-to-head 6-dimension AI protocol X-Ray
   verisource report <domain> [--md] [--json]          Fetch cached AI readiness scorecard or raw Markdown from verisource.dev
-  verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1, x1, r1)
+  verisource matchup <slug | domainA domainB> [--md] [--json] Fetch pre-published /vs/[matchup] JSON or Markdown benchmark
+  verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1, x1, r1, m1)
   verisource query "<text>" [--json]                 Filter recent handles by keyword or status code
   verisource map [url | ./dir] [--diff] [--json]     Map live domain routes or static Next.js/React routes
   verisource browse open <url>                       Open page & index compact element handles (e1..eN)
@@ -859,6 +860,178 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         );
         console.log(`  [r1] Top Gap: ${s.topGapSummary}`);
         console.log(`  Report: ${data.canonicalUrl}`);
+      }
+      return 0;
+    }
+
+    if (cmd === 'matchup') {
+      const arg1 = args[1];
+      const arg2 = args[2] && !args[2].startsWith('-') ? args[2] : undefined;
+      if (!arg1 || arg1.startsWith('-')) {
+        console.error(
+          'Usage: verisource matchup <slug | domainA domainB> [--md] [--json] [--api-origin <url>]'
+        );
+        return 2;
+      }
+
+      let resolvedSlug = '';
+      if (arg2) {
+        try {
+          const hostA = normalizePublicDomain(arg1).hostname;
+          const hostB = normalizePublicDomain(arg2).hostname;
+          const cleanA = hostA.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          const cleanB = hostB.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          resolvedSlug = `${cleanA}-vs-${cleanB}`;
+        } catch (err) {
+          console.error(
+            err instanceof Error
+              ? err.message
+              : 'Provide two valid public website domains.'
+          );
+          return 2;
+        }
+      } else {
+        const cleanSlug = arg1.trim().toLowerCase();
+        if (!/^[a-z0-9-]+-vs-[a-z0-9-]+$/.test(cleanSlug)) {
+          console.error(
+            'Provide either a valid matchup slug (e.g. cursor-com-vs-zed-dev) or two public domains.'
+          );
+          return 2;
+        }
+        resolvedSlug = cleanSlug;
+      }
+
+      const mdOut = hasFlag(args, '--md') || hasFlag(args, '--markdown');
+      const rawOrigin = (
+        getFlagValue(args, '--api-origin') ??
+        process.env.VERISOURCE_API_ORIGIN ??
+        'https://verisource.dev'
+      )
+        .trim()
+        .replace(/\/+$/, '');
+
+      const startedAt = new Date().toISOString();
+      const endpoint = `${rawOrigin}/api/vs/${encodeURIComponent(resolvedSlug)}${
+        mdOut && !jsonOut ? '?format=md' : ''
+      }`;
+      const res = await fetch(endpoint, {
+        headers: {
+          Accept: mdOut && !jsonOut ? 'text/markdown' : 'application/json',
+          'User-Agent': 'VerisourceCLI/1.0 (+https://verisource.dev/features)',
+        },
+      });
+
+      if (res.status === 404) {
+        if (jsonOut) {
+          console.log(
+            JSON.stringify(
+              {
+                ok: false,
+                error: 'MATCHUP_NOT_FOUND',
+                slug: resolvedSlug,
+                message: `No pre-published matchup found for ${resolvedSlug}.`,
+                hint: arg2
+                  ? `verisource vs ${arg1} ${arg2}`
+                  : 'verisource vs <domainA> <domainB>',
+              },
+              null,
+              2
+            )
+          );
+        } else {
+          console.error(
+            `No pre-published matchup found for ${resolvedSlug}. Run a live 6-dimension X-Ray with: ${
+              arg2
+                ? `verisource vs ${arg1} ${arg2}`
+                : 'verisource vs <domainA> <domainB>'
+            }`
+          );
+        }
+        return 1;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.error(
+          `Failed to fetch matchup ${resolvedSlug} (HTTP ${res.status}): ${errText.slice(0, 200)}`
+        );
+        return 2;
+      }
+
+      if (mdOut && !jsonOut) {
+        const mdText = await res.text();
+        process.stdout.write(mdText.endsWith('\n') ? mdText : `${mdText}\n`);
+        return 0;
+      }
+
+      const data = (await res.json()) as {
+        ok: boolean;
+        slug: string;
+        cohort: string;
+        angle: string;
+        canonicalUrl: string;
+        markdownUrl: string;
+        leaderDomain: string | null;
+        scoreDelta: number;
+        dimensions: Array<{
+          dimension: string;
+          domainAValue: string;
+          domainBValue: string;
+          winner: 'A' | 'B' | 'TIE';
+        }>;
+        cardA: {
+          domain: string;
+          brandName: string;
+          readinessScore: number;
+          topGapSummary: string;
+        };
+        cardB: {
+          domain: string;
+          brandName: string;
+          readinessScore: number;
+          topGapSummary: string;
+        };
+      };
+
+      const trailer =
+        data.scoreDelta >= 0 ? data.cardB : data.cardA;
+      const handles: StoredHandleItem[] = [
+        {
+          handle: 'm1',
+          kind: 'matchup_gap',
+          severity: data.scoreDelta === 0 ? 'info' : 'warn',
+          summary: `${data.cardA.domain} (${data.cardA.readinessScore}/100) vs. ${data.cardB.domain} (${data.cardB.readinessScore}/100) · Trailer gap (${trailer.domain}): ${trailer.topGapSummary}`,
+          url: data.canonicalUrl,
+          fixHint: `Open ${data.canonicalUrl} or run \`verisource vs ${data.cardA.domain} ${data.cardB.domain}\``,
+        },
+      ];
+
+      saveLastRunLedger(
+        {
+          runId: `matchup-${Date.now()}`,
+          command: `matchup ${data.slug}`,
+          target: data.slug,
+          startedAt,
+          finishedAt: new Date().toISOString(),
+          status: 'PASS',
+          handles,
+        },
+        cwd
+      );
+
+      if (jsonOut) {
+        console.log(JSON.stringify({ ...data, handles }, null, 2));
+      } else {
+        console.log(
+          `MATCHUP  ${data.cardA.brandName} (${data.cardA.domain} · ${data.cardA.readinessScore}/100) vs. ${data.cardB.brandName} (${data.cardB.domain} · ${data.cardB.readinessScore}/100)`
+        );
+        for (const d of data.dimensions) {
+          console.log(
+            `  • ${d.dimension}: ${d.domainAValue} vs. ${d.domainBValue} [${d.winner}]`
+          );
+        }
+        console.log(`  [m1] ${handles[0].summary}`);
+        console.log(`  Canonical: ${data.canonicalUrl}`);
       }
       return 0;
     }

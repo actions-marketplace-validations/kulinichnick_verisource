@@ -115,7 +115,7 @@ function buildScorecardHeadline(brandName, domain, summary) {
 
   const firstSentence = botsOk
     ? `${brandName} allows GPTBot and PerplexityBot (HTTP 200) with ${words.toLocaleString('en-US')} server-rendered words on ${domain}.`
-    : `${domain} restricts one or more AI search crawlers via robots.txt or edge WAF rules.`;
+    : `${domain} restricts GPTBot, OAI-SearchBot, or PerplexityBot via robots.txt or HTTP 403 edge WAF rules.`;
 
   const missingParts = [];
   if (summary.llmsTxtStatus !== 'present') missingParts.push('/llms.txt');

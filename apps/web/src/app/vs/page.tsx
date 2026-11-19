@@ -4,7 +4,10 @@ import React from 'react';
 import { normalizePublicDomain } from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
 import { DomainHeadToHeadClient } from '../../components/DomainHeadToHeadClient';
-import { buildMatchupSlug } from '../../lib/published-matchups';
+import {
+  buildMatchupSlug,
+  getPublishedMatchups,
+} from '../../lib/published-matchups';
 import { findPublishedScorecardByDomain } from '../../lib/published-reports';
 
 export async function generateMetadata({
@@ -177,6 +180,7 @@ export default async function HeadToHeadVsPage({
   const resolved = await searchParams;
   const initialA = typeof resolved?.a === 'string' ? resolved.a : '';
   const initialB = typeof resolved?.b === 'string' ? resolved.b : '';
+  const allPublishedMatchups = getPublishedMatchups();
 
   const jsonLdGraph = {
     '@context': 'https://schema.org',
@@ -447,6 +451,71 @@ export default async function HeadToHeadVsPage({
               );
             })}
           </div>
+
+          {allPublishedMatchups.length > 0 ? (
+            <details
+              id="all-published-matchups"
+              className="vs-card"
+              style={{ marginTop: '20px', padding: '16px 20px' }}
+            >
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '13.5px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: '12px',
+                  listStyle: 'none',
+                }}
+              >
+                <span>
+                  Browse All {allPublishedMatchups.length} Pre-Indexed Matchup
+                  Benchmarks
+                </span>
+                <span
+                  className="vs-mono"
+                  style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+                >
+                  /vs/[matchup] · JSON + Markdown Feeds ▾
+                </span>
+              </summary>
+              <div
+                className="vs-grid-3"
+                style={{
+                  marginTop: '16px',
+                  paddingTop: '16px',
+                  borderTop: '1px solid var(--vs-border)',
+                  gap: '10px',
+                }}
+              >
+                {allPublishedMatchups.map((item) => (
+                  <Link
+                    key={item.slug}
+                    href={`/vs/${item.slug}`}
+                    className="vs-pill-btn vs-mono"
+                    style={{
+                      padding: '8px 12px',
+                      fontSize: '11.5px',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <span>
+                      {item.cardA.domain} vs. {item.cardB.domain}
+                    </span>
+                    <span style={{ color: 'var(--vs-accent)', fontWeight: 700 }}>
+                      {item.cardA.readinessScore}:{item.cardB.readinessScore}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </details>
+          ) : null}
         </section>
 
         {/* FAQ & Internal Directory Links */}

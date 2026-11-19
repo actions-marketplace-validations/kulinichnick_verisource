@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T05:45:21.620Z",
+  "updatedAt": "2026-11-19T06:23:55.563Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -263,7 +263,15 @@
       "publicContactChannel": "justin@rocktherankings.com",
       "caseStudyClientDomain": "keragon.com",
       "caseStudyClientName": "Keragon",
-      "status": "queued"
+      "status": "audited",
+      "auditedAt": "2026-11-19T06:25:13.838Z",
+      "auditSlug": "keragon-com-u706",
+      "emailSentAt": "2026-11-19T06:23:55.563Z",
+      "resendMessageId": "01a1f27a-12bc-709e-8a2a-39f3d348ec11",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Swanky",
@@ -275,7 +283,15 @@
       "publicContactChannel": "humans@swankyagency.com",
       "caseStudyClientDomain": "pastaevangelists.com",
       "caseStudyClientName": "Pasta Evangelists",
-      "status": "queued"
+      "status": "audited",
+      "auditedAt": "2026-11-19T06:25:13.838Z",
+      "auditSlug": "pastaevangelists-com-0my0",
+      "emailSentAt": "2026-11-19T06:23:55.563Z",
+      "resendMessageId": "01a1f27a-04c6-77fc-9be0-609a3b4b995c",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Creative Corner Studio",

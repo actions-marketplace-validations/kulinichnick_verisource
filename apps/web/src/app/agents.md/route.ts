@@ -5,7 +5,7 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (170+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (180+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI Binary: npx @verisource/cli
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
@@ -65,7 +65,7 @@ Verisource fingerprints \`shopify\`, \`wordpress\`, \`webflow\`, \`wix\`, \`squa
 ## 4. Public HTTP Endpoints for Web & Extension Clients
 
 - \`POST https://verisource.dev/api/grader\` — JSON body \`{ "domain": "yourcompany.com" }\`. CORS-enabled (\`Access-Control-Allow-Origin: *\`) for browser extensions and agent pre-checks.
-- \`GET https://verisource.dev/api/report/{domain}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) scorecard feed across 170+ pre-indexed SaaS and commerce domains.
+- \`GET https://verisource.dev/api/report/{domain}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) scorecard feed across 180+ pre-indexed SaaS and commerce domains.
 - \`GET https://verisource.dev/api/vs/{matchup}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) 6-dimension head-to-head comparison feed across published \`/vs/[matchup]\` benchmarks.
 - \`GET https://mcp.verisource.dev/health\` — Health & transport status check.
 - \`GET https://verisource.dev/audit/{share_slug}\` — Scoped read-only white-label agency pitch brief with Business Impact diagnosis and detected CMS badge.
@@ -83,6 +83,7 @@ Coding agents and CI pipelines can invoke \`npx @verisource/cli\` directly on No
 - \`npx @verisource/cli verify <url> [--init] [--push] [--github-summary] [--json]\` — Evaluates live thresholds in \`.verisource/checks.json\` with deterministic exit codes (\`0\` pass, \`1\` policy failure, \`2\` invalid input or network failure).
 - \`npx @verisource/cli vs <domainA> <domainB> [--json] [--github-summary] [--pr-comment]\` — Benchmarks two public domains across 6 AI search & crawler dimensions and stores \`[x1..xN]\` overtake action handles.
 - \`npx @verisource/cli report <domain> [--md] [--json]\` — Fetches a pre-indexed domain scorecard or raw Markdown (\`?format=md\`) from \`verisource.dev/api/report/<domain>\` and stores \`[r1]\`.
+- \`npx @verisource/cli matchup <slug | domainA domainB> [--md] [--json]\` — Fetches a pre-published 6-dimension Head-to-Head Matchup JSON or raw Markdown (\`?format=md\`) from \`verisource.dev/api/vs/<slug>\` and stores \`[m1]\`.
 - \`npx @verisource/cli show <handle>\` & \`npx @verisource/cli query "<text>"\` — Drills into a single stored finding handle without flooding agent context windows.
 - \`npx @verisource/cli map [url | ./dir] [--diff]\` — Maps live domain routes or static Next.js / React routes, API endpoints, and \`application/ld+json\` emitters.
 - \`npx @verisource/cli browse <open|click|save>\`, \`record <name> <url>\`, \`run [name] [--headed]\` & \`workflow check\` — Captures and replays deterministic \`.verisource/workflows/*.json\` suites with zero LLM calls.

@@ -604,3 +604,128 @@ test('verisource report <domain> enforces SSRF guard, handles 404, fetches JSON 
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('verisource matchup <slug | domainA domainB> enforces SSRF/slug guards, handles 404, fetches JSON + Markdown, and stores [m1]', async () => {
+  const matchupServer = http.createServer((req, res) => {
+    if (req.url === '/api/vs/cursor-com-vs-zed-dev?format=md') {
+      res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' });
+      res.end('# Cursor (cursor.com) vs. Zed (zed.dev) — AI Search Readiness X-Ray\n');
+      return;
+    }
+    if (req.url === '/api/vs/cursor-com-vs-zed-dev') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          ok: true,
+          slug: 'cursor-com-vs-zed-dev',
+          cohort: 'AI & CODE EDITORS',
+          angle: 'Published /llms.txt vs. missing directory.',
+          canonicalUrl: 'https://verisource.dev/vs/cursor-com-vs-zed-dev',
+          markdownUrl: 'https://verisource.dev/api/vs/cursor-com-vs-zed-dev?format=md',
+          leaderDomain: 'cursor.com',
+          scoreDelta: 20,
+          dimensions: [
+            {
+              dimension: 'AI Readiness Score',
+              domainAValue: '72 / 100',
+              domainBValue: '52 / 100',
+              winner: 'A',
+            },
+          ],
+          cardA: {
+            domain: 'cursor.com',
+            brandName: 'Cursor',
+            readinessScore: 72,
+            topGapSummary: 'Missing /agents.md verification rulebook.',
+          },
+          cardB: {
+            domain: 'zed.dev',
+            brandName: 'Zed',
+            readinessScore: 52,
+            topGapSummary: 'Missing /llms.txt + /agents.md.',
+          },
+        })
+      );
+      return;
+    }
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        error: 'MATCHUP_NOT_FOUND',
+        message: 'Not published yet.',
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) =>
+    matchupServer.listen(0, '127.0.0.1', resolve)
+  );
+  const addr = matchupServer.address() as { port: number };
+  const apiOrigin = `http://127.0.0.1:${addr.port}`;
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vs-cli-matchup-'));
+
+  try {
+    const ssrfExit = await runCli(
+      [
+        'node',
+        'bin.js',
+        'matchup',
+        'http://169.254.169.254',
+        'zed.dev',
+        '--api-origin',
+        apiOrigin,
+      ],
+      tmpDir
+    );
+    assert.equal(ssrfExit, 2);
+
+    const badSlugExit = await runCli(
+      ['node', 'bin.js', 'matchup', 'not_a_valid_slug', '--api-origin', apiOrigin],
+      tmpDir
+    );
+    assert.equal(badSlugExit, 2);
+
+    const missingExit = await runCli(
+      ['node', 'bin.js', 'matchup', 'foo-com-vs-bar-com', '--api-origin', apiOrigin],
+      tmpDir
+    );
+    assert.equal(missingExit, 1);
+
+    const jsonExit = await runCli(
+      [
+        'node',
+        'bin.js',
+        'matchup',
+        'cursor.com',
+        'zed.dev',
+        '--json',
+        '--api-origin',
+        apiOrigin,
+      ],
+      tmpDir
+    );
+    assert.equal(jsonExit, 0);
+
+    const storedM1 = findStoredHandle('m1', tmpDir);
+    assert.ok(storedM1, 'Expected [m1] matchup handle stored in .verisource/last-run.json');
+    assert.equal(storedM1.kind, 'matchup_gap');
+    assert.ok(storedM1.summary.includes('cursor.com'));
+
+    const mdExit = await runCli(
+      [
+        'node',
+        'bin.js',
+        'matchup',
+        'cursor-com-vs-zed-dev',
+        '--md',
+        '--api-origin',
+        apiOrigin,
+      ],
+      tmpDir
+    );
+    assert.equal(mdExit, 0);
+  } finally {
+    matchupServer.close();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:05:36.542Z",
+  "updatedAt": "2026-11-19T06:25:30.262Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1026,52 +1026,62 @@
     {
       "domain": "marine-layer.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "buckmason.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "rhone.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "gusto.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "rippling.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "deel.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "ramp.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "brex.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "mercury.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "carta.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:25:30.262Z"
     },
     {
       "domain": "vanta.com",
@@ -1171,6 +1181,54 @@
     {
       "domain": "ridge.com",
       "brandName": "Ridge",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "navan.com",
+      "brandName": "Navan",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "snyk.io",
+      "brandName": "Snyk",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "tailscale.com",
+      "brandName": "Tailscale",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "ngrok.com",
+      "brandName": "ngrok",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "hex.tech",
+      "brandName": "Hex",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "peakdesign.com",
+      "brandName": "Peak Design",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "bellroy.com",
+      "brandName": "Bellroy",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "nomadgoods.com",
+      "brandName": "Nomad",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

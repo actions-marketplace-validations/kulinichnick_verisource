@@ -15,7 +15,8 @@ export interface StoredHandleItem {
     | 'backend_log'
     | 'element'
     | 'xray_gap'
-    | 'scorecard_gap';
+    | 'scorecard_gap'
+    | 'matchup_gap';
   severity: 'critical' | 'warn' | 'info';
   summary: string;
   url?: string;
