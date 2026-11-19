@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T17:56:30.207Z",
+  "updatedAt": "2026-11-19T18:24:44.121Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2340,61 +2340,71 @@
       "domain": "juro.com",
       "brandName": "Juro",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "spotdraft.com",
       "brandName": "SpotDraft",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "lecreuset.com",
       "brandName": "Le Creuset",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "okta.com",
       "brandName": "Okta",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "crowdstrike.com",
       "brandName": "CrowdStrike",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "wiz.io",
       "brandName": "Wiz",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "twilio.com",
       "brandName": "Twilio",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "segment.com",
       "brandName": "Twilio Segment",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "rudderstack.com",
       "brandName": "RudderStack",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "elastic.co",
       "brandName": "Elastic",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:22:32.028Z"
     },
     {
       "domain": "dynatrace.com",
@@ -2411,6 +2421,54 @@
     {
       "domain": "adyen.com",
       "brandName": "Adyen",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "opslevel.com",
+      "brandName": "OpsLevel",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "grafana.com",
+      "brandName": "Grafana Labs",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "chronosphere.io",
+      "brandName": "Chronosphere",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "mollie.com",
+      "brandName": "Mollie",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "checkout.com",
+      "brandName": "Checkout.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "plaid.com",
+      "brandName": "Plaid",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "teller.io",
+      "brandName": "Teller",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "heap.io",
+      "brandName": "Heap",
       "vertical": "b2b_saas",
       "status": "queued"
     }

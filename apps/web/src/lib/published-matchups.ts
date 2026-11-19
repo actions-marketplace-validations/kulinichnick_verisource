@@ -740,6 +740,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Proposal software AI crawler access, non-JS HTML extraction, and entity JSON-LD coverage.',
   },
+  {
+    cohort: 'CONTRACT LIFECYCLE MANAGEMENT',
+    domainA: 'juro.com',
+    domainB: 'spotdraft.com',
+    angle:
+      'Legal Ops Webflow comparison: /llms.txt + entity schema coverage vs. partial schema structure.',
+  },
+  {
+    cohort: 'CLOUD SECURITY & CNAPP PLATFORMS',
+    domainA: 'crowdstrike.com',
+    domainB: 'wiz.io',
+    angle:
+      'Enterprise cloud security AI bot readability, SSR extractability, and schema.org metadata.',
+  },
+  {
+    cohort: 'CUSTOMER DATA INFRASTRUCTURE',
+    domainA: 'segment.com',
+    domainB: 'rudderstack.com',
+    angle:
+      'Customer data pipeline docs /llms.txt indexing, crawler rules, and entity JSON-LD parity.',
+  },
+  {
+    cohort: 'ENTERPRISE SSO & IDENTITY AUTH',
+    domainA: 'okta.com',
+    domainB: 'workos.com',
+    angle:
+      'Developer-first identity JSON-LD + /llms.txt docs structure vs. enterprise IAM SSR posture.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

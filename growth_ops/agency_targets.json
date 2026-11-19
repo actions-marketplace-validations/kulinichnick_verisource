@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T17:56:26.494Z",
+  "updatedAt": "2026-11-19T18:24:44.108Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1174,7 +1174,20 @@
       "publicContactChannel": "sales@loungelizard.com",
       "caseStudyClientDomain": "loopearplugs.com",
       "caseStudyClientName": "Loop Earplugs",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:22:32.028Z",
+      "auditSlug": "loopearplugs-com-o9kj",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:22:32.028Z",
+        "source": "on_site_exact",
+        "mxExchange": "loungelizard-com.mail.protection.outlook.com"
+      },
+      "emailSentAt": "2026-11-19T18:22:32.028Z",
+      "resendMessageId": "01a1f50b-e99f-7a7e-a87e-2eae6b98f486",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "MetaLab",
@@ -1186,7 +1199,20 @@
       "publicContactChannel": "hello@metalab.com",
       "caseStudyClientDomain": "pitch.com",
       "caseStudyClientName": "Pitch",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:22:32.028Z",
+      "auditSlug": "pitch-com-6t7n",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:22:32.028Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T18:22:32.028Z",
+      "resendMessageId": "01a1f50b-d81d-76bb-96f9-1b77fc92f462",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Focus Lab",
@@ -1222,6 +1248,42 @@
       "publicContactChannel": "hello@toyfight.co",
       "caseStudyClientDomain": "nerdfitness.com",
       "caseStudyClientName": "Nerd Fitness",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Instrument",
+      "agencyDomain": "instrument.com",
+      "specialty": "Digital Brand & Commerce Product Agency",
+      "contactName": "Mike Creighton",
+      "contactRole": "Managing Partner",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Mike%20Creighton%20Instrument",
+      "publicContactChannel": "hello@instrument.com",
+      "caseStudyClientDomain": "stumpcraft.com",
+      "caseStudyClientName": "StumpCraft",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Ragged Edge",
+      "agencyDomain": "raggededge.com",
+      "specialty": "Brand Strategy & DTC Digital Studio",
+      "contactName": "Max Ottignon",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Max%20Ottignon%20Ragged%20Edge",
+      "publicContactChannel": "hello@raggededge.com",
+      "caseStudyClientDomain": "chillys.com",
+      "caseStudyClientName": "Chilly's",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Studio Freight",
+      "agencyDomain": "studiofreight.com",
+      "specialty": "Next.js & Creative Webflow Agency",
+      "contactName": "Robert Vinluan",
+      "contactRole": "Partner",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Studio%20Freight%20Partner",
+      "publicContactChannel": "hello@studiofreight.com",
+      "caseStudyClientDomain": "framer.com",
+      "caseStudyClientName": "Framer",
       "status": "queued"
     }
   ]
