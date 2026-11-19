@@ -58,6 +58,17 @@ export async function setCachedJson(
   }
 }
 
+export async function deleteCachedKey(
+  key: string,
+  env: WorkerEnv
+): Promise<void> {
+  isolateMemoryCache.delete(key);
+  const kv = resolveWorkerKv(env);
+  if (kv && typeof kv.delete === 'function') {
+    await kv.delete(key);
+  }
+}
+
 export async function checkFreeGraderIpRateLimit(
   clientIp: string,
   env: WorkerEnv,

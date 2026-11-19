@@ -149,7 +149,7 @@ function buildThreeSentenceAgencyNote({
     : `I loaded ${clientDomain} into a white-label client preview (${sandboxUrl})`;
   const draft = [
     `Spotted ${clientDomain} in ${agencyName}'s public client work and ran a live HTTP & AI search check: ${topGap}.`,
-    `${briefClause} so your team can test your own agency logo and booking link on the 1-click JSON-LD, /llms.txt, and /agents.md fix bundle.`,
+    `${briefClause} so your team can test your own agency logo and booking link on the 1-click JSON-LD, /llms.txt, /agents.md, and Hosted Brand /mcp + Chrome WebMCP server bundle.`,
     `Zero call needed — feel free to use the audit in your next client review or spin up 15 client domains under ${agencyName}'s brand.`,
   ].join(' ');
   return enforceQualityGate95(draft);

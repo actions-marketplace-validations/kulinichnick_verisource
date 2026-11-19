@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T09:22:56.904Z",
+  "updatedAt": "2026-11-19T16:35:05.381Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2200,59 +2200,147 @@
       "domain": "snowflake.com",
       "brandName": "Snowflake",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "databricks.com",
       "brandName": "Databricks",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "fivetran.com",
       "brandName": "Fivetran",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "airbyte.com",
       "brandName": "Airbyte",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "getdbt.com",
       "brandName": "dbt Labs",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "tableau.com",
       "brandName": "Tableau",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "metabase.com",
       "brandName": "Metabase",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "preset.io",
       "brandName": "Preset",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "thoughtspot.com",
       "brandName": "ThoughtSpot",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
     },
     {
       "domain": "fromourplace.com",
       "brandName": "Our Place",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T16:33:01.262Z"
+    },
+    {
+      "domain": "confluent.io",
+      "brandName": "Confluent",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "redpanda.com",
+      "brandName": "Redpanda",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "clickhouse.com",
+      "brandName": "ClickHouse",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "motherduck.com",
+      "brandName": "MotherDuck",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "docsend.com",
+      "brandName": "DocSend",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pandadoc.com",
+      "brandName": "PandaDoc",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "docusign.com",
+      "brandName": "DocuSign",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "proposify.com",
+      "brandName": "Proposify",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "qwilr.com",
+      "brandName": "Qwilr",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "ironcladapp.com",
+      "brandName": "Ironclad",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "juro.com",
+      "brandName": "Juro",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "spotdraft.com",
+      "brandName": "SpotDraft",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "lecreuset.com",
+      "brandName": "Le Creuset",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

@@ -13,7 +13,7 @@ Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** 
 | Resource | URL | What It Does |
 | :--- | :--- | :--- |
 | **Free 60-Second Domain Audit** | [verisource.dev/#scan](https://verisource.dev/#scan) | Probes 5 AI crawlers, 3 answer engines, 5-page link health (`VerisourceScan/1.0`), CMS stack, and 3-pillar `JSON-LD` readiness. |
-| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 340+ audited SaaS and commerce domains. |
+| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 350+ audited SaaS and commerce domains. |
 | **Head-to-Head Domain X-Ray** | [verisource.dev/vs](https://verisource.dev/vs) | Side-by-side 6-dimension HTTP protocol, WAF, and `JSON-LD` benchmark for any two public domains. |
 | **11-Capability Platform & CLI Tour** | [verisource.dev/features](https://verisource.dev/features) | Interactive split-screen walkthroughs for AI search verification, browser flow replay, route mapping, and log correlation. |
 | **Crawler Transparency Spec** | [verisource.dev/scanner](https://verisource.dev/scanner) | Public `VerisourceScan/1.0` User-Agent specification, rate limits, and `/robots.txt` opt-out controls. |
@@ -46,7 +46,8 @@ Add this entry to `claude_desktop_config.json`, `.cursor/mcp.json`, or your MCP 
 }
 ```
 
-> **Zero-Key Preview:** Omit `headers` to invoke `scan_domain_ai_readiness` immediately for `0` credits (3 custom domains/IP/day, 24-hour edge KV cache). Mint a `vs_live_` SHA-256 Bearer key on Pro (`$99/mo` · `1,000` credits/mo, `$0.00` 7-day trial) or Agency (`$249/mo` · `5,000` credits/mo) at [verisource.dev/pricing](https://verisource.dev/pricing).
+> **1-Click Claude Web (`claude.ai`) & ChatGPT Connectors (Zero API Keys):** In Claude (`Settings → Connectors → Add Custom Connector`) or ChatGPT Connectors, paste `https://mcp.verisource.dev/oauth/mcp` and approve in 1 click via OAuth 2.1 + PKCE `S256`.
+> **Zero-Key Preview:** Omit `headers` on `https://mcp.verisource.dev/mcp` to invoke `scan_domain_ai_readiness` immediately for `0` credits (3 custom domains/IP/day, 24-hour edge KV cache). Mint a `vs_live_` SHA-256 Bearer key on Pro (`$99/mo` · `1,000` credits/mo, `$0.00` 7-day trial) or Agency (`$249/mo` · `5,000` credits/mo) at [verisource.dev/pricing](https://verisource.dev/pricing).
 
 ### Exposed MCP Tools
 1. `scan_domain_ai_readiness` (**Free · 0 credits**): Returns AI Visibility Score (`0–100`), 7-platform CMS fingerprint, 3-pillar `JSON-LD` inspection (`Entity Identity`, `FAQPage` Q&A count, `Offer` pricing), 5-bot WAF & `/robots.txt` status, Shopify `/api/ucp/mcp` + `/agents.md` classification, and sample buyer prompt citation check.

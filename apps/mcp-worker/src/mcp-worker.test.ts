@@ -752,3 +752,211 @@ test('M129 Hosted Customer Brand /mcp + W3C WebMCP (/b/:domain/mcp, /webmcp.js, 
   );
   assert.equal(ssrfRes.status, 400);
 });
+
+test('M134 OAuth 2.1 + Dynamic Client Registration (RFC 7591) + PKCE S256 + RFC 9207 iss + 401 WWW-Authenticate works end-to-end for Claude & ChatGPT', async () => {
+  const { computePkceS256Challenge, signOAuthSessionHandoff } = await import(
+    './oauth.js'
+  );
+  resetMockCreditBalancesForTests();
+
+  // 1. Unauthenticated /oauth/mcp must return 401 + WWW-Authenticate Bearer resource_metadata
+  const chalRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    }),
+    TEST_ENV
+  );
+  assert.equal(chalRes.status, 401);
+  const wwwAuth = chalRes.headers.get('www-authenticate') ?? '';
+  assert.ok(
+    wwwAuth.includes(
+      'resource_metadata="https://mcp.verisource.dev/.well-known/oauth-protected-resource/oauth/mcp"'
+    )
+  );
+
+  // Also verify Origin: https://claude.ai on /mcp triggers 401 WWW-Authenticate
+  const claudeRootChal = await worker.fetch(
+    new Request('https://mcp.verisource.dev/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: 'https://claude.ai',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    }),
+    TEST_ENV
+  );
+  assert.equal(claudeRootChal.status, 401);
+
+  // 2. RFC 8414 metadata discovery
+  const asMetaRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/.well-known/oauth-authorization-server'),
+    TEST_ENV
+  );
+  assert.equal(asMetaRes.status, 200);
+  const asMeta = (await asMetaRes.json()) as {
+    registration_endpoint: string;
+    code_challenge_methods_supported: string[];
+    authorization_response_iss_parameter_supported: boolean;
+  };
+  assert.equal(
+    asMeta.registration_endpoint,
+    'https://mcp.verisource.dev/oauth/register'
+  );
+  assert.deepEqual(asMeta.code_challenge_methods_supported, ['S256']);
+  assert.equal(asMeta.authorization_response_iss_parameter_supported, true);
+
+  // 3. DCR rejects attacker open-redirect URI (400) and accepts Claude + ChatGPT callbacks (201)
+  const badDcrRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_name: 'Evil Redirector',
+        redirect_uris: ['https://attacker.example/steal'],
+      }),
+    }),
+    TEST_ENV
+  );
+  assert.equal(badDcrRes.status, 400);
+
+  const okDcrRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_name: 'Claude Web Connector',
+        redirect_uris: [
+          'https://claude.ai/api/mcp/auth_callback',
+          'https://chatgpt.com/connector_platform_oauth_redirect',
+        ],
+      }),
+    }),
+    TEST_ENV
+  );
+  assert.equal(okDcrRes.status, 201);
+  const registeredClient = (await okDcrRes.json()) as { client_id: string };
+  assert.ok(registeredClient.client_id.startsWith('vs_mcp_client_'));
+
+  // 4. Full PKCE S256 Authorization Code flow via 1-Click Session Handoff -> Token Exchange -> Paid Tool Call -> Replay Rejection
+  const verifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk_verisource_pkce_2026';
+  const challenge = await computePkceS256Challenge(verifier);
+  const redirectUri = 'https://claude.ai/api/mcp/auth_callback';
+
+  const handoff = await signOAuthSessionHandoff(
+    {
+      token: 'vs_demo_pro_key',
+      email: 'demo@verisource.dev',
+      planTier: 'pro_99',
+      clientId: registeredClient.client_id,
+      redirectUri,
+      codeChallenge: challenge,
+      exp: Date.now() + 60_000,
+    },
+    'vs-local-mock-oauth-handoff-secret-v1'
+  );
+
+  const authGetRes = await worker.fetch(
+    new Request(
+      `https://mcp.verisource.dev/oauth/authorize?response_type=code&client_id=${encodeURIComponent(
+        registeredClient.client_id
+      )}&redirect_uri=${encodeURIComponent(
+        redirectUri
+      )}&state=xyz123&code_challenge=${encodeURIComponent(
+        challenge
+      )}&code_challenge_method=S256&handoff=${encodeURIComponent(handoff)}`
+    ),
+    TEST_ENV
+  );
+  assert.equal(authGetRes.status, 200);
+  const consentHtml = await authGetRes.text();
+  assert.ok(consentHtml.includes('Approve as demo@verisource.dev (PRO_99)'));
+
+  const form = new FormData();
+  form.set('client_id', registeredClient.client_id);
+  form.set('redirect_uri', redirectUri);
+  form.set('state', 'xyz123');
+  form.set('code_challenge', challenge);
+  form.set('code_challenge_method', 'S256');
+  form.set('handoff', handoff);
+
+  const authPostRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/authorize', {
+      method: 'POST',
+      body: form,
+    }),
+    TEST_ENV
+  );
+  assert.equal(authPostRes.status, 302);
+  const loc = new URL(authPostRes.headers.get('location') ?? '');
+  assert.equal(loc.origin + loc.pathname, redirectUri);
+  assert.equal(loc.searchParams.get('state'), 'xyz123');
+  assert.equal(loc.searchParams.get('iss'), 'https://mcp.verisource.dev');
+  const authCode = loc.searchParams.get('code') ?? '';
+  assert.ok(authCode.startsWith('vs_code_'));
+
+  // Wrong PKCE verifier on a separate code or same code must fail; test valid exchange first, then replay
+  const tokenRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: authCode,
+        redirect_uri: redirectUri,
+        code_verifier: verifier,
+      }).toString(),
+    }),
+    TEST_ENV
+  );
+  assert.equal(tokenRes.status, 200);
+  const tokenJson = (await tokenRes.json()) as {
+    access_token: string;
+    refresh_token: string;
+    token_type: string;
+  };
+  assert.equal(tokenJson.access_token, 'vs_demo_pro_key');
+  assert.equal(tokenJson.token_type, 'Bearer');
+  assert.ok(tokenJson.refresh_token.startsWith('vs_rt_'));
+
+  // Replay of single-use authorization code must be rejected with 400 invalid_grant
+  const replayRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: authCode,
+        redirect_uri: redirectUri,
+        code_verifier: verifier,
+      }).toString(),
+    }),
+    TEST_ENV
+  );
+  assert.equal(replayRes.status, 400);
+
+  // Authenticated call to /oauth/mcp using OAuth-issued access_token succeeds
+  const paidOverOAuth = await worker.fetch(
+    new Request('https://mcp.verisource.dev/oauth/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+        Authorization: `Bearer ${tokenJson.access_token}`,
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 99,
+        method: 'tools/call',
+        params: {
+          name: 'check_brand_hallucinations',
+          arguments: { domain: 'mosaicroasters.com' },
+        },
+      }),
+    }),
+    TEST_ENV
+  );
+  assert.equal(paidOverOAuth.status, 200);
+});

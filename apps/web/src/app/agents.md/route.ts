@@ -5,7 +5,7 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (340+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (350+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI Binary: npx @verisource/cli
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
@@ -20,6 +20,7 @@ Sample Client Audits: https://verisource.dev/sample-audit
 Agency Partner Architecture: https://verisource.dev/agencies
 Visual Quickstart & Playground: https://verisource.dev/mcp-guide
 Streamable HTTP MCP Endpoint: https://mcp.verisource.dev/mcp
+1-Click OAuth 2.1 MCP Connector (Claude Web & ChatGPT): https://mcp.verisource.dev/oauth/mcp
 Hosted Brand Truth MCP Endpoint: https://mcp.verisource.dev/b/verisource.dev/mcp
 W3C Chrome WebMCP Script (navigator.modelContext): https://mcp.verisource.dev/b/verisource.dev/webmcp.js
 Transport: Stateless Streamable HTTP (POST / GET / DELETE JSON-RPC 2.0)
@@ -67,9 +68,9 @@ Verisource fingerprints \`shopify\`, \`wordpress\`, \`webflow\`, \`wix\`, \`squa
 ## 4. Public HTTP Endpoints for Web & Extension Clients
 
 - \`POST https://verisource.dev/api/grader\` — JSON body \`{ "domain": "yourcompany.com" }\`. CORS-enabled (\`Access-Control-Allow-Origin: *\`) for browser extensions and agent pre-checks.
-- \`GET https://verisource.dev/api/report/{domain}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) scorecard feed across 340+ pre-indexed SaaS and commerce domains.
+- \`GET https://verisource.dev/api/report/{domain}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) scorecard feed across 350+ pre-indexed SaaS and commerce domains.
 - \`GET https://verisource.dev/api/vs/{matchup}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) 6-dimension head-to-head comparison feed across published \`/vs/[matchup]\` benchmarks.
-- \`GET https://verisource.dev/api/benchmarks/summary[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) empirical dataset feed summarizing protocol adoption and architecture cohort means across 340+ audited domains.
+- \`GET https://verisource.dev/api/benchmarks/summary[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) empirical dataset feed summarizing protocol adoption and architecture cohort means across 350+ audited domains.
 - \`GET https://mcp.verisource.dev/health\` — Health & transport status check.
 - \`GET https://verisource.dev/audit/{share_slug}\` — Scoped read-only white-label agency pitch brief with Business Impact diagnosis and detected CMS badge.
 

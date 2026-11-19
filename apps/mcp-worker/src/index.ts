@@ -38,6 +38,14 @@ import {
   matchBrandMcpRoute,
 } from './brand-mcp.js';
 import {
+  buildOAuthAuthorizationServerMetadata,
+  buildWwwAuthenticateChallengeResponse,
+  handleDynamicClientRegistration,
+  handleOAuthAuthorize,
+  handleOAuthToken,
+  shouldTriggerOAuthChallengeOnRootMcp,
+} from './oauth.js';
+import {
   checkFreeGraderIpRateLimit,
   getCachedJson,
   setCachedJson,
@@ -50,7 +58,8 @@ const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
   'Access-Control-Allow-Headers':
     'Accept, Content-Type, Authorization, MCP-Protocol-Version, Mcp-Session-Id',
-  'Access-Control-Expose-Headers': 'MCP-Protocol-Version, Mcp-Session-Id',
+  'Access-Control-Expose-Headers':
+    'MCP-Protocol-Version, Mcp-Session-Id, WWW-Authenticate',
 };
 
 function withCors(response: Response): Response {
@@ -897,37 +906,99 @@ export default {
       );
     }
 
+    // RFC 8414 OAuth 2.1 Authorization Server Metadata + DCR + PKCE S256 Endpoints
+    if (
+      url.pathname === '/.well-known/oauth-authorization-server' ||
+      url.pathname === '/.well-known/openid-configuration'
+    ) {
+      return withCors(
+        Response.json(buildOAuthAuthorizationServerMetadata(url.origin), {
+          headers: { 'Cache-Control': 'public, max-age=3600' },
+        })
+      );
+    }
+
+    if (url.pathname === '/oauth/register') {
+      return handleDynamicClientRegistration(request, env, withCors);
+    }
+
+    if (url.pathname === '/oauth/authorize') {
+      return handleOAuthAuthorize(request, env);
+    }
+
+    if (url.pathname === '/oauth/token') {
+      return handleOAuthToken(request, env, withCors);
+    }
+
     // RFC 9728 OAuth 2.0 Protected Resource Metadata for browser/desktop MCP clients
     if (
       url.pathname === '/.well-known/oauth-protected-resource' ||
-      url.pathname === '/.well-known/oauth-protected-resource/mcp'
+      url.pathname === '/.well-known/oauth-protected-resource/mcp' ||
+      url.pathname === '/.well-known/oauth-protected-resource/oauth/mcp'
     ) {
-      const authBase = env.NEXT_PUBLIC_SUPABASE_URL
-        ? `${env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1`
-        : `${env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev'}/api/oauth`;
-
+      const resourcePath = url.pathname.endsWith('/oauth/mcp')
+        ? '/oauth/mcp'
+        : '/mcp';
       const metadata = buildOAuthProtectedResourceMetadata({
         oauthMetadata: {
-          issuer: authBase,
-          authorization_endpoint: `${authBase}/authorize`,
-          token_endpoint: `${authBase}/token`,
+          issuer: url.origin,
+          authorization_endpoint: `${url.origin}/oauth/authorize`,
+          token_endpoint: `${url.origin}/oauth/token`,
+          registration_endpoint: `${url.origin}/oauth/register`,
+          code_challenge_methods_supported: ['S256'],
           response_types_supported: ['code'],
         },
-        resourceServerUrl: new URL(`${url.origin}/mcp`),
+        resourceServerUrl: new URL(`${url.origin}${resourcePath}`),
         scopesSupported: ['mcp:preview', 'mcp:paid'],
         resourceName: 'Verisource GEO & Citation Intelligence MCP',
       });
       return withCors(Response.json(metadata));
     }
 
+    // Dedicated OAuth-enforced MCP endpoint (/oauth/mcp) for 1-click Claude Web & ChatGPT Connectors
+    if (url.pathname === '/oauth/mcp') {
+      const bearerToken = extractBearerToken(request);
+      if (!bearerToken) {
+        return buildWwwAuthenticateChallengeResponse(
+          url.origin,
+          '/oauth/mcp',
+          withCors
+        );
+      }
+      const clientIp =
+        request.headers.get('CF-Connecting-IP') ??
+        request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??
+        '127.0.0.1';
+      const effectiveBearer =
+        bearerToken === 'vs_oauth_preview_free' ? null : bearerToken;
+      const authInfo = buildPassThroughAuthInfo(effectiveBearer, clientIp);
+      const rewritten = new URL(request.url);
+      rewritten.pathname = '/mcp';
+      const handler = buildMcpHandlerForEnv(env);
+      const response = await handler.fetch(
+        new Request(rewritten.toString(), request),
+        { authInfo }
+      );
+      return withCors(response);
+    }
+
     if (url.pathname === '/mcp') {
       const bearerToken = extractBearerToken(request);
+      if (!bearerToken && shouldTriggerOAuthChallengeOnRootMcp(request)) {
+        return buildWwwAuthenticateChallengeResponse(
+          url.origin,
+          '/mcp',
+          withCors
+        );
+      }
       const clientIp =
         request.headers.get('CF-Connecting-IP') ??
         request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ??
         '127.0.0.1';
 
-      const authInfo = buildPassThroughAuthInfo(bearerToken, clientIp);
+      const effectiveBearer =
+        bearerToken === 'vs_oauth_preview_free' ? null : bearerToken;
+      const authInfo = buildPassThroughAuthInfo(effectiveBearer, clientIp);
       const handler = buildMcpHandlerForEnv(env);
       const response = await handler.fetch(request, { authInfo });
       return withCors(response);

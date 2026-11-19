@@ -684,6 +684,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Global travel goods crawler access, Product Offer JSON-LD, and /agents.md commerce readiness.',
   },
+  {
+    cohort: 'ENTERPRISE DATA CLOUD & LAKEHOUSE',
+    domainA: 'snowflake.com',
+    domainB: 'databricks.com',
+    angle:
+      'Enterprise data cloud WAF posture, /llms.txt documentation feeds, and schema.org entity coverage.',
+  },
+  {
+    cohort: 'ELT DATA INTEGRATION PIPELINES',
+    domainA: 'fivetran.com',
+    domainB: 'airbyte.com',
+    angle:
+      'Data connector platform AI crawler access, /llms.txt feeds, and homepage entity JSON-LD.',
+  },
+  {
+    cohort: 'ENTERPRISE VS. OPEN-SOURCE BI',
+    domainA: 'tableau.com',
+    domainB: 'metabase.com',
+    angle:
+      'Business intelligence AI bot readability, /llms.txt index, and pricing entity schema.',
+  },
+  {
+    cohort: 'CLOUD BI & AGENTIC ANALYTICS',
+    domainA: 'preset.io',
+    domainB: 'thoughtspot.com',
+    angle:
+      'Analytics platform SSR token extraction, /llms.txt feeds, and homepage JSON-LD parity.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

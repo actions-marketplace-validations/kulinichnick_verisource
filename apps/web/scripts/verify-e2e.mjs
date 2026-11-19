@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 340);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 94);
+    assert.ok(benchSumJson.totalAuditedDomains >= 350);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 98);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,10 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 340,
-      `Expected /reports leaderboard to index >= 340 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 350,
+      `Expected /reports leaderboard to index >= 350 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/110] M119–M132 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 94 /vs/[matchup] Pages & 340-Domain /reports Hub verified!');
+    console.log('✔ [109/112] M119–M134 Zero-Bounce Deliverability Guard, 98 /vs/[matchup] Pages & 350-Domain /reports Hub verified!');
 
     // 108. Search Console Canonical & Sitemap Hygiene Lock (Zero Root Canonical Bleed on /privacy, /terms, /login, /dashboard)
     const [gscHomeHtml, gscPrivacyHtml, gscTermsHtml, gscLoginHtml, gscDashHtml, gscSitemapXml] =
@@ -5843,7 +5843,49 @@ async function run() {
       0,
       'Found banned lexicon on Step 02 with #vs-hosted-brand-mcp-bridge'
     );
-    console.log('✔ [111/111] M129 Hosted Brand Truth /mcp + W3C Chrome WebMCP Bridge & Step 02 Verifier verified!');
+    console.log('✔ [111/112] M133 Hosted Brand Truth /mcp + W3C Chrome WebMCP Bridge & Step 02 Verifier verified!');
+
+    // 110. M134 1-Click OAuth 2.1 Session Handoff (/api/oauth/session-handoff Open-Redirect Block + Unauth Login Redirect + Signed Handoff)
+    const evilHandoffRes = await fetch(
+      `${BASE}/api/oauth/session-handoff?return_to=${encodeURIComponent(
+        'https://attacker.example/oauth/authorize?client_id=x&redirect_uri=https://claude.ai/api/mcp/auth_callback&code_challenge=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      )}`,
+      { redirect: 'manual' }
+    );
+    assert.equal(evilHandoffRes.status, 400);
+
+    const validReturnTo =
+      'https://mcp.verisource.dev/oauth/authorize?response_type=code&client_id=vs_mcp_client_test&redirect_uri=' +
+      encodeURIComponent('https://claude.ai/api/mcp/auth_callback') +
+      '&code_challenge=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&code_challenge_method=S256';
+
+    const unauthHandoffRes = await fetch(
+      `${BASE}/api/oauth/session-handoff?return_to=${encodeURIComponent(
+        validReturnTo
+      )}`,
+      { redirect: 'manual' }
+    );
+    assert.equal(unauthHandoffRes.status, 302);
+    assert.ok(
+      (unauthHandoffRes.headers.get('location') ?? '').includes('/login?next=')
+    );
+
+    const okHandoffRes = await fetch(
+      `${BASE}/api/oauth/session-handoff?return_to=${encodeURIComponent(
+        validReturnTo
+      )}`,
+      {
+        headers: OWNER_HEADERS,
+        redirect: 'manual',
+      }
+    );
+    assert.equal(okHandoffRes.status, 302);
+    const handoffLoc = okHandoffRes.headers.get('location') ?? '';
+    assert.ok(
+      handoffLoc.startsWith('https://mcp.verisource.dev/oauth/authorize?') &&
+        handoffLoc.includes('handoff=')
+    );
+    console.log('✔ [112/112] M134 1-Click OAuth 2.1 Session Handoff (Open-Redirect Guard + HMAC Handoff) verified!');
   } finally {
     server.kill();
   }

@@ -225,9 +225,9 @@ export function buildMcpClientSetupBundle(options: {
       return {
         clientId: 'claude',
         label: 'Claude Desktop',
-        configFilePath: 'claude_desktop_config.json',
+        configFilePath: 'Claude Connectors (OAuth) or claude_desktop_config.json',
         setupStepsText:
-          'Open Claude Desktop → Settings → Developer → Edit Config, paste the JSON block below, save, and restart Claude once.',
+          'Zero-key Web/Desktop OAuth: In Claude → Settings → Connectors → Add Custom Connector, paste https://mcp.verisource.dev/oauth/mcp and approve in 1 click. Or paste the JSON block below into claude_desktop_config.json.',
         configSnippet: jsonServerBlock,
         starterAgentPrompt: `Use the Verisource MCP tools on ${domain} to run check_brand_hallucinations and get_citation_gaps_and_fanouts, then list any wrong pricing or policy claims alongside our top 3 missing third-party citation sources.`,
         keyState,

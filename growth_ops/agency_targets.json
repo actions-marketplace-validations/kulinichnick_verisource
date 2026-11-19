@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T09:22:56.904Z",
+  "updatedAt": "2026-11-19T16:35:05.381Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1059,7 +1059,10 @@
       "publicContactChannel": "hello@minuttia.com",
       "caseStudyClientDomain": "respona.com",
       "caseStudyClientName": "Respona",
-      "status": "queued"
+      "status": "linkedin_only",
+      "auditedAt": "2026-11-19T16:33:01.262Z",
+      "auditSlug": "respona-com-p59b",
+      "emailSkipReason": "UNVERIFIED_NOT_PUBLISHED_ON_SITE"
     },
     {
       "agencyName": "Superco",
@@ -1071,7 +1074,20 @@
       "publicContactChannel": "hello@superco.io",
       "caseStudyClientDomain": "huel.com",
       "caseStudyClientName": "Huel",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T16:33:01.262Z",
+      "auditSlug": "huel-com-akhn",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T16:33:01.262Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T16:33:01.262Z",
+      "resendMessageId": "01a1f4a7-b9b3-735d-b39f-691f85afb14d",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Latori",
@@ -1083,7 +1099,20 @@
       "publicContactChannel": "contact@latori.com",
       "caseStudyClientDomain": "birkenstock.com",
       "caseStudyClientName": "Birkenstock",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T16:35:05.381Z",
+      "auditSlug": "birkenstock-com-x5ve",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T16:35:05.381Z",
+        "source": "on_site_exact",
+        "mxExchange": "smtp.google.com"
+      },
+      "emailSentAt": "2026-11-19T16:35:05.381Z",
+      "resendMessageId": "01a1f4a9-e4e2-7730-95c7-8fd12a6092a5",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Liquify Design",
@@ -1095,6 +1124,30 @@
       "publicContactChannel": "hello@liquify.design",
       "caseStudyClientDomain": "waterdrop.com",
       "caseStudyClientName": "waterdrop",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Digital Silk",
+      "agencyDomain": "digitalsilk.com",
+      "specialty": "Enterprise B2B & eCommerce Web Design Agency",
+      "contactName": "Gabriel Shaoolian",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Gabriel%20Shaoolian%20Digital%20Silk",
+      "publicContactChannel": "info@digitalsilk.com",
+      "caseStudyClientDomain": "grencoscience.com",
+      "caseStudyClientName": "Grenco Science",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Lounge Lizard",
+      "agencyDomain": "loungelizard.com",
+      "specialty": "Web Design & Digital Marketing Agency",
+      "contactName": "Ken Braun",
+      "contactRole": "Co-Founder & Chief Creative Officer",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Ken%20Braun%20Lounge%20Lizard",
+      "publicContactChannel": "sales@loungelizard.com",
+      "caseStudyClientDomain": "loopearplugs.com",
+      "caseStudyClientName": "Loop Earplugs",
       "status": "queued"
     }
   ]
