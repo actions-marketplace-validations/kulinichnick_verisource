@@ -5985,7 +5985,26 @@ async function run() {
         `Found /10 or Critic jargon on ${m135Label} in M135 check`
       );
     }
-    console.log('✔ [113/113] M135 Site-Wide Hosted Brand /mcp + Chrome WebMCP + 1-Click OAuth 2.1 Presentation & 102 /vs Matchups verified!');
+    console.log('✔ [113/114] M135 Site-Wide Hosted Brand /mcp + Chrome WebMCP + 1-Click OAuth 2.1 Presentation & 102 /vs Matchups verified!');
+
+    // 112. M142 Empirical Addendum VI (N = 500 Landmark Dataset & FIG 16 Architecture Chart)
+    const m142BenchHtml = await fetch(
+      `${BASE}/benchmarks/ai-search-readiness-2026`
+    ).then((r) => r.text());
+    const m142BenchVisible = m142BenchHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m142BenchHtml.includes('id="q4-500-domain-landmark"') &&
+        m142BenchHtml.includes('FIG 16 · N = 500 ARCHITECTURE &amp; CMS AI READINESS MEAN') &&
+        m142BenchHtml.includes('65.4 / 100') &&
+        m142BenchHtml.includes('10.0% (50)') &&
+        (m142BenchVisible.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(m142BenchVisible),
+      'Expected /benchmarks/ai-search-readiness-2026 to render #q4-500-domain-landmark & FIG 16 with zero banned lexicon or /10 jargon'
+    );
+    console.log('✔ [114/114] M142 N = 500 Empirical Benchmark Ledger & FIG 16 Architecture Chart verified!');
   } finally {
     server.kill();
   }

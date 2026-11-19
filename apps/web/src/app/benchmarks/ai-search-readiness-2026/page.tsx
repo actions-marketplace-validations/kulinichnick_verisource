@@ -1184,6 +1184,202 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
           </div>
         </section>
 
+        {/* Empirical Addendum VI: 500-Domain Landmark Dataset & Architecture Split */}
+        <section
+          id="q4-500-domain-landmark"
+          style={{ marginBottom: '44px' }}
+        >
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            EMPIRICAL ADDENDUM VI · N = 500 LIVE AUDITED DOMAINS LANDMARK
+          </div>
+          <h2
+            style={{
+              fontSize: 'clamp(22px, 2.8vw, 28px)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 12px 0',
+            }}
+          >
+            500-Domain AI Search &amp; Agent Ledger: 90.0% omit custom /agents.md, 96.6% fail 3-pillar JSON-LD
+          </h2>
+          <p
+            style={{
+              fontSize: '15px',
+              lineHeight: 1.65,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 18px 0',
+              maxWidth: '820px',
+            }}
+          >
+            Scaling our open HTTPS index to <strong>500 commercial websites</strong>{' '}
+            (374 B2B SaaS platforms and 126 consumer commerce storefronts across{' '}
+            <strong>150 static head-to-head matchups</strong>) confirms four
+            market-wide gaps: 65.6% (328) publish <code className="vs-mono">/llms.txt</code>,
+            yet only <strong>10.0% (50)</strong> maintain a custom{' '}
+            <code className="vs-mono">/agents.md</code> pricing and policy spec,
+            just <strong>3.4% (17)</strong> pass all three{' '}
+            <code className="vs-mono">schema.org</code>{' '}
+            <code className="vs-mono">JSON-LD</code> pillars (Entity + Offer +
+            FAQPage), and <strong>10.6% (53)</strong> restrict{' '}
+            <code className="vs-mono">GPTBot</code> or{' '}
+            <code className="vs-mono">PerplexityBot</code> at the firewall or{' '}
+            <code className="vs-mono">/robots.txt</code> layer.
+          </p>
+
+          <div className="vs-grid-4" style={{ marginBottom: '18px', gap: '12px' }}>
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                INDEX MEAN (N = 500)
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700 }}>
+                65.4 / 100
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                Shopify 76.5 · SaaS 65.1 · Headless 47.8
+              </div>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                /LLMS.TXT LIVE (200 OK)
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700, color: '#6EE7B7' }}>
+                65.6% (328)
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                34.4% (172) still serve no root index
+              </div>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                CUSTOM /AGENTS.MD
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700, color: '#E5A93C' }}>
+                10.0% (50)
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                390 missing · 60 stock boilerplate
+              </div>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                3-PILLAR JSON-LD
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700, color: '#FCA5A5' }}>
+                3.4% (17)
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                Only 7.0% (35) ship FAQPage schema
+              </div>
+            </div>
+          </div>
+
+          <div className="vs-bezel" style={{ marginBottom: '18px' }}>
+            <div className="vs-card" style={{ padding: '20px' }}>
+              <div className="vs-eyebrow" style={{ marginBottom: '12px' }}>
+                FIG 16 · N = 500 ARCHITECTURE &amp; CMS AI READINESS MEAN (0–100)
+              </div>
+              <svg
+                viewBox="0 0 760 250"
+                width="100%"
+                role="img"
+                aria-label="Horizontal bar chart comparing 500-domain mean AI readiness across Native Shopify 76.5, WordPress 66.9, Framer 66.7, Webflow 65.3, Custom Next.js 62.5, and Headless DTC 47.8."
+                style={{ display: 'block', maxWidth: '760px' }}
+              >
+                {/* Native Shopify */}
+                <text x="0" y="28" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  Native Shopify OS 2.0 (n = 83)
+                </text>
+                <rect x="280" y="13" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="13" width="290.7" height="20" rx="4" fill="#10B981" />
+                <text x="672" y="28" fill="#6EE7B7" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  76.5 / 100
+                </text>
+
+                {/* WordPress */}
+                <text x="0" y="66" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  WordPress (n = 29)
+                </text>
+                <rect x="280" y="51" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="51" width="254.2" height="20" rx="4" fill="#34D399" />
+                <text x="672" y="66" fill="#A7F3D0" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  66.9 / 100
+                </text>
+
+                {/* Framer */}
+                <text x="0" y="104" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  Framer (n = 12)
+                </text>
+                <rect x="280" y="89" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="89" width="253.5" height="20" rx="4" fill="#34D399" />
+                <text x="672" y="104" fill="#A7F3D0" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  66.7 / 100
+                </text>
+
+                {/* Webflow */}
+                <text x="0" y="142" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  Webflow (n = 43)
+                </text>
+                <rect x="280" y="127" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="127" width="248.1" height="20" rx="4" fill="#E5A93C" />
+                <text x="672" y="142" fill="#FCD34D" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  65.3 / 100
+                </text>
+
+                {/* Custom Code / Next.js */}
+                <text x="0" y="180" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  Custom Code / Next.js (n = 333)
+                </text>
+                <rect x="280" y="165" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="165" width="237.5" height="20" rx="4" fill="#F59E0B" />
+                <text x="672" y="180" fill="#FCD34D" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  62.5 / 100
+                </text>
+
+                {/* Custom Headless Next.js DTC */}
+                <text x="0" y="218" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  Headless Next.js DTC (n = 45)
+                </text>
+                <rect x="280" y="203" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="203" width="181.6" height="20" rx="4" fill="#EF4444" />
+                <text x="672" y="218" fill="#FCA5A5" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  47.8 / 100
+                </text>
+
+                <text x="280" y="244" fill="#94A3B8" fontSize="11" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">
+                  N = 500 Overall Mean: 65.4 / 100 · Headless DTC Penalty vs. Native Shopify: -28.7 pts
+                </text>
+              </svg>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <Link href="/reports" className="vs-btn">
+              Search All 500 Live Scorecards →
+            </Link>
+            <Link
+              href="/vs/1password-com-vs-bitwarden-com"
+              className="vs-btn vs-btn-secondary"
+            >
+              1Password (52) vs. Bitwarden (74) →
+            </Link>
+            <Link
+              href="/vs/postman-com-vs-insomnia-rest"
+              className="vs-btn vs-btn-secondary"
+            >
+              Postman (84) vs. Insomnia (52) →
+            </Link>
+            <Link
+              href="/mcp-guide#hosted-brand-mcp"
+              className="vs-btn vs-btn-secondary"
+            >
+              Deploy Hosted Brand /mcp + WebMCP →
+            </Link>
+          </div>
+        </section>
+
         {/* Frequently Asked Questions */}
         <section style={{ marginBottom: '20px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>

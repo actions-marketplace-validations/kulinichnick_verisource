@@ -335,5 +335,84 @@ We also just crossed 360 live audited domain scorecards (/reports) and 102 head-
 Live spec & 2-line embed guide: https://verisource.dev/mcp-guide#hosted-brand-mcp
 ```
 
+---
+
+## 12. 500-Domain Empirical AI Search & Agent Readiness Launch Pack (`N = 500` Scorecards · `150` Matchups)
+
+### A. Show HN / Reddit (`r/TechSEO` & `r/SaaS`) Flagship Data Post
+```text
+Title: We audited 500 SaaS and commerce domains over live HTTPS — 90% omit custom /agents.md, 96.6% fail 3-pillar JSON-LD
+
+Over the past month we scaled our read-only HTTP readiness index (VerisourceScan/1.0) to 500 recognizable websites — 374 B2B SaaS platforms and 126 consumer commerce storefronts — plus 150 static head-to-head protocol comparisons.
+
+Every domain was tested live for GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF access, server-rendered HTML word extraction, /llms.txt, /agents.md, and 3-pillar schema.org JSON-LD (Entity Identity + Offer Pricing + FAQPage).
+
+Five empirical numbers stood out across N = 500 (overall mean: 65.4 out of 100):
+1. 65.6% (328 of 500) now publish /llms.txt, but only 10.0% (50 of 500) maintain a custom /agents.md pricing and policy rulebook (390 missing, 60 serving unedited boilerplate).
+2. 96.6% fail 3-pillar JSON-LD: 65.0% publish Entity schema and 17.4% publish Offer pricing, yet only 7.0% (35 of 500) include FAQPage Q&A schema and just 3.4% (17 of 500) pass all three pillars together.
+3. 10.6% (53 of 500) block GPTBot or PerplexityBot via /robots.txt or edge WAF HTTP 403 rules — including major SaaS and analytics brands like snowflake.com (34), tableau.com (34), 6sense.com (34), and canva.com (29).
+4. The -28.7-point Headless Commerce penalty held at scale: 83 native Shopify OS 2.0 stores average 76.5 out of 100 vs. 45 custom headless Next.js DTC storefronts at 47.8 out of 100.
+5. Modern CMS builders outperformed raw Next.js marketing shells on average: WordPress (66.9), Framer (66.7), and Webflow (65.3) beat Custom Code / Next.js overall (62.5 across 333 sites).
+
+Every scorecard and comparison is open in HTML and raw Markdown (?format=md):
+• Search all 500 scorecards: https://verisource.dev/reports
+• Browse 150 head-to-head matchups: https://verisource.dev/vs
+• Full N = 500 study & FIG 16 chart: https://verisource.dev/benchmarks/ai-search-readiness-2026#q4-500-domain-landmark
+• Turn your site into a Hosted Brand /mcp + W3C Chrome WebMCP server (2-line embed): https://verisource.dev/mcp-guide#hosted-brand-mcp
+```
+
+### B. LinkedIn Founder Data Post (`N = 500` Landmark)
+```text
+We just crossed 500 live HTTPS website audits in our 2026 AI Search & Agent Readiness Index (374 B2B SaaS + 126 commerce brands).
+
+The numbers explain why ChatGPT Search, Gemini, and Perplexity keep hallucinating pricing and citing smaller rivals:
+
+• 65.6% (328 of 500) ship /llms.txt
+• Only 10.0% (50 of 500) ship a custom /agents.md pricing & exclusion spec
+• Only 3.4% (17 of 500) pass all 3 JSON-LD pillars (Entity + Offer + FAQPage)
+• 10.6% (53 of 500) silently restrict GPTBot or PerplexityBot at the firewall
+• Native Shopify OS 2.0 (76.5 avg) beats Custom Headless Next.js DTC (47.8 avg) by +28.7 points
+
+Some of the sharpest head-to-head gaps in the live dataset:
+• Postman (84) vs. Insomnia (52)
+• Bitwarden (74) vs. 1Password (52)
+• Vessi (84) vs. Cariuma (52)
+• Fireworks AI (84), GitBook (84), Supabase (84) vs. Snowflake (34), Tableau (34), Canva (29)
+
+Static files alone are only step one — every Verisource plan now also gives your site a Hosted Brand /mcp server + W3C Chrome WebMCP script via a 2-line <head> embed, plus 1-click OAuth 2.1 for Claude Web and ChatGPT Connectors.
+
+Check if your brand is already in the 500-domain index (or scan free in 60 seconds):
+https://verisource.dev/benchmarks/ai-search-readiness-2026#q4-500-domain-landmark
+```
+
+### C. X (Twitter) 4-Post Thread (`N = 500`)
+```text
+1/ We probed 500 live B2B SaaS & commerce websites over HTTPS to measure real AI search & agent readiness.
+
+The headline numbers (N = 500, mean 65.4 out of 100):
+• 65.6% publish /llms.txt
+• 10.0% publish a custom /agents.md rulebook
+• 3.4% pass 3-pillar JSON-LD (only 7.0% have FAQPage)
+• 10.6% block GPTBot or PerplexityBot
+
+2/ CMS & architecture breakdown across 500 live sites:
+• Native Shopify OS 2.0 (83): 76.5 avg
+• WordPress (29): 66.9 avg
+• Framer (12): 66.7 avg
+• Webflow (43): 65.3 avg
+• Custom Next.js (333): 62.5 avg
+• Headless Next.js DTC (45): 47.8 avg (-28.7 pts vs. Native Shopify)
+
+3/ Sharpest brand matchups live right now:
+• Bitwarden (74) vs. 1Password (52): verisource.dev/vs/1password-com-vs-bitwarden-com
+• Postman (84) vs. Insomnia (52): verisource.dev/vs/postman-com-vs-insomnia-rest
+• Close (84) vs. Copper (68): verisource.dev/vs/close-com-vs-copper-com
+
+4/ Search all 500 live scorecards + 150 matchups free — or deploy a Hosted Brand /mcp + Chrome WebMCP endpoint on your site in 2 lines of HTML:
+
+https://verisource.dev/benchmarks/ai-search-readiness-2026#q4-500-domain-landmark
+```
+
+
 
 

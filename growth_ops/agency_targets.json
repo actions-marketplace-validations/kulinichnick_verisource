@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:16:21.071Z",
+  "updatedAt": "2026-11-19T19:29:26.320Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1474,7 +1474,20 @@
       "publicContactChannel": "hello@bakkenbaeck.com",
       "caseStudyClientDomain": "kron.no",
       "caseStudyClientName": "Kron",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:29:26.320Z",
+      "auditSlug": "kron-no-mrfz",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:29:26.320Z",
+        "source": "on_site_exact",
+        "mxExchange": "smtp.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:29:26.320Z",
+      "resendMessageId": "01a1f549-44d7-79b6-a457-d1a4aa79ff0a",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Red Antler",
@@ -1486,7 +1499,20 @@
       "publicContactChannel": "hello@redantler.com",
       "caseStudyClientDomain": "allbirds.com",
       "caseStudyClientName": "Allbirds",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:29:26.320Z",
+      "auditSlug": "allbirds-com-o8jb",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:29:26.320Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:29:26.320Z",
+      "resendMessageId": "01a1f549-3f75-7d50-aa7b-06740a8b37af",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Hello Monday",
