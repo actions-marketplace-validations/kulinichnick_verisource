@@ -544,6 +544,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Server-rendered pricing & product copy, /llms.txt index, and entity JSON-LD parity.',
   },
+  {
+    cohort: 'PAID COMMUNITY & COHORT PLATFORMS',
+    domainA: 'skool.com',
+    domainB: 'circle.so',
+    angle:
+      'Community platform crawler access, /llms.txt feeds, and homepage entity JSON-LD.',
+  },
+  {
+    cohort: 'INDEPENDENT CREATOR MEMBERSHIP',
+    domainA: 'ghost.org',
+    domainB: 'patreon.com',
+    angle:
+      'Open-source publishing protocol feeds vs. creator membership WAF and schema posture.',
+  },
+  {
+    cohort: 'GLOBAL B2B TREASURY & FX',
+    domainA: 'wise.com',
+    domainB: 'airwallex.com',
+    angle:
+      'Cross-border B2B payment crawler rules, /llms.txt feeds, and fee entity schema.',
+  },
+  {
+    cohort: 'CLOUD ACCOUNTING & EXPENSE SAAS',
+    domainA: 'xero.com',
+    domainB: 'expensify.com',
+    angle:
+      'Accounting platform AI bot readability, /llms.txt posture, and homepage JSON-LD.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

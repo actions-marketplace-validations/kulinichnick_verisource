@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:45:10.997Z",
+  "updatedAt": "2026-11-19T08:53:35.745Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1850,61 +1850,71 @@
       "domain": "stan.store",
       "brandName": "Stan Store",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "ghost.org",
       "brandName": "Ghost",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "memberful.com",
       "brandName": "Memberful",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "patreon.com",
       "brandName": "Patreon",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "skool.com",
       "brandName": "Skool",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "circle.so",
       "brandName": "Circle",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "wise.com",
       "brandName": "Wise",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "airwallex.com",
       "brandName": "Airwallex",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "expensify.com",
       "brandName": "Expensify",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "xero.com",
       "brandName": "Xero",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:53:35.745Z"
     },
     {
       "domain": "freshbooks.com",
@@ -1939,6 +1949,36 @@
     {
       "domain": "n8n.io",
       "brandName": "n8n",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "auth0.com",
+      "brandName": "Auth0",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "descope.com",
+      "brandName": "Descope",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "propelauth.com",
+      "brandName": "PropelAuth",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "flagsmith.com",
+      "brandName": "Flagsmith",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "growthbook.io",
+      "brandName": "GrowthBook",
       "vertical": "b2b_saas",
       "status": "queued"
     }

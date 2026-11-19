@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:45:10.997Z",
+  "updatedAt": "2026-11-19T08:53:35.745Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -809,7 +809,20 @@
       "publicContactChannel": "hello@scoutside.com",
       "caseStudyClientDomain": "peachandlily.com",
       "caseStudyClientName": "Peach & Lily",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:53:35.745Z",
+      "auditSlug": "peachandlily-com-jc0b",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:53:35.745Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:53:35.745Z",
+      "resendMessageId": "01a1f302-ff38-7a13-8029-f9ce2f8e317d",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Ask Phill",
@@ -821,7 +834,20 @@
       "publicContactChannel": "phill@askphill.com",
       "caseStudyClientDomain": "aceandtate.com",
       "caseStudyClientName": "Ace & Tate",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:53:35.745Z",
+      "auditSlug": "aceandtate-com-1kew",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:53:35.745Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:53:35.745Z",
+      "resendMessageId": "01a1f303-06af-7c16-bda1-204b94871f2b",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Veza Digital",
@@ -845,6 +871,54 @@
       "publicContactChannel": "hello@lazarev.agency",
       "caseStudyClientDomain": "vtex.com",
       "caseStudyClientName": "VTEX",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Overdose",
+      "agencyDomain": "overdose.digital",
+      "specialty": "Global Shopify Plus & Enterprise Digital Commerce Agency",
+      "contactName": "Todd Welling",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Todd%20Welling%20Overdose",
+      "publicContactChannel": "hello@overdose.digital",
+      "caseStudyClientDomain": "frankgreen.com.au",
+      "caseStudyClientName": "frank green",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Halo Lab",
+      "agencyDomain": "halo-lab.com",
+      "specialty": "Webflow & B2B SaaS Product Design Agency",
+      "contactName": "Valery Kuznetsov",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Halo%20Lab%20Founder",
+      "publicContactChannel": "inquiry@halo-lab.com",
+      "caseStudyClientDomain": "opera.com",
+      "caseStudyClientName": "Opera",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Radiant",
+      "agencyDomain": "byradiant.com",
+      "specialty": "Shopify Plus eCommerce Design & CRO Agency",
+      "contactName": "Matt Faherty",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Radiant%20Shopify%20Plus%20Founder",
+      "publicContactChannel": "info@byradiant.com",
+      "caseStudyClientDomain": "surreal.co.uk",
+      "caseStudyClientName": "SURREAL",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Praxis Metrics",
+      "agencyDomain": "praxismetrics.com",
+      "specialty": "Shopify Plus Analytics & Conversion Agency",
+      "contactName": "Annette Snelling",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Praxis%20Metrics%20Founder",
+      "publicContactChannel": "contact@praxismetrics.com",
+      "caseStudyClientDomain": "organifi.com",
+      "caseStudyClientName": "Organifi",
       "status": "queued"
     }
   ]
