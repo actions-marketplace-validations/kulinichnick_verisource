@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:01:36.450Z",
+  "updatedAt": "2026-11-19T07:12:02.974Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1360,65 +1360,141 @@
       "domain": "apollo.io",
       "brandName": "Apollo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "shinesty.com",
       "brandName": "Shinesty",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "replit.com",
       "brandName": "Replit",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "lovable.dev",
       "brandName": "Lovable",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "bolt.new",
       "brandName": "Bolt",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "v0.dev",
       "brandName": "v0",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "cartesia.ai",
       "brandName": "Cartesia",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "runwayml.com",
       "brandName": "Runway",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "pika.art",
       "brandName": "Pika",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "mackage.com",
       "brandName": "Mackage",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:12:02.974Z"
     },
     {
       "domain": "aimeleondore.com",
       "brandName": "Aime Leon Dore",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "suno.com",
+      "brandName": "Suno",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "udio.com",
+      "brandName": "Udio",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "midjourney.com",
+      "brandName": "Midjourney",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "ideogram.ai",
+      "brandName": "Ideogram",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "gamma.app",
+      "brandName": "Gamma",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "tome.app",
+      "brandName": "Tome",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "descript.com",
+      "brandName": "Descript",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "riverside.fm",
+      "brandName": "Riverside",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "cettire.com",
+      "brandName": "Cettire",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "kith.com",
+      "brandName": "Kith",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "stussy.com",
+      "brandName": "Stussy",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

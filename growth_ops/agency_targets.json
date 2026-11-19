@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:05:20.847Z",
+  "updatedAt": "2026-11-19T07:12:02.974Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -477,6 +477,58 @@
       "publicContactChannel": "hello@animalz.co",
       "caseStudyClientDomain": "intercom.com",
       "caseStudyClientName": "Intercom",
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:12:02.974Z",
+      "auditSlug": "intercom-com-0xk6",
+      "emailSentAt": "2026-11-19T07:12:02.974Z",
+      "resendMessageId": "01a1f2a5-fee4-7e96-9a92-397b42029f83",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
+    },
+    {
+      "agencyName": "Eastside Co",
+      "agencyDomain": "eastsideco.com",
+      "specialty": "Shopify Plus Platinum Partner",
+      "contactName": "Jason Stokes",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Jason%20Stokes%20Eastside%20Co",
+      "publicContactChannel": "info@eastsideco.com",
+      "caseStudyClientDomain": "tropicfeel.com",
+      "caseStudyClientName": "Tropicfeel",
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:12:02.974Z",
+      "auditSlug": "tropicfeel-com-d3gl",
+      "emailSentAt": "2026-11-19T07:12:02.974Z",
+      "resendMessageId": "01a1f2a6-2abf-70e2-b896-ee6f48c7924c",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
+    },
+    {
+      "agencyName": "Omniscient Digital",
+      "agencyDomain": "beomniscient.com",
+      "specialty": "B2B SaaS Organic Growth & GEO Agency",
+      "contactName": "Alex Birkett",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Alex%20Birkett%20Omniscient%20Digital",
+      "publicContactChannel": "hello@beomniscient.com",
+      "caseStudyClientDomain": "order.co",
+      "caseStudyClientName": "Order.co",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Rainfactory",
+      "agencyDomain": "rainfactory.com",
+      "specialty": "DTC eCommerce Growth & Launch Agency",
+      "contactName": "Kaili Emmrich",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Rainfactory%20Founder",
+      "publicContactChannel": "hello@rainfactory.com",
+      "caseStudyClientDomain": "ecoflow.com",
+      "caseStudyClientName": "EcoFlow",
       "status": "queued"
     }
   ]

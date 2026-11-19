@@ -348,6 +348,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Native Shopify OS 2.0 catalog schema vs. custom Next.js direct-to-consumer storefront.',
   },
+  {
+    cohort: 'AI APP BUILDERS',
+    domainA: 'replit.com',
+    domainB: 'lovable.dev',
+    angle:
+      'Published /llms.txt + SSR developer copy vs. client-heavy SPA landing page gap.',
+  },
+  {
+    cohort: 'PROMPT-TO-UI PLATFORMS',
+    domainA: 'bolt.new',
+    domainB: 'v0.dev',
+    angle:
+      'Head-to-head AI code generator crawler access, /llms.txt status, and JSON-LD baseline.',
+  },
+  {
+    cohort: 'AI VIDEO GENERATION',
+    domainA: 'runwayml.com',
+    domainB: 'pika.art',
+    angle:
+      'Generative video foundation model SSR readability, /llms.txt, and entity schema.',
+  },
+  {
+    cohort: 'B2B OUTBOUND & ENRICHMENT',
+    domainA: 'apollo.io',
+    domainB: 'clay.com',
+    angle:
+      'Enterprise sales intelligence /llms.txt index vs. Webflow GTM workflow metadata.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

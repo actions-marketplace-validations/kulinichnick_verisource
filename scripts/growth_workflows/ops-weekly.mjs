@@ -230,7 +230,17 @@ function buildAsciiBar(pct) {
 }
 
 async function runSocialTeardowns(nowIso) {
-  const candidates = ['allbirds.com', 'brooklinen.com', 'posthog.com'];
+  const cliDomainsIdx = process.argv.indexOf('--domains');
+  const rawDomainsArg =
+    cliDomainsIdx >= 0 && process.argv[cliDomainsIdx + 1]
+      ? process.argv[cliDomainsIdx + 1]
+      : '';
+  const candidates = rawDomainsArg
+    ? rawDomainsArg
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : ['perplexity.ai', 'gusto.com', 'rhone.com'];
   console.log(
     `[ops:weekly] 1/3 Running hallucination-teardown-creator across ${candidates.length} recognizable brands...`
   );
