@@ -7,7 +7,7 @@ const LLMS_TXT_BODY = `# Verisource — B2B Generative Engine Optimization (GEO)
 Canonical Web Console: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (330+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (340+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI & Deterministic Flow Verifier: npx @verisource/cli
 Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial
@@ -24,6 +24,8 @@ Sample White-Label Client Audits: https://verisource.dev/sample-audit
 Agency White-Label Overview: https://verisource.dev/agencies
 MCP Visual Quickstart & Playground: https://verisource.dev/mcp-guide
 Streamable HTTP MCP Endpoint: https://mcp.verisource.dev/mcp
+Hosted Brand Truth MCP Endpoint (verisource.dev): https://mcp.verisource.dev/b/verisource.dev/mcp
+W3C Chrome WebMCP Script (navigator.modelContext): https://mcp.verisource.dev/b/verisource.dev/webmcp.js
 MCP Registry Discovery Manifest: https://verisource.dev/.well-known/mcp.json
 OAuth 2.0 Protected Resource Metadata (RFC 9728): https://mcp.verisource.dev/.well-known/oauth-protected-resource
 Agent Capability Manifest: https://verisource.dev/agents.md

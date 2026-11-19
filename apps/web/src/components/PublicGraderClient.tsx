@@ -952,7 +952,8 @@ export function PublicGraderClient(): React.ReactElement {
                     >
                       <span>
                         Full copy-paste prompt + syntax-validated site files
-                        ready inside Console Step 02.
+                        &amp; Hosted Brand /mcp + Chrome WebMCP ready in Console
+                        Step 02.
                       </span>
                       <span className="vs-mono" style={{ color: '#A7F3D0' }}>
                         $0.00 due today on 7-day trial

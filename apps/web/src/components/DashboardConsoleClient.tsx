@@ -11,11 +11,13 @@ import {
   buildAiRemediationMasterPrompt,
   buildAnalyticsInstallAiPrompt,
   buildBatchOutreachMarkdown,
+  buildBrandHeadEmbedSnippet,
   buildCitationAnswerPageBundle,
   buildCitationGapActionPlaybookMarkdown,
   buildEdgeBotCrawlerSnippet,
   buildExecutiveAuditReportMarkdown,
   buildFollowUpVerificationAiPrompt,
+  buildHostedBrandMcpUrls,
   buildImplementationBundleMarkdown,
   buildLinkedinConnectionNote195,
   buildMcpClientSetupBundle,
@@ -35,6 +37,7 @@ import {
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
   getWebsitePlatformMeta,
+  isPlanEntitledForHostedBrandMcp,
   MCP_CLIENT_APP_OPTIONS,
   normalizeDomainReportSchedule,
   normalizePublicDomain,
@@ -523,6 +526,23 @@ export function DashboardConsoleClient(props: {
     readyForPaidTools: boolean;
     summaryMessage: string;
   } | null>(null);
+  const [verifyingBrandMcp, setVerifyingBrandMcp] = useState(false);
+  const [brandMcpVerifyResult, setBrandMcpVerifyResult] = useState<{
+    entitled: boolean;
+    upgradeRequired: boolean;
+    upgradeHref: string | null;
+    mcpEndpointUrl: string;
+    webMcpScriptUrl: string;
+    edgeHandshakeOk: boolean;
+    edgeHttpStatus: number;
+    exposedTools: string[];
+    liveSiteEmbed: {
+      hasLinkRelMcp: boolean;
+      hasWebMcpScript: boolean;
+      verifiedForPublicAgentAccess: boolean;
+    };
+    summaryMessage: string;
+  } | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState<string | null>(null);
 
@@ -743,6 +763,7 @@ export function DashboardConsoleClient(props: {
     setCitationVerifyUrlInput('');
     setCitationVerifyResult(null);
     setCopiedCitationVerifyNote(false);
+    setBrandMcpVerifyResult(null);
     if (initialValidEnv && !appliedInitialEnvRef.current) {
       appliedInitialEnvRef.current = true;
       setAiPromptTargetEnv(initialValidEnv);
@@ -2131,6 +2152,63 @@ export function DashboardConsoleClient(props: {
       setBannerError('Network error while testing /mcp endpoint.');
     } finally {
       setVerifyingMcpConnection(false);
+    }
+  }
+
+  async function handleVerifyBrandMcp() {
+    if (!activeDomain) return;
+    setVerifyingBrandMcp(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/brand-mcp/verify', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ domain_id: activeDomain.id }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        entitled?: boolean;
+        upgradeRequired?: boolean;
+        upgradeHref?: string | null;
+        mcpEndpointUrl?: string;
+        webMcpScriptUrl?: string;
+        edgeHandshakeOk?: boolean;
+        edgeHttpStatus?: number;
+        exposedTools?: string[];
+        liveSiteEmbed?: {
+          hasLinkRelMcp: boolean;
+          hasWebMcpScript: boolean;
+          verifiedForPublicAgentAccess: boolean;
+        };
+        summaryMessage?: string;
+      };
+      if (!res.ok || json.error || !json.mcpEndpointUrl) {
+        setBannerError(
+          json.message ?? 'Unable to verify Hosted Brand /mcp right now.'
+        );
+      } else {
+        setBrandMcpVerifyResult({
+          entitled: Boolean(json.entitled),
+          upgradeRequired: Boolean(json.upgradeRequired),
+          upgradeHref: json.upgradeHref ?? null,
+          mcpEndpointUrl: json.mcpEndpointUrl,
+          webMcpScriptUrl: json.webMcpScriptUrl ?? '',
+          edgeHandshakeOk: Boolean(json.edgeHandshakeOk),
+          edgeHttpStatus: json.edgeHttpStatus ?? 200,
+          exposedTools: json.exposedTools ?? [],
+          liveSiteEmbed: json.liveSiteEmbed ?? {
+            hasLinkRelMcp: false,
+            hasWebMcpScript: false,
+            verifiedForPublicAgentAccess: false,
+          },
+          summaryMessage: json.summaryMessage ?? '',
+        });
+      }
+    } catch {
+      setBannerError('Network error while probing Hosted Brand /mcp.');
+    } finally {
+      setVerifyingBrandMcp(false);
     }
   }
 
@@ -8020,6 +8098,257 @@ export function DashboardConsoleClient(props: {
                 ) : null}
               </div>
             ) : null}
+
+            {/* M129: Hosted Brand Truth /mcp + W3C Chrome WebMCP (navigator.modelContext) Bridge */}
+            {(() => {
+              const brandMcpUrls = buildHostedBrandMcpUrls(
+                activeDomain.domain_url
+              );
+              const brandEmbedSnippet = buildBrandHeadEmbedSnippet({
+                domainInput: activeDomain.domain_url,
+                brandName: activeDomain.brand_name,
+              });
+              const entitledForBrandMcp = isPlanEntitledForHostedBrandMcp(
+                data.profile.plan_tier
+              );
+
+              const innerBody = (
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  <div
+                    style={{
+                      fontSize: '13px',
+                      color: 'var(--vs-ink-secondary)',
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    Exposes a hosted, read-only{' '}
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      Streamable HTTP Brand /mcp Server
+                    </strong>{' '}
+                    (<code className="vs-mono">{brandMcpUrls.mcpEndpointUrl}</code>)
+                    for cloud AI agents plus an edge-cached{' '}
+                    <strong style={{ color: 'var(--vs-ink)' }}>
+                      W3C Chrome WebMCP (<code className="vs-mono">navigator.modelContext</code>)
+                    </strong>{' '}
+                    script for in-browser AI assistants—synced automatically
+                    from your Step 01 Brand Truth Sheet. Already included inside
+                    your 1-Click AI Fix Prompt above.
+                  </div>
+
+                  {!entitledForBrandMcp ? (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background: 'var(--vs-surface-subtle)',
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '10px',
+                        fontSize: '12.5px',
+                      }}
+                    >
+                      <span style={{ color: 'var(--vs-ink-secondary)' }}>
+                        Hosted Brand <code className="vs-mono">/mcp</code> &amp;
+                        Chrome <code className="vs-mono">WebMCP</code> hosting is
+                        included on Starter ($49/mo), Pro ($99/mo), and Agency
+                        ($249/mo).
+                        {data.profile.plan_tier === 'tripwire_19'
+                          ? ' Upgrade within 7 days to apply your full -$19 pass credit.'
+                          : ''}
+                      </span>
+                      <Link
+                        href="/pricing"
+                        className="vs-btn vs-pill-btn"
+                        style={{ padding: '7px 14px', fontSize: '12px' }}
+                      >
+                        Activate Hosted Brand /mcp →
+                      </Link>
+                    </div>
+                  ) : null}
+
+                  <CodeArtifactCard
+                    title={`2-Line <head> Agent Bridge (${brandMcpUrls.hostname})`}
+                    fileHint={`Paste inside <head> on https://${brandMcpUrls.hostname} (already included in your Step 02 1-Click AI Fix Prompt)`}
+                    code={brandEmbedSnippet}
+                  />
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                    }}
+                  >
+                    <div
+                      className="vs-mono"
+                      style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}
+                    >
+                      4 Read-Only Brand Tools: get_verified_pricing_and_offers ·
+                      verify_brand_claim · compare_with_competitor ·
+                      get_official_faqs
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleVerifyBrandMcp()}
+                      disabled={verifyingBrandMcp}
+                      className="vs-btn vs-pill-btn"
+                      style={{ padding: '8px 14px', fontSize: '12px' }}
+                    >
+                      {verifyingBrandMcp
+                        ? 'Probing Edge /mcp & <head>...'
+                        : '⚡ Verify Brand /mcp & WebMCP Live'}
+                    </button>
+                  </div>
+
+                  {brandMcpVerifyResult ? (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '6px',
+                        border: '1px solid var(--vs-border)',
+                        background:
+                          brandMcpVerifyResult.edgeHandshakeOk &&
+                          brandMcpVerifyResult.liveSiteEmbed.hasLinkRelMcp &&
+                          brandMcpVerifyResult.liveSiteEmbed.hasWebMcpScript
+                            ? 'var(--vs-pass-bg)'
+                            : 'var(--vs-surface-subtle)',
+                        fontSize: '12.5px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <StatusBadge
+                          tone={
+                            brandMcpVerifyResult.edgeHandshakeOk
+                              ? 'pass'
+                              : 'warn'
+                          }
+                        >
+                          EDGE /MCP:{' '}
+                          {brandMcpVerifyResult.edgeHandshakeOk
+                            ? `200 OK (${brandMcpVerifyResult.exposedTools.length} TOOLS)`
+                            : `HTTP ${brandMcpVerifyResult.edgeHttpStatus}`}
+                        </StatusBadge>
+                        <StatusBadge
+                          tone={
+                            brandMcpVerifyResult.liveSiteEmbed.hasLinkRelMcp
+                              ? 'pass'
+                              : 'warn'
+                          }
+                        >
+                          &lt;link rel=&quot;mcp&quot;&gt;:{' '}
+                          {brandMcpVerifyResult.liveSiteEmbed.hasLinkRelMcp
+                            ? 'LIVE IN <HEAD>'
+                            : 'PENDING ON SITE'}
+                        </StatusBadge>
+                        <StatusBadge
+                          tone={
+                            brandMcpVerifyResult.liveSiteEmbed.hasWebMcpScript
+                              ? 'pass'
+                              : 'warn'
+                          }
+                        >
+                          CHROME WEBMCP:{' '}
+                          {brandMcpVerifyResult.liveSiteEmbed.hasWebMcpScript
+                            ? 'LIVE IN <HEAD>'
+                            : 'PENDING ON SITE'}
+                        </StatusBadge>
+                      </div>
+                      <div style={{ color: 'var(--vs-ink)' }}>
+                        {brandMcpVerifyResult.summaryMessage}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+
+              return isGuided ? (
+                <details
+                  id="vs-hosted-brand-mcp-bridge"
+                  className="vs-card"
+                  style={{ marginBottom: '20px', overflow: 'hidden' }}
+                >
+                  <summary
+                    style={{
+                      padding: '14px 18px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    <span>
+                      Hosted Brand Truth <code className="vs-mono">/mcp</code>{' '}
+                      &amp; Chrome <code className="vs-mono">WebMCP</code> Agent
+                      Server ({brandMcpUrls.hostname})
+                    </span>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <StatusBadge tone={entitledForBrandMcp ? 'pass' : 'warn'}>
+                        {entitledForBrandMcp
+                          ? 'STREAMABLE HTTP + WEBMCP READY'
+                          : 'STARTER $49+ INFRASTRUCTURE'}
+                      </StatusBadge>
+                    </div>
+                  </summary>
+                  <div
+                    style={{
+                      padding: '0 18px 16px 18px',
+                      borderTop: '1px solid var(--vs-border)',
+                      paddingTop: '14px',
+                    }}
+                  >
+                    {innerBody}
+                  </div>
+                </details>
+              ) : (
+                <div
+                  id="vs-hosted-brand-mcp-bridge"
+                  className="vs-card"
+                  style={{ padding: '16px 18px', marginBottom: '20px' }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <strong>
+                      Hosted Brand Truth /mcp &amp; W3C Chrome WebMCP Server (
+                      {brandMcpUrls.hostname})
+                    </strong>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <StatusBadge tone={entitledForBrandMcp ? 'pass' : 'warn'}>
+                        {entitledForBrandMcp
+                          ? 'STREAMABLE HTTP /MCP ACTIVE'
+                          : 'UPGRADE REQUIRED'}
+                      </StatusBadge>
+                      <StatusBadge tone="neutral">
+                        NAVIGATOR.MODELCONTEXT
+                      </StatusBadge>
+                    </div>
+                  </div>
+                  {innerBody}
+                </div>
+              );
+            })()}
 
             {/* Shopify Native Adapter Callout */}
             {activeDomain.is_shopify ? (

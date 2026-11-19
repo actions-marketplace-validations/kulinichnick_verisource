@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 330);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 90);
+    assert.ok(benchSumJson.totalAuditedDomains >= 340);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 94);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,10 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 330,
-      `Expected /reports leaderboard to index >= 330 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 340,
+      `Expected /reports leaderboard to index >= 340 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/110] M119–M131 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, Landmark 90 /vs/[matchup] Pages & 330-Domain /reports Hub verified!');
+    console.log('✔ [109/110] M119–M132 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 94 /vs/[matchup] Pages & 340-Domain /reports Hub verified!');
 
     // 108. Search Console Canonical & Sitemap Hygiene Lock (Zero Root Canonical Bleed on /privacy, /terms, /login, /dashboard)
     const [gscHomeHtml, gscPrivacyHtml, gscTermsHtml, gscLoginHtml, gscDashHtml, gscSitemapXml] =
@@ -5764,7 +5764,86 @@ async function run() {
         !gscSitemapXml.includes('<loc>https://verisource.dev/agents.md</loc>'),
       'Expected /sitemap.xml to keep /privacy & /terms and exclude /login, /llms.txt, and /agents.md'
     );
-    console.log('✔ [110/110] Google Search Console Canonical & Sitemap Hygiene Lock verified!');
+    console.log('✔ [110/111] Google Search Console Canonical & Sitemap Hygiene Lock verified!');
+
+    // 109. M129 Hosted Brand Truth /mcp + W3C Chrome WebMCP (navigator.modelContext) Bridge
+    assert.ok(
+      gscHomeHtml.includes('href="https://mcp.verisource.dev/b/verisource.dev/mcp"') &&
+        gscHomeHtml.includes('src="https://mcp.verisource.dev/b/verisource.dev/webmcp.js"'),
+      'Expected root <head> to dogfood <link rel="mcp"> and W3C Chrome webmcp.js'
+    );
+
+    const unauthBrandMcpRes = await fetch(
+      `${BASE}/api/dashboard/brand-mcp/verify`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain_id: '11111111-1111-4000-8000-000000000002' }),
+      }
+    );
+    assert.equal(unauthBrandMcpRes.status, 401);
+
+    const badReqBrandMcpRes = await fetch(
+      `${BASE}/api/dashboard/brand-mcp/verify`,
+      {
+        method: 'POST',
+        headers: {
+          ...OWNER_HEADERS,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      }
+    );
+    assert.equal(badReqBrandMcpRes.status, 400);
+
+    const okBrandMcpRes = await fetch(
+      `${BASE}/api/dashboard/brand-mcp/verify`,
+      {
+        method: 'POST',
+        headers: {
+          ...OWNER_HEADERS,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ domain_id: '11111111-1111-4000-8000-000000000002' }),
+      }
+    );
+    assert.equal(okBrandMcpRes.status, 200);
+    const okBrandMcpJson = await okBrandMcpRes.json();
+    assert.equal(okBrandMcpJson.entitled, true);
+    assert.equal(okBrandMcpJson.edgeHandshakeOk, true);
+    assert.equal(okBrandMcpJson.exposedTools.length, 4);
+    assert.ok(
+      okBrandMcpJson.embedSnippet.includes(
+        'https://mcp.verisource.dev/b/mosaicroasters.com/mcp'
+      ) &&
+        okBrandMcpJson.embedSnippet.includes(
+          'https://mcp.verisource.dev/b/mosaicroasters.com/webmcp.js'
+        )
+    );
+    assert.equal(
+      (String(okBrandMcpJson.summaryMessage).match(BANNED_LEXICON) ?? []).length,
+      0
+    );
+
+    const m129Step2Html = await (
+      await fetch(`${BASE}/dashboard?tab=tab2_fixes`, {
+        headers: OWNER_HEADERS,
+      })
+    ).text();
+    assert.ok(
+      m129Step2Html.includes('id="vs-hosted-brand-mcp-bridge"'),
+      'Expected Step 02 to render #vs-hosted-brand-mcp-bridge card inside 3-Tab shell'
+    );
+    const strippedM129Step2 = m129Step2Html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.equal(
+      (strippedM129Step2.match(BANNED_LEXICON) ?? []).length,
+      0,
+      'Found banned lexicon on Step 02 with #vs-hosted-brand-mcp-bridge'
+    );
+    console.log('✔ [111/111] M129 Hosted Brand Truth /mcp + W3C Chrome WebMCP Bridge & Step 02 Verifier verified!');
   } finally {
     server.kill();
   }

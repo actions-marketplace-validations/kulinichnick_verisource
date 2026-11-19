@@ -13,7 +13,7 @@ Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** 
 | Resource | URL | What It Does |
 | :--- | :--- | :--- |
 | **Free 60-Second Domain Audit** | [verisource.dev/#scan](https://verisource.dev/#scan) | Probes 5 AI crawlers, 3 answer engines, 5-page link health (`VerisourceScan/1.0`), CMS stack, and 3-pillar `JSON-LD` readiness. |
-| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 330+ audited SaaS and commerce domains. |
+| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 340+ audited SaaS and commerce domains. |
 | **Head-to-Head Domain X-Ray** | [verisource.dev/vs](https://verisource.dev/vs) | Side-by-side 6-dimension HTTP protocol, WAF, and `JSON-LD` benchmark for any two public domains. |
 | **11-Capability Platform & CLI Tour** | [verisource.dev/features](https://verisource.dev/features) | Interactive split-screen walkthroughs for AI search verification, browser flow replay, route mapping, and log correlation. |
 | **Crawler Transparency Spec** | [verisource.dev/scanner](https://verisource.dev/scanner) | Public `VerisourceScan/1.0` User-Agent specification, rate limits, and `/robots.txt` opt-out controls. |
@@ -53,6 +53,10 @@ Add this entry to `claude_desktop_config.json`, `.cursor/mcp.json`, or your MCP 
 2. `get_citation_gaps_and_fanouts` (**Pro / Agency · 1 cached / 10 live credits**): Returns Mention vs. Citation rates across ChatGPT, Gemini, and Perplexity, Source-Type categorized citation gaps (`Reddit`, `G2`, `Clutch`, editorial media), and observed search fanout sub-queries.
 3. `check_brand_hallucinations` (**Pro / Agency · 1 cached / 10 live credits**): Diffs multi-engine claims per bullet against your verified Brand Truth Sheet so rival prices never trigger false alerts.
 4. `generate_geo_fix_bundle` (**Pro / Agency · 1 cached / 10 live credits**): Outputs syntax-validated `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, Shopify `templates/agents.md.liquid`, and 1-Click AI Remediation Prompts.
+5. `compare_competitor_protocol_xray` (**Pro / Agency · 1 cached / 10 live credits**): Benchmarks `own_domain` vs. `rival_domain` across 6 HTTP & schema dimensions and generates an overtake prompt + `[Brand] vs. [Rival]` HTML page.
+
+### Hosted Customer Brand `/mcp` + W3C Chrome `WebMCP` (`navigator.modelContext`) Infrastructure
+Every Starter (`$49/mo`), Pro (`$99/mo`), and Agency (`$249/mo`) domain automatically receives a **hosted, read-only Brand Truth MCP Server** (`https://mcp.verisource.dev/b/{domain}/mcp`) plus an edge-cached **W3C Chrome `WebMCP` script** (`https://mcp.verisource.dev/b/{domain}/webmcp.js`) exposing `get_verified_pricing_and_offers`, `verify_brand_claim`, `compare_with_competitor`, and `get_official_faqs` from a 2-line `<head>` embed—zero backend code required.
 
 ---
 

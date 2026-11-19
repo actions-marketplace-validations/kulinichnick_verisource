@@ -473,7 +473,7 @@ export default function HomePage(): React.ReactElement {
                     Compare Two Domains Free →
                   </Link>
                   <Link href="/reports" className="vs-btn vs-btn-secondary">
-                    330+ Brand Scorecards →
+                    340+ Brand Scorecards →
                   </Link>
                 </div>
               </div>

@@ -30,6 +30,7 @@ export * from './alerts/magic-link-alert.js';
 export * from './alerts/weekly-digest-alert.js';
 export * from './alerts/report-schedule.js';
 export * from './mcp/discovery-manifest.js';
+export * from './mcp/brand-truth-mcp.js';
 export * from './orchestrator/audit-domain.js';
 export * from './orchestrator/plain-diagnosis.js';
 export * from './auth/api-key.js';

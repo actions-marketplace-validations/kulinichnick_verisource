@@ -549,7 +549,7 @@ export async function fetchWithSafePublicRedirects(
   throw new Error('Maximum safe HTTP redirect hops exceeded.');
 }
 
-async function safeFetchText(
+export async function safeFetchText(
   url: string,
   init?: RequestInit,
   timeoutMs = 6000

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T09:15:59.846Z",
+  "updatedAt": "2026-11-19T09:22:56.904Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1009,7 +1009,20 @@
       "publicContactChannel": "hello@kubixmedia.co.uk",
       "caseStudyClientDomain": "chillys.com",
       "caseStudyClientName": "Chilly's",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T09:22:56.904Z",
+      "auditSlug": "chillys-com-76nh",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T09:22:56.904Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T09:22:56.904Z",
+      "resendMessageId": "01a1f31e-0873-721c-853b-f8d74ca52ca0",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Huemor",
@@ -1021,7 +1034,20 @@
       "publicContactChannel": "sales@huemor.rocks",
       "caseStudyClientDomain": "livechat.com",
       "caseStudyClientName": "LiveChat",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T09:22:56.904Z",
+      "auditSlug": "livechat-com-iibk",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T09:22:56.904Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T09:22:56.904Z",
+      "resendMessageId": "01a1f31d-f71b-7b6e-95ef-93fbba3fdc36",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Minuttia",
@@ -1045,6 +1071,30 @@
       "publicContactChannel": "hello@superco.io",
       "caseStudyClientDomain": "huel.com",
       "caseStudyClientName": "Huel",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Latori",
+      "agencyDomain": "latori.com",
+      "specialty": "Shopify Plus Enterprise Commerce Agency",
+      "contactName": "Michaelesser / Latori Leadership",
+      "contactRole": "Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Latori%20Shopify%20Plus%20Founder",
+      "publicContactChannel": "contact@latori.com",
+      "caseStudyClientDomain": "birkenstock.com",
+      "caseStudyClientName": "Birkenstock",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Liquify Design",
+      "agencyDomain": "liquify.design",
+      "specialty": "Shopify Plus & Webflow Technical SEO Agency",
+      "contactName": "Jan / Liquify Partners",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Liquify%20Design%20Shopify%20Founder",
+      "publicContactChannel": "hello@liquify.design",
+      "caseStudyClientDomain": "waterdrop.com",
+      "caseStudyClientName": "waterdrop",
       "status": "queued"
     }
   ]

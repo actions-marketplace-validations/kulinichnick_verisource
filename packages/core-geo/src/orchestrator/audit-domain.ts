@@ -2840,6 +2840,16 @@ export function buildAiRemediationMasterPrompt(params: {
 
   lines.push(
     '',
+    `### Hosted Brand Truth \`/mcp\` + W3C Chrome \`WebMCP\` (\`navigator.modelContext\`) Bridge`,
+    `**Where to place it:** Add these 2 tags inside your site-wide \`<head>\` right below your \`JSON-LD\` script so Streamable HTTP agents (\`https://mcp.verisource.dev/b/${cleanHost}/mcp\`) and Chrome/Edge in-browser \`WebMCP\` agents query ${domain.brand_name}'s verified pricing and policy rules directly:`,
+    '```html',
+    `<link rel="mcp" href="https://mcp.verisource.dev/b/${cleanHost}/mcp" title="${domain.brand_name.replace(/"/g, '')} Verified AI Agent MCP" />`,
+    `<script src="https://mcp.verisource.dev/b/${cleanHost}/webmcp.js" data-vs-domain="${cleanHost}" defer></script>`,
+    '```'
+  );
+
+  lines.push(
+    '',
     `## 4. Verification Checklist Before Finishing`,
     `1. Validate every \`application/ld+json\` payload with \`JSON.parse()\` to guarantee valid JSON syntax.`,
     mode === 'coding_agent'

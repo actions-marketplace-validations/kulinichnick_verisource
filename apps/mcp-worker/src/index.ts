@@ -34,6 +34,10 @@ import {
   verifyZeroCreditBearerEntitlement,
 } from './auth.js';
 import {
+  handleHostedBrandMcpRequest,
+  matchBrandMcpRoute,
+} from './brand-mcp.js';
+import {
   checkFreeGraderIpRateLimit,
   getCachedJson,
   setCachedJson,
@@ -927,6 +931,16 @@ export default {
       const handler = buildMcpHandlerForEnv(env);
       const response = await handler.fetch(request, { authInfo });
       return withCors(response);
+    }
+
+    const brandRoute = matchBrandMcpRoute(url.pathname);
+    if (brandRoute) {
+      return handleHostedBrandMcpRequest({
+        request,
+        route: brandRoute,
+        env,
+        withCors,
+      });
     }
 
     return withCors(

@@ -656,6 +656,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Direct-to-consumer sleep commerce crawler readability, Product Offer JSON-LD, and /agents.md readiness.',
   },
+  {
+    cohort: 'SALES ENGAGEMENT & REVENUE WORKFLOWS',
+    domainA: 'outreach.io',
+    domainB: 'salesloft.com',
+    angle:
+      'Enterprise sales engagement crawler rules, /llms.txt documentation feeds, and homepage entity JSON-LD.',
+  },
+  {
+    cohort: 'ACCOUNT-BASED MARKETING & INTENT DATA',
+    domainA: '6sense.com',
+    domainB: 'demandbase.com',
+    angle:
+      'B2B intent platform WAF posture, SSR token extraction, and schema.org entity coverage.',
+  },
+  {
+    cohort: 'B2B CONTACT & GTM INTELLIGENCE',
+    domainA: 'zoominfo.com',
+    domainB: 'lusha.com',
+    angle:
+      'GTM data provider AI bot readability, /llms.txt protocol feeds, and pricing entity schema.',
+  },
+  {
+    cohort: 'LUXURY TRAVEL & LUGGAGE COMMERCE',
+    domainA: 'rimowa.com',
+    domainB: 'tumi.com',
+    angle:
+      'Global travel goods crawler access, Product Offer JSON-LD, and /agents.md commerce readiness.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

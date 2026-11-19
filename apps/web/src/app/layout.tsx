@@ -180,6 +180,16 @@ export default function RootLayout({
           href="/llms.txt"
           title="Verisource LLM Summary"
         />
+        <link
+          rel="mcp"
+          href="https://mcp.verisource.dev/b/verisource.dev/mcp"
+          title="Verisource Verified Brand Truth MCP"
+        />
+        <script
+          src="https://mcp.verisource.dev/b/verisource.dev/webmcp.js"
+          data-vs-domain="verisource.dev"
+          defer
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

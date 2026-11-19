@@ -644,3 +644,111 @@ test('M110 resolveWorkerKv binds production VERISOURCE_CACHE namespace and enfor
   assert.equal(r3.allowed, false);
   assert.ok(store.size >= 1, 'Expected rate limit counter persisted into VERISOURCE_CACHE');
 });
+
+test('M129 Hosted Customer Brand /mcp + W3C WebMCP (/b/:domain/mcp, /webmcp.js, /.well-known/mcp.json) serves verified tools & blocks unsubscribed/SSRF hosts', async () => {
+  async function postBrandMcp(domain: string, body: Record<string, unknown>) {
+    const res = await worker.fetch(
+      new Request(`https://mcp.verisource.dev/b/${domain}/mcp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json, text/event-stream',
+        },
+        body: JSON.stringify(body),
+      }),
+      TEST_ENV
+    );
+    const raw = await res.text();
+    let parsed: Record<string, unknown>;
+    if (raw.trimStart().startsWith('{')) {
+      parsed = JSON.parse(raw) as Record<string, unknown>;
+    } else {
+      const dataLine = raw
+        .split(/\r?\n/)
+        .find((line) => line.startsWith('data:'));
+      parsed = JSON.parse((dataLine ?? 'data:{}').slice(5).trim()) as Record<
+        string,
+        unknown
+      >;
+    }
+    return { status: res.status, json: parsed };
+  }
+
+  // 1. Self-dogfooding verisource.dev discovery manifest & webmcp.js
+  const vsManifestRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/b/verisource.dev/.well-known/mcp.json'),
+    TEST_ENV
+  );
+  assert.equal(vsManifestRes.status, 200);
+  const vsManifest = (await vsManifestRes.json()) as { name: string };
+  assert.equal(vsManifest.name, 'brand.verisource.dev/mcp');
+
+  const vsJsRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/b/verisource.dev/webmcp.js'),
+    TEST_ENV
+  );
+  assert.equal(vsJsRes.status, 200);
+  assert.ok(
+    (vsJsRes.headers.get('content-type') ?? '').includes('application/javascript')
+  );
+  const vsJsText = await vsJsRes.text();
+  assert.ok(
+    vsJsText.includes('navigator.modelContext') &&
+      vsJsText.includes('get_verified_pricing_and_offers')
+  );
+
+  // 2. Customer Streamable HTTP /b/mosaicroasters.com/mcp tools/list & verify_brand_claim
+  const listRes = await postBrandMcp('mosaicroasters.com', {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/list',
+    params: {},
+  });
+  assert.equal(listRes.status, 200);
+  const toolNames = (
+    (listRes.json.result as { tools: Array<{ name: string }> }).tools ?? []
+  )
+    .map((t) => t.name)
+    .sort();
+  assert.deepEqual(toolNames, [
+    'compare_with_competitor',
+    'get_official_faqs',
+    'get_verified_pricing_and_offers',
+    'verify_brand_claim',
+  ]);
+
+  const claimRes = await postBrandMcp('mosaicroasters.com', {
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: {
+      name: 'verify_brand_claim',
+      arguments: { claim: 'Free nationwide shipping starts at $25' },
+    },
+  });
+  assert.equal(claimRes.status, 200);
+  const claimPayload = JSON.parse(
+    (claimRes.json.result as { content: Array<{ text: string }> }).content[0]!
+      .text
+  ) as { verdict: string; matchedExclusion: string };
+  assert.equal(claimPayload.verdict, 'contradicted_by_truth_sheet');
+  assert.ok(claimPayload.matchedExclusion.includes('$25'));
+
+  // 3. Unsubscribed domain must return 402 BRAND_MCP_SUBSCRIPTION_REQUIRED
+  const unsubRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/b/unsubscribed-brand.io/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    }),
+    TEST_ENV
+  );
+  assert.equal(unsubRes.status, 402);
+
+  // 4. SSRF / internal IP domain param must return 400 INVALID_BRAND_DOMAIN
+  const ssrfRes = await worker.fetch(
+    new Request('https://mcp.verisource.dev/b/169.254.169.254/webmcp.js'),
+    TEST_ENV
+  );
+  assert.equal(ssrfRes.status, 400);
+});

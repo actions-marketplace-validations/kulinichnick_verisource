@@ -5137,3 +5137,88 @@ test('M110 Report schedule cadence gate, regression fingerprint dedup, rolling l
     58
   );
 });
+
+test('M129 Hosted Brand Truth /mcp + W3C Chrome WebMCP (navigator.modelContext) profile, claim verifier, XSS escaping & live HTML detector', async () => {
+  const {
+    buildBrandHeadEmbedSnippet,
+    buildBrandTruthMcpProfileFromDomain,
+    buildBrandWebMcpScript,
+    buildVerisourceSelfBrandMcpProfile,
+    evaluateBrandPricingAndOffersTool,
+    evaluateCompareWithCompetitorTool,
+    evaluateOfficialFaqsTool,
+    evaluateVerifyBrandClaimTool,
+    isPlanEntitledForHostedBrandMcp,
+    verifyLiveBrandMcpDeployment,
+  } = await import('./mcp/brand-truth-mcp.js');
+
+  assert.equal(isPlanEntitledForHostedBrandMcp('free'), false);
+  assert.equal(isPlanEntitledForHostedBrandMcp('tripwire_19'), false);
+  assert.equal(isPlanEntitledForHostedBrandMcp('starter_49'), true);
+  assert.equal(isPlanEntitledForHostedBrandMcp('pro_99'), true);
+  assert.equal(isPlanEntitledForHostedBrandMcp('agency_249'), true);
+
+  const mosaicDom = PATIENT_ZERO_DOMAINS[1]!;
+  const mosaicFixes = PATIENT_ZERO_FIXES.filter(
+    (f) => f.domain_id === mosaicDom.id
+  );
+  const mosaicSnaps = PATIENT_ZERO_SNAPSHOTS.filter(
+    (s) => s.domain_id === mosaicDom.id
+  );
+  const mosaicProfile = buildBrandTruthMcpProfileFromDomain({
+    domain: mosaicDom,
+    fixes: mosaicFixes,
+    snapshots: mosaicSnaps,
+  });
+
+  assert.equal(
+    mosaicProfile.mcpEndpointUrl,
+    'https://mcp.verisource.dev/b/mosaicroasters.com/mcp'
+  );
+  assert.equal(
+    mosaicProfile.webMcpScriptUrl,
+    'https://mcp.verisource.dev/b/mosaicroasters.com/webmcp.js'
+  );
+
+  // False $25 shipping claim must be flagged as contradicted_by_truth_sheet
+  const falseClaim = evaluateVerifyBrandClaimTool(
+    mosaicProfile,
+    'Mosaic Coffee Roasters offers free shipping on orders over $25.'
+  );
+  assert.equal(falseClaim.verdict, 'contradicted_by_truth_sheet');
+  assert.ok(falseClaim.matchedExclusion?.includes('$25'));
+
+  // True $35 Springfield shipping claim must be verified
+  const trueClaim = evaluateVerifyBrandClaimTool(
+    mosaicProfile,
+    'Free US shipping on orders over $35 plus local delivery in Springfield MO'
+  );
+  assert.equal(trueClaim.verdict, 'verified_brand_policy');
+
+  const pricingOut = evaluateBrandPricingAndOffersTool(mosaicProfile);
+  assert.equal(pricingOut.hostname, 'mosaicroasters.com');
+  const compOut = evaluateCompareWithCompetitorTool(mosaicProfile, 'Onyx');
+  assert.equal(compOut.comparedAgainst, 'Onyx');
+  const faqOut = evaluateOfficialFaqsTool(mosaicProfile, 'shipping');
+  assert.ok(faqOut.faqs.length >= 1);
+
+  // WebMCP JS must register navigator.modelContext tools and safely escape </script> XSS payloads
+  const selfProfile = buildVerisourceSelfBrandMcpProfile();
+  selfProfile.brandName = 'Test </script><script>alert(1)</script>';
+  const webMcpJs = buildBrandWebMcpScript(selfProfile);
+  assert.ok(webMcpJs.includes('navigator.modelContext'));
+  assert.ok(webMcpJs.includes('__VERISOURCE_WEBMCP__'));
+  assert.ok(!webMcpJs.includes('</script>'));
+
+  const snippet = buildBrandHeadEmbedSnippet({
+    domainInput: 'mosaicroasters.com',
+    brandName: 'Mosaic Coffee Roasters',
+  });
+  const simulatedHtml = `<!doctype html><html><head>${snippet}</head><body>ok</body></html>`;
+  const verified = await verifyLiveBrandMcpDeployment('mosaicroasters.com', {
+    htmlOverrideForTest: simulatedHtml,
+  });
+  assert.equal(verified.hasLinkRelMcp, true);
+  assert.equal(verified.hasWebMcpScript, true);
+  assert.equal(verified.verifiedForPublicAgentAccess, true);
+});

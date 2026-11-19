@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T09:15:59.846Z",
+  "updatedAt": "2026-11-19T09:22:56.904Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2130,59 +2130,129 @@
       "domain": "gong.io",
       "brandName": "Gong",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "outreach.io",
       "brandName": "Outreach",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "salesloft.com",
       "brandName": "Salesloft",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "6sense.com",
       "brandName": "6sense",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "demandbase.com",
       "brandName": "Demandbase",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "zoominfo.com",
       "brandName": "ZoomInfo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "lusha.com",
       "brandName": "Lusha",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "rimowa.com",
       "brandName": "RIMOWA",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "tumi.com",
       "brandName": "TUMI",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
     },
     {
       "domain": "briggs-riley.com",
       "brandName": "Briggs & Riley",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T09:22:56.904Z"
+    },
+    {
+      "domain": "snowflake.com",
+      "brandName": "Snowflake",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "databricks.com",
+      "brandName": "Databricks",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fivetran.com",
+      "brandName": "Fivetran",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "airbyte.com",
+      "brandName": "Airbyte",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "getdbt.com",
+      "brandName": "dbt Labs",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "tableau.com",
+      "brandName": "Tableau",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "metabase.com",
+      "brandName": "Metabase",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "preset.io",
+      "brandName": "Preset",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "thoughtspot.com",
+      "brandName": "ThoughtSpot",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fromourplace.com",
+      "brandName": "Our Place",
       "vertical": "shopify_dtc",
       "status": "queued"
     }
