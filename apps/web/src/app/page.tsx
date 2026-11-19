@@ -1,8 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import React from 'react';
 import { StatusBadge } from '@verisource/ui';
 import { PricingLadderSection } from '../components/PricingLadderSection';
 import { PublicGraderClient } from '../components/PublicGraderClient';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: 'https://verisource.dev',
+  },
+};
 
 export default function HomePage(): React.ReactElement {
   return (
@@ -466,7 +473,7 @@ export default function HomePage(): React.ReactElement {
                     Compare Two Domains Free →
                   </Link>
                   <Link href="/reports" className="vs-btn vs-btn-secondary">
-                    290+ Brand Scorecards →
+                    300+ Brand Scorecards →
                   </Link>
                 </div>
               </div>

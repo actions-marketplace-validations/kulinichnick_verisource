@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import React from 'react';
 import { cookies, headers } from 'next/headers';
 import {
@@ -11,6 +12,14 @@ import {
 } from '../../lib/data-store';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = {
+  title: 'Subscriber Console — Verisource',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function DashboardPage({
   searchParams,

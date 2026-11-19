@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 290);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 74);
+    assert.ok(benchSumJson.totalAuditedDomains >= 300);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 78);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,55 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 290,
-      `Expected /reports leaderboard to index >= 290 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 300,
+      `Expected /reports leaderboard to index >= 300 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/109] M119–M127 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 74 /vs/[matchup] Pages & 290-Domain /reports Hub verified!');
+    console.log('✔ [109/110] M119–M128 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 78 /vs/[matchup] Pages & Landmark 300-Domain /reports Hub verified!');
+
+    // 108. Search Console Canonical & Sitemap Hygiene Lock (Zero Root Canonical Bleed on /privacy, /terms, /login, /dashboard)
+    const [gscHomeHtml, gscPrivacyHtml, gscTermsHtml, gscLoginHtml, gscDashHtml, gscSitemapXml] =
+      await Promise.all([
+        fetch(`${BASE}/`).then((r) => r.text()),
+        fetch(`${BASE}/privacy`).then((r) => r.text()),
+        fetch(`${BASE}/terms`).then((r) => r.text()),
+        fetch(`${BASE}/login`).then((r) => r.text()),
+        fetch(`${BASE}/dashboard`).then((r) => r.text()),
+        fetch(`${BASE}/sitemap.xml`).then((r) => r.text()),
+      ]);
+
+    assert.ok(
+      /rel="canonical"\s+href="https:\/\/verisource\.dev\/?"/i.test(gscHomeHtml),
+      'Expected / to emit self-referencing https://verisource.dev canonical tag'
+    );
+    assert.ok(
+      gscPrivacyHtml.includes('href="https://verisource.dev/privacy"') &&
+        !/rel="canonical"\s+href="https:\/\/verisource\.dev\/?"/i.test(gscPrivacyHtml),
+      'Expected /privacy to emit self-referencing /privacy canonical without root canonical bleed'
+    );
+    assert.ok(
+      gscTermsHtml.includes('href="https://verisource.dev/terms"') &&
+        !/rel="canonical"\s+href="https:\/\/verisource\.dev\/?"/i.test(gscTermsHtml),
+      'Expected /terms to emit self-referencing /terms canonical without root canonical bleed'
+    );
+    assert.ok(
+      gscLoginHtml.includes('noindex') &&
+        !/rel="canonical"\s+href="https:\/\/verisource\.dev\/?"/i.test(gscLoginHtml),
+      'Expected /login to emit noindex without root canonical bleed'
+    );
+    assert.ok(
+      gscDashHtml.includes('noindex') &&
+        !/rel="canonical"\s+href="https:\/\/verisource\.dev\/?"/i.test(gscDashHtml),
+      'Expected /dashboard to emit noindex without root canonical bleed'
+    );
+    assert.ok(
+      gscSitemapXml.includes('<loc>https://verisource.dev/privacy</loc>') &&
+        gscSitemapXml.includes('<loc>https://verisource.dev/terms</loc>') &&
+        !gscSitemapXml.includes('<loc>https://verisource.dev/login</loc>') &&
+        !gscSitemapXml.includes('<loc>https://verisource.dev/llms.txt</loc>') &&
+        !gscSitemapXml.includes('<loc>https://verisource.dev/agents.md</loc>'),
+      'Expected /sitemap.xml to keep /privacy & /terms and exclude /login, /llms.txt, and /agents.md'
+    );
+    console.log('✔ [110/110] Google Search Console Canonical & Sitemap Hygiene Lock verified!');
   } finally {
     server.kill();
   }

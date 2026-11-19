@@ -6,6 +6,17 @@ export const metadata: Metadata = {
   title: 'Privacy Policy & MV3 Extension Disclosure — Verisource',
   description:
     'Data handling, Manifest V3 Chrome Extension least-privilege permissions (sidePanel + activeTab), and Origin-verified attribution telemetry policy.',
+  alternates: {
+    canonical: 'https://verisource.dev/privacy',
+  },
+  openGraph: {
+    title: 'Privacy Policy & MV3 Extension Disclosure — Verisource',
+    description:
+      'Data handling, Manifest V3 Chrome Extension least-privilege permissions (sidePanel + activeTab), and Origin-verified attribution telemetry policy.',
+    url: 'https://verisource.dev/privacy',
+    siteName: 'Verisource',
+    type: 'website',
+  },
 };
 
 export default function PrivacyPage(): React.ReactElement {

@@ -6,6 +6,17 @@ export const metadata: Metadata = {
   title: 'Terms of Service & MCP Metering Terms — Verisource',
   description:
     'Subscription billing terms, 7-day $19 Tripwire upgrade credit rules, and Streamable HTTP /mcp acceptable use.',
+  alternates: {
+    canonical: 'https://verisource.dev/terms',
+  },
+  openGraph: {
+    title: 'Terms of Service & MCP Metering Terms — Verisource',
+    description:
+      'Subscription billing terms, 7-day $19 Tripwire upgrade credit rules, and Streamable HTTP /mcp acceptable use.',
+    url: 'https://verisource.dev/terms',
+    siteName: 'Verisource',
+    type: 'website',
+  },
 };
 
 export default function TermsPage(): React.ReactElement {

@@ -44,9 +44,6 @@ export const metadata: Metadata = {
   title: 'Verisource — B2B Generative Engine Optimization & Paid MCP Engine',
   description:
     'Audit AI citations across ChatGPT, Gemini, and Perplexity. Flag brand hallucinations and ship syntax-validated JSON-LD, /llms.txt, and Shopify /api/ucp/mcp fixes.',
-  alternates: {
-    canonical: 'https://verisource.dev',
-  },
   openGraph: {
     title: 'Verisource — B2B GEO & Streamable HTTP MCP Platform',
     description:
