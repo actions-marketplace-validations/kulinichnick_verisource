@@ -5439,7 +5439,116 @@ async function run() {
       m114UniqueLinks.size >= 160,
       `Expected /reports leaderboard to index >= 160 unique domains, got ${m114UniqueLinks.size}`
     );
-    console.log('✔ [104/104] M114 160-Domain Empirical Study (FIG 14), 25 /vs/[matchup] Pages & 160-Domain /reports Hub verified!');
+    console.log('✔ [104/105] M114 160-Domain Empirical Study (FIG 14), 25 /vs/[matchup] Pages & 160-Domain /reports Hub verified!');
+
+    // 103. M115 Anti-Bot Signup Hardening, /api/vs/[matchup] JSON+Markdown API, 28 /vs/[matchup] Pages & 170-Domain /reports Milestone
+    const [
+      botDispMagicRes,
+      botDottedMagicRes,
+      cleanMagicRes,
+      botPartnerSlugRes,
+      vsApiOptRes,
+      vsApiJsonRes,
+      vsApiMdRes,
+      vsApi404Res,
+      m115MatchupPageRes,
+      m115ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/api/auth/magic-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: BASE,
+        },
+        body: JSON.stringify({ email: 'eng7acc9cd35@niceground.shop' }),
+      }),
+      fetch(`${BASE}/api/auth/magic-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: BASE,
+        },
+        body: JSON.stringify({ email: 'eli.z.ab.ethja.ne198.4@gmail.com' }),
+      }),
+      fetch(`${BASE}/api/auth/magic-link`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: BASE,
+        },
+        body: JSON.stringify({ email: 'founder@acme-saas-verify.io' }),
+      }),
+      fetch(`${BASE}/api/partners/apply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: BASE,
+        },
+        body: JSON.stringify({
+          name: 'Hjlpan Wkiqu',
+          email: 'partner@acme-saas-verify.io',
+          slug: 'jyzpvgbqxgkcqjtllappz',
+          channel_url: 'https://linkedin.com/in/acme',
+        }),
+      }),
+      fetch(`${BASE}/api/vs/cursor-com-vs-zed-dev`, { method: 'OPTIONS' }),
+      fetch(`${BASE}/api/vs/cursor-com-vs-zed-dev`),
+      fetch(`${BASE}/api/vs/zed-dev-vs-cursor-com?format=md`),
+      fetch(`${BASE}/api/vs/unknown-vs-domain-404`),
+      fetch(`${BASE}/vs/upstash-com-vs-turso-tech`),
+      fetch(`${BASE}/reports`),
+    ]);
+
+    assert.equal(botDispMagicRes.status, 400);
+    const botDispMagicJson = await botDispMagicRes.json();
+    assert.equal(botDispMagicJson.error, 'DISPOSABLE_OR_AUTOMATED_EMAIL');
+    assert.equal(botDottedMagicRes.status, 400);
+    assert.equal(cleanMagicRes.status, 200);
+    assert.equal(botPartnerSlugRes.status, 400);
+    const botPartnerSlugJson = await botPartnerSlugRes.json();
+    assert.equal(botPartnerSlugJson.error, 'AUTOMATED_SUBMISSION_BLOCKED');
+
+    assert.equal(vsApiOptRes.status, 204);
+    assert.equal(vsApiOptRes.headers.get('access-control-allow-origin'), '*');
+    assert.equal(vsApiJsonRes.status, 200);
+    const vsApiJson = await vsApiJsonRes.json();
+    assert.equal(vsApiJson.ok, true);
+    assert.equal(vsApiJson.slug, 'cursor-com-vs-zed-dev');
+    assert.equal(vsApiJson.dimensions.length, 6);
+
+    assert.equal(vsApiMdRes.status, 200);
+    assert.ok(
+      (vsApiMdRes.headers.get('content-type') ?? '').includes('text/markdown')
+    );
+    const vsApiMdText = await vsApiMdRes.text();
+    assert.ok(
+      vsApiMdText.includes('## 6-Dimension Protocol Telemetry Diff') &&
+        (vsApiMdText.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(vsApiMdText),
+      'Expected /api/vs/[matchup]?format=md to render clean Markdown table with zero banned lexicon or /10 jargon'
+    );
+    assert.equal(vsApi404Res.status, 404);
+
+    assert.equal(m115MatchupPageRes.status, 200);
+    const m115MatchupHtml = await m115MatchupPageRes.text();
+    assert.ok(
+      m115MatchupHtml.includes('type="text/markdown"') &&
+        m115MatchupHtml.includes('↓ Markdown (.md)') &&
+        m115MatchupHtml.includes('JSON API'),
+      'Expected /vs/upstash-com-vs-turso-tech to expose alternate text/markdown link + Markdown/JSON pills'
+    );
+
+    const m115ReportsHtml = await m115ReportsRes.text();
+    const m115UniqueLinks = new Set(
+      Array.from(
+        m115ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m115UniqueLinks.size >= 170,
+      `Expected /reports leaderboard to index >= 170 unique domains, got ${m115UniqueLinks.size}`
+    );
+    console.log('✔ [105/105] M115 Anti-Bot Signup Guard, /api/vs/[matchup] JSON & Markdown API, 28 /vs/[matchup] Pages & 170-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

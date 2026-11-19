@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dispatchMagicLinkSignInEmail } from '@verisource/core-geo';
 import { getServiceSupabaseClient } from '../../../../lib/data-store';
+import { checkDisposableOrBotEmail } from '../../../../lib/signup-guard';
 
 interface RateBucket {
   count: number;
@@ -126,6 +127,18 @@ export async function POST(request: Request): Promise<NextResponse> {
       {
         error: 'INVALID_EMAIL',
         message: 'Enter a valid email address to receive your sign-in link.',
+      },
+      { status: 400 }
+    );
+  }
+
+  const botGuard = checkDisposableOrBotEmail(email);
+  if (botGuard.blocked) {
+    return NextResponse.json(
+      {
+        error: 'DISPOSABLE_OR_AUTOMATED_EMAIL',
+        message:
+          'Disposable or automated email aliases are not accepted. Use your work or personal inbox.',
       },
       { status: 400 }
     );

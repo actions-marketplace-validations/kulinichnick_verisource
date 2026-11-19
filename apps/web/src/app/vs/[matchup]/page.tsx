@@ -56,6 +56,10 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: canonicalUrl,
+      types: {
+        'text/markdown': `https://verisource.dev/api/vs/${slug}?format=md`,
+        'application/json': `https://verisource.dev/api/vs/${slug}`,
+      },
     },
     robots: { index: true, follow: true },
     openGraph: {
@@ -307,6 +311,20 @@ export default async function PublishedMatchupPage({
           >
             6-Dimension HTTP &amp; Schema Benchmark
           </span>
+          <a
+            href={`/api/vs/${encodeURIComponent(slug)}?format=md`}
+            className="vs-pill-btn vs-pill-btn-sm vs-mono"
+            style={{ padding: '3px 9px', fontSize: '11px', textDecoration: 'none' }}
+          >
+            ↓ Markdown (.md)
+          </a>
+          <a
+            href={`/api/vs/${encodeURIComponent(slug)}`}
+            className="vs-pill-btn vs-pill-btn-sm vs-mono"
+            style={{ padding: '3px 9px', fontSize: '11px', textDecoration: 'none' }}
+          >
+            JSON API
+          </a>
         </div>
 
         <h1

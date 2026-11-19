@@ -201,6 +201,27 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Developer docs /llms.txt + JSON-LD coverage across background job engines.',
   },
+  {
+    cohort: 'SERVERLESS DATA & CACHING',
+    domainA: 'upstash.com',
+    domainB: 'turso.tech',
+    angle:
+      'Published /llms.txt + entity schema vs. edge SQLite developer landing metadata.',
+  },
+  {
+    cohort: 'ERROR & INCIDENT OBSERVABILITY',
+    domainA: 'sentry.io',
+    domainB: 'betterstack.com',
+    angle:
+      'Open crawler access + structured telemetry docs vs. SaaS observability landing graph.',
+  },
+  {
+    cohort: 'SHOPIFY PLUS COMMERCE',
+    domainA: 'oseamalibu.com',
+    domainB: 'trueclassictees.com',
+    angle:
+      'Side-by-side Shopify Plus Product + Offer JSON-LD and /agents.md protocol parity.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

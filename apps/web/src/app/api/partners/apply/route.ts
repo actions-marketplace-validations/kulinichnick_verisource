@@ -4,6 +4,10 @@ import {
   normalizePublicDomain,
   sanitizeAffiliateCode,
 } from '@verisource/core-geo';
+import {
+  checkDisposableOrBotEmail,
+  isGibberishBotPartnerSubmission,
+} from '../../../../lib/signup-guard';
 
 const ipWindowMap = new Map<string, { count: number; resetAt: number }>();
 const MAX_PARTNER_APPLICATIONS_PER_HOUR = 5;
@@ -93,6 +97,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
+  const emailGuard = checkDisposableOrBotEmail(rawEmail);
+  if (emailGuard.blocked) {
+    return NextResponse.json(
+      {
+        error: 'DISPOSABLE_OR_AUTOMATED_EMAIL',
+        message:
+          'Disposable or automated email aliases are not accepted for partner registration.',
+      },
+      { status: 400 }
+    );
+  }
+
   const safeSlug = sanitizeAffiliateCode(rawSlug);
   if (!safeSlug) {
     return NextResponse.json(
@@ -100,6 +116,17 @@ export async function POST(request: Request): Promise<NextResponse> {
         error: 'INVALID_PARTNER_SLUG',
         message:
           'Partner code must be 3-40 letters, numbers, hyphens, or underscores.',
+      },
+      { status: 400 }
+    );
+  }
+
+  if (isGibberishBotPartnerSubmission({ name: rawName, slug: safeSlug })) {
+    return NextResponse.json(
+      {
+        error: 'AUTOMATED_SUBMISSION_BLOCKED',
+        message:
+          'Automated partner form submissions are blocked. Enter your real agency or creator brand name and code.',
       },
       { status: 400 }
     );
