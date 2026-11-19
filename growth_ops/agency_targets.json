@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:29:26.320Z",
+  "updatedAt": "2026-11-19T19:54:56.147Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1524,7 +1524,20 @@
       "publicContactChannel": "newbusiness@hellomonday.com",
       "caseStudyClientDomain": "youtube.com",
       "caseStudyClientName": "YouTube",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:54:11.189Z",
+      "auditSlug": "youtube-com-5af6",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:54:11.189Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:54:11.189Z",
+      "resendMessageId": "01a1f55f-c5e5-778e-819d-387362c6b8fa",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Stink Studios",
@@ -1536,6 +1549,67 @@
       "publicContactChannel": "london@stinkstudios.com",
       "caseStudyClientDomain": "spotify.com",
       "caseStudyClientName": "Spotify",
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:54:11.189Z",
+      "auditSlug": "spotify-com-rt2q",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:54:11.189Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:54:11.189Z",
+      "resendMessageId": "01a1f55f-c867-7466-abd5-8f2c1d6979f9",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
+    },
+    {
+      "agencyName": "Upstatement",
+      "agencyDomain": "upstatement.com",
+      "specialty": "Digital Brand & Editorial Web Engineering",
+      "contactName": "Mike Swartz",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Mike%20Swartz%20Upstatement",
+      "publicContactChannel": "info@upstatement.com",
+      "caseStudyClientDomain": "harvard.edu",
+      "caseStudyClientName": "Harvard University",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Happy Cog",
+      "agencyDomain": "happycog.com",
+      "specialty": "SEO, Performance Marketing & Web Engineering Agency",
+      "contactName": "Matt Weinberg",
+      "contactRole": "Co-Founder & President",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Matt%20Weinberg%20Happy%20Cog",
+      "publicContactChannel": "hello@happycog.com",
+      "caseStudyClientDomain": "zappos.com",
+      "caseStudyClientName": "Zappos",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Gretel",
+      "agencyDomain": "gretelny.com",
+      "specialty": "Brand Identity & Digital Experience Studio",
+      "contactName": "Greg Hahn",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Greg%20Hahn%20Gretel",
+      "publicContactChannel": "info@gretelny.com",
+      "caseStudyClientDomain": "netflix.com",
+      "caseStudyClientName": "Netflix",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Cuberto",
+      "agencyDomain": "cuberto.com",
+      "specialty": "SaaS Product & Web Design Studio",
+      "contactName": "Dmitry Vlasov",
+      "contactRole": "CEO & Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Dmitry%20Vlasov%20Cuberto",
+      "publicContactChannel": "info@cuberto.com",
+      "caseStudyClientDomain": "cisco.com",
+      "caseStudyClientName": "Cisco",
       "status": "queued"
     }
   ]
