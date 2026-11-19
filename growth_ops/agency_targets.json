@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:35:03.461Z",
+  "updatedAt": "2026-11-19T08:45:10.997Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -759,7 +759,20 @@
       "publicContactChannel": "info@barrelny.com",
       "caseStudyClientDomain": "lairdsuperfood.com",
       "caseStudyClientName": "Laird Superfood",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:45:10.997Z",
+      "auditSlug": "lairdsuperfood-com-ij9u",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:45:10.997Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:45:10.997Z",
+      "resendMessageId": "01a1f2fb-46b8-7e48-8d63-d92323020b23",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Domaine",
@@ -771,7 +784,20 @@
       "publicContactChannel": "hello@meetdomaine.com",
       "caseStudyClientDomain": "rhodeskin.com",
       "caseStudyClientName": "Rhode",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:45:10.997Z",
+      "auditSlug": "rhodeskin-com-mgvh",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:45:10.997Z",
+        "source": "on_site_exact",
+        "mxExchange": "smtp.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:45:10.997Z",
+      "resendMessageId": "01a1f2fb-74be-73f5-8293-b19f0144dccc",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Scoutside",

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:35:03.461Z",
+  "updatedAt": "2026-11-19T08:45:10.997Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1780,61 +1780,71 @@
       "domain": "gumroad.com",
       "brandName": "Gumroad",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "lemonsqueezy.com",
       "brandName": "Lemon Squeezy",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "paddle.com",
       "brandName": "Paddle",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "polar.sh",
       "brandName": "Polar",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "lululemon.com",
       "brandName": "lululemon",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "outdoorvoices.com",
       "brandName": "Outdoor Voices",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "kajabi.com",
       "brandName": "Kajabi",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "teachable.com",
       "brandName": "Teachable",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "podia.com",
       "brandName": "Podia",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "thinkific.com",
       "brandName": "Thinkific",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:45:10.997Z"
     },
     {
       "domain": "stan.store",
@@ -1869,6 +1879,66 @@
     {
       "domain": "circle.so",
       "brandName": "Circle",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "wise.com",
+      "brandName": "Wise",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "airwallex.com",
+      "brandName": "Airwallex",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "expensify.com",
+      "brandName": "Expensify",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "xero.com",
+      "brandName": "Xero",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "freshbooks.com",
+      "brandName": "FreshBooks",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pilot.com",
+      "brandName": "Pilot",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "purple.com",
+      "brandName": "Purple",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "saatva.com",
+      "brandName": "Saatva",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "make.com",
+      "brandName": "Make",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "n8n.io",
+      "brandName": "n8n",
       "vertical": "b2b_saas",
       "status": "queued"
     }

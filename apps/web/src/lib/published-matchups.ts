@@ -516,6 +516,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Custom athletic commerce crawler access, Product Offer JSON-LD, and /agents.md posture.',
   },
+  {
+    cohort: 'SAAS MERCHANT OF RECORD BILLING',
+    domainA: 'paddle.com',
+    domainB: 'lemonsqueezy.com',
+    angle:
+      'Head-to-head AI crawler rules, /llms.txt feeds, and billing entity JSON-LD.',
+  },
+  {
+    cohort: 'DEVELOPER & CREATOR CHECKOUT',
+    domainA: 'polar.sh',
+    domainB: 'gumroad.com',
+    angle:
+      'Open-source developer monetization vs. creator checkout SSR copy and protocol feeds.',
+  },
+  {
+    cohort: 'CREATOR COURSE & MEMBERSHIP SAAS',
+    domainA: 'kajabi.com',
+    domainB: 'teachable.com',
+    angle:
+      'Course platform /llms.txt readiness, GPTBot access, and homepage schema.org coverage.',
+  },
+  {
+    cohort: 'DIGITAL COURSE & PRODUCT BUILDERS',
+    domainA: 'podia.com',
+    domainB: 'thinkific.com',
+    angle:
+      'Server-rendered pricing & product copy, /llms.txt index, and entity JSON-LD parity.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
