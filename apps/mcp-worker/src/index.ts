@@ -15,12 +15,14 @@ import {
   getWebsitePlatformMeta,
   normalizePublicDomain,
   rankCitationGapSources,
+  runCompetitorTechnicalXray,
   runDomainReadinessScan,
   runFullGeoAudit,
   summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   VERISOURCE_VERSION,
   type AiRemediationTargetEnv,
+  type CompetitorTechnicalXrayReport,
   type FullGeoAuditResult,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
@@ -604,6 +606,240 @@ export function buildMcpHandlerForEnv(env: WorkerEnv) {
           executive_audit_report_markdown: executiveReport.content,
           executive_audit_quality_score: executiveReport.score,
           fixes: audit.fixes,
+        };
+
+        return {
+          content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+        };
+      }
+    );
+
+    // 5. PAID TOOL: compare_competitor_protocol_xray (1 credit cached / 10 credits live_refresh)
+    server.registerTool(
+      'compare_competitor_protocol_xray',
+      {
+        title: 'Run Head-to-Head Competitor Protocol X-Ray & Overtake Bundle',
+        description:
+          'Paid Tool (Pro/Agency): Benchmarks own_domain against rival_domain across 6 live HTTP & schema dimensions (AI Readiness Score, GPTBot/PerplexityBot WAF access, non-JS SSR token density, schema.org JSON-LD @type diff, /llms.txt, /agents.md) and returns an unredacted overtake engineering prompt, a ready-to-publish [Brand] vs. [Rival] comparison page + FAQPage JSON-LD, and Headless Next.js /api/ucp/mcp rescue snippets. Costs 1 credit cached or 10 credits with live_refresh=true.',
+        inputSchema: z.object({
+          own_domain: z
+            .string()
+            .min(3)
+            .describe('Your domain or client domain, e.g. huckberry.com'),
+          rival_domain: z
+            .string()
+            .min(3)
+            .describe('Competitor domain to benchmark against, e.g. rothys.com'),
+          target_env: z
+            .enum([
+              'coding_agent',
+              'chat_assistant',
+              'shopify_liquid',
+              'wordpress_cms',
+              'webflow_cms',
+              'wix_squarespace_framer',
+            ])
+            .optional()
+            .describe(
+              'Optional override for overtake prompt target environment (defaults to auto-detected CMS)'
+            ),
+          live_refresh: z
+            .boolean()
+            .optional()
+            .describe('Set true to force a fresh HTTP & multi-engine diff (10 credits)'),
+        }),
+      },
+      async ({ own_domain, rival_domain, target_env, live_refresh }) => {
+        // Validate both domains and block self-comparisons BEFORE charging any credits
+        let ownNorm: ReturnType<typeof normalizePublicDomain>;
+        let rivalNorm: ReturnType<typeof normalizePublicDomain>;
+        try {
+          ownNorm = normalizePublicDomain(own_domain);
+          rivalNorm = normalizePublicDomain(rival_domain);
+        } catch (err) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    error: 'INVALID_DOMAIN',
+                    message:
+                      err instanceof Error
+                        ? err.message
+                        : 'Provide two valid public domains.',
+                    credits_charged: 0,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
+        if (ownNorm.hostname === rivalNorm.hostname) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    error: 'SAME_DOMAIN_ERROR',
+                    message: `Choose an external rival domain rather than comparing ${ownNorm.hostname} against itself.`,
+                    credits_charged: 0,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
+        const isLive = Boolean(live_refresh);
+        const creditsCost = isLive ? 10 : 1;
+
+        const gate = await authorizeAndMeterPaidTool({
+          rawBearerToken: caller.rawBearerToken,
+          creditsCost,
+          env,
+        });
+
+        if (!gate.allowed) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(
+                  {
+                    error: gate.errorCode,
+                    message: gate.upgradeMessage,
+                    credits_remaining: gate.creditsRemaining,
+                  },
+                  null,
+                  2
+                ),
+              },
+            ],
+          };
+        }
+
+        const { audit, servedFromCache: auditCached } = await getOrComputeAudit({
+          domain: ownNorm.origin,
+          liveRefresh: isLive,
+          env,
+        });
+
+        const xrayCacheKey = `xray:v1:${ownNorm.hostname}::${rivalNorm.hostname}`;
+        let xray = !isLive
+          ? await getCachedJson<CompetitorTechnicalXrayReport>(xrayCacheKey, env)
+          : null;
+        let xrayCached = Boolean(xray);
+
+        if (!xray) {
+          xrayCached = false;
+          xray = await runCompetitorTechnicalXray({
+            ownDomain: {
+              domain_url: audit.domainUrl,
+              brand_name: audit.brandName,
+              is_shopify: audit.shopify.isShopify,
+              shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+              agents_md_status: audit.shopify.agentsMdStatus,
+              llms_txt_status: audit.probe.llmsTxtStatus,
+              robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+              brand_truth_sheet: audit.brandTruthSheet,
+              visibility_score: audit.visibilityScore,
+            },
+            rivalDomainInput: rivalNorm.origin,
+            rawEnv: workerEnvToRawInput(env),
+            preProbedOwn: audit.probe,
+          });
+          await setCachedJson(xrayCacheKey, xray, 3600 * 12, env);
+        }
+
+        const detectedPlatformId =
+          audit.probe.detectedPlatform ??
+          (audit.shopify.isShopify ? 'shopify' : 'nextjs_custom');
+        const platformMeta = getWebsitePlatformMeta(detectedPlatformId);
+        const resolvedTargetEnv: AiRemediationTargetEnv =
+          target_env ?? platformMeta.recommendedAiEnv;
+
+        const vsComparisonBundle = buildCitationAnswerPageBundle({
+          domain: {
+            brand_name: audit.brandName,
+            domain_url: audit.domainUrl,
+            industry_vertical: audit.industryVertical,
+            is_shopify: audit.shopify.isShopify,
+            shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+            agents_md_status: audit.shopify.agentsMdStatus,
+            llms_txt_status: audit.probe.llmsTxtStatus,
+            brand_truth_sheet: audit.brandTruthSheet,
+          },
+          blueprintType: 'vs_competitor',
+          rivalName: xray.rivalBrandName,
+          targetPrompt: audit.trackedPrompts[0] ?? null,
+          targetEnv: resolvedTargetEnv,
+        });
+
+        const appOrigin = (
+          env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev'
+        ).replace(/\/+$/, '');
+
+        const headlessShopifyRescue =
+          detectedPlatformId === 'nextjs_custom'
+            ? {
+                guide_url: `${appOrigin}/guides/headless-nextjs-shopify-ai-search-fix`,
+                next_config_ucp_rewrite: `async rewrites() { return [{ source: '/api/ucp/mcp', destination: 'https://YOUR_STORE.myshopify.com/api/ucp/mcp' }]; }`,
+                recommended_routes: [
+                  'app/llms.txt/route.ts (Content-Type: text/plain; charset=utf-8)',
+                  'app/agents.md/route.ts (Content-Type: text/markdown; charset=utf-8)',
+                ],
+              }
+            : null;
+
+        const payload = {
+          own_domain: xray.ownHostname,
+          own_brand_name: xray.ownBrandName,
+          own_detected_platform: platformMeta.platformId,
+          own_detected_platform_label: platformMeta.displayName,
+          own_technical_score: xray.ownTechnicalScore,
+          rival_domain: xray.rivalHostname,
+          rival_brand_name: xray.rivalBrandName,
+          rival_technical_score: xray.rivalTechnicalScore,
+          score_delta: xray.scoreDelta,
+          target_env: resolvedTargetEnv,
+          served_from_cache: auditCached && xrayCached,
+          credits_charged: gate.creditsCharged,
+          credits_remaining: gate.creditsRemaining,
+          dimensions: xray.dimensions,
+          own_json_ld_types: xray.ownJsonLdTypes,
+          rival_json_ld_types: xray.rivalJsonLdTypes,
+          rival_exclusive_schema_types: xray.rivalExclusiveSchemaTypes,
+          overtake_action_plan: xray.overtakeActionPlan,
+          ai_overtake_prompt: xray.aiOvertakePrompt.content,
+          ai_overtake_prompt_score: xray.aiOvertakePrompt.score,
+          vs_rival_comparison_page: {
+            suggested_path: vsComparisonBundle.suggestedPath,
+            canonical_url: vsComparisonBundle.canonicalUrl,
+            rival_compared: vsComparisonBundle.rivalLabel,
+            markdown_page: vsComparisonBundle.markdownPage.content,
+            faq_json_ld: vsComparisonBundle.faqJsonLd,
+            ai_build_prompt: vsComparisonBundle.aiBuildPrompt.content,
+          },
+          headless_shopify_rescue: headlessShopifyRescue,
+          public_share_url: `${appOrigin}/vs?a=${encodeURIComponent(
+            xray.ownHostname
+          )}&b=${encodeURIComponent(xray.rivalHostname)}`,
+          opengraph_card_url: `${appOrigin}/api/og/vs?a=${encodeURIComponent(
+            xray.ownHostname
+          )}&b=${encodeURIComponent(xray.rivalHostname)}`,
+          own_badge_svg_url: `${appOrigin}/api/badge/${encodeURIComponent(
+            xray.ownHostname
+          )}`,
         };
 
         return {

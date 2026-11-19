@@ -54,6 +54,7 @@ Paid tools accept either a SHA-256 \`vs_live_\` Bearer API key minted at https:/
 | \`get_citation_gaps_and_fanouts\` | Paid (Pro / Agency) | 1 cached / 10 live | Returns 3-engine Mention vs. Citation share, Source-Type categorized citation gap domains (UGC/Reddit, Review Directory, Competitor, Editorial), channel-specific \`citation_action_playbook_markdown\`, observed search fanout sub-queries, and third-party citation URLs. |
 | \`check_brand_hallucinations\` | Paid (Pro / Agency) | 1 cached / 10 live | Diffs live ChatGPT, Gemini, and Perplexity claims and sentiment framing against a domain's verified Brand Truth Sheet and flags pricing, shipping, or SKU hallucinations. |
 | \`generate_geo_fix_bundle\` | Paid (Pro / Agency) | 1 cached / 10 live | Generates syntax-validated \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, Shopify \`templates/agents.md.liquid\`, platform-tailored \`ai_remediation_prompt\` (Coding Agent, WordPress, Webflow, Wix/Squarespace/Framer, Shopify, or Chat), and \`citation_comparison_page\` bundles. |
+| \`compare_competitor_protocol_xray\` | Paid (Pro / Agency) | 1 cached / 10 live | Benchmarks \`own_domain\` against \`rival_domain\` across 6 HTTP & schema dimensions and outputs an unredacted \`ai_overtake_prompt\`, \`vs_rival_comparison_page\` (\`[Brand] vs. [Rival]\` + \`FAQPage\` \`JSON-LD\`), and Headless Next.js \`/api/ucp/mcp\` rescue config. |
 
 ## 3. 7-Platform CMS Support & No-Root-File \`/ai-facts\` Verification
 

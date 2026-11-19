@@ -369,7 +369,7 @@ test('MCP Registry discovery manifest & MCP_DIRECTORY_LAUNCH.md pass >= 9.5/10 C
   assert.ok(manifest.description.length <= 100);
   assert.equal(manifest.remotes[0]?.type, 'streamable-http');
   assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
-  assert.equal(manifest.tools.length, 4);
+  assert.equal(manifest.tools.length, 5);
 
   const manifestAudit = gradeArtifactQuality(manifest.description);
   assert.ok(

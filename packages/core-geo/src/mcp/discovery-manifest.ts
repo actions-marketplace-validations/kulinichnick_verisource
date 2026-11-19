@@ -121,6 +121,14 @@ export function buildMcpDiscoveryManifest(options?: {
         description:
           'Generates syntax-validated schema.org JSON-LD, /llms.txt, /agents.md, Shopify templates/agents.md.liquid overrides, platform-tailored 1-click AI remediation prompts, and head-to-head rival comparison pages.',
       },
+      {
+        name: 'compare_competitor_protocol_xray',
+        title: 'Run Head-to-Head Competitor Protocol X-Ray & Overtake Bundle',
+        tier: 'paid_pro_agency',
+        creditsCost: '1_cached_or_10_live',
+        description:
+          'Benchmarks own_domain against rival_domain across 6 HTTP & schema dimensions (AI Readiness Score, 5-bot WAF access, SSR token density, JSON-LD @type diff, /llms.txt, /agents.md) and outputs an unredacted overtake engineering prompt plus a ready-to-commit [Brand] vs. [Rival] comparison page and Headless Next.js rescue config.',
+      },
     ],
   };
 }

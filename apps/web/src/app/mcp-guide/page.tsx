@@ -268,7 +268,7 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
               margin: '0 0 16px 0',
             }}
           >
-            Four focused tools. Zero deprecated <code className="vs-mono">/sse</code> bloat.
+            Five focused tools. Zero deprecated <code className="vs-mono">/sse</code> bloat.
           </h2>
 
           <div className="vs-bezel">

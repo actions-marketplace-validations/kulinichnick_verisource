@@ -40,6 +40,7 @@ Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.de
 2. `get_citation_gaps_and_fanouts` (Pro $99/mo or Agency $249/mo — 1 cached or 10 live credits): Returns 3-engine Mention vs. Citation share, Source-Type categorized citation gap domains (`Reddit`, `G2`, `Clutch`, editorial roundups), channel-specific outreach playbooks, and observed AI search sub-queries across ChatGPT, Google Gemini, and Perplexity.
 3. `check_brand_hallucinations` (Pro / Agency — 1 cached or 10 live credits): Diffs live AI claims against a verified Brand Truth Sheet to catch false pricing, shipping thresholds, or discontinued SKU claims.
 4. `generate_geo_fix_bundle` (Pro / Agency — 1 cached or 10 live credits): Generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, Shopify `templates/agents.md.liquid` overrides, and 1-Click AI Remediation Prompts.
+5. `compare_competitor_protocol_xray` (Pro / Agency — 1 cached or 10 live credits): Benchmarks `own_domain` against `rival_domain` across 6 HTTP & schema dimensions and outputs an unredacted overtake engineering prompt, a `[Brand] vs. [Rival]` comparison page + `FAQPage` `JSON-LD`, and Headless Next.js `/api/ucp/mcp` rescue configuration.
 ```
 
 ### Client Configuration JSON (Claude Desktop, Cursor, Windsurf, Antigravity)
@@ -67,7 +68,7 @@ Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.de
 2. **Glama MCP Directory (`glama.ai/mcp/servers` — SUBMITTED):**
    - Remote Streamable HTTP URL `https://mcp.verisource.dev/mcp` paired with `https://verisource.dev`.
 3. **Smithery Registry (`https://smithery.ai/new`):**
-   - Connect repository containing `smithery.yaml` or submit Remote Streamable HTTP URL `https://mcp.verisource.dev/mcp` (exposes all 4 tools via HTTP `200` `tools/list`).
+   - Connect repository containing `smithery.yaml` or submit Remote Streamable HTTP URL `https://mcp.verisource.dev/mcp` (exposes all 5 tools via HTTP `200` `tools/list`).
 4. **PulseMCP Directory (`https://www.pulsemcp.com/submit`):**
    - Submit Remote URL `https://mcp.verisource.dev/mcp`, Homepage `https://verisource.dev`, and Docs `https://verisource.dev/mcp-guide`.
 5. **MCP.so Community Index (`https://mcp.so/submit`):**

@@ -483,7 +483,7 @@ async function run() {
     const mcpManifestJson = await mcpManifestRes.json();
     assert.equal(mcpManifestJson.name, 'dev.verisource/mcp');
     assert.equal(mcpManifestJson.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
-    assert.equal(mcpManifestJson.tools.length, 4);
+    assert.equal(mcpManifestJson.tools.length, 5);
     assert.equal(
       (JSON.stringify(mcpManifestJson).match(BANNED_LEXICON) ?? []).length,
       0
@@ -2880,7 +2880,7 @@ async function run() {
     assert.equal(validMintedVerifyJson.keyStatus, 'verified_raw_key');
     assert.equal(validMintedVerifyJson.readyForPaidTools, true);
     assert.equal(validMintedVerifyJson.creditsChargedForCheck, 0);
-    assert.equal(validMintedVerifyJson.exposedTools.length, 4);
+    assert.equal(validMintedVerifyJson.exposedTools.length, 5);
     assert.equal(
       (validMintedVerifyJson.summaryMessage.match(BANNED_LEXICON) ?? []).length,
       0,
@@ -5113,7 +5113,26 @@ async function run() {
       reportLinkMatches.size >= 100,
       `Expected /reports directory to index >= 100 unique domain scorecards, got ${reportLinkMatches.size}`
     );
-    console.log('✔ [95/95] M104 Headless Next.js & Shopify AI Rescue Guide + 100-Domain /reports Milestone verified!');
+    console.log('✔ [95/96] M104 Headless Next.js & Shopify AI Rescue Guide + 100-Domain /reports Milestone verified!');
+
+    // 94. M105 5-Tool Streamable HTTP /mcp Discovery & compare_competitor_protocol_xray Parity
+    const [m105McpGuideRes, m105AgentsMdRes] = await Promise.all([
+      fetch(`${BASE}/mcp-guide`),
+      fetch(`${BASE}/agents.md`),
+    ]);
+    assert.equal(m105McpGuideRes.status, 200);
+    assert.equal(m105AgentsMdRes.status, 200);
+    const [m105McpGuideHtml, m105AgentsMdText] = await Promise.all([
+      m105McpGuideRes.text(),
+      m105AgentsMdRes.text(),
+    ]);
+    assert.ok(
+      m105McpGuideHtml.includes('Five focused tools') &&
+        m105McpGuideHtml.includes('compare_competitor_protocol_xray') &&
+        m105AgentsMdText.includes('compare_competitor_protocol_xray'),
+      'Expected /mcp-guide and /agents.md to expose 5th MCP tool compare_competitor_protocol_xray'
+    );
+    console.log('✔ [96/96] M105 5-Tool Streamable HTTP /mcp (compare_competitor_protocol_xray) Parity verified!');
   } finally {
     server.kill();
   }

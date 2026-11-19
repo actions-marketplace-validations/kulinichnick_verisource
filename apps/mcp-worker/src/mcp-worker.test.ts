@@ -66,7 +66,7 @@ test('GET /health and /.well-known/oauth-protected-resource respond cleanly', as
   assert.equal(oauthJson.resource, 'https://mcp.verisource.dev/mcp');
 });
 
-test('POST /mcp tools/list exposes all 4 Verisource GEO tools', async () => {
+test('POST /mcp tools/list exposes all 5 Verisource GEO tools', async () => {
   const { status, json } = await postMcpRpc({
     jsonrpc: '2.0',
     id: 1,
@@ -79,6 +79,7 @@ test('POST /mcp tools/list exposes all 4 Verisource GEO tools', async () => {
   const names = result.tools.map((t) => t.name);
   assert.deepEqual(names.sort(), [
     'check_brand_hallucinations',
+    'compare_competitor_protocol_xray',
     'generate_geo_fix_bundle',
     'get_citation_gaps_and_fanouts',
     'scan_domain_ai_readiness',
@@ -329,7 +330,7 @@ test('GET /.well-known/mcp.json and /server.json expose 4-tool Streamable HTTP r
   assert.equal(manifest.version, '1.0.0');
   assert.equal(manifest.remotes[0]?.type, 'streamable-http');
   assert.equal(manifest.remotes[0]?.url, 'https://mcp.verisource.dev/mcp');
-  assert.equal(manifest.tools.length, 4);
+  assert.equal(manifest.tools.length, 5);
 });
 
 test('Paid generate_geo_fix_bundle honors explicit target_env override (wordpress_cms)', async () => {
@@ -469,4 +470,150 @@ test('M80 scan_domain_ai_readiness exposes 3-pillar jsonLdReadiness (Entity, FAQ
       Array.isArray(payload.jsonLdReadiness.missingAiGraphPillars),
     'Expected scan_domain_ai_readiness to return 3-pillar jsonLdReadiness'
   );
+});
+
+test('M105 compare_competitor_protocol_xray blocks SSRF/same-domain before billing and meters 10 live vs 1 cached credit', async () => {
+  resetMockCreditBalancesForTests();
+
+  // 1. Unauthenticated call rejected
+  const unauth = await postMcpRpc({
+    jsonrpc: '2.0',
+    id: 401,
+    method: 'tools/call',
+    params: {
+      name: 'compare_competitor_protocol_xray',
+      arguments: {
+        own_domain: 'mosaicroasters.com',
+        rival_domain: 'aurearoasters.com',
+      },
+    },
+  });
+  const unauthRes = unauth.json.result as {
+    isError?: boolean;
+    content: Array<{ text: string }>;
+  };
+  assert.equal(unauthRes.isError, true);
+  assert.ok(unauthRes.content[0]!.text.includes('MISSING_BEARER_TOKEN'));
+
+  // 2. SSRF & Same-domain rejected BEFORE charging any credits (balance stays 1000)
+  const ssrfCall = await postMcpRpc(
+    {
+      jsonrpc: '2.0',
+      id: 402,
+      method: 'tools/call',
+      params: {
+        name: 'compare_competitor_protocol_xray',
+        arguments: {
+          own_domain: 'mosaicroasters.com',
+          rival_domain: 'http://169.254.169.254/latest',
+          live_refresh: true,
+        },
+      },
+    },
+    'vs_demo_pro_key'
+  );
+  const ssrfRes = ssrfCall.json.result as {
+    isError?: boolean;
+    content: Array<{ text: string }>;
+  };
+  assert.equal(ssrfRes.isError, true);
+  assert.ok(ssrfRes.content[0]!.text.includes('INVALID_DOMAIN'));
+
+  const sameCall = await postMcpRpc(
+    {
+      jsonrpc: '2.0',
+      id: 403,
+      method: 'tools/call',
+      params: {
+        name: 'compare_competitor_protocol_xray',
+        arguments: {
+          own_domain: 'https://mosaicroasters.com',
+          rival_domain: 'mosaicroasters.com',
+          live_refresh: true,
+        },
+      },
+    },
+    'vs_demo_pro_key'
+  );
+  const sameRes = sameCall.json.result as {
+    isError?: boolean;
+    content: Array<{ text: string }>;
+  };
+  assert.equal(sameRes.isError, true);
+  assert.ok(sameRes.content[0]!.text.includes('SAME_DOMAIN_ERROR'));
+
+  // 3. Valid live_refresh=true call charges 10 credits (1000 -> 990), confirming 0 credits were lost above
+  const liveCall = await postMcpRpc(
+    {
+      jsonrpc: '2.0',
+      id: 404,
+      method: 'tools/call',
+      params: {
+        name: 'compare_competitor_protocol_xray',
+        arguments: {
+          own_domain: 'mosaicroasters.com',
+          rival_domain: 'aurearoasters.com',
+          live_refresh: true,
+        },
+      },
+    },
+    'vs_demo_pro_key'
+  );
+  const liveRes = liveCall.json.result as {
+    isError?: boolean;
+    content: Array<{ text: string }>;
+  };
+  assert.notEqual(liveRes.isError, true);
+  const livePayload = JSON.parse(liveRes.content[0]!.text) as {
+    credits_charged: number;
+    credits_remaining: number;
+    dimensions: Array<{ id: string }>;
+    ai_overtake_prompt: string;
+    ai_overtake_prompt_score: number;
+    vs_rival_comparison_page: {
+      suggested_path: string;
+      markdown_page: string;
+      faq_json_ld: string;
+    };
+    opengraph_card_url: string;
+  };
+  assert.equal(livePayload.credits_charged, 10);
+  assert.equal(livePayload.credits_remaining, 990);
+  assert.equal(livePayload.dimensions.length, 6);
+  assert.ok(livePayload.ai_overtake_prompt_score >= 9.5);
+  assert.ok(!livePayload.ai_overtake_prompt.includes('REDACTED'));
+  assert.ok(
+    livePayload.vs_rival_comparison_page.markdown_page.length > 100 &&
+      livePayload.opengraph_card_url.includes('/api/og/vs?a=mosaicroasters.com&b=aurearoasters.com')
+  );
+
+  // 4. Subsequent cached call charges 1 credit (990 -> 989)
+  const cachedCall = await postMcpRpc(
+    {
+      jsonrpc: '2.0',
+      id: 405,
+      method: 'tools/call',
+      params: {
+        name: 'compare_competitor_protocol_xray',
+        arguments: {
+          own_domain: 'mosaicroasters.com',
+          rival_domain: 'aurearoasters.com',
+        },
+      },
+    },
+    'vs_demo_pro_key'
+  );
+  const cachedRes = cachedCall.json.result as {
+    isError?: boolean;
+    content: Array<{ text: string }>;
+  };
+  assert.notEqual(cachedRes.isError, true);
+  const cachedPayload = JSON.parse(cachedRes.content[0]!.text) as {
+    credits_charged: number;
+    credits_remaining: number;
+    served_from_cache: boolean;
+  };
+  assert.equal(cachedPayload.credits_charged, 1);
+  assert.equal(cachedPayload.credits_remaining, 989);
+  assert.equal(cachedPayload.served_from_cache, true);
 });
