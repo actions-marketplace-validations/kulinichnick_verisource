@@ -38,8 +38,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **13** | **G2** | `READY` | Read-write GEO + Hosted Brand `/mcp` (`$49/$99/$249`) vs. `$245–$579/mo` chart-only trackers | https://sell.g2.com |
 | **14** | **Capterra / Gartner** | `READY` | 7-CMS `JSON-LD` + `/llms.txt` + `/agents.md` + 60s Agency White-Label `/audit/[slug]` | https://vendors.gartnerdigitalmarkets.com |
-| **15** | **AlternativeTo** | `READY (SIGN-IN REQUIRED)` | Action-first alternative to `Profound`, `Otterly.ai`, `Peec AI`, `AthenaHQ`, `Scrunch AI` (`SimpleLister` verified 404/broken, skipped) | Sign in at https://alternativeto.net -> **Suggest new application**. |
-| **16** | **SaaSHub** | `SUBMITTED (CONFIRM EMAIL)` | Submitted live `2026-11-19` -> https://www.saashub.com/verisource (`SEO Tools / AI Marketing`) | Click confirmation link sent to `nick@verisource.dev` to claim & verify profile. |
+| **15** | **AlternativeTo** | `SUBMITTED (FREE $0 · 2026-11-19)` | Submitted `Verisource` (`AI Tools & Services`, linked as alternative to `Profound`, `Semrush`, `Ahrefs`; `https://alternativeto.net/software/verisource/about/`). | In free review queue (`SimpleLister` verified 404/broken, skipped). |
+| **16** | **SaaSHub** | `VERIFIED & ENRICHED (2026-11-19)` | Domain-verified via `<meta name="saashub-verification">` (`ACTIVE`, green verified badge) at https://www.saashub.com/verisource; enriched description, Freemium `$19/$49/$99/$249` pricing, GitHub + LinkedIn links, `9` categories (`Generative Engine Optimization`, `MCP Servers`, `Technical SEO`), and `7` competitor alternatives (`Profound`, `Otterly.AI`, `Peec AI`, `AthenaHQ`, `Scrunch AI`, `SEMRush`, `Ahrefs`). | Waiting on SaaSHub moderator queue (`Pending approval...`). |
 | **17** | **Show HN** | `READY (N=500 COPY)` | `COMMUNITY_LAUNCH_KIT.md` Section 12 — lead with `N = 500` empirical HTTP failures | https://news.ycombinator.com/submit |
 | **18** | **Product Hunt / DevHunt / Peerlist** | `READY` | Pair with `verisource-n500-ai-readiness-infographic.png` + `VIDEO_FACTORY_QUEUE.md` MP4 | https://www.producthunt.com/posts/new |
 
