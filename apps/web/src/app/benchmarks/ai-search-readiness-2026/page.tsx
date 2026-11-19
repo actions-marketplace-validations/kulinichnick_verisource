@@ -861,7 +861,7 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
               Inspect Webflow (72) vs. Figma (38) →
             </Link>
             <Link href="/reports" className="vs-btn vs-btn-secondary">
-              Browse All 190+ Domain Scorecards →
+              Browse All 200+ Domain Scorecards →
             </Link>
           </div>
         </section>
@@ -1061,6 +1061,107 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
               className="vs-btn vs-btn-secondary"
             >
               Inspect Brex (58) vs. Ramp (58) →
+            </Link>
+          </div>
+        </section>
+
+        {/* Empirical Addendum V: 200-Domain Q4 2026 Landmark Snapshot */}
+        <section
+          id="q4-200-domain-landmark"
+          style={{ marginBottom: '44px' }}
+        >
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            EMPIRICAL ADDENDUM V · N = 200 LIVE AUDITED DOMAINS LANDMARK
+          </div>
+          <h2
+            style={{
+              fontSize: 'clamp(22px, 2.8vw, 28px)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 12px 0',
+            }}
+          >
+            200-Domain Q4 2026 Protocol Ledger: 72.0% ship /llms.txt, 97.5% fail 3-pillar JSON-LD
+          </h2>
+          <p
+            style={{
+              fontSize: '15px',
+              lineHeight: 1.65,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 18px 0',
+              maxWidth: '820px',
+            }}
+          >
+            Crossing <strong>200 live HTTPS domain scorecards</strong> across
+            B2B SaaS &amp; AI infrastructure (113 sites · 67.3 mean), Native
+            Shopify OS 2.0 commerce (65 stores · 76.5 mean), and Custom Headless
+            Next.js storefronts (23 stores · 42.8 mean) confirms a durable{' '}
+            <strong>-33.7-point headless architecture penalty</strong> alongside
+            four structural protocol baselines:
+          </p>
+
+          <div className="vs-grid-4" style={{ marginBottom: '18px', gap: '12px' }}>
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                INDEX MEAN (N = 200)
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700 }}>
+                67.4 / 100
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                Shopify 76.5 · SaaS 67.3 · Headless 42.8
+              </div>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                /LLMS.TXT PUBLISHED
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700, color: '#6EE7B7' }}>
+                72.0% (144)
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                Standard across modern docs &amp; Shopify
+              </div>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                VERIFIED /AGENTS.MD
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700, color: '#E5A93C' }}>
+                15.0% (30)
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                85.0% lack verified pricing guardrails
+              </div>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px' }}>
+              <div className="vs-mono" style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
+                3-PILLAR JSON-LD
+              </div>
+              <div className="vs-mono" style={{ fontSize: '23px', fontWeight: 700, color: '#FCA5A5' }}>
+                2.5% (5)
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--vs-ink-secondary)', marginTop: '4px' }}>
+                Entity + Offer + FAQPage together
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <Link href="/vs/rootly-com-vs-incident-io" className="vs-btn">
+              Inspect Rootly (84) vs. incident.io (72) →
+            </Link>
+            <Link
+              href="/vs/amplitude-com-vs-mixpanel-com"
+              className="vs-btn vs-btn-secondary"
+            >
+              Inspect Amplitude (72) vs. Mixpanel (72) →
+            </Link>
+            <Link href="/reports" className="vs-btn vs-btn-secondary">
+              Explore All 200 Scorecards →
             </Link>
           </div>
         </section>

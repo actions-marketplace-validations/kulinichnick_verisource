@@ -286,3 +286,28 @@ Side-by-side protocol diffs:
 • Full 2026 study & FIG 15 chart: https://verisource.dev/benchmarks/ai-search-readiness-2026#fintech-hris-waf-penalty
 ```
 
+---
+
+## 10. 200-Domain Q4 2026 Landmark Release (Show HN, LinkedIn & Press Summary)
+
+### A. Show HN / LinkedIn Landmark Post (`N = 200` Live HTTPS Audits)
+```text
+Title: We audited 200 SaaS and commerce domains over live HTTPS — here is the Q4 2026 AI Search Protocol Ledger
+
+Our open HTTP readiness index (VerisourceScan/1.0) just crossed 200 live-audited commercial domains across B2B SaaS & AI infrastructure (113), Native Shopify OS 2.0 (65), and Custom Headless Next.js storefronts (23).
+
+Every scorecard and 6-dimension head-to-head diff is public in both HTML and raw Markdown (?format=md):
+
+• Overall Index Mean (N = 200): 67.4 out of 100
+• /llms.txt Published (HTTP 200): 72.0% (144 of 200)
+• Verified Custom /agents.md Rulebook: 15.0% (30 of 200) — 85.0% still lack machine-readable pricing and policy guardrails
+• Full 3-Pillar Schema.org JSON-LD (Entity + Offer + FAQPage): 2.5% (5 of 200) — 97.5% fail full homepage schema coverage
+• Edge WAF / Bot Restrictions (GPTBot or PerplexityBot blocked): 11.5% (23 of 200), jumping to 42.9% inside enterprise fintech & HRIS
+• Architecture Split: 65 Native Shopify OS 2.0 stores average 76.5 out of 100 vs. 23 Custom Headless Next.js DTC stores at 42.8 out of 100 (-33.7 pts)
+
+Search all 200 scorecards: https://verisource.dev/reports
+38 Head-to-Head Matchup Benchmarks: https://verisource.dev/vs#all-published-matchups
+Full 2026 Benchmark & Charts: https://verisource.dev/benchmarks/ai-search-readiness-2026#q4-200-domain-landmark
+```
+
+

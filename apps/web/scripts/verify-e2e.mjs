@@ -5631,7 +5631,46 @@ async function run() {
       m117UniqueLinks.size >= 190,
       `Expected /reports leaderboard to index >= 190 unique domains, got ${m117UniqueLinks.size}`
     );
-    console.log('✔ [107/107] M117 Fintech/HRIS WAF Study (FIG 15), 34 /vs/[matchup] Pages & 190-Domain /reports Hub verified!');
+    console.log('✔ [107/108] M117 Fintech/HRIS WAF Study (FIG 15), 34 /vs/[matchup] Pages & 190-Domain /reports Hub verified!');
+
+    // 106. M118 Landmark 200-Domain /reports Index, 38 /vs/[matchup] Pages & N=200 Empirical Ledger
+    const [
+      m118BenchRes,
+      m118RootlyIncidentRes,
+      m118ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/benchmarks/ai-search-readiness-2026`),
+      fetch(`${BASE}/vs/rootly-com-vs-incident-io`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m118BenchRes.status, 200);
+    assert.equal(m118RootlyIncidentRes.status, 200);
+    assert.equal(m118ReportsRes.status, 200);
+
+    const m118BenchHtml = await m118BenchRes.text();
+    const m118BenchVisible = m118BenchHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m118BenchHtml.includes('id="q4-200-domain-landmark"') &&
+        m118BenchHtml.includes('200-Domain Q4 2026 Protocol Ledger') &&
+        (m118BenchVisible.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(m118BenchVisible),
+      'Expected /benchmarks/ai-search-readiness-2026 to render #q4-200-domain-landmark with zero banned lexicon or /10 jargon'
+    );
+
+    const m118ReportsHtml = await m118ReportsRes.text();
+    const m118UniqueLinks = new Set(
+      Array.from(
+        m118ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m118UniqueLinks.size >= 200,
+      `Expected /reports leaderboard to index >= 200 unique domains, got ${m118UniqueLinks.size}`
+    );
+    console.log('✔ [108/108] M118 Landmark 200-Domain /reports Hub, 38 /vs/[matchup] Pages & N=200 Protocol Ledger verified!');
   } finally {
     server.kill();
   }

@@ -264,6 +264,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Shopify Product + Offer JSON-LD parity vs. storefront /agents.md pricing guardrails.',
   },
+  {
+    cohort: 'INCIDENT RESPONSE AUTOMATION',
+    domainA: 'rootly.com',
+    domainB: 'incident.io',
+    angle:
+      'Multi-pillar JSON-LD + /llms.txt coverage vs. missing /agents.md pricing guardrails.',
+  },
+  {
+    cohort: 'ENTERPRISE PRODUCT ANALYTICS',
+    domainA: 'amplitude.com',
+    domainB: 'mixpanel.com',
+    angle:
+      'Custom Next.js vs. Framer SSR readability, /llms.txt, and schema.org entity parity.',
+  },
+  {
+    cohort: 'CUSTOMER LIFECYCLE PLATFORMS',
+    domainA: 'customer.io',
+    domainB: 'braze.com',
+    angle:
+      'Published /llms.txt + entity metadata across enterprise messaging and lifecycle clouds.',
+  },
+  {
+    cohort: 'CORPORATE TRAVEL & EXPENSE',
+    domainA: 'brex.com',
+    domainB: 'navan.com',
+    angle:
+      'Server-rendered B2B spend copy and JSON-LD baseline across travel and card platforms.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

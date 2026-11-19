@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:34:19.164Z",
+  "updatedAt": "2026-11-19T06:41:38.088Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1150,61 +1150,71 @@
       "domain": "incident.io",
       "brandName": "incident.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "rootly.com",
       "brandName": "Rootly",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "statsig.com",
       "brandName": "Statsig",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "amplitude.com",
       "brandName": "Amplitude",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "mixpanel.com",
       "brandName": "Mixpanel",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "customer.io",
       "brandName": "Customer.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "braze.com",
       "brandName": "Braze",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "ridge.com",
       "brandName": "Ridge",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "navan.com",
       "brandName": "Navan",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "snyk.io",
       "brandName": "Snyk",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:41:38.088Z"
     },
     {
       "domain": "tailscale.com",
@@ -1293,6 +1303,48 @@
     {
       "domain": "everlane.com",
       "brandName": "Everlane",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "intercom.com",
+      "brandName": "Intercom",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "zendesk.com",
+      "brandName": "Zendesk",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "front.com",
+      "brandName": "Front",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "folk.app",
+      "brandName": "folk",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "clay.com",
+      "brandName": "Clay",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "apollo.io",
+      "brandName": "Apollo",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "shinesty.com",
+      "brandName": "Shinesty",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

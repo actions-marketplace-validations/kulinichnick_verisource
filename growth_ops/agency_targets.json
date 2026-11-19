@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:34:19.164Z",
+  "updatedAt": "2026-11-19T06:41:38.088Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -343,7 +343,15 @@
       "publicContactChannel": "julian@embarque.io",
       "caseStudyClientDomain": "instatus.com",
       "caseStudyClientName": "Instatus",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T06:41:38.088Z",
+      "auditSlug": "instatus-com-gyp2",
+      "emailSentAt": "2026-11-19T06:41:38.088Z",
+      "resendMessageId": "01a1f28a-3146-7a16-ba1d-89801310b5bb",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Netalico",
@@ -355,7 +363,15 @@
       "publicContactChannel": "clients@netalico.com",
       "caseStudyClientDomain": "feetures.com",
       "caseStudyClientName": "Feetures",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T06:41:38.088Z",
+      "auditSlug": "feetures-com-8p57",
+      "emailSentAt": "2026-11-19T06:41:38.088Z",
+      "resendMessageId": "01a1f28a-252f-7a7c-b6a1-4b438848e274",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Grow and Convert",
@@ -367,6 +383,66 @@
       "publicContactChannel": "benji@growandconvert.com (verify via Apollo)",
       "caseStudyClientDomain": "patreon.com",
       "caseStudyClientName": "Patreon",
+      "status": "queued"
+    },
+    {
+      "agencyName": "finsweet",
+      "agencyDomain": "finsweet.com",
+      "specialty": "Webflow Enterprise Studio",
+      "contactName": "Joe Krug",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Joe%20Krug%20Finsweet",
+      "publicContactChannel": "hello@finsweet.com",
+      "caseStudyClientDomain": "dropbox.com",
+      "caseStudyClientName": "Dropbox",
+      "status": "queued"
+    },
+    {
+      "agencyName": "directiveconsulting",
+      "agencyDomain": "directiveconsulting.com",
+      "specialty": "B2B SaaS Customer Generation & SEO Agency",
+      "contactName": "Garrett Mehrguth",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Garrett%20Mehrguth%20Directive",
+      "publicContactChannel": "hello@directiveconsulting.com",
+      "caseStudyClientDomain": "sumologic.com",
+      "caseStudyClientName": "Sumo Logic",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Charle",
+      "agencyDomain": "charle.co.uk",
+      "specialty": "Shopify Plus Design & Growth Agency",
+      "contactName": "Niccolo Gloazzo",
+      "contactRole": "Founder & Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Niccolo%20Gloazzo%20Charle",
+      "publicContactChannel": "hello@charle.co.uk",
+      "caseStudyClientDomain": "candykittens.co.uk",
+      "caseStudyClientName": "Candy Kittens",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Flowout",
+      "agencyDomain": "flowout.com",
+      "specialty": "Webflow Enterprise Partner",
+      "contactName": "Luka Mlakar",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Luka%20Mlakar%20Flowout",
+      "publicContactChannel": "hello@flowout.com",
+      "caseStudyClientDomain": "jasper.ai",
+      "caseStudyClientName": "Jasper",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Animalz",
+      "agencyDomain": "animalz.co",
+      "specialty": "B2B SaaS Content & AI Search Agency",
+      "contactName": "Ty Magnin",
+      "contactRole": "CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Ty%20Magnin%20Animalz",
+      "publicContactChannel": "hello@animalz.co",
+      "caseStudyClientDomain": "intercom.com",
+      "caseStudyClientName": "Intercom",
       "status": "queued"
     }
   ]
