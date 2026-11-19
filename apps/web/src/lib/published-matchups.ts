@@ -376,6 +376,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Enterprise sales intelligence /llms.txt index vs. Webflow GTM workflow metadata.',
   },
+  {
+    cohort: 'AI IMAGE GENERATION',
+    domainA: 'ideogram.ai',
+    domainB: 'midjourney.com',
+    angle:
+      'Multi-pillar JSON-LD + /llms.txt readiness vs. strict edge WAF crawler blocks.',
+  },
+  {
+    cohort: 'AI MUSIC GENERATION',
+    domainA: 'suno.com',
+    domainB: 'udio.com',
+    angle:
+      'Published /llms.txt + entity metadata vs. client-rendered audio app landing baseline.',
+  },
+  {
+    cohort: 'AI PODCAST & VIDEO EDITING',
+    domainA: 'descript.com',
+    domainB: 'riverside.fm',
+    angle:
+      'Next.js /llms.txt + structured schema vs. Webflow studio landing metadata.',
+  },
+  {
+    cohort: 'LUXURY STREETWEAR SHOPIFY',
+    domainA: 'kith.com',
+    domainB: 'aimeleondore.com',
+    angle:
+      'Shopify Plus Product + Offer JSON-LD parity vs. storefront /agents.md guardrails.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

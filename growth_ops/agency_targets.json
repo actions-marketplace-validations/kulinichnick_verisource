@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:12:02.974Z",
+  "updatedAt": "2026-11-19T07:21:11.687Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -517,7 +517,15 @@
       "publicContactChannel": "hello@beomniscient.com",
       "caseStudyClientDomain": "order.co",
       "caseStudyClientName": "Order.co",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:21:11.687Z",
+      "auditSlug": "order-co-ix3l",
+      "emailSentAt": "2026-11-19T07:21:11.687Z",
+      "resendMessageId": "01a1f2ae-6675-755b-9044-09eb8c5d84dc",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Rainfactory",
@@ -529,6 +537,74 @@
       "publicContactChannel": "hello@rainfactory.com",
       "caseStudyClientDomain": "ecoflow.com",
       "caseStudyClientName": "EcoFlow",
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:21:11.687Z",
+      "auditSlug": "ecoflow-com-mz9v",
+      "emailSentAt": "2026-11-19T07:21:11.687Z",
+      "resendMessageId": "01a1f2ae-6623-7282-9663-f61c0137c941",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
+    },
+    {
+      "agencyName": "Noticed",
+      "agencyDomain": "noticed.com",
+      "specialty": "Shopify Plus Digital Commerce & CRO Agency",
+      "contactName": "Adam Smartschan",
+      "contactRole": "CSO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Noticed%20Commerce%20Agency",
+      "publicContactChannel": "hello@noticed.com",
+      "caseStudyClientDomain": "untuckit.com",
+      "caseStudyClientName": "UNTUCKit",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Amped Digital",
+      "agencyDomain": "ampeddigital.io",
+      "specialty": "Webflow & B2B SaaS Growth Studio",
+      "contactName": "Founder",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Amped%20Digital",
+      "publicContactChannel": "hello@ampeddigital.io",
+      "caseStudyClientDomain": "drata.com",
+      "caseStudyClientName": "Drata",
+      "status": "manual_verify"
+    },
+    {
+      "agencyName": "Kalungi",
+      "agencyDomain": "kalungi.com",
+      "specialty": "B2B SaaS Full-Service Marketing & SEO Agency",
+      "contactName": "Stijn Hendrikse",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Stijn%20Hendrikse%20Kalungi",
+      "publicContactChannel": "info@kalungi.com",
+      "caseStudyClientDomain": "patchmypc.com",
+      "caseStudyClientName": "Patch My PC",
+      "status": "queued"
+    },
+    {
+      "agencyName": "SimpleTiger",
+      "agencyDomain": "simpletiger.com",
+      "specialty": "B2B SaaS SEO & AI Search Agency",
+      "contactName": "Garrett Smith",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Garrett%20Smith%20SimpleTiger",
+      "publicContactChannel": "info@simpletiger.com",
+      "caseStudyClientDomain": "segment.com",
+      "caseStudyClientName": "Segment",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Electric Eye",
+      "agencyDomain": "electriceye.io",
+      "specialty": "Shopify Plus Design & Optimization Agency",
+      "contactName": "Chase Clymer",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Chase%20Clymer%20Electric%20Eye",
+      "publicContactChannel": "info@electriceye.io",
+      "caseStudyClientDomain": "crossrope.com",
+      "caseStudyClientName": "Crossrope",
       "status": "queued"
     }
   ]

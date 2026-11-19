@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:12:02.974Z",
+  "updatedAt": "2026-11-19T07:21:11.687Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1430,71 +1430,141 @@
       "domain": "aimeleondore.com",
       "brandName": "Aime Leon Dore",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "suno.com",
       "brandName": "Suno",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "udio.com",
       "brandName": "Udio",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "midjourney.com",
       "brandName": "Midjourney",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "ideogram.ai",
       "brandName": "Ideogram",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "gamma.app",
       "brandName": "Gamma",
       "vertical": "b2b_saas",
-      "status": "queued"
-    },
-    {
-      "domain": "tome.app",
-      "brandName": "Tome",
-      "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "descript.com",
       "brandName": "Descript",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "riverside.fm",
       "brandName": "Riverside",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "cettire.com",
       "brandName": "Cettire",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "kith.com",
       "brandName": "Kith",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:21:11.687Z"
     },
     {
       "domain": "stussy.com",
       "brandName": "Stussy",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "pitch.com",
+      "brandName": "Pitch",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "canva.com",
+      "brandName": "Canva",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "miro.com",
+      "brandName": "Miro",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "whimsical.com",
+      "brandName": "Whimsical",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "loom.com",
+      "brandName": "Loom",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "grain.com",
+      "brandName": "Grain",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fathom.video",
+      "brandName": "Fathom",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fireflies.ai",
+      "brandName": "Fireflies.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "otter.ai",
+      "brandName": "Otter.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "reformation.com",
+      "brandName": "Reformation",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "abercrombie.com",
+      "brandName": "Abercrombie",
       "vertical": "shopify_dtc",
       "status": "queued"
     }
