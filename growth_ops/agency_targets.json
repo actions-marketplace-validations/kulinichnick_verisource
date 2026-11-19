@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:43:55.342Z",
+  "updatedAt": "2026-11-19T08:23:41.740Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -659,7 +659,20 @@
       "publicContactChannel": "info@serieseight.com",
       "caseStudyClientDomain": "heatonist.com",
       "caseStudyClientName": "Heatonist",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:23:41.740Z",
+      "auditSlug": "heatonist-com-hl09",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:23:41.740Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:23:41.740Z",
+      "resendMessageId": "01a1f2e7-bfe1-7f1d-aff9-7b0e16808eb5",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Baunfire",
@@ -671,7 +684,20 @@
       "publicContactChannel": "hello@baunfire.com",
       "caseStudyClientDomain": "rubrik.com",
       "caseStudyClientName": "Rubrik",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:23:41.740Z",
+      "auditSlug": "rubrik-com-e0rp",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:23:41.740Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:23:41.740Z",
+      "resendMessageId": "01a1f2e7-b9c3-7cc5-857f-ae5ed0840c8f",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Ramotion",

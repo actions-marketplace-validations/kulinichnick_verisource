@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:43:55.342Z",
+  "updatedAt": "2026-11-19T08:23:41.740Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1640,61 +1640,71 @@
       "domain": "tally.so",
       "brandName": "Tally",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "fillout.com",
       "brandName": "Fillout",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "patagonia.com",
       "brandName": "Patagonia",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "arcteryx.com",
       "brandName": "Arc'teryx",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "hubspot.com",
       "brandName": "HubSpot",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "pipedrive.com",
       "brandName": "Pipedrive",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "freshworks.com",
       "brandName": "Freshworks",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "helpscout.com",
       "brandName": "Help Scout",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "crisp.chat",
       "brandName": "Crisp",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "substack.com",
       "brandName": "Substack",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:23:41.740Z"
     },
     {
       "domain": "beehiiv.com",
@@ -1729,6 +1739,66 @@
     {
       "domain": "hoka.com",
       "brandName": "HOKA",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "lemon.io",
+      "brandName": "Lemon.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "toptal.com",
+      "brandName": "Toptal",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "upwork.com",
+      "brandName": "Upwork",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fiverr.com",
+      "brandName": "Fiverr",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "gumroad.com",
+      "brandName": "Gumroad",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "lemonsqueezy.com",
+      "brandName": "Lemon Squeezy",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "paddle.com",
+      "brandName": "Paddle",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "polar.sh",
+      "brandName": "Polar",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "lululemon.com",
+      "brandName": "lululemon",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "outdoorvoices.com",
+      "brandName": "Outdoor Voices",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

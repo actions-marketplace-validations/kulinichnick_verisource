@@ -460,6 +460,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Webflow structured entity metadata vs. custom Next.js AI calendar landing baseline.',
   },
+  {
+    cohort: 'MODERN FORM BUILDERS',
+    domainA: 'tally.so',
+    domainB: 'typeform.com',
+    angle:
+      'Published /llms.txt + SSR copy density vs. Webflow form builder schema graph.',
+  },
+  {
+    cohort: 'SMB & MID-MARKET CRM',
+    domainA: 'hubspot.com',
+    domainB: 'pipedrive.com',
+    angle:
+      'Head-to-head B2B CRM crawler rules, /llms.txt index, and homepage JSON-LD parity.',
+  },
+  {
+    cohort: 'CUSTOMER SUPPORT DESKS',
+    domainA: 'crisp.chat',
+    domainB: 'helpscout.com',
+    angle:
+      'Live chat & helpdesk /llms.txt posture, SSR word count, and entity schema.',
+  },
+  {
+    cohort: 'OUTDOOR TECHNICAL APPAREL',
+    domainA: 'patagonia.com',
+    domainB: 'arcteryx.com',
+    angle:
+      'Custom commerce crawler access, Product JSON-LD, and /agents.md readiness.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
