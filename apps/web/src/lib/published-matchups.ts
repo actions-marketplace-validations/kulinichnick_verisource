@@ -852,6 +852,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Workflow engine /llms.txt + entity JSON-LD depth vs. Python orchestration crawler posture.',
   },
+  {
+    cohort: 'DATA PIPELINE & AIRFLOW ORCHESTRATION',
+    domainA: 'dagster.io',
+    domainB: 'astronomer.io',
+    angle:
+      'Data orchestration platform AI bot readability, /llms.txt docs index, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'ECOMMERCE & ENTERPRISE SUPPORT DESKS',
+    domainA: 'gorgias.com',
+    domainB: 'kustomer.com',
+    angle:
+      'Webflow vs. Next.js customer support platform AI crawler rules and structured entity schema.',
+  },
+  {
+    cohort: 'B2B INSIDE SALES & WORKSPACE CRMS',
+    domainA: 'close.com',
+    domainB: 'copper.com',
+    angle:
+      'High-density SSR CRM pricing + /llms.txt coverage vs. Webflow marketing site structure.',
+  },
+  {
+    cohort: 'ENTERPRISE WORK MANAGEMENT & PPM',
+    domainA: 'smartsheet.com',
+    domainB: 'wrike.com',
+    angle:
+      'Enterprise project management AI crawler posture, non-JS HTML extraction, and entity JSON-LD.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

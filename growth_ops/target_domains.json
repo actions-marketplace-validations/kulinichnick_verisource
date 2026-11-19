@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:54:17.161Z",
+  "updatedAt": "2026-11-19T19:07:06.760Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2620,59 +2620,129 @@
       "domain": "dagster.io",
       "brandName": "Dagster",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "astronomer.io",
       "brandName": "Astronomer",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "gorgias.com",
       "brandName": "Gorgias",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "kustomer.com",
       "brandName": "Kustomer",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "close.com",
       "brandName": "Close",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "copper.com",
       "brandName": "Copper",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "smartsheet.com",
       "brandName": "Smartsheet",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "wrike.com",
       "brandName": "Wrike",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "basecamp.com",
       "brandName": "Basecamp",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
     },
     {
       "domain": "lucid.co",
       "brandName": "Lucid",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:04:25.159Z"
+    },
+    {
+      "domain": "jotform.com",
+      "brandName": "Jotform",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "calendly.com",
+      "brandName": "Calendly",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "savvycal.com",
+      "brandName": "SavvyCal",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "vidyard.com",
+      "brandName": "Vidyard",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "wistia.com",
+      "brandName": "Wistia",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "vimeo.com",
+      "brandName": "Vimeo",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "buffer.com",
+      "brandName": "Buffer",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "hootsuite.com",
+      "brandName": "Hootsuite",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sproutsocial.com",
+      "brandName": "Sprout Social",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "later.com",
+      "brandName": "Later",
       "vertical": "b2b_saas",
       "status": "queued"
     }

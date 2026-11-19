@@ -276,7 +276,7 @@ export default function FeaturesPage(): React.ReactElement {
             </div>
 
             <Link href="/reports" className="vs-btn vs-btn-secondary">
-              Browse 400+ Audited Brand Scorecards →
+              Browse 410+ Audited Brand Scorecards →
             </Link>
           </div>
 

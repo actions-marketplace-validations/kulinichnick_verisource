@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:54:13.238Z",
+  "updatedAt": "2026-11-19T19:06:20.600Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1374,7 +1374,20 @@
       "publicContactChannel": "business@hugeinc.com",
       "caseStudyClientDomain": "pantone.com",
       "caseStudyClientName": "Pantone",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:04:25.159Z",
+      "auditSlug": "pantone-com-k5i1",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:04:25.159Z",
+        "source": "on_site_exact",
+        "mxExchange": "us-smtp-inbound-1.mimecast.com"
+      },
+      "emailSentAt": "2026-11-19T19:04:25.159Z",
+      "resendMessageId": "01a1f532-5ae9-7bb5-ba2e-93b29296fb96",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "B-Reel",
@@ -1386,7 +1399,20 @@
       "publicContactChannel": "newbiz@b-reel.com",
       "caseStudyClientDomain": "polestar.com",
       "caseStudyClientName": "Polestar",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:04:25.159Z",
+      "auditSlug": "polestar-com-tm5i",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:04:25.159Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:04:25.159Z",
+      "resendMessageId": "01a1f532-6024-7d9b-89fe-78ebbd5054c9",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Locomotive",
@@ -1434,6 +1460,30 @@
       "publicContactChannel": "hello@redantler.com",
       "caseStudyClientDomain": "allbirds.com",
       "caseStudyClientName": "Allbirds",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Hello Monday",
+      "agencyDomain": "hellomonday.com",
+      "specialty": "Creative Digital & Brand Experience Studio",
+      "contactName": "Anders Jessen",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Anders%20Jessen%20Hello%20Monday",
+      "publicContactChannel": "newbusiness@hellomonday.com",
+      "caseStudyClientDomain": "youtube.com",
+      "caseStudyClientName": "YouTube",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Stink Studios",
+      "agencyDomain": "stinkstudios.com",
+      "specialty": "Global Creative & Commerce Digital Studio",
+      "contactName": "Mark Pytlik",
+      "contactRole": "Global CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Mark%20Pytlik%20Stink%20Studios",
+      "publicContactChannel": "london@stinkstudios.com",
+      "caseStudyClientDomain": "spotify.com",
+      "caseStudyClientName": "Spotify",
       "status": "queued"
     }
   ]
