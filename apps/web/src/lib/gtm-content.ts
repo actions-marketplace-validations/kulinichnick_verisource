@@ -132,10 +132,11 @@ export const COMPETITOR_ALTERNATIVES: readonly CompetitorAlternativeEntry[] = [
         verisourceAdvantage: true,
       },
       {
-        criterion: 'Native Streamable HTTP /mcp Server',
+        criterion: 'Native Streamable HTTP /mcp & Hosted Brand /mcp + Chrome WebMCP',
         verisourceValue:
-          'Live at https://mcp.verisource.dev/mcp (Cursor, Claude, Windsurf, Antigravity)',
-        competitorValue: 'Proprietary enterprise integrations',
+          '1-Click Claude/ChatGPT OAuth (/oauth/mcp) PLUS Hosted Customer Brand /mcp + W3C WebMCP (navigator.modelContext) included on $49–$249/mo',
+        competitorValue:
+          'Dashboard connector on enterprise contracts; no self-serve Hosted Brand /mcp + WebMCP',
         verisourceAdvantage: true,
       },
     ],
@@ -215,10 +216,11 @@ export const COMPETITOR_ALTERNATIVES: readonly CompetitorAlternativeEntry[] = [
         verisourceAdvantage: true,
       },
       {
-        criterion: 'Developer MCP Server (/mcp)',
+        criterion: '1-Click OAuth /mcp + Hosted Customer Brand /mcp & Chrome WebMCP',
         verisourceValue:
-          'Stateless Streamable HTTP MCP server for Cursor, Claude & Antigravity',
-        competitorValue: 'Not included',
+          '1-Click Claude/ChatGPT OAuth (/oauth/mcp) + turns your website into a live Hosted Brand /mcp & Chrome WebMCP server via 2-line <head> embed',
+        competitorValue:
+          'Read-only dashboard MCP connector; does not host a Brand /mcp or WebMCP server for your website',
         verisourceAdvantage: true,
       },
     ],
@@ -287,10 +289,11 @@ export const COMPETITOR_ALTERNATIVES: readonly CompetitorAlternativeEntry[] = [
         verisourceAdvantage: true,
       },
       {
-        criterion: 'IDE & Agent Integration (/mcp)',
+        criterion: '1-Click OAuth /mcp + Hosted Brand /mcp & Chrome WebMCP',
         verisourceValue:
-          'Official MCP Registry dev.verisource/mcp@1.0.0 over stateless Streamable HTTP',
-        competitorValue: 'Web dashboard workflow',
+          '1-Click Claude/ChatGPT OAuth + turns every subscriber site into a hosted Brand Truth /mcp & W3C Chrome WebMCP (navigator.modelContext) server',
+        competitorValue:
+          'Dashboard analytics MCP connector only; no hosted customer Brand /mcp or WebMCP server',
         verisourceAdvantage: true,
       },
     ],
@@ -358,10 +361,10 @@ export const COMPETITOR_ALTERNATIVES: readonly CompetitorAlternativeEntry[] = [
         verisourceAdvantage: true,
       },
       {
-        criterion: 'Streamable HTTP /mcp Server',
+        criterion: '1-Click OAuth /mcp + Hosted Brand /mcp & Chrome WebMCP',
         verisourceValue:
-          'Included on Pro ($99/mo) & Agency ($249/mo) with 0-credit handshake tester',
-        competitorValue: 'Dashboard-centric Action Center',
+          '1-Click Claude/ChatGPT OAuth + Hosted Brand /mcp & W3C WebMCP server included on Starter ($49), Pro ($99), and Agency ($249)',
+        competitorValue: 'Dashboard-centric Action Center without hosted Brand /mcp',
         verisourceAdvantage: true,
       },
     ],
@@ -426,6 +429,14 @@ export const COMPETITOR_ALTERNATIVES: readonly CompetitorAlternativeEntry[] = [
         verisourceValue:
           '$19 One-Time Audit Pass (100% credited toward Month 1 within 7 days)',
         competitorValue: 'Recurring contracts only',
+        verisourceAdvantage: true,
+      },
+      {
+        criterion: 'Hosted Customer Brand /mcp + W3C Chrome WebMCP',
+        verisourceValue:
+          'Self-serve Hosted Brand /mcp + Chrome WebMCP (navigator.modelContext) included on $49–$249/mo + 1-click Claude/ChatGPT OAuth',
+        competitorValue:
+          'Enterprise AXP agent delivery layer requires mid-market/enterprise contracts',
         verisourceAdvantage: true,
       },
     ],

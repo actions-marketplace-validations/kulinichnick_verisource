@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 350);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 98);
+    assert.ok(benchSumJson.totalAuditedDomains >= 360);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 102);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,10 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 350,
-      `Expected /reports leaderboard to index >= 350 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 360,
+      `Expected /reports leaderboard to index >= 360 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/112] M119–M134 Zero-Bounce Deliverability Guard, 98 /vs/[matchup] Pages & 350-Domain /reports Hub verified!');
+    console.log('✔ [109/113] M119–M135 Zero-Bounce Deliverability Guard, 102 /vs/[matchup] Pages & 360-Domain /reports Hub verified!');
 
     // 108. Search Console Canonical & Sitemap Hygiene Lock (Zero Root Canonical Bleed on /privacy, /terms, /login, /dashboard)
     const [gscHomeHtml, gscPrivacyHtml, gscTermsHtml, gscLoginHtml, gscDashHtml, gscSitemapXml] =
@@ -5885,7 +5885,107 @@ async function run() {
       handoffLoc.startsWith('https://mcp.verisource.dev/oauth/authorize?') &&
         handoffLoc.includes('handoff=')
     );
-    console.log('✔ [112/112] M134 1-Click OAuth 2.1 Session Handoff (Open-Redirect Guard + HMAC Handoff) verified!');
+    console.log('✔ [112/113] M134 1-Click OAuth 2.1 Session Handoff (Open-Redirect Guard + HMAC Handoff) verified!');
+
+    // 111. M135 Site-Wide Hosted Brand /mcp + W3C Chrome WebMCP + 1-Click OAuth 2.1 Presentation & Landmark 102 /vs Matchups
+    const [
+      m135PricingHtml,
+      m135McpGuideHtml,
+      m135AgenciesHtml,
+      m135FeaturesHtml,
+      m135ConnectorsHtml,
+      m135OtterlyHtml,
+      m135ClickhouseVsHtml,
+      m135LlmsTxt,
+      m135AgentsMd,
+    ] = await Promise.all([
+      fetch(`${BASE}/pricing`).then((r) => r.text()),
+      fetch(`${BASE}/mcp-guide`).then((r) => r.text()),
+      fetch(`${BASE}/agencies`).then((r) => r.text()),
+      fetch(`${BASE}/features`).then((r) => r.text()),
+      fetch(`${BASE}/connectors`).then((r) => r.text()),
+      fetch(`${BASE}/compare/otterly-ai-alternative`).then((r) => r.text()),
+      fetch(`${BASE}/vs/clickhouse-com-vs-motherduck-com`).then((r) => r.text()),
+      fetch(`${BASE}/llms.txt`).then((r) => r.text()),
+      fetch(`${BASE}/agents.md`).then((r) => r.text()),
+    ]);
+
+    assert.ok(
+      gscHomeHtml.includes('HOSTED BRAND /MCP + CHROME WEBMCP') &&
+        gscHomeHtml.includes('Hosted Brand /mcp + Chrome WebMCP'),
+      'Expected / to feature Hosted Brand /mcp + Chrome WebMCP'
+    );
+    assert.ok(
+      m135PricingHtml.includes('Hosted Brand /mcp + Chrome WebMCP Server (2-Line Embed)') &&
+        m135PricingHtml.includes('15 Hosted Client Brand /mcp + Chrome WebMCP Servers'),
+      'Expected /pricing to present Hosted Brand /mcp + Chrome WebMCP across Starter, Pro & Agency'
+    );
+    assert.ok(
+      m135McpGuideHtml.includes('id="hosted-brand-mcp"') &&
+        m135McpGuideHtml.includes('https://mcp.verisource.dev/oauth/mcp') &&
+        m135McpGuideHtml.includes('get_verified_pricing_and_offers'),
+      'Expected /mcp-guide to render #hosted-brand-mcp section, 1-Click /oauth/mcp URL, and 4 Brand Truth tools'
+    );
+    assert.ok(
+      m135AgenciesHtml.includes('15 Hosted Client Brand /mcp + Chrome WebMCP servers') &&
+        m135AgenciesHtml.includes('OAuth 2.1'),
+      'Expected /agencies to feature 15 Hosted Client Brand /mcp + Chrome WebMCP servers & OAuth 2.1'
+    );
+    assert.ok(
+      m135FeaturesHtml.includes('Hosted Brand Truth /mcp + 1-Click Claude/ChatGPT Connector') &&
+        m135FeaturesHtml.includes('/oauth/mcp'),
+      'Expected /features to feature Hosted Brand Truth /mcp + W3C Chrome WebMCP + OAuth 2.1'
+    );
+    assert.ok(
+      m135ConnectorsHtml.includes('Hosted Brand') &&
+        m135ConnectorsHtml.includes('WebMCP'),
+      'Expected /connectors to mention Hosted Brand /mcp + Chrome WebMCP'
+    );
+    assert.ok(
+      m135OtterlyHtml.includes('Hosted Brand /mcp') &&
+        m135OtterlyHtml.includes('1-Click Claude/ChatGPT OAuth'),
+      'Expected /compare/otterly-ai-alternative to differentiate Hosted Brand /mcp + 1-Click OAuth'
+    );
+    assert.ok(
+      m135ClickhouseVsHtml.includes('clickhouse.com') &&
+        m135ClickhouseVsHtml.includes('motherduck.com'),
+      'Expected landmark /vs/clickhouse-com-vs-motherduck-com matchup page to render HTTP 200'
+    );
+    assert.ok(
+      m135LlmsTxt.includes('360+ Audited Sites') &&
+        m135LlmsTxt.includes('https://mcp.verisource.dev/oauth/mcp') &&
+        m135AgentsMd.includes('360+ Audited Sites') &&
+        m135AgentsMd.includes('https://mcp.verisource.dev/oauth/mcp') &&
+        m135AgentsMd.includes('get_verified_pricing_and_offers'),
+      'Expected /llms.txt and /agents.md to publish 360+ count, /oauth/mcp, and Hosted Brand /mcp tools'
+    );
+
+    for (const [m135Label, m135Raw] of [
+      ['/', gscHomeHtml],
+      ['/pricing', m135PricingHtml],
+      ['/mcp-guide', m135McpGuideHtml],
+      ['/agencies', m135AgenciesHtml],
+      ['/features', m135FeaturesHtml],
+      ['/connectors', m135ConnectorsHtml],
+      ['/compare/otterly-ai-alternative', m135OtterlyHtml],
+      ['/llms.txt', m135LlmsTxt],
+      ['/agents.md', m135AgentsMd],
+    ]) {
+      const m135Visible = m135Raw
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ');
+      assert.equal(
+        (m135Visible.match(BANNED_LEXICON) ?? []).length,
+        0,
+        `Found banned lexicon on ${m135Label} in M135 check`
+      );
+      assert.ok(
+        !SELF_SCORE_JARGON.test(m135Visible),
+        `Found /10 or Critic jargon on ${m135Label} in M135 check`
+      );
+    }
+    console.log('✔ [113/113] M135 Site-Wide Hosted Brand /mcp + Chrome WebMCP + 1-Click OAuth 2.1 Presentation & 102 /vs Matchups verified!');
   } finally {
     server.kill();
   }

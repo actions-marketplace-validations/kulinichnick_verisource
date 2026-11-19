@@ -5,6 +5,7 @@ import type { ReadinessScanSummary } from '@verisource/core-geo';
 import { CodeArtifactCard, StatusBadge } from '@verisource/ui';
 
 type ClientAppId =
+  | 'claude_chatgpt_oauth'
   | 'claude'
   | 'cursor'
   | 'antigravity'
@@ -34,11 +35,19 @@ const CLIENT_GUIDES: Record<
     firstPromptExample: string;
   }
 > = {
+  claude_chatgpt_oauth: {
+    label: 'Claude Web & ChatGPT (1-Click OAuth)',
+    fileHint: 'Settings → Connectors → Add Custom Connector (Zero API Keys)',
+    plainWhereToPaste:
+      'In Claude (claude.ai → Settings → Connectors → Add Custom Connector) or ChatGPT Connectors, paste the single HTTPS URL below and click Approve via OAuth 2.1 + PKCE S256—no JSON file or API key needed.',
+    firstPromptExample:
+      'Audit our domain in Verisource, flag any wrong pricing claims, and generate our JSON-LD, /agents.md, and Hosted Brand /mcp snippet.',
+  },
   claude: {
     label: 'Claude Desktop',
     fileHint: 'claude_desktop_config.json',
     plainWhereToPaste:
-      'Open Claude Desktop → Settings → Developer → Edit Config, paste the block below, save, and restart Claude once.',
+      'Open Claude Desktop → Settings → Developer → Edit Config, paste the block below, save, and restart Claude once (or connect via 1-Click OAuth at https://mcp.verisource.dev/oauth/mcp).',
     firstPromptExample:
       'Scan yourcompany.com with Verisource and tell me if GPTBot or /agents.md has any issues.',
   },
@@ -77,6 +86,17 @@ const CLIENT_GUIDES: Record<
 };
 
 function buildConfigCode(client: ClientAppId, authMode: AuthTierMode): string {
+  if (client === 'claude_chatgpt_oauth') {
+    return `Remote Connector URL (Paste in Claude or ChatGPT Settings → Connectors):
+https://mcp.verisource.dev/oauth/mcp
+
+OAuth 2.1 Metadata (Auto-Discovered):
+- Protected Resource (RFC 9728): https://mcp.verisource.dev/.well-known/oauth-protected-resource/oauth/mcp
+- Authorization Server (RFC 8414): https://mcp.verisource.dev/.well-known/oauth-authorization-server
+- Dynamic Client Registration (RFC 7591): https://mcp.verisource.dev/oauth/register
+- PKCE Method: S256 · Issuer (RFC 9207): https://mcp.verisource.dev`;
+  }
+
   if (client === 'curl_rpc') {
     if (authMode === 'free_no_key') {
       return `curl -X POST https://mcp.verisource.dev/mcp \\
@@ -139,7 +159,9 @@ function buildConfigCode(client: ClientAppId, authMode: AuthTierMode): string {
 }
 
 export function McpQuickstartClient(): React.ReactElement {
-  const [selectedClient, setSelectedClient] = useState<ClientAppId>('claude');
+  const [selectedClient, setSelectedClient] = useState<ClientAppId>(
+    'claude_chatgpt_oauth'
+  );
   const [authMode, setAuthMode] = useState<AuthTierMode>('free_no_key');
 
   const [domainInput, setDomainInput] = useState('');

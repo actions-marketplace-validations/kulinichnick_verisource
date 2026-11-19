@@ -538,7 +538,7 @@ export function StandoutFeaturesBento(): React.ReactElement {
           </div>
         </div>
 
-        {/* Card 4: Official Streamable HTTP /mcp Server */}
+        {/* Card 4: Hosted Brand /mcp, W3C Chrome WebMCP & 1-Click OAuth 2.1 */}
         <div
           className="vs-card vs-card-interactive"
           style={{
@@ -561,12 +561,12 @@ export function StandoutFeaturesBento(): React.ReactElement {
               }}
             >
               <span className="vs-eyebrow" style={{ color: 'var(--vs-ink)' }}>
-                04 · OFFICIAL REGISTRY /MCP SERVER
+                04 · HOSTED BRAND /MCP, WEBMCP &amp; 1-CLICK OAUTH
               </span>
               <StatusBadge tone="pass">DEV.VERISOURCE/MCP@1.0.0</StatusBadge>
             </div>
             <h3 style={{ margin: '0 0 6px 0', fontSize: '17.5px', fontWeight: 700 }}>
-              Run Audits Inside Claude, Cursor, Windsurf &amp; Antigravity
+              Host Your Brand&apos;s Own /mcp + Connect Claude &amp; ChatGPT in 1 Click
             </h3>
             <p
               style={{
@@ -576,17 +576,20 @@ export function StandoutFeaturesBento(): React.ReactElement {
                 lineHeight: 1.55,
               }}
             >
-              Connect your coding or desktop agent directly to{' '}
-              <code className="vs-mono">https://mcp.verisource.dev/mcp</code>{' '}
-              over stateless Streamable HTTP to scan domains, check hallucinations,
-              and pull schema fixes mid-workflow.
+              Every paid domain gets a hosted read-only Brand Truth server (
+              <code className="vs-mono">/b/&#123;domain&#125;/mcp</code>) plus a
+              W3C Chrome <code className="vs-mono">WebMCP</code> script via 2
+              lines in <code className="vs-mono">&lt;head&gt;</code>—alongside
+              1-click OAuth 2.1 (<code className="vs-mono">/oauth/mcp</code>) for{' '}
+              <code className="vs-mono">claude.ai</code> and{' '}
+              <code className="vs-mono">chatgpt.com</code>.
             </p>
 
             <svg
               viewBox="0 0 460 74"
               width="100%"
               role="img"
-              aria-label="Motion diagram showing Claude, Cursor, and Antigravity calling https://mcp.verisource.dev/mcp."
+              aria-label="Motion diagram showing Claude, ChatGPT, and Chrome AI agents calling Hosted Brand MCP and OAuth 2.1 endpoints."
               style={{
                 borderRadius: '6px',
                 border: '1px solid var(--vs-border)',
@@ -596,38 +599,40 @@ export function StandoutFeaturesBento(): React.ReactElement {
               }}
             >
               <rect x="8" y="14" width="166" height="46" rx="5" fill="#FFFFFF" stroke="#CBD5E1" />
-              <text x="18" y="33" fill="#0F172A" fontSize="9.5" fontFamily="var(--vs-mono)" fontWeight="700">
-                Claude · Cursor · AGY
+              <text x="18" y="33" fill="#0F172A" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
+                Claude · ChatGPT · Chrome
               </text>
-              <text x="18" y="49" fill="#475569" fontSize="8.5" fontFamily="var(--vs-mono)">
-                tools/call JSON-RPC 2.0
+              <text x="18" y="49" fill="#475569" fontSize="8.3" fontFamily="var(--vs-mono)">
+                OAuth 2.1 + WebMCP
               </text>
               <path d="M 174 37 L 236 37" fill="none" stroke="#364156" strokeWidth="2" />
               <path className="vs-signal-path" d="M 174 37 L 236 37" fill="none" stroke="#E5A93C" strokeWidth="2.5" />
               <rect x="236" y="14" width="216" height="46" rx="5" fill="#171C26" stroke="#364156" />
               <circle className="vs-live-dot" cx="250" cy="30" r="3" fill="#34D399" />
-              <text x="259" y="33" fill="#EEF1F6" fontSize="9.2" fontFamily="var(--vs-mono)" fontWeight="700">
-                mcp.verisource.dev/mcp
+              <text x="259" y="33" fill="#EEF1F6" fontSize="9.0" fontFamily="var(--vs-mono)" fontWeight="700">
+                mcp.verisource.dev/b/brand
               </text>
-              <text x="250" y="49" fill="#B4BCC9" fontSize="8.5" fontFamily="var(--vs-mono)">
-                4 GEO Tools · SHA-256 Bearer
+              <text x="250" y="49" fill="#B4BCC9" fontSize="8.3" fontFamily="var(--vs-mono)">
+                4 Brand Truth Tools · 2-Line Embed
               </text>
             </svg>
 
             <div style={{ fontSize: '12px', color: 'var(--vs-ink-secondary)' }}>
               <strong style={{ color: 'var(--vs-ink)' }}>How to use:</strong>{' '}
-              Test free on <code className="vs-mono">/mcp-guide</code> or mint a
-              Bearer key in 30 seconds inside <strong>Console Step 03</strong>.
+              Paste the 2-line <code className="vs-mono">&lt;head&gt;</code> tag
+              from <strong>Console Step 02</strong>, or connect{' '}
+              <code className="vs-mono">/oauth/mcp</code> on{' '}
+              <code className="vs-mono">/mcp-guide</code>.
             </div>
           </div>
 
           <div>
             <Link
-              href="/mcp-guide"
+              href="/mcp-guide#hosted-brand-mcp"
               className="vs-btn vs-btn-secondary"
               style={{ padding: '7px 12px', fontSize: '12px' }}
             >
-              Open 30-Second /mcp Guide →
+              Explore Hosted /mcp &amp; OAuth Guide →
             </Link>
           </div>
         </div>

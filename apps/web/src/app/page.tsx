@@ -46,6 +46,7 @@ export default function HomePage(): React.ReactElement {
               <StatusBadge tone="pass">
                 CHATGPT · PERPLEXITY · GEMINI · CLAUDE
               </StatusBadge>
+              <StatusBadge>HOSTED BRAND /MCP + CHROME WEBMCP</StatusBadge>
               <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
             </div>
 
@@ -473,7 +474,7 @@ export default function HomePage(): React.ReactElement {
                     Compare Two Domains Free →
                   </Link>
                   <Link href="/reports" className="vs-btn vs-btn-secondary">
-                    350+ Brand Scorecards →
+                    360+ Brand Scorecards →
                   </Link>
                 </div>
               </div>
@@ -779,7 +780,7 @@ export default function HomePage(): React.ReactElement {
                       letterSpacing: '-0.02em',
                     }}
                   >
-                    Generate verified schema, AI fact files, and rival pages in one click.
+                    Ship verified schema, AI files &amp; your Hosted Brand /mcp server in one click.
                   </h3>
                   <p
                     style={{
@@ -789,12 +790,13 @@ export default function HomePage(): React.ReactElement {
                       color: 'var(--vs-ink-secondary)',
                     }}
                   >
-                    Writes syntax-checked <code className="vs-mono">JSON-LD</code>{' '}
-                    pricing and FAQ schemas, <code className="vs-mono">/llms.txt</code>,{' '}
-                    <code className="vs-mono">/agents.md</code> (or{' '}
-                    <code className="vs-mono">/ai-facts</code> for hosted
-                    builders), and ready-to-publish{' '}
-                    <strong>You vs. Competitor</strong> comparison tables.
+                    Writes syntax-checked <code className="vs-mono">JSON-LD</code>,{' '}
+                    <code className="vs-mono">/llms.txt</code>,{' '}
+                    <code className="vs-mono">/agents.md</code>, and a 2-line{' '}
+                    <strong>Hosted Brand /mcp + Chrome WebMCP</strong>{' '}
+                    (<code className="vs-mono">navigator.modelContext</code>)
+                    bridge so AI agents query your verified pricing directly—with
+                    zero backend code.
                   </p>
                 </div>
 
@@ -944,7 +946,7 @@ export default function HomePage(): React.ReactElement {
                       letterSpacing: '-0.02em',
                     }}
                   >
-                    Close agency retainers in 60s—or automate checks in CI and Claude.
+                    Close agency retainers in 60s—or connect Claude &amp; ChatGPT in 1 click.
                   </h3>
                   <p
                     style={{
@@ -954,11 +956,14 @@ export default function HomePage(): React.ReactElement {
                       color: 'var(--vs-ink-secondary)',
                     }}
                   >
-                    Agencies mint custom-branded{' '}
-                    <code className="vs-mono">/audit/[slug]</code> prospect
-                    reports with live open and booking alerts, while engineering
-                    teams run <code className="vs-mono">npx @verisource/cli</code>{' '}
-                    and our 5-tool <code className="vs-mono">/mcp</code> server.
+                    Agencies mint branded{' '}
+                    <code className="vs-mono">/audit/[slug]</code> client reports
+                    and deploy 15 Hosted Client{' '}
+                    <code className="vs-mono">/mcp</code> servers, while any team
+                    connects <code className="vs-mono">claude.ai</code> or{' '}
+                    <code className="vs-mono">chatgpt.com</code> via 1-click
+                    OAuth 2.1 (zero API keys) or runs{' '}
+                    <code className="vs-mono">npx @verisource/cli</code>.
                   </p>
                 </div>
 

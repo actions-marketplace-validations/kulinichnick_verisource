@@ -3,6 +3,9 @@
 All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 
 - **Streamable HTTP MCP Endpoint:** `https://mcp.verisource.dev/mcp`
+- **1-Click OAuth 2.1 MCP Connector (`claude.ai` & `chatgpt.com`):** `https://mcp.verisource.dev/oauth/mcp`
+- **Hosted Customer Brand `/mcp` + Chrome `WebMCP` Live Demo:** `https://mcp.verisource.dev/b/verisource.dev/mcp` · `https://mcp.verisource.dev/b/verisource.dev/webmcp.js`
+- **OAuth 2.1 Authorization Server Metadata (RFC 8414 & RFC 7591 DCR):** `https://mcp.verisource.dev/.well-known/oauth-authorization-server`
 - **MCP Discovery Manifest (Web Origin):** `https://verisource.dev/.well-known/mcp.json`
 - **MCP Discovery Manifest (Worker Origin):** `https://mcp.verisource.dev/.well-known/mcp.json`
 - **OAuth 2.0 Protected Resource Metadata (RFC 9728):** `https://mcp.verisource.dev/.well-known/oauth-protected-resource`
@@ -20,8 +23,8 @@ All public discovery endpoints are deployed and verified (`HTTP 200`, CORS `*`):
 - **Server Name:** `Verisource — B2B GEO & AI Citation Intelligence`
 - **Canonical Namespace:** `dev.verisource/mcp`
 - **Category:** `Search & SEO` / `Developer Tools` / `E-Commerce`
-- **Transport Type:** `Streamable HTTP` (`https://mcp.verisource.dev/mcp`)
-- **Authentication:** Optional for free `scan_domain_ai_readiness` tool (`0` credits); `Authorization: Bearer vs_live_<48-hex>` or OAuth 2.0 Bearer JWT for paid tools.
+- **Transport Type:** `Streamable HTTP` (`https://mcp.verisource.dev/mcp` for IDEs / `https://mcp.verisource.dev/oauth/mcp` for 1-click Claude Web & ChatGPT OAuth 2.1)
+- **Authentication:** Optional for free `scan_domain_ai_readiness` tool (`0` credits); 1-Click OAuth 2.1 + RFC 7591 Dynamic Client Registration + PKCE `S256` on `/oauth/mcp`, or `Authorization: Bearer vs_live_<48-hex>` for IDE clients.
 - **Website / Docs URL:** `https://verisource.dev/mcp-guide`
 - **Pricing URL:** `https://verisource.dev/pricing`
 - **Privacy Policy URL:** `https://verisource.dev/privacy`
@@ -42,6 +45,9 @@ Verisource is a stateless Streamable HTTP MCP server (`https://mcp.verisource.de
 4. `generate_geo_fix_bundle` (Pro / Agency — 1 cached or 10 live credits): Generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, Shopify `templates/agents.md.liquid` overrides, and 1-Click AI Remediation Prompts.
 5. `compare_competitor_protocol_xray` (Pro / Agency — 1 cached or 10 live credits): Benchmarks `own_domain` against `rival_domain` across 6 HTTP & schema dimensions and outputs an unredacted overtake engineering prompt, a `[Brand] vs. [Rival]` comparison page + `FAQPage` `JSON-LD`, and Headless Next.js `/api/ucp/mcp` rescue configuration.
 ```
+
+### Hosted Customer Brand `/mcp` & W3C Chrome `WebMCP` (`navigator.modelContext`)
+Every Starter (`$49/mo`), Pro (`$99/mo`), and Agency (`$249/mo`) domain automatically receives a hosted, read-only Brand Truth MCP server (`https://mcp.verisource.dev/b/{domain}/mcp`) plus a browser `WebMCP` script (`https://mcp.verisource.dev/b/{domain}/webmcp.js`) exposing `get_verified_pricing_and_offers`, `verify_brand_claim`, `compare_with_competitor`, and `get_official_faqs` via a 2-line `<head>` embed.
 
 ### Client Configuration JSON (Claude Desktop, Cursor, Windsurf, Antigravity)
 ```json

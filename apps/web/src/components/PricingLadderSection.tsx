@@ -351,6 +351,7 @@ export function PricingLadderSection(props: {
         'Automated weekly AI checks and wrong-price alerts for a single local business, SaaS company, or Shopify store.',
       specs: [
         '1 Website + Weekly Automated Scans',
+        'Hosted Brand /mcp + Chrome WebMCP Server (2-Line Embed)',
         '35 Weekly Buyer Questions (3 AI Engines)',
         'Wrong-Price & Policy Alert Watchdog',
         'Validated JSON-LD, /llms.txt & /agents.md Fixes',
@@ -396,12 +397,13 @@ export function PricingLadderSection(props: {
         'Competitor source map, Shopify catalog adapter, 10-line AI revenue tracker, and direct MCP sync for AI tools.',
       specs: [
         'Up to 3 Websites & 100 Weekly Questions',
+        'Hosted Brand /mcp + Chrome WebMCP (Up to 3 Sites)',
         'Competitor Source Map + Outreach Drafts',
         '10-Line AI Visit & Checkout Revenue Pixel',
         'Shopify /api/ucp/mcp + agents.md.liquid Adapter',
         isPaidAccount || annual
-          ? 'Paid /mcp Server (1,000 credits/mo: 1 cached / 10 live)'
-          : 'Paid /mcp Server (150 trial credits → 1,000/mo)',
+          ? '1-Click Claude/ChatGPT OAuth + 1,000 /mcp Credits/mo'
+          : '1-Click Claude/ChatGPT OAuth (150 trial → 1,000/mo)',
       ],
       cta: proSubMeta
         ? proSubMeta.cta
@@ -440,9 +442,10 @@ export function PricingLadderSection(props: {
         'Close $1,500–$3,000/mo client retainers using 60-second branded audit links with your agency logo and booking button.',
       specs: [
         'Up to 15 Client Websites & 400 Weekly Questions',
+        '15 Hosted Client Brand /mcp + Chrome WebMCP Servers',
         '60-Second Branded Client Link (/audit/[slug])',
         'Custom Agency Logo, Brand Color & Calendar CTA',
-        '5,000 Paid /mcp Server Credits / Month',
+        '1-Click Claude/ChatGPT OAuth + 5,000 /mcp Credits/mo',
       ],
       cta: agencySubMeta
         ? agencySubMeta.cta

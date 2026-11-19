@@ -109,10 +109,12 @@ export default function InteractiveTutorialPage(): React.ReactElement {
               }}
             >
               Click through every workflow below—from spotting false AI pricing
-              claims and copying a 1-Click AI Fix Prompt to minting white-label{' '}
+              claims and pasting a 2-line Hosted Brand{' '}
+              <code className="vs-mono">/mcp</code> + Chrome{' '}
+              <code className="vs-mono">WebMCP</code> embed to minting white-label{' '}
               <code className="vs-mono">/audit/[slug]</code> client scorecards and
-              connecting Cursor or Claude to{' '}
-              <code className="vs-mono">mcp.verisource.dev/mcp</code>.
+              connecting <code className="vs-mono">claude.ai</code> or ChatGPT in
+              1 click via <code className="vs-mono">mcp.verisource.dev/oauth/mcp</code>.
             </p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>

@@ -11,9 +11,10 @@ import { McpQuickstartClient } from '../../components/McpQuickstartClient';
 import { McpStreamSchematic } from '../../components/McpStreamSchematic';
 
 export const metadata: Metadata = {
-  title: 'MCP Server Quickstart (Claude, Cursor, Windsurf, Antigravity) | Verisource',
+  title:
+    '1-Click OAuth MCP Connector & Hosted Brand /mcp + Chrome WebMCP | Verisource',
   description:
-    'Connect Claude Desktop, Cursor, Windsurf, or Antigravity to https://mcp.verisource.dev/mcp over stateless Streamable HTTP. Run free readiness scans or meter Pro/Agency GEO fix bundles.',
+    'Connect Claude Web, ChatGPT Connectors, Cursor, or Antigravity via 1-click OAuth 2.1 (https://mcp.verisource.dev/oauth/mcp), and turn any subscriber website into a live Hosted Brand /mcp + W3C Chrome WebMCP server in 60 seconds.',
   alternates: {
     canonical: 'https://verisource.dev/mcp-guide',
   },
@@ -63,7 +64,13 @@ const MCP_GUIDE_FAQS = [
     question:
       'Which AI coding and desktop clients connect out of the box?',
     answer:
-      'Claude Desktop, Cursor IDE, Google Antigravity, Windsurf, Cline, and custom JSON-RPC 2.0 HTTP pipelines connect via a single mcpServers JSON snippet minted inside Console Step 03.',
+      'Claude Web (claude.ai), ChatGPT Connectors (chatgpt.com), Claude Desktop, Cursor IDE, Google Antigravity, Windsurf, and custom JSON-RPC 2.0 HTTP pipelines connect via either 1-click OAuth 2.1 + PKCE S256 (https://mcp.verisource.dev/oauth/mcp, zero API keys) or a Bearer vs_live_ JSON snippet minted inside Console Step 03.',
+  },
+  {
+    question:
+      'What is the Hosted Brand Truth /mcp + W3C Chrome WebMCP server included on paid plans?',
+    answer:
+      'Every Starter ($49/mo), Pro ($99/mo), and Agency ($249/mo, 15 client domains) site receives its own hosted, read-only Streamable HTTP MCP server at https://mcp.verisource.dev/b/<your-domain>/mcp plus an edge-cached W3C WebMCP (navigator.modelContext) script via a 2-line <head> embed—so AI agents query your verified pricing, exclusions, and FAQs with zero backend code.',
   },
 ] as const;
 
@@ -128,8 +135,8 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                 }}
               >
                 <StatusBadge tone="pass">OFFICIAL MCP REGISTRY · DEV.VERISOURCE/MCP</StatusBadge>
-                <StatusBadge>STREAMABLE HTTP (SDK V2)</StatusBadge>
-                <StatusBadge>FREE + METERED PRO</StatusBadge>
+                <StatusBadge>1-CLICK CLAUDE &amp; CHATGPT OAUTH 2.1</StatusBadge>
+                <StatusBadge>HOSTED BRAND /MCP + CHROME WEBMCP</StatusBadge>
               </div>
 
               <h1
@@ -141,12 +148,13 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                   margin: '0 0 16px 0',
                 }}
               >
-                Give Claude, Cursor, and Antigravity live brand truth.{' '}
+                Connect Claude &amp; ChatGPT in 1 click—and host your site&rsquo;s own{' '}
+                <code className="vs-mono">/mcp</code> server.{' '}
                 <span
                   className="vs-display-serif"
                   style={{ fontSize: '1.08em', fontWeight: 400 }}
                 >
-                  One URL. Thirty seconds.
+                  Zero JSON files. Zero backend code.
                 </span>
               </h1>
 
@@ -159,14 +167,13 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
                   maxWidth: '580px',
                 }}
               >
-                Point your favorite AI assistant to{' '}
-                <code className="vs-mono">https://mcp.verisource.dev/mcp</code>.
-                Ask it directly to check if{' '}
-                <code className="vs-mono">GPTBot</code> is blocked, see which
-                rival articles ChatGPT cites, or write verified{' '}
-                <code className="vs-mono">JSON-LD</code> and{' '}
-                <code className="vs-mono">/agents.md</code> fixes straight into
-                your site.
+                Paste{' '}
+                <code className="vs-mono">https://mcp.verisource.dev/oauth/mcp</code>{' '}
+                into Claude Web or ChatGPT Connectors for 1-click OAuth 2.1
+                access (no API keys), or drop our 2-line{' '}
+                <strong>Hosted Brand /mcp + W3C Chrome WebMCP</strong> snippet
+                onto your own site so visiting AI agents query your verified
+                pricing and policies directly.
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -254,6 +261,117 @@ export default function McpQuickstartGuidePage(): React.ReactElement {
         {/* Interactive Client Setup & Live JSON-RPC Playground */}
         <section style={{ marginBottom: '54px' }}>
           <McpQuickstartClient />
+        </section>
+
+        {/* Hosted Customer Brand /mcp + W3C Chrome WebMCP Infrastructure */}
+        <section id="hosted-brand-mcp" style={{ marginBottom: '54px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            HOSTED CUSTOMER BRAND /MCP + W3C CHROME WEBMCP (STARTER $49+ · PRO $99 · AGENCY $249)
+          </div>
+          <h2
+            style={{
+              fontSize: '24px',
+              letterSpacing: '-0.02em',
+              margin: '0 0 10px 0',
+            }}
+          >
+            Turn any WordPress, Webflow, Framer, Next.js, or Shopify site into a live{' '}
+            <code className="vs-mono">/mcp</code> &amp; Chrome{' '}
+            <code className="vs-mono">WebMCP</code> server.
+          </h2>
+          <p
+            style={{
+              fontSize: '14.5px',
+              lineHeight: 1.6,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 18px 0',
+              maxWidth: '72ch',
+            }}
+          >
+            Shopify stores expose <code className="vs-mono">/api/ucp/mcp</code>{' '}
+            automatically, leaving non-Shopify websites with zero agent
+            endpoints. Paste these 2 tags from Console Step 02 into your{' '}
+            <code className="vs-mono">&lt;head&gt;</code> and Verisource hosts
+            both your stateless Streamable HTTP Brand{' '}
+            <code className="vs-mono">/mcp</code> server and your edge-cached{' '}
+            <code className="vs-mono">navigator.modelContext</code> Chrome{' '}
+            WebMCP script—backed live by your verified Brand Truth Sheet.
+            Verisource runs this exact bridge on{' '}
+            <code className="vs-mono">verisource.dev</code> right now.
+          </p>
+
+          <div style={{ display: 'grid', gap: '16px' }}>
+            <CodeArtifactCard
+              title="2-Line <head> Hosted Brand /mcp + Chrome WebMCP Embed"
+              fileHint="Paste inside site-wide <head> (or copy auto-configured in Console Step 02)"
+              code={`<link rel="mcp" href="https://mcp.verisource.dev/b/yourcompany.com/mcp" title="Your Brand Verified AI Agent MCP" />\n<script src="https://mcp.verisource.dev/b/yourcompany.com/webmcp.js" data-vs-domain="yourcompany.com" defer></script>`}
+            />
+
+            <div className="vs-bezel">
+              <div
+                className="vs-card"
+                style={{ overflow: 'hidden', background: 'var(--vs-surface)' }}
+              >
+                <div className="vs-table-wrap">
+                  <table className="vs-table">
+                    <thead>
+                      <tr>
+                        <th>Hosted Brand Tool</th>
+                        <th>Protocol Surface</th>
+                        <th>What Visiting AI Agents Receive</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <code className="vs-mono" style={{ fontWeight: 700, fontSize: '12.5px' }}>
+                            get_verified_pricing_and_offers
+                          </code>
+                        </td>
+                        <td><StatusBadge tone="pass">HTTP /MCP + WEBMCP</StatusBadge></td>
+                        <td style={{ fontSize: '13.5px', color: 'var(--vs-ink-secondary)' }}>
+                          Owner-verified pricing summary, core offering, fulfillment coverage, and explicit exclusions.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <code className="vs-mono" style={{ fontWeight: 700, fontSize: '12.5px' }}>
+                            verify_brand_claim
+                          </code>
+                        </td>
+                        <td><StatusBadge tone="pass">HTTP /MCP + WEBMCP</StatusBadge></td>
+                        <td style={{ fontSize: '13.5px', color: 'var(--vs-ink-secondary)' }}>
+                          Deterministically flags false pricing, shipping, or discontinued SKU claims before an agent quotes them.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <code className="vs-mono" style={{ fontWeight: 700, fontSize: '12.5px' }}>
+                            compare_with_competitor
+                          </code>
+                        </td>
+                        <td><StatusBadge tone="pass">HTTP /MCP + WEBMCP</StatusBadge></td>
+                        <td style={{ fontSize: '13.5px', color: 'var(--vs-ink-secondary)' }}>
+                          Structured factual comparison points and buyer verification checklist against any named rival.
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <code className="vs-mono" style={{ fontWeight: 700, fontSize: '12.5px' }}>
+                            get_official_faqs
+                          </code>
+                        </td>
+                        <td><StatusBadge tone="pass">HTTP /MCP + WEBMCP</StatusBadge></td>
+                        <td style={{ fontSize: '13.5px', color: 'var(--vs-ink-secondary)' }}>
+                          Topic-filterable Answer-First FAQs synced directly from your validated JSON-LD and Brand Truth Sheet.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* 4-Tool Reference Table */}

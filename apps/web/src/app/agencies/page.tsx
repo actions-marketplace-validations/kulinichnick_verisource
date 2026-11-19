@@ -44,9 +44,9 @@ const AGENCY_WORKFLOW_STEPS = [
   },
   {
     step: '04',
-    title: 'Fulfill retainers in 15 minutes via 1-Click AI Fix Prompts',
+    title: 'Fulfill retainers in 15 minutes + deploy 15 Hosted Client /mcp Servers',
     detail:
-      'Copy a platform-tailored 1-Click AI Fix Prompt (WordPress WPCode, Webflow Custom Code, Wix/Squarespace/Framer /ai-facts, Shopify Liquid, or Coding Agent)—or automate across repos with 5,000 monthly /mcp credits.',
+      'Copy a platform-tailored 1-Click AI Fix Prompt (WordPress, Webflow, Wix, Squarespace, Framer, Shopify, or Next.js), activate each client’s 2-line Hosted Brand /mcp + W3C Chrome WebMCP server, and connect Claude Web or ChatGPT in 1 click via OAuth 2.1 (5,000 monthly /mcp credits included).',
   },
 ];
 
@@ -138,7 +138,7 @@ export default function AgenciesPartnerPage(): React.ReactElement {
       price: '249.00',
       priceCurrency: 'USD',
       description:
-        '15 client domains, 400 weekly tracked buyer prompts, pure white-label /audit/[slug] client briefs, 10-domain batch CSV outreach, and 5,000 monthly Streamable HTTP /mcp credits.',
+        '15 client domains with 15 Hosted Brand /mcp + W3C Chrome WebMCP servers, 400 weekly tracked buyer prompts, pure white-label /audit/[slug] client briefs, 10-domain batch CSV outreach, and 1-click Claude/ChatGPT OAuth with 5,000 monthly /mcp credits.',
     },
   };
 
@@ -220,9 +220,10 @@ export default function AgenciesPartnerPage(): React.ReactElement {
                 SEO, web design, digital PR, and Shopify agencies use Verisource
                 to pitch AI search visibility with concrete proof—not slide
                 decks. Mint 60-second branded{' '}
-                <code className="vs-mono">/audit/[slug]</code> scorecards that
-                auto-detect the prospect&rsquo;s CMS, explain business impact
-                without jargon, and fulfill fixes in one AI prompt.
+                <code className="vs-mono">/audit/[slug]</code> scorecards, fix
+                all 7 CMS stacks in one prompt, and deploy up to{' '}
+                <strong>15 Hosted Client Brand /mcp + Chrome WebMCP servers</strong>{' '}
+                under your retainer.
               </p>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>

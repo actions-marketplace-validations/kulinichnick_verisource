@@ -5,7 +5,7 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (350+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (360+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI Binary: npx @verisource/cli
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
@@ -47,6 +47,20 @@ Add the Verisource Streamable HTTP server to your MCP client configuration:
 
 Unauthenticated callers may omit the \`Authorization\` header to invoke the free \`scan_domain_ai_readiness\` preview tool (rate-limited to 3 custom scans per IP per UTC day; 24-hour KV cache).
 
+### 1B. 1-Click Browser OAuth 2.1 Connector (\`claude.ai\` & \`chatgpt.com\`)
+
+Web-based AI workspaces support RFC 8414 metadata discovery, RFC 7591 Dynamic Client Registration (\`POST /oauth/register\`), and PKCE \`S256\` without manual API keys:
+- **Connector URL:** \`https://mcp.verisource.dev/oauth/mcp\`
+- **Authorization Server Metadata:** \`https://mcp.verisource.dev/.well-known/oauth-authorization-server\`
+
+### 1C. Hosted Customer Brand Truth \`/mcp\` + W3C Chrome \`WebMCP\`
+
+Every Starter (\`$49/mo\`), Pro (\`$99/mo\`), and Agency (\`$249/mo\`) domain automatically receives a hosted, read-only Brand Truth MCP server (\`https://mcp.verisource.dev/b/{domain}/mcp\`) plus a W3C Chrome \`WebMCP\` script (\`https://mcp.verisource.dev/b/{domain}/webmcp.js\`) registering 4 tools on \`navigator.modelContext\`:
+- \`get_verified_pricing_and_offers\`
+- \`verify_brand_claim\`
+- \`compare_with_competitor\`
+- \`get_official_faqs\`
+
 ## 2. Exposed MCP Tools & Credit Metering
 
 Paid tools accept either a SHA-256 \`vs_live_\` Bearer API key minted at https://verisource.dev/dashboard (Pro \`$99/mo\` or Agency \`$249/mo\`) or a valid Supabase OAuth 2.0 Bearer JWT.
@@ -68,9 +82,9 @@ Verisource fingerprints \`shopify\`, \`wordpress\`, \`webflow\`, \`wix\`, \`squa
 ## 4. Public HTTP Endpoints for Web & Extension Clients
 
 - \`POST https://verisource.dev/api/grader\` — JSON body \`{ "domain": "yourcompany.com" }\`. CORS-enabled (\`Access-Control-Allow-Origin: *\`) for browser extensions and agent pre-checks.
-- \`GET https://verisource.dev/api/report/{domain}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) scorecard feed across 350+ pre-indexed SaaS and commerce domains.
+- \`GET https://verisource.dev/api/report/{domain}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) scorecard feed across 360+ pre-indexed SaaS and commerce domains.
 - \`GET https://verisource.dev/api/vs/{matchup}[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) 6-dimension head-to-head comparison feed across published \`/vs/[matchup]\` benchmarks.
-- \`GET https://verisource.dev/api/benchmarks/summary[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) empirical dataset feed summarizing protocol adoption and architecture cohort means across 350+ audited domains.
+- \`GET https://verisource.dev/api/benchmarks/summary[?format=md]\` — CORS-enabled JSON and Markdown (\`text/markdown\`) empirical dataset feed summarizing protocol adoption and architecture cohort means across 360+ audited domains.
 - \`GET https://mcp.verisource.dev/health\` — Health & transport status check.
 - \`GET https://verisource.dev/audit/{share_slug}\` — Scoped read-only white-label agency pitch brief with Business Impact diagnosis and detected CMS badge.
 

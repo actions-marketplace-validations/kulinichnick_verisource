@@ -712,6 +712,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Analytics platform SSR token extraction, /llms.txt feeds, and homepage JSON-LD parity.',
   },
+  {
+    cohort: 'EVENT STREAMING & KAFKA PLATFORMS',
+    domainA: 'confluent.io',
+    domainB: 'redpanda.com',
+    angle:
+      'Streaming data infrastructure AI bot access, /llms.txt docs index, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'REAL-TIME OLAP & SERVERLESS DUCKDB',
+    domainA: 'clickhouse.com',
+    domainB: 'motherduck.com',
+    angle:
+      'High-speed analytical database SSR word density, /llms.txt feeds, and schema.org entity coverage.',
+  },
+  {
+    cohort: 'E-SIGNATURE & DOCUMENT WORKFLOWS',
+    domainA: 'pandadoc.com',
+    domainB: 'docusign.com',
+    angle:
+      'Document automation WAF posture, GPTBot readability, and structured pricing schema.',
+  },
+  {
+    cohort: 'SALES PROPOSALS & DEAL ROOMS',
+    domainA: 'proposify.com',
+    domainB: 'qwilr.com',
+    angle:
+      'Proposal software AI crawler access, non-JS HTML extraction, and entity JSON-LD coverage.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

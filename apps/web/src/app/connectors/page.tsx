@@ -113,11 +113,13 @@ export default function ConnectorsPage(): React.ReactElement {
               Managed WordPress hosts often block SFTP root uploads, and Shopify
               theme updates can overwrite manual{' '}
               <code className="vs-mono">theme.liquid</code> edits. Use our
-              single-file WordPress plugin or Online Store 2.0 Theme App Embed to
-              keep <code className="vs-mono">/llms.txt</code>,{' '}
-              <code className="vs-mono">/agents.md</code>, and{' '}
-              <code className="vs-mono">schema.org</code>{' '}
-              <code className="vs-mono">JSON-LD</code> live across upgrades.
+              single-file WordPress plugin, Online Store 2.0 Theme App Embed, or
+              2-line <strong>Hosted Brand /mcp + Chrome WebMCP</strong> snippet
+              to keep <code className="vs-mono">/llms.txt</code>,{' '}
+              <code className="vs-mono">/agents.md</code>,{' '}
+              <code className="vs-mono">JSON-LD</code>, and your site&rsquo;s
+              live <code className="vs-mono">/mcp</code> agent endpoint active
+              across upgrades.
             </p>
 
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>

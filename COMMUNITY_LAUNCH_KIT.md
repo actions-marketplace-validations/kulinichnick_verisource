@@ -14,6 +14,8 @@ All empirical URLs, free zero-signup protocol validators, and Streamable HTTP en
 - **Free Zero-Signup Protocol Validators (`JSON-LD`, `/llms.txt`, `GPTBot` WAF, Shopify UCP):** `https://verisource.dev/tools`
 - **25% Recurring Affiliate Partner Hub:** `https://verisource.dev/partners`
 - **Streamable HTTP MCP Server (`dev.verisource/mcp@1.0.0`):** `https://mcp.verisource.dev/mcp`
+- **1-Click Claude Web & ChatGPT OAuth 2.1 Connector:** `https://mcp.verisource.dev/oauth/mcp`
+- **Hosted Customer Brand `/mcp` & W3C Chrome `WebMCP` Guide:** `https://verisource.dev/mcp-guide#hosted-brand-mcp`
 
 ---
 
@@ -309,5 +311,29 @@ Search all 200 scorecards: https://verisource.dev/reports
 38 Head-to-Head Matchup Benchmarks: https://verisource.dev/vs#all-published-matchups
 Full 2026 Benchmark & Charts: https://verisource.dev/benchmarks/ai-search-readiness-2026#q4-200-domain-landmark
 ```
+
+---
+
+## 11. Hosted Brand Truth `/mcp`, W3C Chrome `WebMCP` & 1-Click OAuth 2.1 Launch Update (`N = 360` Scorecards · `102` Matchups)
+
+### A. LinkedIn / X Founder Product Announcement
+```text
+Everyone on LinkedIn is warning that SaaS tools without MCP connectors will go obsolete.
+
+We shipped two layers instead of one—both live today on https://verisource.dev:
+
+1. 1-Click OAuth 2.1 Connector for Claude Web (claude.ai) & ChatGPT (chatgpt.com):
+Paste https://mcp.verisource.dev/oauth/mcp into Custom Connectors. RFC 7591 Dynamic Client Registration + PKCE S256 connects your Verisource workspace in one click—zero JSON editing, zero manual API key pasting.
+
+2. Hosted Customer Brand /mcp + W3C Chrome WebMCP (navigator.modelContext):
+Every Starter ($49/mo), Pro ($99/mo), and Agency ($249/mo) domain now gets its own hosted, read-only Brand Truth MCP server (/b/{domain}/mcp) plus an edge-cached Chrome WebMCP script (/webmcp.js). Paste 2 lines into <head> and AI shopping assistants or Chrome browser agents can directly call get_verified_pricing_and_offers, verify_brand_claim, compare_with_competitor, and get_official_faqs. Zero backend engineering required.
+
+Agencies on our $249/mo White-Label plan can now deliver up to 15 hosted client /mcp + Chrome WebMCP servers alongside branded /audit/[slug] scorecards.
+
+We also just crossed 360 live audited domain scorecards (/reports) and 102 head-to-head domain protocol benchmarks (/vs).
+
+Live spec & 2-line embed guide: https://verisource.dev/mcp-guide#hosted-brand-mcp
+```
+
 
 

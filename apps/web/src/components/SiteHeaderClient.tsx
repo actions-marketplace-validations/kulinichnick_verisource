@@ -22,7 +22,7 @@ const RESOURCE_MENU_ITEMS: ReadonlyArray<{
   {
     href: '/reports',
     label: 'Live Domain Scorecards',
-    sublabel: '350+ audited SaaS & Shopify sites',
+    sublabel: '360+ audited SaaS & Shopify sites',
   },
   {
     href: '/vs',
@@ -170,7 +170,7 @@ export function SiteHeaderClient(): React.ReactElement {
               href="/mcp-guide"
               className="vs-badge vs-header-mcp-pill"
               style={{ textDecoration: 'none' }}
-              title="View 30-second Claude, Cursor, Windsurf & Antigravity setup guide"
+              title="1-Click Claude/ChatGPT OAuth, IDE /mcp & Hosted Brand /mcp + Chrome WebMCP"
             >
               mcp.verisource.dev/mcp
             </Link>

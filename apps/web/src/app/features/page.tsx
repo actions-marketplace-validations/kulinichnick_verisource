@@ -14,9 +14,9 @@ import { TokenBenchmarkCard } from '../../components/TokenBenchmarkCard';
 
 export const metadata: Metadata = {
   title:
-    'All Tools, Free Website Tests & Platform Capabilities | Verisource',
+    'All Tools, Hosted Brand /mcp & Free Website Tests | Verisource',
   description:
-    'Explore every Verisource tool and free diagnostic test: 60-second AI Search Grader, Head-to-Head Domain X-Ray, 3-Pillar JSON-LD & WAF Validators, Wrong-Price Watchdog, 7-CMS Fix Generator, Agency White-Label Suite, @verisource/cli, and /mcp.',
+    'Explore every Verisource tool: Hosted Brand Truth /mcp + W3C Chrome WebMCP, 1-Click Claude/ChatGPT OAuth Connector, 60s AI Search Grader, Head-to-Head X-Ray, Wrong-Price Watchdog, 7-CMS Fix Generator, Agency White-Label Suite, and @verisource/cli.',
   alternates: {
     canonical: 'https://verisource.dev/features',
   },
@@ -276,7 +276,7 @@ export default function FeaturesPage(): React.ReactElement {
             </div>
 
             <Link href="/reports" className="vs-btn vs-btn-secondary">
-              Browse 350+ Audited Brand Scorecards →
+              Browse 360+ Audited Brand Scorecards →
             </Link>
           </div>
 
@@ -766,10 +766,10 @@ export default function FeaturesPage(): React.ReactElement {
           <div className="vs-grid-3" style={{ gap: '22px' }}>
             <div className="vs-card" style={{ padding: '22px 24px' }}>
               <div className="vs-eyebrow" style={{ marginBottom: '8px' }}>
-                STREAMABLE HTTP /MCP SERVER
+                HOSTED BRAND /MCP · WEBMCP · OAUTH 2.1
               </div>
               <h3 style={{ fontSize: '17px', margin: '0 0 8px 0' }}>
-                5 native tools at mcp.verisource.dev/mcp
+                Hosted Brand Truth /mcp + 1-Click Claude/ChatGPT Connector
               </h3>
               <p
                 style={{
@@ -779,12 +779,16 @@ export default function FeaturesPage(): React.ReactElement {
                   color: 'var(--vs-ink-secondary)',
                 }}
               >
-                Query domain readiness, citation fanouts, claim conflicts,
-                competitor protocol X-Rays, and ready-to-commit fix files
-                directly from Claude Desktop, Cursor, or Antigravity.
+                Give every paid domain a hosted{' '}
+                <code className="vs-mono">/b/&#123;domain&#125;/mcp</code>{' '}
+                endpoint + W3C Chrome <code className="vs-mono">WebMCP</code>{' '}
+                script via 2 lines in <code className="vs-mono">&lt;head&gt;</code>
+                —and connect <code className="vs-mono">claude.ai</code> or{' '}
+                <code className="vs-mono">chatgpt.com</code> in 1 click at{' '}
+                <code className="vs-mono">/oauth/mcp</code>.
               </p>
-              <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
-                30-Second /mcp Setup →
+              <Link href="/mcp-guide#hosted-brand-mcp" className="vs-btn vs-btn-secondary">
+                Hosted /mcp &amp; OAuth Setup →
               </Link>
             </div>
 
@@ -931,6 +935,10 @@ export default function FeaturesPage(): React.ReactElement {
               {
                 q: 'Does the 20-page link scanner obey /robots.txt?',
                 a: 'Yes. VerisourceScan/1.0 fetches /robots.txt first, respects Disallow and Crawl-delay rules, sends only read-only GET and HEAD requests, and blocks private IPs.',
+              },
+              {
+                q: 'What is the Hosted Brand /mcp Server + W3C Chrome WebMCP embed?',
+                a: 'Every Starter ($49/mo), Pro ($99/mo), and Agency ($249/mo) domain automatically receives a hosted, read-only Brand Truth MCP server at https://mcp.verisource.dev/b/{domain}/mcp plus an edge-cached WebMCP script (/webmcp.js). Paste 2 lines into your site <head> and AI assistants plus Chrome WebMCP agents can query your exact pricing, verify claims, compare against rivals, and read official FAQs directly—zero backend code required.',
               },
               {
                 q: 'How does the $19 One-Time Audit Pass compare to the 7-day free trial?',

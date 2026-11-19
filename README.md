@@ -2,7 +2,7 @@
 
 [![AI Search Readiness — Verisource](https://verisource.dev/api/badge/verisource.dev)](https://verisource.dev/reports)
 
-**Live Platform:** [https://verisource.dev](https://verisource.dev) · **Streamable HTTP MCP:** `https://mcp.verisource.dev/mcp` · **Official MCP Registry:** `dev.verisource/mcp@1.0.0` · **Cursor Directory:** [verisource-geo-ai-citation-mcp](https://cursor.directory/plugins/verisource-geo-ai-citation-mcp) · **Chrome Web Store:** [Install Side Panel](https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb)
+**Live Platform:** [https://verisource.dev](https://verisource.dev) · **Streamable HTTP MCP:** `https://mcp.verisource.dev/mcp` · **1-Click OAuth 2.1 Connector:** `https://mcp.verisource.dev/oauth/mcp` · **Hosted Brand `/mcp` Demo:** `https://mcp.verisource.dev/b/verisource.dev/mcp` · **Official MCP Registry:** `dev.verisource/mcp@1.0.0` · **Cursor Directory:** [verisource-geo-ai-citation-mcp](https://cursor.directory/plugins/verisource-geo-ai-citation-mcp) · **Chrome Web Store:** [Install Side Panel](https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb)
 
 Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** cite your brand, catches hallucinated pricing and policy claims against a verified **Brand Truth Sheet**, and generates syntax-validated `schema.org` `JSON-LD`, `/llms.txt`, `/agents.md`, `/ai-facts`, and **You vs. Competitor** HTML comparison pages across **7 CMS platforms** (`Shopify`, `WordPress`, `Webflow`, `Wix`, `Squarespace`, `Framer`, and `Next.js`).
 
@@ -13,7 +13,7 @@ Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** 
 | Resource | URL | What It Does |
 | :--- | :--- | :--- |
 | **Free 60-Second Domain Audit** | [verisource.dev/#scan](https://verisource.dev/#scan) | Probes 5 AI crawlers, 3 answer engines, 5-page link health (`VerisourceScan/1.0`), CMS stack, and 3-pillar `JSON-LD` readiness. |
-| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 350+ audited SaaS and commerce domains. |
+| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 360+ audited SaaS and commerce domains. |
 | **Head-to-Head Domain X-Ray** | [verisource.dev/vs](https://verisource.dev/vs) | Side-by-side 6-dimension HTTP protocol, WAF, and `JSON-LD` benchmark for any two public domains. |
 | **11-Capability Platform & CLI Tour** | [verisource.dev/features](https://verisource.dev/features) | Interactive split-screen walkthroughs for AI search verification, browser flow replay, route mapping, and log correlation. |
 | **Crawler Transparency Spec** | [verisource.dev/scanner](https://verisource.dev/scanner) | Public `VerisourceScan/1.0` User-Agent specification, rate limits, and `/robots.txt` opt-out controls. |
