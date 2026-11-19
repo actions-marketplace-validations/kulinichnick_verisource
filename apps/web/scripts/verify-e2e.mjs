@@ -5167,7 +5167,33 @@ async function run() {
         m85SidepanelJs.includes('Compare vs. Competitor (/vs)'),
       'Expected Chrome MV3 Side Panel JS bundle to include inline HEAD-TO-HEAD RIVAL X-RAY and /vs handoff'
     );
-    console.log('✔ [97/97] M106 @verisource/cli `vs` Command, /api/tools/xray CORS & Chrome MV3 Side Panel Inline Rival X-Ray verified!');
+    console.log('✔ [97/98] M106 @verisource/cli `vs` Command, /api/tools/xray CORS & Chrome MV3 Side Panel Inline Rival X-Ray verified!');
+
+    // 96. M107 110-Domain /reports Industry & Architecture Leaderboard (Cohort Filters, Sort & +vs Picker)
+    const m107ReportsRes = await fetch(`${BASE}/reports`);
+    assert.equal(m107ReportsRes.status, 200);
+    const m107ReportsHtml = await m107ReportsRes.text();
+    const m107ReportsVisible = m107ReportsHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    const m107UniqueReportLinks = new Set(
+      Array.from(
+        m107ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m107UniqueReportLinks.size >= 110,
+      `Expected /reports leaderboard to index >= 110 unique domains, got ${m107UniqueReportLinks.size}`
+    );
+    assert.ok(
+      m107ReportsHtml.includes('Headless Next.js DTC') &&
+        m107ReportsHtml.includes('LEADERBOARD SORT:') &&
+        !SELF_SCORE_JARGON.test(m107ReportsVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(m107ReportsVisible),
+      'Expected /reports leaderboard to render Headless Next.js DTC filter, LEADERBOARD SORT controls & zero /10 jargon'
+    );
+    console.log('✔ [98/98] M107 110-Domain /reports Industry & Architecture Leaderboard verified!');
   } finally {
     server.kill();
   }

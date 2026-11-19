@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T02:52:36.603Z",
+  "updatedAt": "2026-11-19T03:49:04.310Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -183,7 +183,15 @@
       "publicContactChannel": "hello@svz.io",
       "caseStudyClientDomain": "envoy.com",
       "caseStudyClientName": "Envoy",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T03:49:04.310Z",
+      "auditSlug": "envoy-com-00c7",
+      "emailSentAt": "2026-11-19T03:49:04.310Z",
+      "resendMessageId": "01a1f1ec-41af-7407-a48d-30a0b663b2f1",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Grizzle",
@@ -195,7 +203,15 @@
       "publicContactChannel": "tom@grizzle.io",
       "caseStudyClientDomain": "pipedrive.com",
       "caseStudyClientName": "Pipedrive",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T03:49:04.310Z",
+      "auditSlug": "pipedrive-com-38bz",
+      "emailSentAt": "2026-11-19T03:49:04.310Z",
+      "resendMessageId": "01a1f1ec-415f-7f05-a724-0e7efdab1d6a",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Vervaunt",

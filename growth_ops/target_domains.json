@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T02:56:45.680Z",
+  "updatedAt": "2026-11-19T03:49:04.310Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -606,52 +606,62 @@
     {
       "domain": "hyperice.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "railway.app",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "modal.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "replicate.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "together.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "baseten.co",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "groq.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "cohere.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "mistral.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "perplexity.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T03:49:04.310Z"
     },
     {
       "domain": "cursor.com",

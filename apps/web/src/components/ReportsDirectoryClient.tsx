@@ -7,10 +7,23 @@ import type { PublishedDomainScorecard } from '../lib/published-reports';
 
 type DirectoryFilterId =
   | 'all'
+  | 'top_ready'
+  | 'at_risk'
+  | 'headless_dtc'
+  | 'shopify_os2'
   | 'b2b_saas'
-  | 'shopify_dtc'
-  | 'missing_agents_md'
-  | 'has_llms_txt';
+  | 'waf_blocked'
+  | 'missing_agents_md';
+
+type DirectorySortId = 'score_desc' | 'score_asc' | 'domain_asc';
+
+function isBotsAllowed(item: PublishedDomainScorecard): boolean {
+  return (
+    item.robotsAiBotStatus.GPTBot &&
+    item.robotsAiBotStatus.PerplexityBot &&
+    !item.robotsAiBotStatus.waf_blocked
+  );
+}
 
 export function ReportsDirectoryClient({
   reports,
@@ -19,39 +32,50 @@ export function ReportsDirectoryClient({
 }): React.ReactElement {
   const [query, setQuery] = useState<string>('');
   const [filter, setFilter] = useState<DirectoryFilterId>('all');
+  const [sortBy, setSortBy] = useState<DirectorySortId>('score_desc');
+  const [compareSelection, setCompareSelection] = useState<string[]>([]);
 
   const counts = useMemo(() => {
     return {
       all: reports.length,
-      b2b_saas: reports.filter((r) => r.vertical === 'b2b_saas').length,
-      shopify_dtc: reports.filter(
-        (r) => r.isShopify || r.vertical === 'shopify_dtc'
+      top_ready: reports.filter((r) => r.readinessScore >= 75).length,
+      at_risk: reports.filter((r) => r.readinessScore < 55).length,
+      headless_dtc: reports.filter(
+        (r) =>
+          r.vertical === 'shopify_dtc' && r.detectedPlatform === 'nextjs_custom'
       ).length,
+      shopify_os2: reports.filter((r) => r.detectedPlatform === 'shopify')
+        .length,
+      b2b_saas: reports.filter((r) => r.vertical === 'b2b_saas').length,
+      waf_blocked: reports.filter((r) => !isBotsAllowed(r)).length,
       missing_agents_md: reports.filter(
         (r) => r.agentsMdStatus !== 'custom_enriched'
       ).length,
-      has_llms_txt: reports.filter((r) => r.llmsTxtStatus === 'present').length,
     };
   }, [reports]);
 
-  const filteredReports = useMemo(() => {
+  const filteredAndSortedReports = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return reports.filter((r) => {
-      if (filter === 'b2b_saas' && r.vertical !== 'b2b_saas') return false;
+    const matched = reports.filter((r) => {
+      if (filter === 'top_ready' && r.readinessScore < 75) return false;
+      if (filter === 'at_risk' && r.readinessScore >= 55) return false;
       if (
-        filter === 'shopify_dtc' &&
-        !r.isShopify &&
-        r.vertical !== 'shopify_dtc'
+        filter === 'headless_dtc' &&
+        !(
+          r.vertical === 'shopify_dtc' && r.detectedPlatform === 'nextjs_custom'
+        )
       ) {
         return false;
       }
+      if (filter === 'shopify_os2' && r.detectedPlatform !== 'shopify') {
+        return false;
+      }
+      if (filter === 'b2b_saas' && r.vertical !== 'b2b_saas') return false;
+      if (filter === 'waf_blocked' && isBotsAllowed(r)) return false;
       if (
         filter === 'missing_agents_md' &&
         r.agentsMdStatus === 'custom_enriched'
       ) {
-        return false;
-      }
-      if (filter === 'has_llms_txt' && r.llmsTxtStatus !== 'present') {
         return false;
       }
       if (!q) return true;
@@ -62,20 +86,74 @@ export function ReportsDirectoryClient({
         r.topGapSummary.toLowerCase().includes(q)
       );
     });
-  }, [reports, query, filter]);
+
+    const sorted = [...matched];
+    if (sortBy === 'score_desc') {
+      sorted.sort(
+        (a, b) =>
+          b.readinessScore - a.readinessScore ||
+          a.domain.localeCompare(b.domain)
+      );
+    } else if (sortBy === 'score_asc') {
+      sorted.sort(
+        (a, b) =>
+          a.readinessScore - b.readinessScore ||
+          a.domain.localeCompare(b.domain)
+      );
+    } else {
+      sorted.sort((a, b) => a.domain.localeCompare(b.domain));
+    }
+    return sorted;
+  }, [reports, query, filter, sortBy]);
+
+  const cohortMean = useMemo(() => {
+    if (filteredAndSortedReports.length === 0) return null;
+    const sum = filteredAndSortedReports.reduce(
+      (acc, r) => acc + r.readinessScore,
+      0
+    );
+    return (sum / filteredAndSortedReports.length).toFixed(1);
+  }, [filteredAndSortedReports]);
+
+  const toggleCompareDomain = (domain: string) => {
+    setCompareSelection((prev) => {
+      if (prev.includes(domain)) {
+        return prev.filter((d) => d !== domain);
+      }
+      if (prev.length >= 2) {
+        return [prev[1]!, domain];
+      }
+      return [...prev, domain];
+    });
+  };
 
   const filterOptions: ReadonlyArray<{
     id: DirectoryFilterId;
     label: string;
   }> = [
     { id: 'all', label: `All Domains (${counts.all})` },
-    { id: 'b2b_saas', label: `B2B SaaS & DevTools (${counts.b2b_saas})` },
-    { id: 'shopify_dtc', label: `Shopify & Commerce (${counts.shopify_dtc})` },
+    { id: 'top_ready', label: `Top Ready ≥75 (${counts.top_ready})` },
+    { id: 'at_risk', label: `At Risk <55 (${counts.at_risk})` },
+    {
+      id: 'headless_dtc',
+      label: `Headless Next.js DTC (${counts.headless_dtc})`,
+    },
+    { id: 'shopify_os2', label: `Shopify OS 2.0 (${counts.shopify_os2})` },
+    { id: 'b2b_saas', label: `B2B SaaS & AI (${counts.b2b_saas})` },
+    { id: 'waf_blocked', label: `WAF / Bot Blocked (${counts.waf_blocked})` },
     {
       id: 'missing_agents_md',
-      label: `Missing Custom /agents.md (${counts.missing_agents_md})`,
+      label: `Missing /agents.md (${counts.missing_agents_md})`,
     },
-    { id: 'has_llms_txt', label: `Live /llms.txt (${counts.has_llms_txt})` },
+  ];
+
+  const sortOptions: ReadonlyArray<{
+    id: DirectorySortId;
+    label: string;
+  }> = [
+    { id: 'score_desc', label: 'Highest Score ↓' },
+    { id: 'score_asc', label: 'Lowest Score ↑' },
+    { id: 'domain_asc', label: 'Domain A–Z' },
   ];
 
   return (
@@ -89,6 +167,83 @@ export function ReportsDirectoryClient({
           gap: '14px',
         }}
       >
+        {/* 2-Domain Interactive Head-to-Head Picker Tray */}
+        {compareSelection.length > 0 ? (
+          <div
+            style={{
+              padding: '10px 14px',
+              borderRadius: '8px',
+              background: 'var(--vs-surface-warm)',
+              border: '1px solid var(--vs-accent)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+            }}
+          >
+            <div style={{ fontSize: '13px', color: 'var(--vs-ink)' }}>
+              {compareSelection.length === 1 ? (
+                <>
+                  <strong className="vs-mono">{compareSelection[0]}</strong>{' '}
+                  selected — click <code className="vs-mono">+ vs</code> on any
+                  second domain below to compare head-to-head.
+                </>
+              ) : (
+                <>
+                  Head-to-head matchup ready:{' '}
+                  <strong className="vs-mono">{compareSelection[0]}</strong> vs.{' '}
+                  <strong className="vs-mono">{compareSelection[1]}</strong>
+                </>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {compareSelection.length === 2 ? (
+                <Link
+                  href={`/vs?a=${encodeURIComponent(
+                    compareSelection[0]!
+                  )}&b=${encodeURIComponent(compareSelection[1]!)}`}
+                  className="vs-btn"
+                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                >
+                  Run 6-Dimension X-Ray →
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => setCompareSelection([])}
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '5px 10px', fontSize: '11.5px' }}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Filter Pills */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '7px',
+            alignItems: 'center',
+          }}
+        >
+          {filterOptions.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className="vs-pill-btn vs-pill-btn-sm"
+              data-active={filter === opt.id ? 'true' : 'false'}
+              onClick={() => setFilter(opt.id)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort Controls, Live Cohort Mean & Search Bar */}
         <div
           style={{
             display: 'flex',
@@ -96,34 +251,58 @@ export function ReportsDirectoryClient({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '12px',
+            paddingTop: '4px',
           }}
         >
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: '8px',
               alignItems: 'center',
+              gap: '8px',
             }}
           >
-            {filterOptions.map((opt) => (
+            <span
+              className="vs-mono"
+              style={{
+                fontSize: '11px',
+                color: 'var(--vs-ink-muted)',
+                fontWeight: 700,
+              }}
+            >
+              LEADERBOARD SORT:
+            </span>
+            {sortOptions.map((s) => (
               <button
-                key={opt.id}
+                key={s.id}
                 type="button"
                 className="vs-pill-btn vs-pill-btn-sm"
-                data-active={filter === opt.id ? 'true' : 'false'}
-                onClick={() => setFilter(opt.id)}
+                data-active={sortBy === s.id ? 'true' : 'false'}
+                onClick={() => setSortBy(s.id)}
               >
-                {opt.label}
+                {s.label}
               </button>
             ))}
+            {cohortMean !== null ? (
+              <span
+                className="vs-mono"
+                style={{
+                  fontSize: '12px',
+                  color: 'var(--vs-ink-secondary)',
+                  marginLeft: '4px',
+                }}
+              >
+                · {filteredAndSortedReports.length} shown (Mean: {cohortMean}
+                /100)
+              </span>
+            ) : null}
           </div>
 
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter by domain, CMS, or gap (e.g. supabase.com, Shopify)..."
+            placeholder="Filter by domain, stack, or gap (e.g. perplexity.ai, Shopify)..."
             aria-label="Filter domain scorecards"
             className="vs-input"
             style={{
@@ -136,9 +315,13 @@ export function ReportsDirectoryClient({
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table className="vs-table" style={{ width: '100%', minWidth: '760px' }}>
+          <table
+            className="vs-table"
+            style={{ width: '100%', minWidth: '820px' }}
+          >
             <thead>
               <tr>
+                <th style={{ width: '52px' }}>Rank</th>
                 <th>Domain &amp; Brand</th>
                 <th>Detected Stack</th>
                 <th>Readiness</th>
@@ -146,17 +329,25 @@ export function ReportsDirectoryClient({
                 <th>/llms.txt</th>
                 <th>/agents.md</th>
                 <th>JSON-LD</th>
-                <th style={{ textAlign: 'right' }}>Scorecard</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredReports.map((item) => {
-                const botsOk =
-                  item.robotsAiBotStatus.GPTBot &&
-                  item.robotsAiBotStatus.PerplexityBot &&
-                  !item.robotsAiBotStatus.waf_blocked;
+              {filteredAndSortedReports.map((item, idx) => {
+                const botsOk = isBotsAllowed(item);
+                const isSelected = compareSelection.includes(item.domain);
                 return (
                   <tr key={item.domain}>
+                    <td
+                      className="vs-mono"
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--vs-ink-muted)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      #{idx + 1}
+                    </td>
                     <td>
                       <div style={{ fontWeight: 700, color: 'var(--vs-ink)' }}>
                         {item.brandName}
@@ -225,21 +416,39 @@ export function ReportsDirectoryClient({
                       {`${item.jsonLdPillarsPassed}/3`}
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <Link
-                        href={`/report/${item.domain}`}
-                        className="vs-btn vs-btn-secondary"
-                        style={{ padding: '6px 11px', fontSize: '12px' }}
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
                       >
-                        Inspect Scorecard →
-                      </Link>
+                        <button
+                          type="button"
+                          onClick={() => toggleCompareDomain(item.domain)}
+                          className="vs-pill-btn vs-pill-btn-sm vs-mono"
+                          data-active={isSelected ? 'true' : 'false'}
+                          title="Select two domains to run a Head-to-Head X-Ray"
+                          style={{ padding: '5px 8px', fontSize: '11px' }}
+                        >
+                          {isSelected ? '✓ vs' : '+ vs'}
+                        </button>
+                        <Link
+                          href={`/report/${item.domain}`}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '6px 11px', fontSize: '12px' }}
+                        >
+                          Scorecard →
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
-              {filteredReports.length === 0 && (
+              {filteredAndSortedReports.length === 0 && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={9}
                     style={{
                       textAlign: 'center',
                       padding: '28px 16px',

@@ -7,9 +7,9 @@ import { getPublishedDomainScorecards } from '../../lib/published-reports';
 
 export const metadata: Metadata = {
   title:
-    'Live AI Search & Protocol Readiness Scorecards (50+ Audited Domains) | Verisource',
+    'Live AI Search & Protocol Readiness Leaderboard (110+ Audited Domains) | Verisource',
   description:
-    'Inspect live HTTP AI search readiness scorecards across 50+ B2B SaaS, DevTools, and Shopify D2C domains: GPTBot WAF status, /llms.txt, /agents.md, and 3-pillar JSON-LD.',
+    'Filter, sort, and compare live HTTP AI search readiness scorecards across 110+ B2B SaaS, AI infrastructure, Headless Next.js, and Shopify OS 2.0 domains.',
   alternates: {
     canonical: 'https://verisource.dev/reports',
   },
@@ -160,6 +160,9 @@ export default function PublicReportsDirectoryPage(): React.ReactElement {
           <Link href="/#scan" className="vs-btn vs-btn-primary">
             Scan Your Own Domain Free →
           </Link>
+          <Link href="/vs" className="vs-btn vs-btn-secondary">
+            Compare Any 2 Domains (/vs) →
+          </Link>
           <Link
             href="/api/checkout?plan=tripwire_19&cycle=one_time"
             className="vs-btn vs-btn-secondary"
@@ -170,7 +173,7 @@ export default function PublicReportsDirectoryPage(): React.ReactElement {
             href="/benchmarks/ai-search-readiness-2026"
             className="vs-btn vs-btn-secondary"
           >
-            Read 40-Domain Research Paper →
+            Read 2026 Benchmark Paper →
           </Link>
         </div>
       </div>
