@@ -10,13 +10,13 @@
 
 | # | Platform / Shelf | Current Status | Asset Already Built | 1-Click Publish Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **1** | **GitHub Actions Marketplace** | `READY TO PUBLISH` | Root `action.yml` (`shield` / `yellow`) + sticky PR badge (`verisource.dev/api/badge/{host}`) | On GitHub (`kulinichnick/verisource` -> **Releases** -> **Draft a new release** -> tag `v1.0.0`), check **"Publish this Action to the GitHub Marketplace"** (Category: *Code quality* + *Deployment*). |
+| **1** | **GitHub Actions Marketplace** | `READY (RELEASE KIT BUILT)` | Root `action.yml` (`shield` / `yellow`) + sticky PR badge (`verisource.dev/api/badge/{host}`) + `GITHUB_MARKETPLACE_RELEASE_v1.0.0.md` | Open https://github.com/kulinichnick/verisource/releases/new, paste `GITHUB_MARKETPLACE_RELEASE_v1.0.0.md`, check **"Publish this Action to the GitHub Marketplace"**, and click Publish. |
 | **2** | **Official MCP Registry** | `LIVE` | `dev.verisource/mcp@1.0.0` + Ed25519 proof | Verified live on `registry.modelcontextprotocol.io`. |
 | **3** | **Glama MCP Directory** | `SUBMITTED` | Hosted Streamable HTTP `/mcp` | Verify badge & description stay synced with `OAuth 2.1` (`/oauth/mcp`). |
 | **4** | **Cursor Directory** | `LIVE` | `verisource-geo-ai-citation-mcp` | Live plugin entry pointing to `https://mcp.verisource.dev/mcp`. |
-| **5** | **Smithery Registry** | `READY` | Root `smithery.yaml` + `/mcp` | Submit at https://smithery.ai/new (`https://mcp.verisource.dev/mcp`). |
-| **6** | **PulseMCP Directory** | `READY` | `MCP_DIRECTORY_LAUNCH.md` | Submit at https://www.pulsemcp.com/submit. |
-| **7** | **MCP.so Index** | `READY` | `MCP_DIRECTORY_LAUNCH.md` | Submit at https://mcp.so/submit (`SEO & Search`). |
+| **5** | **MCPServers.org** | `SUBMITTED (FREE $0 · 2026-11-19)` | Submitted `Verisource — B2B GEO & AI Citation Intelligence MCP` (`Search`, `https://mcp.verisource.dev/mcp`, `kulinichnick/verisource`, `nick@verisource.dev`) | Submitted on Free (`$0`) tier (`review within 2 weeks`). Replaces sunset Smithery. |
+| **6** | **Anthropic Claude Connectors Directory** | `READY (OAUTH 2.1 LIVE)` | RFC 8414 + RFC 7591 DCR + PKCE `S256` live at `https://mcp.verisource.dev/oauth/mcp` | Submit via Claude developer/partner portal for native placement inside Claude Web & Desktop. |
+| **7** | **Smithery / PulseMCP / MCP.so** | `ARCHIVED / SKIPPED (2026-11-19)` | Live browser verified `2026-11-19`: Smithery shut down Oct 31, 2026; PulseMCP submissions paused; MCP.so requires `$39` paid fee for remote servers. | Skip `$39` paid fee; monitor PulseMCP reopen only. |
 | **8** | **`punkpeye/awesome-mcp-servers`** | `READY` | Copy-paste PR line in `MCP_DIRECTORY_LAUNCH.md` | Open 1-line PR adding Verisource under Search / SEO. |
 
 ---
@@ -27,7 +27,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **9** | **Chrome Web Store** | `IN REVIEW / LIVE` | `verisource-chrome-mv3-v1.0.1.zip` + 24-bit RGB screenshots | Monitor approval; add Chrome Store link to footer & `/features`. |
 | **10** | **Microsoft Edge Add-ons** | `READY (0 CODE)` | Exact same `verisource-chrome-mv3-v1.0.1.zip` | Upload at https://partner.microsoft.com/dashboard/microsoftedge. |
-| **11** | **WordPress.org Plugin Directory** | `READY TO SUBMIT` | `/api/connectors/wordpress` PHP generator (`verisource-geo-connector.php`) | Zip plugin + `readme.txt` and submit to https://wordpress.org/plugins/developers/add/. |
+| **11** | **WordPress.org Plugin Directory** | `PACKAGED (.ZIP READY)` | `wordpress-plugin/verisource-geo-connector-wp-v1.0.0.zip` (`5 KB`, `10.0/10` `readme.txt` + External Services disclosure + JSON-LD sanitizer) | Upload `g:\My Drive\GEO MCP Engine\wordpress-plugin\verisource-geo-connector-wp-v1.0.0.zip` at https://wordpress.org/plugins/developers/add/. |
 | **12** | **Shopify App Store** | `PHASE 2 (BRIDGE READY)` | `/connectors` Shopify OS 2.0 theme snippet + `/api/ucp/mcp` probe | Package lightweight free AI Readiness + `/agents.md` helper app. |
 
 ---
@@ -38,8 +38,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **13** | **G2** | `READY` | Read-write GEO + Hosted Brand `/mcp` (`$49/$99/$249`) vs. `$245–$579/mo` chart-only trackers | https://sell.g2.com |
 | **14** | **Capterra / Gartner** | `READY` | 7-CMS `JSON-LD` + `/llms.txt` + `/agents.md` + 60s Agency White-Label `/audit/[slug]` | https://vendors.gartnerdigitalmarkets.com |
-| **15** | **AlternativeTo** | `READY` | Action-first alternative to `Profound`, `Otterly.ai`, `Peec AI`, `AthenaHQ`, `Scrunch AI` | https://alternativeto.net |
-| **16** | **SaaSHub** | `READY` | Free diagnostic suite (`/tools`) + `510+` public domain scorecards (`/reports`) | https://www.saashub.com/submit |
+| **15** | **AlternativeTo** | `READY (SIGN-IN REQUIRED)` | Action-first alternative to `Profound`, `Otterly.ai`, `Peec AI`, `AthenaHQ`, `Scrunch AI` (`SimpleLister` verified 404/broken, skipped) | Sign in at https://alternativeto.net -> **Suggest new application**. |
+| **16** | **SaaSHub** | `SUBMITTED (CONFIRM EMAIL)` | Submitted live `2026-11-19` -> https://www.saashub.com/verisource (`SEO Tools / AI Marketing`) | Click confirmation link sent to `nick@verisource.dev` to claim & verify profile. |
 | **17** | **Show HN** | `READY (N=500 COPY)` | `COMMUNITY_LAUNCH_KIT.md` Section 12 — lead with `N = 500` empirical HTTP failures | https://news.ycombinator.com/submit |
 | **18** | **Product Hunt / DevHunt / Peerlist** | `READY` | Pair with `verisource-n500-ai-readiness-infographic.png` + `VIDEO_FACTORY_QUEUE.md` MP4 | https://www.producthunt.com/posts/new |
 
