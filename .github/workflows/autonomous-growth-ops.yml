@@ -1,0 +1,200 @@
+name: Verisource Autonomous Organic Growth Ops
+
+on:
+  schedule:
+    # Every 6 hours: high-intent Community Signal Scout (HN, Reddit, StackExchange, DEV.to)
+    - cron: '0 */6 * * *'
+    # Daily 13:00 UTC: organic B2B activation, warm brief follow-ups & verified agency ops
+    - cron: '0 13 * * *'
+    # Weekly Monday 14:00 UTC: GSC SEO healing + IndexNow, Partner Scout, Video Factory & P&L
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Which autonomous organic growth lane to run'
+        required: true
+        default: 'community_scout'
+        type: choice
+        options:
+          - community_scout
+          - daily_ops
+          - gsc_heal
+          - partner_scout
+          - video_factory
+          - weekly_ops
+          - all
+      dry_run:
+        description: 'Dry-run mode (generates queues & artifacts without sending emails)'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autonomous-growth-${{ github.event.schedule || github.event.inputs.lane || 'manual' }}
+  cancel-in-progress: false
+
+jobs:
+  community-signal-scout:
+    name: 6h Community Citation Scout (HN · Reddit · StackExchange · DEV.to)
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 */6 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.lane == 'community_scout' || inputs.lane == 'all'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      NEXT_PUBLIC_APP_URL: https://verisource.dev
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      OUTBOUND_REPLY_TO_EMAIL: ${{ secrets.OUTBOUND_REPLY_TO_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @verisource/core-geo build
+      - name: Run Community Signal Scout
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            node scripts/growth_workflows/ops-community-scout.mjs --dry-run
+          else
+            node scripts/growth_workflows/ops-community-scout.mjs --send-email
+          fi
+      - name: Upload Community Signal Digest Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: community-signal-digest
+          path: growth_ops/queue/COMMUNITY_SIGNAL_DIGEST.md
+          retention-days: 14
+
+  daily-activation-and-followup:
+    name: Daily Organic Activation & Warm Follow-Up
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 13 * * *') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.lane == 'daily_ops' || inputs.lane == 'all'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      PROVIDER_MODE: live
+      NEXT_PUBLIC_APP_URL: https://verisource.dev
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OUTBOUND_REPLY_TO_EMAIL: ${{ secrets.OUTBOUND_REPLY_TO_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @verisource/core-geo build
+      - name: Run Free B2B Signup Activation & Warm Brief Follow-Ups
+        run: |
+          if [ -z "${NEXT_PUBLIC_SUPABASE_URL:-}" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            echo "Supabase secrets not configured yet; skipping live daily activation."
+            exit 0
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/growth_workflows/ops-free-activation.mjs --dry-run
+            node scripts/growth_workflows/ops-warm-followup.mjs --dry-run
+          else
+            node scripts/growth_workflows/ops-free-activation.mjs --send-email
+            node scripts/growth_workflows/ops-warm-followup.mjs --send-email
+          fi
+      - name: Upload Daily Activation & Warm Follow-Up Queue
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: daily-activation-queues
+          path: |
+            growth_ops/queue/WARM_OPENED_FOLLOWUPS.md
+            growth_ops/ledger/free_activation_ledger.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+  weekly-organic-compound-engine:
+    name: Weekly GSC Heal, Partner Scout, Video Shorts Factory & P&L
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '0 14 * * 1') ||
+      (github.event_name == 'workflow_dispatch' && (inputs.lane == 'gsc_heal' || inputs.lane == 'partner_scout' || inputs.lane == 'video_factory' || inputs.lane == 'weekly_ops' || inputs.lane == 'all'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_APP_URL: https://verisource.dev
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+      GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+      GSC_SITE_URL: sc-domain:verisource.dev
+      OUTBOUND_REPLY_TO_EMAIL: ${{ secrets.OUTBOUND_REPLY_TO_EMAIL }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @verisource/core-geo build
+
+      - name: Install FFmpeg & Chromium for Video Shorts Factory
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.lane == 'video_factory' ||
+          inputs.lane == 'all'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg chromium-browser || sudo apt-get install -y -qq ffmpeg chromium || true
+
+      - name: Run Self-Healing GSC SEO & Bing IndexNow Sync
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.lane == 'gsc_heal' ||
+          inputs.lane == 'all'
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ] || [ -z "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+            node scripts/growth_workflows/ops-gsc-heal.mjs
+          else
+            node scripts/growth_workflows/ops-gsc-heal.mjs --ping-indexnow
+          fi
+
+      - name: Run 25% Recurring Partner & Data-PR Scout
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.lane == 'partner_scout' ||
+          inputs.lane == 'all'
+        run: node scripts/growth_workflows/ops-partner-scout.mjs --dry-run
+
+      - name: Run Automated YouTube Shorts Teardown Factory
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.lane == 'video_factory' ||
+          inputs.lane == 'all'
+        run: node scripts/growth_workflows/ops-video-factory.mjs --count 2
+
+      - name: Run Weekly P&L & Teardown Ops
+        if: >-
+          github.event_name == 'schedule' ||
+          inputs.lane == 'weekly_ops' ||
+          inputs.lane == 'all'
+        run: node scripts/growth_workflows/ops-weekly.mjs
+
+      - name: Upload Weekly Organic Assets, Videos & P&L Bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: weekly-organic-growth-bundle
+          path: |
+            growth_ops/queue/GSC_SEO_HEALING_PLAN.md
+            growth_ops/queue/PARTNER_CREATOR_OUTREACH.md
+            growth_ops/queue/VIDEO_FACTORY_QUEUE.md
+            growth_ops/queue/videos/
+            growth_ops/queue/weekly_social_teardowns.md
+            growth_ops/ledger/MONTHLY_PNL_AND_VALUATION.md
+          if-no-files-found: ignore
+          retention-days: 21

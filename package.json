@@ -14,6 +14,10 @@
     "ops:daily": "node scripts/growth_workflows/ops-daily.mjs --send-email",
     "ops:followup": "node scripts/growth_workflows/ops-warm-followup.mjs --send-email",
     "ops:activate-free": "node scripts/growth_workflows/ops-free-activation.mjs --send-email",
+    "ops:community": "node scripts/growth_workflows/ops-community-scout.mjs",
+    "ops:partners": "node scripts/growth_workflows/ops-partner-scout.mjs",
+    "ops:gsc": "node scripts/growth_workflows/ops-gsc-heal.mjs",
+    "ops:video": "node scripts/growth_workflows/ops-video-factory.mjs",
     "ops:weekly": "node scripts/growth_workflows/ops-weekly.mjs",
     "clean": "pnpm -r clean"
   },
