@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:29:26.320Z",
+  "updatedAt": "2026-11-19T19:58:47.180Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -3320,59 +3320,123 @@
       "domain": "agora.io",
       "brandName": "Agora",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "sendbird.com",
       "brandName": "Sendbird",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "getstream.io",
       "brandName": "Stream",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "pusher.com",
       "brandName": "Pusher",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "authzed.com",
       "brandName": "AuthZed",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "permit.io",
       "brandName": "Permit.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "cerbos.dev",
       "brandName": "Cerbos",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "checkr.com",
       "brandName": "Checkr",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "persona.com",
       "brandName": "Persona",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
     },
     {
       "domain": "sardine.ai",
       "brandName": "Sardine",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:57:22.756Z"
+    },
+    {
+      "domain": "alloy.com",
+      "brandName": "Alloy",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sift.com",
+      "brandName": "Sift",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "forter.com",
+      "brandName": "Forter",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "signifyd.com",
+      "brandName": "Signifyd",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "shipbob.com",
+      "brandName": "ShipBob",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "shipstation.com",
+      "brandName": "ShipStation",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "easypost.com",
+      "brandName": "EasyPost",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "goshippo.com",
+      "brandName": "Shippo",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "flexport.com",
+      "brandName": "Flexport",
       "vertical": "b2b_saas",
       "status": "queued"
     }

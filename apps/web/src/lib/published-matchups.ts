@@ -1076,6 +1076,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Developer API platform /llms.txt + entity JSON-LD depth vs. minimal root schema.',
   },
+  {
+    cohort: 'IN-APP CHAT & ACTIVITY FEED APIS',
+    domainA: 'sendbird.com',
+    domainB: 'getstream.io',
+    angle:
+      'Realtime messaging SDK /llms.txt docs index, crawler rules, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'FINE-GRAINED AUTHORIZATION & RBAC',
+    domainA: 'authzed.com',
+    domainB: 'permit.io',
+    angle:
+      'Authorization infrastructure AI bot readability, /llms.txt feeds, and entity schema.',
+  },
+  {
+    cohort: 'POLICY-AS-CODE ACCESS CONTROL',
+    domainA: 'permit.io',
+    domainB: 'cerbos.dev',
+    angle:
+      'Open-source policy engine /llms.txt + entity JSON-LD parity vs. SaaS access layer.',
+  },
+  {
+    cohort: 'IDENTITY VERIFICATION & FRAUD OPS',
+    domainA: 'persona.com',
+    domainB: 'sardine.ai',
+    angle:
+      'KYC & fraud API open crawler + /llms.txt depth vs. Webflow bot restrictions.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:54:56.147Z",
+  "updatedAt": "2026-11-19T19:57:22.756Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1574,7 +1574,20 @@
       "publicContactChannel": "info@upstatement.com",
       "caseStudyClientDomain": "harvard.edu",
       "caseStudyClientName": "Harvard University",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:57:22.756Z",
+      "auditSlug": "harvard-edu-6qib",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:57:22.756Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:57:22.756Z",
+      "resendMessageId": "01a1f562-bb47-7e8c-9ab8-df07972dcfb8",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Happy Cog",
@@ -1586,7 +1599,20 @@
       "publicContactChannel": "hello@happycog.com",
       "caseStudyClientDomain": "zappos.com",
       "caseStudyClientName": "Zappos",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:57:22.756Z",
+      "auditSlug": "zappos-com-or42",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:57:22.756Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:57:22.756Z",
+      "resendMessageId": "01a1f562-da0f-7436-b450-055130aafeec",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Gretel",
