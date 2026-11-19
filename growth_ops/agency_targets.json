@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:33:38.292Z",
+  "updatedAt": "2026-11-19T18:43:36.020Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1274,7 +1274,20 @@
       "publicContactChannel": "hello@toyfight.co",
       "caseStudyClientDomain": "nerdfitness.com",
       "caseStudyClientName": "Nerd Fitness",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:41:40.008Z",
+      "auditSlug": "nerdfitness-com-wewv",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:41:40.008Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T18:41:40.008Z",
+      "resendMessageId": "01a1f51d-8fa3-738c-bf9a-b0f02d75e71a",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Instrument",
@@ -1286,7 +1299,20 @@
       "publicContactChannel": "hello@instrument.com",
       "caseStudyClientDomain": "stumpcraft.com",
       "caseStudyClientName": "StumpCraft",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:41:40.008Z",
+      "auditSlug": "stumpcraft-com-kfnu",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:41:40.008Z",
+        "source": "on_site_exact",
+        "mxExchange": "mxb-00852301.gslb.pphosted.com"
+      },
+      "emailSentAt": "2026-11-19T18:41:40.008Z",
+      "resendMessageId": "01a1f51d-6484-7bf3-be65-fc6f8f1da39a",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Ragged Edge",
@@ -1334,6 +1360,30 @@
       "publicContactChannel": "newbiz@b-reel.com",
       "caseStudyClientDomain": "polestar.com",
       "caseStudyClientName": "Polestar",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Locomotive",
+      "agencyDomain": "locomotive.ca",
+      "specialty": "Next.js & Creative Web Agency",
+      "contactName": "Frederic Marchand",
+      "contactRole": "President & Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Frederic%20Marchand%20Locomotive",
+      "publicContactChannel": "info@locomotive.ca",
+      "caseStudyClientDomain": "pangram.com",
+      "caseStudyClientName": "Pangram",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Basic/Dept",
+      "agencyDomain": "basicagency.com",
+      "specialty": "DTC Brand & eCommerce Agency",
+      "contactName": "Matt Faulk",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Matt%20Faulk%20Basic%2FDept",
+      "publicContactChannel": "biz@basicagency.com",
+      "caseStudyClientDomain": "patagonia.com",
+      "caseStudyClientName": "Patagonia",
       "status": "queued"
     }
   ]

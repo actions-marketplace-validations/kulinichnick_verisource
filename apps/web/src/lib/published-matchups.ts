@@ -796,6 +796,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Developer banking API /llms.txt + entity JSON-LD coverage vs. minimal crawler readability.',
   },
+  {
+    cohort: 'HOSTED VS. OPEN-SOURCE SEARCH APIS',
+    domainA: 'algolia.com',
+    domainB: 'meilisearch.com',
+    angle:
+      'Search API /llms.txt docs index, AI bot readability, and schema.org entity coverage.',
+  },
+  {
+    cohort: 'OPEN-SOURCE INSTANT SEARCH ENGINES',
+    domainA: 'typesense.org',
+    domainB: 'meilisearch.com',
+    angle:
+      'Open-source search engine SSR extractability, /llms.txt feeds, and homepage JSON-LD parity.',
+  },
+  {
+    cohort: 'CI/CD BUILD & DEPLOY PIPELINES',
+    domainA: 'circleci.com',
+    domainB: 'buildkite.com',
+    angle:
+      'Developer CI/CD crawler rules, /llms.txt technical docs, and structured product schema.',
+  },
+  {
+    cohort: 'CUSTOMER MESSAGING & LIFECYCLE APIS',
+    domainA: 'iterable.com',
+    domainB: 'onesignal.com',
+    angle:
+      'WordPress vs. Next.js messaging platform AI bot access, /llms.txt feeds, and entity JSON-LD.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
