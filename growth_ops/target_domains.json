@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T04:01:59.151Z",
+  "updatedAt": "2026-11-19T04:20:33.894Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -726,52 +726,62 @@
     {
       "domain": "skims.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "goodamerican.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "fabletics.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "ruggable.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "outer.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "burrow.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "floydhome.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "article.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "madeincookware.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "materialkitchen.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T04:20:33.894Z"
     },
     {
       "domain": "hauslabs.com",

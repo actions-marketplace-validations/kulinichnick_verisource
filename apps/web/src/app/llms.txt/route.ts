@@ -7,7 +7,7 @@ const LLMS_TXT_BODY = `# Verisource — B2B Generative Engine Optimization (GEO)
 Canonical Web Console: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (120+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (130+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI & Deterministic Flow Verifier: npx @verisource/cli
 Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial

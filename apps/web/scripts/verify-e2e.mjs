@@ -5247,7 +5247,57 @@ async function run() {
       m108UniqueLinks.size >= 120,
       `Expected /reports leaderboard to index >= 120 unique domains, got ${m108UniqueLinks.size}`
     );
-    console.log('✔ [99/99] M108 /api/report/[domain] JSON/Markdown API, Owner Fix Teaser, Peer Rivalry Cards & 120-Domain /reports Hub verified!');
+    console.log('✔ [99/100] M108 /api/report/[domain] JSON/Markdown API, Owner Fix Teaser, Peer Rivalry Cards & 120-Domain /reports Hub verified!');
+
+    // 98. M109 Curated 9-Rivalry Matrix on /vs, @verisource/cli report Self-GEO & 130-Domain /reports Milestone
+    const [m109VsRes, m109AgentsRes, m109ReportsRes, m109FloydRes, m109FableticsRes] =
+      await Promise.all([
+        fetch(`${BASE}/vs`),
+        fetch(`${BASE}/agents.md`),
+        fetch(`${BASE}/reports`),
+        fetch(`${BASE}/report/floydhome.com`),
+        fetch(`${BASE}/report/fabletics.com`),
+      ]);
+    assert.equal(m109VsRes.status, 200);
+    assert.equal(m109AgentsRes.status, 200);
+    assert.equal(m109ReportsRes.status, 200);
+    assert.equal(m109FloydRes.status, 200);
+    assert.equal(m109FableticsRes.status, 200);
+
+    const m109VsHtml = await m109VsRes.text();
+    const m109VsVisible = m109VsHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m109VsHtml.includes('id="matchups"') &&
+        m109VsHtml.includes('CURATED INDUSTRY &amp; ARCHITECTURE BENCHMARKS') &&
+        m109VsHtml.includes('/vs?a=floydhome.com&amp;b=article.com') &&
+        m109VsHtml.includes('/vs?a=cursor.com&amp;b=zed.dev') &&
+        (m109VsVisible.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(m109VsVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(m109VsVisible),
+      'Expected /vs to expose 9-card #matchups matrix with zero banned lexicon or /10 jargon'
+    );
+
+    const m109AgentsMd = await m109AgentsRes.text();
+    assert.ok(
+      m109AgentsMd.includes('verisource.dev/api/report/{domain}') &&
+        m109AgentsMd.includes('npx @verisource/cli report <domain>'),
+      'Expected /agents.md to document /api/report/{domain} and verisource report <domain>'
+    );
+
+    const m109ReportsHtml = await m109ReportsRes.text();
+    const m109UniqueLinks = new Set(
+      Array.from(
+        m109ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m109UniqueLinks.size >= 130,
+      `Expected /reports leaderboard to index >= 130 unique domains, got ${m109UniqueLinks.size}`
+    );
+    console.log('✔ [100/100] M109 Curated 9-Rivalry /vs Matrix, @verisource/cli report Self-GEO & 130-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

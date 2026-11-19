@@ -11,14 +11,19 @@ const BENCHMARK_MATCHUPS: ReadonlyArray<{
   domainB: string;
 }> = [
   {
+    label: 'cursor.com vs zed.dev',
+    domainA: 'cursor.com',
+    domainB: 'zed.dev',
+  },
+  {
     label: 'whoop.com vs ouraring.com',
     domainA: 'whoop.com',
     domainB: 'ouraring.com',
   },
   {
-    label: 'gymshark.com vs allbirds.com',
-    domainA: 'gymshark.com',
-    domainB: 'allbirds.com',
+    label: 'floydhome.com vs article.com',
+    domainA: 'floydhome.com',
+    domainB: 'article.com',
   },
   {
     label: 'planetscale.com vs supabase.com',
@@ -26,19 +31,14 @@ const BENCHMARK_MATCHUPS: ReadonlyArray<{
     domainB: 'supabase.com',
   },
   {
-    label: 'glossier.com vs rhodeskin.com',
-    domainA: 'glossier.com',
-    domainB: 'rhodeskin.com',
+    label: 'perplexity.ai vs mistral.ai',
+    domainA: 'perplexity.ai',
+    domainB: 'mistral.ai',
   },
   {
     label: 'cal.com vs linear.app',
     domainA: 'cal.com',
     domainB: 'linear.app',
-  },
-  {
-    label: 'browserbase.com vs firecrawl.dev',
-    domainA: 'browserbase.com',
-    domainB: 'firecrawl.dev',
   },
 ];
 
@@ -56,7 +56,7 @@ export function DomainHeadToHeadClient({
   const [report, setReport] = useState<PublicHeadToHeadXrayReport | null>(null);
   const [shareUrl, setShareUrl] = useState<string>('');
   const [copiedLink, setCopiedLink] = useState(false);
-  const autoRanRef = useRef(false);
+  const lastAutoPairRef = useRef('');
 
   const runComparison = useCallback(async (rawA: string, rawB: string) => {
     const cleanA = rawA.trim();
@@ -112,11 +112,15 @@ export function DomainHeadToHeadClient({
   }, []);
 
   useEffect(() => {
-    if (autoRanRef.current) return;
-    if (initialDomainA.trim() && initialDomainB.trim()) {
-      autoRanRef.current = true;
-      void runComparison(initialDomainA, initialDomainB);
-    }
+    const cleanA = initialDomainA.trim();
+    const cleanB = initialDomainB.trim();
+    if (!cleanA || !cleanB) return;
+    const pairKey = `${cleanA.toLowerCase()}::${cleanB.toLowerCase()}`;
+    if (lastAutoPairRef.current === pairKey) return;
+    lastAutoPairRef.current = pairKey;
+    setDomainA(cleanA);
+    setDomainB(cleanB);
+    void runComparison(cleanA, cleanB);
   }, [initialDomainA, initialDomainB, runComparison]);
 
   const handleSwap = () => {

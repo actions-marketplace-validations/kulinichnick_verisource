@@ -514,3 +514,93 @@ test('verisource vs <domainA> <domainB> runs head-to-head protocol diff and writ
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+test('verisource report <domain> enforces SSRF guard, handles 404, fetches JSON + Markdown, and stores [r1]', async () => {
+  const reportServer = http.createServer((req, res) => {
+    if (req.url === '/api/report/cursor.com?format=md') {
+      res.writeHead(200, { 'Content-Type': 'text/markdown; charset=utf-8' });
+      res.end('# Cursor (cursor.com) — AI Search & Protocol Readiness Scorecard\n');
+      return;
+    }
+    if (req.url === '/api/report/cursor.com') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(
+        JSON.stringify({
+          ok: true,
+          canonicalUrl: 'https://verisource.dev/report/cursor.com',
+          markdownUrl: 'https://verisource.dev/api/report/cursor.com?format=md',
+          badgeSvgUrl: 'https://verisource.dev/api/badge/cursor.com',
+          headToHeadUrl: 'https://verisource.dev/vs?a=cursor.com',
+          scorecard: {
+            domain: 'cursor.com',
+            brandName: 'Cursor',
+            detectedPlatformLabel: 'Custom Code / Next.js',
+            readinessScore: 72,
+            llmsTxtStatus: 'present',
+            agentsMdStatus: 'missing',
+            jsonLdCount: 1,
+            jsonLdPillarsPassed: 1,
+            robotsAiBotStatus: {
+              GPTBot: true,
+              'OAI-SearchBot': true,
+              PerplexityBot: true,
+              ClaudeBot: true,
+              waf_blocked: false,
+            },
+            topGapSummary: 'Missing /agents.md pricing and entity specification.',
+            publishedAt: '2026-11-18T00:00:00.000Z',
+          },
+        })
+      );
+      return;
+    }
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(
+      JSON.stringify({
+        error: 'SCORECARD_NOT_FOUND',
+        message: 'Not indexed yet.',
+      })
+    );
+  });
+
+  await new Promise<void>((resolve) =>
+    reportServer.listen(0, '127.0.0.1', resolve)
+  );
+  const addr = reportServer.address() as { port: number };
+  const apiOrigin = `http://127.0.0.1:${addr.port}`;
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vs-cli-report-'));
+
+  try {
+    const ssrfExit = await runCli(
+      ['node', 'bin.js', 'report', 'http://169.254.169.254', '--api-origin', apiOrigin],
+      tmpDir
+    );
+    assert.equal(ssrfExit, 2);
+
+    const missingExit = await runCli(
+      ['node', 'bin.js', 'report', 'unindexed-site.io', '--api-origin', apiOrigin],
+      tmpDir
+    );
+    assert.equal(missingExit, 1);
+
+    const jsonExit = await runCli(
+      ['node', 'bin.js', 'report', 'https://cursor.com', '--json', '--api-origin', apiOrigin],
+      tmpDir
+    );
+    assert.equal(jsonExit, 0);
+
+    const storedR1 = findStoredHandle('r1', tmpDir);
+    assert.ok(storedR1, 'Expected [r1] scorecard handle stored in .verisource/last-run.json');
+    assert.equal(storedR1.kind, 'scorecard_gap');
+    assert.ok(storedR1.summary.includes('Cursor (cursor.com)'));
+
+    const mdExit = await runCli(
+      ['node', 'bin.js', 'report', 'cursor.com', '--md', '--api-origin', apiOrigin],
+      tmpDir
+    );
+    assert.equal(mdExit, 0);
+  } finally {
+    reportServer.close();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});

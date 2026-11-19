@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   crawlDomainSiteHealth,
+  normalizePublicDomain,
   runDomainReadinessScan,
   runPublicDomainHeadToHeadXray,
   type PublicHeadToHeadXrayReport,
@@ -64,7 +65,8 @@ Usage:
   verisource scan <url> [--push] [--json] [--github-summary] [--pr-comment] Scan AI readiness, bots, JSON-LD & 20-page link health
   verisource verify <url> [--init] [--push] [--json] [--github-summary] [--pr-comment] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
   verisource vs <domainA> <domainB> [--json] [--github-summary] [--pr-comment] Head-to-head 6-dimension AI protocol X-Ray
-  verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1)
+  verisource report <domain> [--md] [--json]          Fetch cached AI readiness scorecard or raw Markdown from verisource.dev
+  verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1, x1, r1)
   verisource query "<text>" [--json]                 Filter recent handles by keyword or status code
   verisource map [url | ./dir] [--diff] [--json]     Map live domain routes or static Next.js/React routes
   verisource browse open <url>                       Open page & index compact element handles (e1..eN)
@@ -698,6 +700,165 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
           console.log(`  [${h.handle}] ${h.summary}`);
         }
         console.log(`  Matchup URL: ${shareUrl}`);
+      }
+      return 0;
+    }
+
+    if (cmd === 'report') {
+      const targetArg = args[1];
+      if (!targetArg || targetArg.startsWith('-')) {
+        console.error(
+          'Usage: verisource report <domain> [--md] [--json] [--api-origin <url>]'
+        );
+        return 2;
+      }
+
+      let cleanHost = '';
+      try {
+        cleanHost = normalizePublicDomain(targetArg).hostname;
+      } catch (err) {
+        console.error(
+          err instanceof Error
+            ? err.message
+            : 'Provide a valid public website domain.'
+        );
+        return 2;
+      }
+
+      const mdOut = hasFlag(args, '--md') || hasFlag(args, '--markdown');
+      const rawOrigin = (
+        getFlagValue(args, '--api-origin') ??
+        process.env.VERISOURCE_API_ORIGIN ??
+        'https://verisource.dev'
+      )
+        .trim()
+        .replace(/\/+$/, '');
+
+      const startedAt = new Date().toISOString();
+      const endpoint = `${rawOrigin}/api/report/${encodeURIComponent(cleanHost)}${
+        mdOut && !jsonOut ? '?format=md' : ''
+      }`;
+      const res = await fetch(endpoint, {
+        headers: {
+          Accept:
+            mdOut && !jsonOut ? 'text/markdown' : 'application/json',
+          'User-Agent': 'VerisourceCLI/1.0 (+https://verisource.dev/features)',
+        },
+      });
+
+      if (res.status === 404) {
+        const notFoundBody = (await res.json().catch(() => ({}))) as {
+          message?: string;
+          liveScanUrl?: string;
+        };
+        if (jsonOut) {
+          console.log(
+            JSON.stringify(
+              {
+                ok: false,
+                error: 'SCORECARD_NOT_FOUND',
+                domain: cleanHost,
+                message:
+                  notFoundBody.message ??
+                  `No pre-indexed scorecard found for ${cleanHost}.`,
+                hint: `verisource scan ${cleanHost}`,
+              },
+              null,
+              2
+            )
+          );
+        } else {
+          console.error(
+            `No pre-indexed scorecard found for ${cleanHost}. Run a live local audit with: verisource scan ${cleanHost}`
+          );
+        }
+        return 1;
+      }
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.error(
+          `Failed to fetch scorecard for ${cleanHost} (HTTP ${res.status}): ${errText.slice(0, 200)}`
+        );
+        return 2;
+      }
+
+      if (mdOut && !jsonOut) {
+        const mdText = await res.text();
+        process.stdout.write(mdText.endsWith('\n') ? mdText : `${mdText}\n`);
+        return 0;
+      }
+
+      const data = (await res.json()) as {
+        ok: boolean;
+        canonicalUrl: string;
+        markdownUrl: string;
+        badgeSvgUrl: string;
+        headToHeadUrl: string;
+        scorecard: {
+          domain: string;
+          brandName: string;
+          detectedPlatformLabel: string;
+          readinessScore: number;
+          llmsTxtStatus: string;
+          agentsMdStatus: string;
+          jsonLdCount: number;
+          jsonLdPillarsPassed: number;
+          robotsAiBotStatus: Record<string, boolean>;
+          topGapSummary: string;
+          publishedAt: string;
+        };
+      };
+
+      const s = data.scorecard;
+      const botsOk =
+        Boolean(s.robotsAiBotStatus.GPTBot) &&
+        Boolean(s.robotsAiBotStatus['OAI-SearchBot']) &&
+        Boolean(s.robotsAiBotStatus.PerplexityBot) &&
+        Boolean(s.robotsAiBotStatus.ClaudeBot) &&
+        !s.robotsAiBotStatus.waf_blocked;
+
+      const handles: StoredHandleItem[] = [
+        {
+          handle: 'r1',
+          kind: 'scorecard_gap',
+          severity: s.readinessScore >= 70 ? 'info' : 'warn',
+          summary: `${s.brandName} (${s.domain}) · ${s.readinessScore}/100 · ${s.topGapSummary}`,
+          url: data.canonicalUrl,
+          fixHint: `Run \`verisource scan ${s.domain}\` or open ${data.canonicalUrl}`,
+        },
+      ];
+
+      saveLastRunLedger(
+        {
+          runId: `report-${Date.now()}`,
+          command: `report ${s.domain}`,
+          target: s.domain,
+          startedAt,
+          finishedAt: new Date().toISOString(),
+          status: s.readinessScore >= 65 ? 'PASS' : 'WARN',
+          handles,
+        },
+        cwd
+      );
+
+      if (jsonOut) {
+        console.log(JSON.stringify({ ...data, handles }, null, 2));
+      } else {
+        console.log(
+          `SCORECARD  ${s.brandName} (${s.domain}) · ${s.readinessScore}/100 · ${s.detectedPlatformLabel}`
+        );
+        console.log(
+          `  • AI Crawlers: ${botsOk ? 'HTTP 200 ALLOWED' : 'RESTRICTED / WAF 403'}`
+        );
+        console.log(
+          `  • /llms.txt: ${s.llmsTxtStatus} · /agents.md: ${s.agentsMdStatus}`
+        );
+        console.log(
+          `  • JSON-LD: ${s.jsonLdPillarsPassed}/3 pillars (${s.jsonLdCount} block(s))`
+        );
+        console.log(`  [r1] Top Gap: ${s.topGapSummary}`);
+        console.log(`  Report: ${data.canonicalUrl}`);
       }
       return 0;
     }

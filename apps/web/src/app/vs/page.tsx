@@ -4,6 +4,7 @@ import React from 'react';
 import { normalizePublicDomain } from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
 import { DomainHeadToHeadClient } from '../../components/DomainHeadToHeadClient';
+import { findPublishedScorecardByDomain } from '../../lib/published-reports';
 
 export async function generateMetadata({
   searchParams,
@@ -93,6 +94,77 @@ const VS_FAQS = [
     question: 'Can agencies share Head-to-Head X-Ray links in prospect outreach?',
     answer:
       'Yes. Every comparison updates the browser URL (?a=client.com&b=rival.com) for instant sharing, and $249/mo Agency workspaces can mint white-label /audit/[slug] executive scorecards with custom logos, brand hex accents, and booking links.',
+  },
+] as const;
+
+const FEATURED_RIVALRY_PAIRS: ReadonlyArray<{
+  cohort: string;
+  domainA: string;
+  domainB: string;
+  angle: string;
+}> = [
+  {
+    cohort: 'AI & CODE EDITORS',
+    domainA: 'cursor.com',
+    domainB: 'zed.dev',
+    angle:
+      'Published /llms.txt + clean SSR copy vs. missing retrieval directory and thin schema.',
+  },
+  {
+    cohort: 'AI SEARCH & FOUNDATION',
+    domainA: 'mistral.ai',
+    domainB: 'perplexity.ai',
+    angle:
+      'Open crawler rules + structured entity metadata vs. strict edge WAF restrictions.',
+  },
+  {
+    cohort: 'TERMINAL & RUNTIME',
+    domainA: 'warp.dev',
+    domainB: 'deno.com',
+    angle:
+      'Multi-block JSON-LD + /llms.txt coverage vs. partial schema.org entity declarations.',
+  },
+  {
+    cohort: 'SHOPIFY VS. HEADLESS DTC',
+    domainA: 'floydhome.com',
+    domainB: 'article.com',
+    angle:
+      'Native Shopify Product/Offer JSON-LD vs. custom headless Next.js hydration gap.',
+  },
+  {
+    cohort: 'WEARABLES ARCHITECTURE',
+    domainA: 'ouraring.com',
+    domainB: 'whoop.com',
+    angle:
+      'Server-rendered commerce schema vs. client-heavy React storefront blocking extraction.',
+  },
+  {
+    cohort: 'APPAREL COMMERCE STACK',
+    domainA: 'goodamerican.com',
+    domainB: 'fabletics.com',
+    angle:
+      'Shopify OS 2.0 bot readability + Offer graph vs. custom JS membership gate.',
+  },
+  {
+    cohort: 'CLOUD DATABASES',
+    domainA: 'supabase.com',
+    domainB: 'planetscale.com',
+    angle:
+      'Developer docs /llms.txt + entity graph vs. lean marketing landing schema.',
+  },
+  {
+    cohort: 'COOKWARE & HOME DTC',
+    domainA: 'madeincookware.com',
+    domainB: 'materialkitchen.com',
+    angle:
+      '3-pillar Organization/Product/FAQ JSON-LD vs. single-pillar storefront baseline.',
+  },
+  {
+    cohort: 'B2B WORKFLOW SAAS',
+    domainA: 'linear.app',
+    domainB: 'cal.com',
+    angle:
+      'High-density SSR product copy vs. open-source scheduling schema & crawler rules.',
   },
 ] as const;
 
@@ -205,6 +277,165 @@ export default async function HeadToHeadVsPage({
           initialDomainA={initialA}
           initialDomainB={initialB}
         />
+
+        {/* Live-Measured Industry & Architecture Rivalry Matrix */}
+        <section id="matchups" style={{ marginTop: '48px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            CURATED INDUSTRY &amp; ARCHITECTURE BENCHMARKS
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              alignItems: 'baseline',
+              gap: '12px',
+              marginBottom: '18px',
+            }}
+          >
+            <h2
+              style={{
+                fontSize: '23px',
+                letterSpacing: '-0.02em',
+                margin: 0,
+              }}
+            >
+              Inspect live protocol gaps across 9 flagship rivalries.
+            </h2>
+            <span
+              className="vs-mono"
+              style={{ fontSize: '12px', color: 'var(--vs-ink-muted)' }}
+            >
+              npx @verisource/cli vs &lt;domainA&gt; &lt;domainB&gt;
+            </span>
+          </div>
+
+          <div className="vs-grid-3">
+            {FEATURED_RIVALRY_PAIRS.map((pair) => {
+              const cardA = findPublishedScorecardByDomain(pair.domainA);
+              const cardB = findPublishedScorecardByDomain(pair.domainB);
+              const scoreA = cardA?.readinessScore ?? null;
+              const scoreB = cardB?.readinessScore ?? null;
+              const delta =
+                scoreA !== null && scoreB !== null ? scoreA - scoreB : null;
+
+              return (
+                <div
+                  key={`${pair.domainA}-${pair.domainB}`}
+                  className="vs-card vs-card-interactive"
+                  style={{
+                    padding: '16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      <span
+                        className="vs-mono"
+                        style={{
+                          fontSize: '10.5px',
+                          fontWeight: 700,
+                          letterSpacing: '0.06em',
+                          color: 'var(--vs-accent)',
+                        }}
+                      >
+                        {pair.cohort}
+                      </span>
+                      {delta !== null ? (
+                        <StatusBadge tone={delta >= 0 ? 'pass' : 'warn'}>
+                          {`${delta >= 0 ? '+' : ''}${delta} PTS GAP`}
+                        </StatusBadge>
+                      ) : null}
+                    </div>
+
+                    <div
+                      className="vs-mono"
+                      style={{
+                        fontSize: '13.5px',
+                        fontWeight: 700,
+                        marginBottom: '6px',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {pair.domainA}
+                      {scoreA !== null ? ` (${scoreA})` : ''} vs. {pair.domainB}
+                      {scoreB !== null ? ` (${scoreB})` : ''}
+                    </div>
+
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: '12.5px',
+                        lineHeight: 1.55,
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      {pair.angle}
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '8px',
+                      paddingTop: '10px',
+                      borderTop: '1px solid var(--vs-border)',
+                    }}
+                  >
+                    <Link
+                      href={`/vs?a=${encodeURIComponent(
+                        pair.domainA
+                      )}&b=${encodeURIComponent(pair.domainB)}`}
+                      className="vs-btn vs-btn-secondary"
+                      style={{
+                        padding: '5px 10px',
+                        fontSize: '12px',
+                        flex: 1,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      Compare Live →
+                    </Link>
+                    <Link
+                      href={`/report/${encodeURIComponent(pair.domainA)}`}
+                      className="vs-pill-btn vs-pill-btn-sm vs-mono"
+                      style={{
+                        padding: '5px 8px',
+                        fontSize: '11px',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      A
+                    </Link>
+                    <Link
+                      href={`/report/${encodeURIComponent(pair.domainB)}`}
+                      className="vs-pill-btn vs-pill-btn-sm vs-mono"
+                      style={{
+                        padding: '5px 8px',
+                        fontSize: '11px',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      B
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
         {/* FAQ & Internal Directory Links */}
         <section style={{ marginTop: '52px' }}>
