@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:53:35.745Z",
+  "updatedAt": "2026-11-19T08:59:31.123Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1920,66 +1920,136 @@
       "domain": "freshbooks.com",
       "brandName": "FreshBooks",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "pilot.com",
       "brandName": "Pilot",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "purple.com",
       "brandName": "Purple",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "saatva.com",
       "brandName": "Saatva",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "make.com",
       "brandName": "Make",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "n8n.io",
       "brandName": "n8n",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "auth0.com",
       "brandName": "Auth0",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "descope.com",
       "brandName": "Descope",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "propelauth.com",
       "brandName": "PropelAuth",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "flagsmith.com",
       "brandName": "Flagsmith",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:59:31.123Z"
     },
     {
       "domain": "growthbook.io",
       "brandName": "GrowthBook",
       "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "optimizely.com",
+      "brandName": "Optimizely",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "vwo.com",
+      "brandName": "VWO",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "hotjar.com",
+      "brandName": "Hotjar",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fullstory.com",
+      "brandName": "FullStory",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "logrocket.com",
+      "brandName": "LogRocket",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pendo.io",
+      "brandName": "Pendo",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "appcues.com",
+      "brandName": "Appcues",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "userpilot.com",
+      "brandName": "Userpilot",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "helixsleep.com",
+      "brandName": "Helix Sleep",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "july.com",
+      "brandName": "July",
+      "vertical": "shopify_dtc",
       "status": "queued"
     }
   ]

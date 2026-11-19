@@ -572,6 +572,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Accounting platform AI bot readability, /llms.txt posture, and homepage JSON-LD.',
   },
+  {
+    cohort: 'AI WORKFLOW & AGENT AUTOMATION',
+    domainA: 'make.com',
+    domainB: 'n8n.io',
+    angle:
+      'Visual workflow builder /llms.txt index vs. open-source AI agent automation SSR copy and entity JSON-LD.',
+  },
+  {
+    cohort: 'CUSTOMER IDENTITY & AUTH INFRASTRUCTURE',
+    domainA: 'auth0.com',
+    domainB: 'descope.com',
+    angle:
+      'Enterprise CIAM crawler posture, /llms.txt documentation feeds, and authentication entity JSON-LD.',
+  },
+  {
+    cohort: 'SMB & CLOUD ACCOUNTING SAAS',
+    domainA: 'xero.com',
+    domainB: 'freshbooks.com',
+    angle:
+      'Small-business cloud accounting AI bot rules, /llms.txt readiness, and homepage schema.org parity.',
+  },
+  {
+    cohort: 'DTC MATTRESS & SLEEP COMMERCE',
+    domainA: 'purple.com',
+    domainB: 'saatva.com',
+    angle:
+      'Direct-to-consumer mattress crawler readability, Product Offer JSON-LD, and /agents.md commerce readiness.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

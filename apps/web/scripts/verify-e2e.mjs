@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 300);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 78);
+    assert.ok(benchSumJson.totalAuditedDomains >= 310);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 82);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,10 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 300,
-      `Expected /reports leaderboard to index >= 300 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 310,
+      `Expected /reports leaderboard to index >= 310 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/110] M119–M128 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 78 /vs/[matchup] Pages & Landmark 300-Domain /reports Hub verified!');
+    console.log('✔ [109/110] M119–M129 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 82 /vs/[matchup] Pages & 310-Domain /reports Hub verified!');
 
     // 108. Search Console Canonical & Sitemap Hygiene Lock (Zero Root Canonical Bleed on /privacy, /terms, /login, /dashboard)
     const [gscHomeHtml, gscPrivacyHtml, gscTermsHtml, gscLoginHtml, gscDashHtml, gscSitemapXml] =
