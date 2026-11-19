@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:21:11.687Z",
+  "updatedAt": "2026-11-19T07:33:40.395Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1500,61 +1500,71 @@
       "domain": "stussy.com",
       "brandName": "Stussy",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "pitch.com",
       "brandName": "Pitch",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "canva.com",
       "brandName": "Canva",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "miro.com",
       "brandName": "Miro",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "whimsical.com",
       "brandName": "Whimsical",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "loom.com",
       "brandName": "Loom",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "grain.com",
       "brandName": "Grain",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "fathom.video",
       "brandName": "Fathom",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "fireflies.ai",
       "brandName": "Fireflies.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "otter.ai",
       "brandName": "Otter.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:33:40.395Z"
     },
     {
       "domain": "reformation.com",
@@ -1565,6 +1575,78 @@
     {
       "domain": "abercrombie.com",
       "brandName": "Abercrombie",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "clickup.com",
+      "brandName": "ClickUp",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "asana.com",
+      "brandName": "Asana",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "monday.com",
+      "brandName": "monday.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "coda.io",
+      "brandName": "Coda",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "superhuman.com",
+      "brandName": "Superhuman",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "clockwise.com",
+      "brandName": "Clockwise",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "reclaim.ai",
+      "brandName": "Reclaim.ai",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "typeform.com",
+      "brandName": "Typeform",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "tally.so",
+      "brandName": "Tally",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "fillout.com",
+      "brandName": "Fillout",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "patagonia.com",
+      "brandName": "Patagonia",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "arcteryx.com",
+      "brandName": "Arc'teryx",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

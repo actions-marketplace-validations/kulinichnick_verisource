@@ -404,6 +404,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Shopify Plus Product + Offer JSON-LD parity vs. storefront /agents.md guardrails.',
   },
+  {
+    cohort: 'VISUAL DESIGN SUITE WAF POSTURE',
+    domainA: 'figma.com',
+    domainB: 'canva.com',
+    angle:
+      'Head-to-head enterprise design suite edge WAF crawler rules, /llms.txt, and JSON-LD.',
+  },
+  {
+    cohort: 'VISUAL COLLABORATION BOARDS',
+    domainA: 'whimsical.com',
+    domainB: 'miro.com',
+    angle:
+      'Custom Next.js /llms.txt + SSR copy vs. Framer visual workspace landing baseline.',
+  },
+  {
+    cohort: 'AI MEETING NOTETAKERS',
+    domainA: 'fireflies.ai',
+    domainB: 'otter.ai',
+    angle:
+      'Next.js structured schema + /llms.txt vs. Webflow meeting assistant landing graph.',
+  },
+  {
+    cohort: 'AI PRESENTATION PLATFORMS',
+    domainA: 'pitch.com',
+    domainB: 'gamma.app',
+    angle:
+      'Framer SSR deck copy + entity metadata vs. client-rendered presentation app.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
