@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:33:40.395Z",
+  "updatedAt": "2026-11-19T07:43:55.342Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -606,10 +606,23 @@
       "contactName": "Garrett Smith",
       "contactRole": "Co-Founder & CEO",
       "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Garrett%20Smith%20SimpleTiger",
-      "publicContactChannel": "info@simpletiger.com",
+      "publicContactChannel": "hey@simpletiger.com",
       "caseStudyClientDomain": "segment.com",
       "caseStudyClientName": "Segment",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:43:55.342Z",
+      "auditSlug": "segment-com-21uc",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T07:43:55.342Z",
+        "source": "on_site_autocorrected",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T07:43:55.342Z",
+      "resendMessageId": "01a1f2c3-5a02-726d-9848-76a2ce1e0cf5",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Electric Eye",
@@ -621,6 +634,79 @@
       "publicContactChannel": "info@electriceye.io",
       "caseStudyClientDomain": "crossrope.com",
       "caseStudyClientName": "Crossrope",
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:43:55.342Z",
+      "auditSlug": "crossrope-com-7ewg",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T07:43:55.342Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T07:43:55.342Z",
+      "resendMessageId": "01a1f2c3-338f-7e45-a315-bfa22a55db49",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
+    },
+    {
+      "agencyName": "Series Eight",
+      "agencyDomain": "serieseight.com",
+      "specialty": "Shopify Plus & Headless Design Agency",
+      "contactName": "Robbie Simpson",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Robbie%20Simpson%20Series%20Eight",
+      "publicContactChannel": "info@serieseight.com",
+      "caseStudyClientDomain": "heatonist.com",
+      "caseStudyClientName": "Heatonist",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Baunfire",
+      "agencyDomain": "baunfire.com",
+      "specialty": "B2B Tech & SaaS Web Design Agency",
+      "contactName": "Juan Sanchez",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Juan%20Sanchez%20Baunfire",
+      "publicContactChannel": "hello@baunfire.com",
+      "caseStudyClientDomain": "rubrik.com",
+      "caseStudyClientName": "Rubrik",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Ramotion",
+      "agencyDomain": "ramotion.com",
+      "specialty": "B2B SaaS Webflow & Brand Design Agency",
+      "contactName": "Denis Pakhaliuk",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Denis%20Pakhaliuk%20Ramotion",
+      "publicContactChannel": "info@ramotion.com",
+      "caseStudyClientDomain": "sysdig.com",
+      "caseStudyClientName": "Sysdig",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Clay",
+      "agencyDomain": "clay.global",
+      "specialty": "Enterprise SaaS & AI Digital Product Agency",
+      "contactName": "Anton Zykin",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Anton%20Zykin%20Clay",
+      "publicContactChannel": "hey@clay.global",
+      "caseStudyClientDomain": "sendgrid.com",
+      "caseStudyClientName": "SendGrid",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Barrel",
+      "agencyDomain": "barrelny.com",
+      "specialty": "Shopify Plus eCommerce & Retention Agency",
+      "contactName": "Peter Kang",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Peter%20Kang%20Barrel",
+      "publicContactChannel": "info@barrelny.com",
+      "caseStudyClientDomain": "lairdsuperfood.com",
+      "caseStudyClientName": "Laird Superfood",
       "status": "queued"
     }
   ]

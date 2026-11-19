@@ -1,3 +1,4 @@
+import dns from 'node:dns/promises';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -169,8 +170,31 @@ async function main() {
     ].join('\n');
 
     if (sendEmail) {
+      const targetEmail = agency.publicContactChannel.trim().toLowerCase();
+      const targetHost = targetEmail.split('@')[1] ?? '';
+      let mxOk = false;
+      try {
+        const mxRecords = await dns.resolveMx(targetHost);
+        mxOk =
+          Array.isArray(mxRecords) &&
+          mxRecords.some(
+            (r) =>
+              typeof r.exchange === 'string' &&
+              r.exchange.trim() &&
+              r.exchange.trim() !== '.'
+          );
+      } catch {
+        mxOk = false;
+      }
+      if (!mxOk) {
+        console.warn(
+          `  ⚠ Skipped ${agency.agencyName}: NO_VALID_MX_RECORD on ${targetHost}`
+        );
+        continue;
+      }
+
       const res = await sendViaRelay({
-        toEmail: agency.publicContactChannel.trim(),
+        toEmail: targetEmail,
         subject,
         bodyText: fullText,
       });

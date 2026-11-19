@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 250);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 58);
+    assert.ok(benchSumJson.totalAuditedDomains >= 260);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 62);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,10 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 250,
-      `Expected /reports leaderboard to index >= 250 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 260,
+      `Expected /reports leaderboard to index >= 260 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/109] M119–M123 Feature-Frozen GTM Wave, /api/benchmarks/summary Feed, 58 /vs/[matchup] Pages & Landmark 250-Domain /reports Hub verified!');
+    console.log('✔ [109/109] M119–M124 Feature-Frozen GTM Wave, Zero-Bounce Deliverability Guard, 62 /vs/[matchup] Pages & 260-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

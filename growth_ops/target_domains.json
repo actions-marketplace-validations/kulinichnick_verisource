@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T07:33:40.395Z",
+  "updatedAt": "2026-11-19T07:43:55.342Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1570,61 +1570,71 @@
       "domain": "reformation.com",
       "brandName": "Reformation",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "abercrombie.com",
       "brandName": "Abercrombie",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "clickup.com",
       "brandName": "ClickUp",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "asana.com",
       "brandName": "Asana",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "monday.com",
       "brandName": "monday.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "coda.io",
       "brandName": "Coda",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "superhuman.com",
       "brandName": "Superhuman",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "clockwise.com",
       "brandName": "Clockwise",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "reclaim.ai",
       "brandName": "Reclaim.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "typeform.com",
       "brandName": "Typeform",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:43:55.342Z"
     },
     {
       "domain": "tally.so",
@@ -1647,6 +1657,78 @@
     {
       "domain": "arcteryx.com",
       "brandName": "Arc'teryx",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "hubspot.com",
+      "brandName": "HubSpot",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pipedrive.com",
+      "brandName": "Pipedrive",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "freshworks.com",
+      "brandName": "Freshworks",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "helpscout.com",
+      "brandName": "Help Scout",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "crisp.chat",
+      "brandName": "Crisp",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "substack.com",
+      "brandName": "Substack",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "beehiiv.com",
+      "brandName": "beehiiv",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "kit.com",
+      "brandName": "Kit",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "mailchimp.com",
+      "brandName": "Mailchimp",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "klaviyo.com",
+      "brandName": "Klaviyo",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "on-running.com",
+      "brandName": "On",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "hoka.com",
+      "brandName": "HOKA",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

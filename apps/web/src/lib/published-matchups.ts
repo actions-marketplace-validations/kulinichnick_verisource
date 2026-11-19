@@ -432,6 +432,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Framer SSR deck copy + entity metadata vs. client-rendered presentation app.',
   },
+  {
+    cohort: 'ENTERPRISE WORK MANAGEMENT',
+    domainA: 'asana.com',
+    domainB: 'monday.com',
+    angle:
+      'Multi-pillar JSON-LD + /llms.txt readiness vs. Webflow work OS landing graph.',
+  },
+  {
+    cohort: 'PROJECT MANAGEMENT SAAS',
+    domainA: 'monday.com',
+    domainB: 'clickup.com',
+    angle:
+      'Head-to-head B2B project management /llms.txt status, SSR copy, and schema coverage.',
+  },
+  {
+    cohort: 'COLLABORATIVE DOCS & WORKSPACES',
+    domainA: 'notion.so',
+    domainB: 'coda.io',
+    angle:
+      'AI workspace crawler access, /llms.txt posture, and homepage JSON-LD parity.',
+  },
+  {
+    cohort: 'AI CALENDAR SCHEDULING',
+    domainA: 'reclaim.ai',
+    domainB: 'clockwise.com',
+    angle:
+      'Webflow structured entity metadata vs. custom Next.js AI calendar landing baseline.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

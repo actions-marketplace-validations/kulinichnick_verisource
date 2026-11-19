@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import dns from 'node:dns/promises';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -282,10 +283,178 @@ function mirrorFileIfNeeded(relPath, content) {
   }
 }
 
+const BLOCKED_ROLE_LOCALS = new Set([
+  'noreply',
+  'no-reply',
+  'donotreply',
+  'do-not-reply',
+  'privacy',
+  'legal',
+  'dpo',
+  'security',
+  'abuse',
+  'postmaster',
+  'mailer-daemon',
+  'billing',
+  'accounts',
+  'jobs',
+  'careers',
+  'hr',
+  'press',
+  'csr',
+  'unsubscribe',
+]);
+
+const PREFERRED_INBOUND_LOCALS = [
+  'hey',
+  'hello',
+  'hi',
+  'contact',
+  'info',
+  'newbiz',
+  'newbusiness',
+  'inquiries',
+  'partnerships',
+  'sales',
+];
+
 function isCleanDeliverableEmail(raw) {
-  const trimmed = String(raw ?? '').trim();
-  if (!trimmed || /\s|verify|none/i.test(trimmed)) return false;
-  return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(trimmed);
+  const trimmed = String(raw ?? '').trim().toLowerCase();
+  if (!trimmed || /\s|verify|none|\(/i.test(trimmed)) return false;
+  if (!/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(trimmed)) return false;
+  const local = trimmed.split('@')[0];
+  if (BLOCKED_ROLE_LOCALS.has(local)) return false;
+  return true;
+}
+
+async function hasValidMxRecord(hostname) {
+  try {
+    const records = await dns.resolveMx(hostname);
+    if (!Array.isArray(records) || records.length === 0) {
+      return { valid: false, exchange: null };
+    }
+    const sorted = [...records].sort((a, b) => a.priority - b.priority);
+    const top = sorted.find(
+      (r) => typeof r.exchange === 'string' && r.exchange.trim() && r.exchange.trim() !== '.'
+    );
+    return top
+      ? { valid: true, exchange: top.exchange.trim() }
+      : { valid: false, exchange: null };
+  } catch {
+    return { valid: false, exchange: null };
+  }
+}
+
+async function scrapePublishedAgencyEmails(agencyHost) {
+  const cleanHost = agencyHost
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/\/+$/, '')
+    .toLowerCase();
+  const discovered = new Set();
+  const paths = ['/', '/contact', '/contact-us', '/about', '/privacy', '/privacy-policy'];
+  const escapedHost = cleanHost.replace(/\./g, '\\.');
+  const emailRegex = new RegExp(`[a-z0-9._%+-]+@${escapedHost}`, 'gi');
+
+  await Promise.all(
+    paths.map(async (p) => {
+      try {
+        const res = await fetch(`https://${cleanHost}${p}`, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (compatible; VerisourceDeliverabilityGuard/1.0; +https://verisource.dev)',
+          },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(5500),
+        });
+        if (!res.ok) return;
+        const rawHtml = await res.text();
+        const decoded = rawHtml
+          .replace(/%40/gi, '@')
+          .replace(/&#64;|&#x40;/gi, '@');
+        for (const m of decoded.matchAll(emailRegex)) {
+          const candidate = m[0].toLowerCase();
+          if (isCleanDeliverableEmail(candidate)) {
+            discovered.add(candidate);
+          }
+        }
+      } catch {
+        // Ignore unreachable sub-paths during contact check
+      }
+    })
+  );
+
+  return Array.from(discovered);
+}
+
+/**
+ * Zero-Bounce Pre-Send Deliverability Guard:
+ * 1) Requires clean syntax & non-compliance local-part
+ * 2) Requires live non-null DNS MX records on recipient domain
+ * 3) Requires the mailbox to be literally published on the agency's own public website
+ *    (auto-correcting to the agency's published inbound inbox if different, or blocking send if none published).
+ */
+async function verifyZeroBounceAgencyEmail({ candidateEmail, agencyDomain }) {
+  const cleanCandidate = String(candidateEmail ?? '').trim().toLowerCase();
+  const cleanAgencyHost = String(agencyDomain ?? '')
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .replace(/\/+$/, '')
+    .toLowerCase();
+
+  const onSiteEmails = await scrapePublishedAgencyEmails(cleanAgencyHost);
+
+  let chosenEmail = null;
+  let source = null;
+
+  if (isCleanDeliverableEmail(cleanCandidate) && onSiteEmails.includes(cleanCandidate)) {
+    chosenEmail = cleanCandidate;
+    source = 'on_site_exact';
+  } else {
+    for (const preferredLocal of PREFERRED_INBOUND_LOCALS) {
+      const candidateOnSite = `${preferredLocal}@${cleanAgencyHost}`;
+      if (onSiteEmails.includes(candidateOnSite)) {
+        chosenEmail = candidateOnSite;
+        source = 'on_site_autocorrected';
+        break;
+      }
+    }
+    if (!chosenEmail && onSiteEmails.length > 0) {
+      chosenEmail = onSiteEmails[0];
+      source = 'on_site_discovered';
+    }
+  }
+
+  if (!chosenEmail) {
+    return {
+      deliverable: false,
+      email: null,
+      reason: 'UNVERIFIED_NOT_PUBLISHED_ON_SITE',
+      mxExchange: null,
+      onSiteEmails,
+    };
+  }
+
+  const emailHost = chosenEmail.split('@')[1];
+  const mx = await hasValidMxRecord(emailHost);
+  if (!mx.valid) {
+    return {
+      deliverable: false,
+      email: chosenEmail,
+      reason: 'NO_VALID_MX_RECORD',
+      mxExchange: null,
+      onSiteEmails,
+    };
+  }
+
+  return {
+    deliverable: true,
+    email: chosenEmail,
+    reason: null,
+    source,
+    mxExchange: mx.exchange,
+    onSiteEmails,
+  };
 }
 
 async function dispatchFounderOutreachViaResend({
@@ -445,48 +614,67 @@ async function main() {
       }
 
       let emailDispatch = { sent: false, id: null, reason: null };
-      if (
-        sendEmail &&
-        !agency.emailSentAt &&
-        !agency.resendMessageId &&
-        isCleanDeliverableEmail(agency.publicContactChannel)
-      ) {
-        const subjectLine = `${summary.hostname} — AI search & /agents.md check for ${agency.agencyName}`;
-        const fullEmailBody = [
-          `Hi ${firstName},`,
-          ``,
-          enforcedNote.content,
-          ``,
-          `Best,`,
-          `Nick Kulinich`,
-          `Founder, Verisource`,
-          `https://verisource.dev`,
-        ].join('\n');
-
-        emailDispatch = await dispatchFounderOutreachViaResend({
-          toEmail: agency.publicContactChannel.trim(),
-          subject: subjectLine,
-          bodyText: fullEmailBody,
+      if (sendEmail && !agency.emailSentAt && !agency.resendMessageId) {
+        const bounceGuard = await verifyZeroBounceAgencyEmail({
+          candidateEmail: agency.publicContactChannel,
+          agencyDomain: agency.agencyDomain,
         });
 
-        if (emailDispatch.sent) {
-          agency.status = 'sent';
-          agency.emailSentAt = nowIso;
-          agency.resendMessageId = emailDispatch.id;
-          agency.channelsSent = ['email_resend'];
-          agency.followUpDueDate = new Date(
-            Date.now() + 4 * 86400 * 1000
-          )
-            .toISOString()
-            .slice(0, 10);
+        if (!bounceGuard.deliverable || !bounceGuard.email) {
+          agency.status = 'linkedin_only';
+          agency.emailSkipReason = bounceGuard.reason;
+          emailDispatch = {
+            sent: false,
+            id: null,
+            reason: bounceGuard.reason,
+          };
+        } else {
+          agency.publicContactChannel = bounceGuard.email;
+          agency.emailVerification = {
+            verifiedAt: nowIso,
+            source: bounceGuard.source,
+            mxExchange: bounceGuard.mxExchange,
+          };
+
+          const subjectLine = `${summary.hostname} — AI search & /agents.md check for ${agency.agencyName}`;
+          const fullEmailBody = [
+            `Hi ${firstName},`,
+            ``,
+            enforcedNote.content,
+            ``,
+            `Best,`,
+            `Nick Kulinich`,
+            `Founder, Verisource`,
+            `https://verisource.dev`,
+          ].join('\n');
+
+          emailDispatch = await dispatchFounderOutreachViaResend({
+            toEmail: bounceGuard.email,
+            subject: subjectLine,
+            bodyText: fullEmailBody,
+          });
+
+          if (emailDispatch.sent) {
+            agency.status = 'sent';
+            agency.emailSentAt = nowIso;
+            agency.resendMessageId = emailDispatch.id;
+            agency.channelsSent = ['email_resend'];
+            agency.followUpDueDate = new Date(
+              Date.now() + 4 * 86400 * 1000
+            )
+              .toISOString()
+              .slice(0, 10);
+          }
         }
       }
 
       console.log(
         `  ✔ ${agency.agencyName} -> client ${summary.hostname} (${summary.visibilityScore}/100) | Quality ${enforcedNote.score}/10${
           emailDispatch.sent
-            ? ` | Auto-Sent via Resend (${emailDispatch.id})`
-            : ''
+            ? ` | Verified (${agency.publicContactChannel} · MX ${agency.emailVerification?.mxExchange}) -> Sent (${emailDispatch.id})`
+            : emailDispatch.reason
+              ? ` | Email Guard Blocked (${emailDispatch.reason} -> LinkedIn DM only)`
+              : ''
         }`
       );
 

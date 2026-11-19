@@ -1,3 +1,4 @@
+import dns from 'node:dns/promises';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -183,6 +184,23 @@ async function main() {
 
     const check = isBotOrInternalEmail(prof.email);
     if (check.skip) {
+      skippedBotsCount += 1;
+      continue;
+    }
+
+    // Zero-bounce MX guard on free-account email domain before sending
+    let hasValidMx = false;
+    try {
+      const mxRecords = await dns.resolveMx(check.host);
+      hasValidMx =
+        Array.isArray(mxRecords) &&
+        mxRecords.some(
+          (r) => typeof r.exchange === 'string' && r.exchange.trim() && r.exchange.trim() !== '.'
+        );
+    } catch {
+      hasValidMx = false;
+    }
+    if (!hasValidMx) {
       skippedBotsCount += 1;
       continue;
     }
