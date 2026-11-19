@@ -222,3 +222,45 @@ Across 90 live HTTP audits:
 
 Compare any 2 domains live: https://verisource.dev/vs?a=huckberry.com&b=rothys.com
 ```
+
+---
+
+## 8. 160-Domain AI Infrastructure & SaaS Protocol Paradox (Show HN & LinkedIn Update)
+
+### A. Show HN / Reddit (`r/LocalLLaMA` & `r/SaaS`) Empirical Thread
+```text
+Title: We audited 160 SaaS, commerce, and AI agent domains over HTTPS — 74.4% ship /llms.txt, yet 97.5% fail 3-pillar JSON-LD (and Perplexity scores 39/100)
+
+Over the past week we expanded our open HTTP protocol index (VerisourceScan/1.0) to 160 recognizable domains across B2B SaaS (83), Native Shopify OS 2.0 (56), and Custom Headless Next.js storefronts (21).
+
+Every domain was tested live for GPTBot/OAI-SearchBot/PerplexityBot/ClaudeBot WAF access, non-JS HTML word count, /llms.txt, /agents.md, and 3-pillar schema.org JSON-LD (Organization + Offer pricing + FAQPage).
+
+Four findings stood out across the 160-domain dataset (mean score: 68.4 out of 100):
+1. /llms.txt went mainstream, /agents.md did not: 74.4% (119 of 160) now return HTTP 200 on /llms.txt, yet 83.8% (134 of 160) still lack a verified /agents.md pricing and exclusion spec.
+2. 97.5% fail 3-pillar JSON-LD: Only 4 of 160 domains (2.5%) expose Organization identity, Offer pricing, and FAQPage schema together on the root page.
+3. Even AI companies block or starve AI crawlers: Across 18 AI search, agent, and inference domains, mean readiness is 65.5 out of 100 — e2b.dev and warp.dev hit 84 out of 100, while perplexity.ai scores 39 out of 100 under edge WAF restrictions and langchain.com / groq.com sit at 52 out of 100.
+4. The Headless Commerce gap held at -33.4 points: 56 native Shopify OS 2.0 stores average 76.9 out of 100, while 21 custom headless Next.js consumer stores average 43.5 out of 100.
+
+Full searchable 160-domain leaderboard: https://verisource.dev/reports
+Methodology & charts (FIG 13 & FIG 14): https://verisource.dev/benchmarks/ai-search-readiness-2026
+```
+
+### B. LinkedIn Founder Data Post (AI Company Paradox)
+```text
+We just crossed 160 live HTTPS domain audits in our 2026 AI Search Readiness Index — including 18 leading AI search, agent, and inference companies.
+
+The biggest surprise in the data:
+
+77.8% of AI infrastructure companies now publish /llms.txt.
+Yet 88.9% still omit /agents.md pricing guardrails, and 97.5% of all 160 audited sites fail 3-pillar JSON-LD (Entity + Offer + FAQPage).
+
+Even wilder:
+• e2b.dev & warp.dev: 84 out of 100
+• cursor.com & llamaindex.ai: 72 out of 100
+• langchain.com & groq.com: 52 out of 100
+• perplexity.ai: 39 out of 100 (strict edge WAF restrictions on external crawlers)
+• figma.com: 38 out of 100 vs. webflow.com: 72 out of 100
+
+Inspect all 160 scorecards or benchmark any 2 domains head-to-head for free:
+https://verisource.dev/benchmarks/ai-search-readiness-2026
+```

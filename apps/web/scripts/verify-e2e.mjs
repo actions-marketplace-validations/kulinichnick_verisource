@@ -5404,7 +5404,42 @@ async function run() {
       m113UniqueLinks.size >= 150,
       `Expected /reports leaderboard to index >= 150 unique domains, got ${m113UniqueLinks.size}`
     );
-    console.log('✔ [103/103] M112–M113 De-Cluttered Homepage, 5-Zone All Tools Catalog (/features), 22 /vs/[matchup] Pages & 150-Domain /reports Milestone verified!');
+    console.log('✔ [103/104] M112–M113 De-Cluttered Homepage, 5-Zone All Tools Catalog (/features), 22 /vs/[matchup] Pages & 150-Domain /reports Milestone verified!');
+
+    // 102. M114 160-Domain Empirical Benchmark (FIG 14), 25 /vs/[matchup] Pages & /reports Hub
+    const [m114BenchRes, m114MatchupRes, m114ReportsRes] = await Promise.all([
+      fetch(`${BASE}/benchmarks/ai-search-readiness-2026`),
+      fetch(`${BASE}/vs/webflow-com-vs-figma-com`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m114BenchRes.status, 200);
+    assert.equal(m114MatchupRes.status, 200);
+    assert.equal(m114ReportsRes.status, 200);
+
+    const m114BenchHtml = await m114BenchRes.text();
+    const m114BenchVisible = m114BenchHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m114BenchHtml.includes('id="ai-infra-paradox-160"') &&
+        m114BenchHtml.includes('FIG 14 · PROTOCOL COVERAGE ACROSS N = 160 LIVE AUDITED DOMAINS') &&
+        (m114BenchVisible.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(m114BenchVisible),
+      'Expected /benchmarks/ai-search-readiness-2026 to render FIG 14 160-domain chart with zero banned lexicon or /10 jargon'
+    );
+
+    const m114ReportsHtml = await m114ReportsRes.text();
+    const m114UniqueLinks = new Set(
+      Array.from(
+        m114ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m114UniqueLinks.size >= 160,
+      `Expected /reports leaderboard to index >= 160 unique domains, got ${m114UniqueLinks.size}`
+    );
+    console.log('✔ [104/104] M114 160-Domain Empirical Study (FIG 14), 25 /vs/[matchup] Pages & 160-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

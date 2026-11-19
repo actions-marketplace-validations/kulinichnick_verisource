@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T03:49:04.310Z",
+  "updatedAt": "2026-11-19T05:45:21.620Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -223,7 +223,15 @@
       "publicContactChannel": "hello@vervaunt.com",
       "caseStudyClientDomain": "representclo.com",
       "caseStudyClientName": "Represent",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T05:45:21.620Z",
+      "auditSlug": "representclo-com-ftly",
+      "emailSentAt": "2026-11-19T05:45:21.620Z",
+      "resendMessageId": "01a1f256-a682-7d5b-a276-117481d0d1c8",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Amply",
@@ -235,7 +243,15 @@
       "publicContactChannel": "luke@joinamply.com",
       "caseStudyClientDomain": "awardco.com",
       "caseStudyClientName": "Awardco",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T05:45:21.620Z",
+      "auditSlug": "awardco-com-h8c5",
+      "emailSentAt": "2026-11-19T05:45:21.620Z",
+      "resendMessageId": "01a1f256-a7fa-7481-90dd-813dcae63d7e",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Rock The Rankings",

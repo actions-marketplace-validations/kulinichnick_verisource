@@ -702,6 +702,170 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
           </div>
         </section>
 
+        {/* Expanded 160-Domain Cohort: The AI Agent & Enterprise SaaS Protocol Paradox */}
+        <section id="ai-infra-paradox-160" style={{ marginBottom: '38px' }}>
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            Q4 2026 FULL INDEX (N = 160 LIVE SCORECARDS) · AI INFRASTRUCTURE &amp; SAAS PARADOX
+          </div>
+          <h2
+            style={{
+              fontSize: '22px',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 10px 0',
+            }}
+          >
+            Across 160 audited domains, 74.4% publish{' '}
+            <code className="vs-mono">/llms.txt</code>—yet 83.8% lack{' '}
+            <code className="vs-mono">/agents.md</code> and 97.5% fail 3-pillar{' '}
+            <code className="vs-mono">JSON-LD</code>.
+          </h2>
+          <p
+            style={{
+              fontSize: '14px',
+              lineHeight: 1.62,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 18px 0',
+              maxWidth: '850px',
+            }}
+          >
+            Scaling our live HTTPS audit index to 160 recognizable commerce, B2B
+            SaaS, and AI infrastructure domains (mean score{' '}
+            <strong>68.4 out of 100</strong>) revealed an ironic blind spot
+            inside the AI ecosystem itself. Across 18 foundational AI search,
+            agent framework, and inference platforms (<code className="vs-mono">perplexity.ai</code>{' '}
+            39, <code className="vs-mono">langchain.com</code> 52,{' '}
+            <code className="vs-mono">groq.com</code> 52,{' '}
+            <code className="vs-mono">langsmith.com</code> 52,{' '}
+            <code className="vs-mono">daytona.io</code> 62,{' '}
+            <code className="vs-mono">zed.dev</code> 62 vs.{' '}
+            <code className="vs-mono">e2b.dev</code> 84 and{' '}
+            <code className="vs-mono">warp.dev</code> 84),{' '}
+            <strong>77.8% (14 of 18)</strong> publish a valid{' '}
+            <code className="vs-mono">/llms.txt</code> directory—yet only{' '}
+            <strong>11.1% (2 of 18)</strong> publish a verified{' '}
+            <code className="vs-mono">/agents.md</code> pricing and rate-limit
+            rulebook, and enterprise design leader{' '}
+            <code className="vs-mono">figma.com</code> scores{' '}
+            <strong>38 out of 100</strong> under edge crawler restrictions.
+          </p>
+
+          {/* FIG 14 Dark-Studio SVG Protocol Adoption Gap Chart */}
+          <div className="vs-bezel" style={{ marginBottom: '18px' }}>
+            <div
+              className="vs-card"
+              style={{
+                padding: '20px 22px',
+                background: 'var(--vs-terminal)',
+              }}
+            >
+              <div
+                className="vs-eyebrow"
+                style={{ marginBottom: '12px', color: '#E5A93C' }}
+              >
+                FIG 14 · PROTOCOL COVERAGE ACROSS N = 160 LIVE AUDITED DOMAINS
+              </div>
+              <svg
+                viewBox="0 0 760 182"
+                width="100%"
+                role="img"
+                aria-label="Bar chart comparing /llms.txt adoption at 74.4%, verified /agents.md adoption at 16.2%, and 3-pillar JSON-LD completion at 2.5% across 160 public domains."
+                style={{ display: 'block', height: 'auto' }}
+              >
+                {/* Row 1: /llms.txt Published */}
+                <text
+                  x="0"
+                  y="32"
+                  fill="#EEF1F6"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  /llms.txt Live (119 / 160)
+                </text>
+                <rect x="268" y="16" width="390" height="22" rx="5" fill="#171C26" />
+                <rect x="268" y="16" width="290.2" height="22" rx="5" fill="#10B981" />
+                <text
+                  x="670"
+                  y="32"
+                  fill="#6EE7B7"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  74.4%
+                </text>
+
+                {/* Row 2: Custom Verified /agents.md */}
+                <text
+                  x="0"
+                  y="88"
+                  fill="#EEF1F6"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  Verified /agents.md (26 / 160)
+                </text>
+                <rect x="268" y="72" width="390" height="22" rx="5" fill="#171C26" />
+                <rect x="268" y="72" width="63.2" height="22" rx="5" fill="#E5A93C" />
+                <text
+                  x="670"
+                  y="88"
+                  fill="#E5A93C"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  16.2%
+                </text>
+
+                {/* Row 3: Full 3-Pillar JSON-LD */}
+                <text
+                  x="0"
+                  y="144"
+                  fill="#EEF1F6"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  3-Pillar JSON-LD (4 / 160)
+                </text>
+                <rect x="268" y="128" width="390" height="22" rx="5" fill="#171C26" />
+                <rect x="268" y="128" width="12" height="22" rx="5" fill="#EF4444" />
+                <text
+                  x="670"
+                  y="144"
+                  fill="#FCA5A5"
+                  fontSize="13"
+                  fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+                  fontWeight="700"
+                >
+                  2.5%
+                </text>
+              </svg>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <Link
+              href="/vs/mistral-ai-vs-perplexity-ai"
+              className="vs-btn"
+            >
+              Inspect Mistral (72) vs. Perplexity (39) →
+            </Link>
+            <Link
+              href="/vs/webflow-com-vs-figma-com"
+              className="vs-btn vs-btn-secondary"
+            >
+              Inspect Webflow (72) vs. Figma (38) →
+            </Link>
+            <Link href="/reports" className="vs-btn vs-btn-secondary">
+              Browse All 160 Domain Scorecards →
+            </Link>
+          </div>
+        </section>
+
         {/* Frequently Asked Questions */}
         <section style={{ marginBottom: '20px' }}>
           <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>

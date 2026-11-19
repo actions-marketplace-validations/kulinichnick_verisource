@@ -180,6 +180,27 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Multi-pillar JSON-LD + /llms.txt readiness vs. Framer landing page structure.',
   },
+  {
+    cohort: 'WEB DESIGN & VISUAL TOOLS',
+    domainA: 'webflow.com',
+    domainB: 'figma.com',
+    angle:
+      'Open crawler posture + SSR marketing copy vs. strict edge crawler restrictions.',
+  },
+  {
+    cohort: 'ENTERPRISE AUTH INFRA',
+    domainA: 'workos.com',
+    domainB: 'stytch.com',
+    angle:
+      'Webflow structured entity metadata + /llms.txt vs. custom Next.js landing baseline.',
+  },
+  {
+    cohort: 'BACKGROUND WORKFLOW QUEUES',
+    domainA: 'inngest.com',
+    domainB: 'trigger.dev',
+    angle:
+      'Developer docs /llms.txt + JSON-LD coverage across background job engines.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
