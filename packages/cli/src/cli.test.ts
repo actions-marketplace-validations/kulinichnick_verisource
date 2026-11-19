@@ -5,7 +5,11 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { buildGithubStepSummaryMarkdown, runCli } from './bin.js';
+import {
+  buildGithubStepSummaryMarkdown,
+  buildGithubVsSummaryMarkdown,
+  runCli,
+} from './bin.js';
 import {
   browseClickHandle,
   browseOpenUrl,
@@ -468,5 +472,45 @@ test('upsertGithubPrComment creates once, updates idempotently in place, and ski
     assert.equal(forkRes.reason, 'GITHUB_API_403');
   } finally {
     ghServer.close();
+  }
+});
+
+test('verisource vs <domainA> <domainB> runs head-to-head protocol diff and writes github-summary.md', async () => {
+  const prevMode = process.env.PROVIDER_MODE;
+  process.env.PROVIDER_MODE = 'mock';
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vs-cli-vs-'));
+
+  try {
+    const badExit = await runCli(['node', 'bin.js', 'vs', 'onlyone.com'], tmpDir);
+    assert.equal(badExit, 2);
+
+    const exitCode = await runCli(
+      [
+        'node',
+        'bin.js',
+        'vs',
+        'aurearoasters.com',
+        'mosaicroasters.com',
+        '--json',
+        '--github-summary',
+      ],
+      tmpDir
+    );
+    assert.equal(exitCode, 0);
+
+    const summaryPath = path.join(tmpDir, '.verisource', 'github-summary.md');
+    assert.ok(fs.existsSync(summaryPath));
+    const md = fs.readFileSync(summaryPath, 'utf8');
+    assert.ok(md.includes('Verisource Head-to-Head AI Search X-Ray'));
+    assert.ok(md.includes('aurearoasters.com'));
+    assert.ok(md.includes('mosaicroasters.com'));
+
+    const storedX1 = findStoredHandle('x1', tmpDir);
+    assert.ok(storedX1, 'Expected [x1] overtake handle stored in .verisource/last-run.json');
+    assert.ok(typeof buildGithubVsSummaryMarkdown === 'function');
+  } finally {
+    if (prevMode === undefined) delete process.env.PROVIDER_MODE;
+    else process.env.PROVIDER_MODE = prevMode;
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });

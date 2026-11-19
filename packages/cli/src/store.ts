@@ -13,7 +13,8 @@ export interface StoredHandleItem {
     | 'ai_readability'
     | 'network'
     | 'backend_log'
-    | 'element';
+    | 'element'
+    | 'xray_gap';
   severity: 'critical' | 'warn' | 'info';
   summary: string;
   url?: string;

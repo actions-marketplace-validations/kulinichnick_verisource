@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import {
   crawlDomainSiteHealth,
   runDomainReadinessScan,
+  runPublicDomainHeadToHeadXray,
+  type PublicHeadToHeadXrayReport,
 } from '@verisource/core-geo';
 import {
   browseClickHandle,
@@ -61,6 +63,7 @@ Usage:
   verisource auth [--key vs_live_...] [--status|--logout] Save or verify Verisource Cloud API key (.verisource/config.json)
   verisource scan <url> [--push] [--json] [--github-summary] [--pr-comment] Scan AI readiness, bots, JSON-LD & 20-page link health
   verisource verify <url> [--init] [--push] [--json] [--github-summary] [--pr-comment] Deterministic CI check (exit 0 pass, 1 fail, 2 error)
+  verisource vs <domainA> <domainB> [--json] [--github-summary] [--pr-comment] Head-to-head 6-dimension AI protocol X-Ray
   verisource show <handle> [--json]                  Drill into handle (h1, b1, l1, a1, n1, g1, e1)
   verisource query "<text>" [--json]                 Filter recent handles by keyword or status code
   verisource map [url | ./dir] [--diff] [--json]     Map live domain routes or static Next.js/React routes
@@ -141,6 +144,43 @@ export function buildGithubStepSummaryMarkdown(params: {
     `<sub>Verified by <a href="https://verisource.dev/features">@verisource/cli</a> (\`VerisourceScan/1.0\`)</sub>`,
     ''
   );
+  return lines.join('\n');
+}
+
+export function buildGithubVsSummaryMarkdown(
+  report: PublicHeadToHeadXrayReport
+): string {
+  const shareUrl = `https://verisource.dev/vs?a=${encodeURIComponent(
+    report.ownHostname
+  )}&b=${encodeURIComponent(report.rivalHostname)}`;
+  const outcome =
+    report.scoreDelta > 0
+      ? `LEADING (+${report.scoreDelta})`
+      : report.scoreDelta < 0
+        ? `TRAILING (${report.scoreDelta})`
+        : 'TIED (0)';
+
+  const lines: string[] = [
+    VERISOURCE_PR_COMMENT_MARKER,
+    `### Verisource Head-to-Head AI Search X-Ray — \`${report.ownHostname}\` vs. \`${report.rivalHostname}\` (\`${outcome}\`)`,
+    '',
+    '| Protocol Dimension | `' +
+      report.ownHostname +
+      '` | `' +
+      report.rivalHostname +
+      '` | Edge |',
+    '| :--- | :--- | :--- | :--- |',
+    ...report.dimensions.map(
+      (d) =>
+        `| **${d.label}** | \`${d.ownValue.replace(/\|/g, '/')}\` | \`${d.rivalValue.replace(/\|/g, '/')}\` | \`${d.winner === 'own' ? report.ownHostname : d.winner === 'rival' ? report.rivalHostname : 'TIE'}\` |`
+    ),
+    '',
+    '#### Overtake Action Plan',
+    ...report.overtakeActionPlan.map((step, i) => `${i + 1}. ${step}`),
+    '',
+    `[Open Interactive Matchup & Overtake Prompt →](${shareUrl})`,
+    '',
+  ];
   return lines.join('\n');
 }
 
@@ -553,6 +593,113 @@ export async function runCli(argv: string[], cwd: string = process.cwd()): Promi
         );
       }
       return passed ? 0 : 1;
+    }
+
+    if (cmd === 'vs') {
+      const domainA = args[1];
+      const domainB = args[2];
+      if (
+        !domainA ||
+        !domainB ||
+        domainA.startsWith('-') ||
+        domainB.startsWith('-')
+      ) {
+        console.error(
+          'Usage: verisource vs <domainA> <domainB> [--json] [--github-summary] [--pr-comment]'
+        );
+        return 2;
+      }
+
+      const startedAt = new Date().toISOString();
+      const report = await runPublicDomainHeadToHeadXray({
+        domainAInput: domainA,
+        domainBInput: domainB,
+        rawEnv: process.env as Record<string, string | undefined>,
+      });
+
+      const shareUrl = `https://verisource.dev/vs?a=${encodeURIComponent(
+        report.ownHostname
+      )}&b=${encodeURIComponent(report.rivalHostname)}`;
+      const opengraphCardUrl = `https://verisource.dev/api/og/vs?a=${encodeURIComponent(
+        report.ownHostname
+      )}&b=${encodeURIComponent(report.rivalHostname)}`;
+
+      const handles: StoredHandleItem[] = report.overtakeActionPlan.map(
+        (item, idx) => ({
+          handle: `x${idx + 1}`,
+          kind: 'xray_gap',
+          severity: report.scoreDelta < 0 ? 'warn' : 'info',
+          summary: item,
+          url: shareUrl,
+          fixHint: `Inspect full overtake bundle at ${shareUrl}`,
+        })
+      );
+
+      saveLastRunLedger(
+        {
+          runId: `vs-${Date.now()}`,
+          command: `vs ${report.ownHostname} ${report.rivalHostname}`,
+          target: `${report.ownHostname} vs ${report.rivalHostname}`,
+          startedAt,
+          finishedAt: new Date().toISOString(),
+          status: report.scoreDelta >= 0 ? 'PASS' : 'WARN',
+          handles,
+        },
+        cwd
+      );
+
+      let prComment: GithubPrCommentResult | null = null;
+      if (hasFlag(args, '--github-summary') || hasFlag(args, '--pr-comment')) {
+        const md = buildGithubVsSummaryMarkdown(report);
+        if (hasFlag(args, '--github-summary')) {
+          writeGithubSummaryArtifact(md, cwd);
+        }
+        if (hasFlag(args, '--pr-comment')) {
+          prComment = await upsertGithubPrComment({ markdownBody: md });
+        }
+      }
+
+      if (jsonOut) {
+        console.log(
+          JSON.stringify(
+            {
+              status:
+                report.scoreDelta > 0
+                  ? 'LEADING'
+                  : report.scoreDelta < 0
+                    ? 'TRAILING'
+                    : 'TIED',
+              ...report,
+              shareUrl,
+              opengraphCardUrl,
+              handles,
+              ...(prComment ? { prComment } : {}),
+            },
+            null,
+            2
+          )
+        );
+      } else {
+        const label =
+          report.scoreDelta > 0
+            ? 'LEADING '
+            : report.scoreDelta < 0
+              ? 'TRAILING'
+              : 'TIED    ';
+        console.log(
+          `${label}  ${report.ownHostname} (${report.ownTechnicalScore}/100) vs. ${report.rivalHostname} (${report.rivalTechnicalScore}/100) · delta ${report.scoreDelta >= 0 ? '+' : ''}${report.scoreDelta} pts`
+        );
+        for (const d of report.dimensions) {
+          console.log(
+            `  • ${d.label}: ${d.ownValue} vs. ${d.rivalValue} [${d.winner}]`
+          );
+        }
+        for (const h of handles) {
+          console.log(`  [${h.handle}] ${h.summary}`);
+        }
+        console.log(`  Matchup URL: ${shareUrl}`);
+      }
+      return 0;
     }
 
     if (cmd === 'show') {

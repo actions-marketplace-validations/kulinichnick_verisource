@@ -8,6 +8,16 @@ import {
 
 export const maxDuration = 30;
 
+const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS(): Promise<Response> {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 const MAX_MAP_SIZE = 500;
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const MAX_UNCACHED_PER_IP_DAY = 15;
@@ -53,7 +63,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           message:
             'Provide two public website domains to compare (e.g. yourcompany.com and rival.com).',
         },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -71,7 +81,7 @@ export async function POST(request: Request): Promise<NextResponse> {
               ? err.message
               : 'Provide valid public website domains.',
         },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -81,7 +91,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           error: 'SAME_DOMAIN_ERROR',
           message: `Choose a second distinct domain rather than comparing ${normA.hostname} against itself.`,
         },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
@@ -92,12 +102,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     )}&b=${encodeURIComponent(normB.hostname)}`;
 
     if (cached && cached.expiresAt > Date.now()) {
-      return NextResponse.json({
-        ok: true,
-        report: cached.report,
-        shareUrl,
-        cached1h: true,
-      });
+      return NextResponse.json(
+        {
+          ok: true,
+          report: cached.report,
+          shareUrl,
+          cached1h: true,
+        },
+        { headers: CORS_HEADERS }
+      );
     }
 
     const ip = getClientIp(request);
@@ -113,7 +126,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           message:
             'Daily free head-to-head live scan cap reached for this IP. Sign in to Console Step 01 for unlimited Competitor X-Ray comparisons.',
         },
-        { status: 429 }
+        { status: 429, headers: CORS_HEADERS }
       );
     } else {
       bucket.count += 1;
@@ -130,17 +143,20 @@ export async function POST(request: Request): Promise<NextResponse> {
       report,
     });
 
-    return NextResponse.json({
-      ok: true,
-      report,
-      shareUrl,
-      cached1h: false,
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        report,
+        shareUrl,
+        cached1h: false,
+      },
+      { headers: CORS_HEADERS }
+    );
   } catch (err) {
     if (err instanceof CompetitorXrayError) {
       return NextResponse.json(
         { error: err.code, message: err.message },
-        { status: 400 }
+        { status: 400, headers: CORS_HEADERS }
       );
     }
     return NextResponse.json(
@@ -151,7 +167,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             ? err.message
             : 'Unable to complete head-to-head HTTP probe.',
       },
-      { status: 500 }
+      { status: 500, headers: CORS_HEADERS }
     );
   }
 }

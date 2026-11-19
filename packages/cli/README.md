@@ -30,6 +30,7 @@ npx @verisource/cli agent --skill --install all
 | `verisource auth [--key vs_live_...] [--status\|--logout]` | Authenticates your local or CI workspace against `/api/cli/sync` and stores `vs_live_` credentials in `.verisource/config.json` (`0o600`). |
 | `verisource scan <url> [--push] [--json]` | Probes `GPTBot`, `OAI-SearchBot`, `PerplexityBot`, and `ClaudeBot` `robots.txt`/WAF rules, `JSON-LD` entities, `/llms.txt`, `/agents.md`, `/ai-facts`, and crawls up to 20 internal pages (`VerisourceScan/1.0`). |
 | `verisource verify <url> [--init] [--push] [--json]` | Evaluates live readiness and link health against `.verisource/checks.json`. Returns exit `0` on pass, `1` on policy failure, and `2` on invalid input or network failure. |
+| `verisource vs <domainA> <domainB> [--json] [--github-summary]` | Runs a 6-dimension Head-to-Head AI Search & Crawler Protocol X-Ray between two public domains and stores `[x1..xN]` overtake action handles. |
 | `verisource show <handle> [--json]` | Prints full metadata and remediation hints for a single stored handle (`h1` hallucination, `b1` bot/WAF block, `l1` broken link, `a1` dead `#anchor`, `n1` HTTP error, `g1` backend log, `e1` DOM element). |
 | `verisource query "<text>" [--json]` | Searches `.verisource/last-run.json` handles by status code, route, or keyword. |
 | `verisource map [url \| ./dir] [--find <q>] [--diff]` | Maps live domain links or static Next.js App Router / Pages Router routes, API handlers, and `application/ld+json` emitters. |

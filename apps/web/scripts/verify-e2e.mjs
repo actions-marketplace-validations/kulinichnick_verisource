@@ -5132,7 +5132,42 @@ async function run() {
         m105AgentsMdText.includes('compare_competitor_protocol_xray'),
       'Expected /mcp-guide and /agents.md to expose 5th MCP tool compare_competitor_protocol_xray'
     );
-    console.log('✔ [96/96] M105 5-Tool Streamable HTTP /mcp (compare_competitor_protocol_xray) Parity verified!');
+    console.log('✔ [96/97] M105 5-Tool Streamable HTTP /mcp (compare_competitor_protocol_xray) Parity verified!');
+
+    // 95. M106 @verisource/cli `vs` Command, /api/tools/xray CORS & Chrome MV3 Side Panel Inline Rival X-Ray
+    const [xrayOptionsRes, xrayPostCorsRes, m106AgentsMdRes] =
+      await Promise.all([
+        fetch(`${BASE}/api/tools/xray`, { method: 'OPTIONS' }),
+        fetch(`${BASE}/api/tools/xray`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domainA: 'verisource.dev',
+            domainB: 'supabase.com',
+          }),
+        }),
+        fetch(`${BASE}/agents.md`),
+      ]);
+    assert.equal(xrayOptionsRes.status, 204);
+    assert.equal(
+      xrayOptionsRes.headers.get('access-control-allow-origin'),
+      '*'
+    );
+    assert.equal(xrayPostCorsRes.status, 200);
+    assert.equal(
+      xrayPostCorsRes.headers.get('access-control-allow-origin'),
+      '*'
+    );
+    const m106AgentsMdText = await m106AgentsMdRes.text();
+    assert.ok(
+      m106AgentsMdText.includes('npx @verisource/cli vs <domainA> <domainB>')
+    );
+    assert.ok(
+      m85SidepanelJs.includes('HEAD-TO-HEAD RIVAL X-RAY') &&
+        m85SidepanelJs.includes('Compare vs. Competitor (/vs)'),
+      'Expected Chrome MV3 Side Panel JS bundle to include inline HEAD-TO-HEAD RIVAL X-RAY and /vs handoff'
+    );
+    console.log('✔ [97/97] M106 @verisource/cli `vs` Command, /api/tools/xray CORS & Chrome MV3 Side Panel Inline Rival X-Ray verified!');
   } finally {
     server.kill();
   }

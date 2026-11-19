@@ -24,6 +24,7 @@ import {
   type JsonLdAiReadinessSummary,
   type LiveFixVerificationReport,
   type PlanTier,
+  type PublicHeadToHeadXrayReport,
   type ReadinessScanSummary,
 } from '@verisource/core-geo';
 import {
@@ -104,6 +105,11 @@ export default function App(): React.ReactElement {
   const [subscriberTokenInput, setSubscriberTokenInput] = useState('');
   const [showPassConnect, setShowPassConnect] = useState(false);
   const [connectingPass, setConnectingPass] = useState(false);
+  const [rivalXrayInput, setRivalXrayInput] = useState('');
+  const [rivalXrayLoading, setRivalXrayLoading] = useState(false);
+  const [rivalXrayError, setRivalXrayError] = useState<string | null>(null);
+  const [rivalXrayResult, setRivalXrayResult] =
+    useState<PublicHeadToHeadXrayReport | null>(null);
   const lastSyncedTabHostRef = useRef<string | null>(null);
   const tabSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -376,6 +382,49 @@ export default function App(): React.ReactElement {
   const cleanOrigin = workspaceOrigin.replace(/\/$/, '');
   const isGuided = uxMode === 'guided';
   const isPaidSubscriber = subscriberPlan !== 'free';
+
+  useEffect(() => {
+    setRivalXrayResult(null);
+    setRivalXrayError(null);
+  }, [audit?.hostname]);
+
+  const handleRunSidepanelXray = async () => {
+    if (!audit) return;
+    const cleanRival = rivalXrayInput.trim();
+    if (!cleanRival) {
+      setRivalXrayError('Enter a competitor domain to compare.');
+      return;
+    }
+    setRivalXrayLoading(true);
+    setRivalXrayError(null);
+    try {
+      const res = await fetch(`${cleanOrigin}/api/tools/xray`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domainA: audit.hostname,
+          domainB: cleanRival,
+        }),
+        signal: AbortSignal.timeout(12000),
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        report?: PublicHeadToHeadXrayReport;
+        message?: string;
+      };
+      if (!res.ok || !json.report) {
+        setRivalXrayError(
+          json.message ?? 'Unable to compare these domains right now.'
+        );
+        return;
+      }
+      setRivalXrayResult(json.report);
+    } catch {
+      setRivalXrayError('Network timeout probing competitor domain.');
+    } finally {
+      setRivalXrayLoading(false);
+    }
+  };
 
   const engineShare = audit
     ? summarizeEngineCitationShare(audit.scanResults, audit.hostname)
@@ -972,6 +1021,124 @@ export default function App(): React.ReactElement {
                       );
                     })()}
                   </div>
+                </div>
+              </div>
+
+              {/* Compact Inline Head-to-Head Rival X-Ray */}
+              <div className="vs-bezel">
+                <div className="vs-card" style={{ padding: '10px 12px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginBottom: '6px',
+                    }}
+                  >
+                    <span className="vs-eyebrow" style={{ fontSize: '9.5px' }}>
+                      HEAD-TO-HEAD RIVAL X-RAY
+                    </span>
+                    <a
+                      href={`${cleanOrigin}/vs?a=${encodeURIComponent(
+                        audit.hostname
+                      )}${
+                        rivalXrayResult
+                          ? `&b=${encodeURIComponent(rivalXrayResult.rivalHostname)}`
+                          : ''
+                      }`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="vs-mono"
+                      style={{ fontSize: '10px', color: 'var(--vs-accent)' }}
+                    >
+                      Open /vs ↗
+                    </a>
+                  </div>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void handleRunSidepanelXray();
+                    }}
+                    style={{ display: 'flex', gap: '6px' }}
+                  >
+                    <input
+                      type="text"
+                      className="vs-input vs-mono"
+                      placeholder="rival.com"
+                      value={rivalXrayInput}
+                      onChange={(e) => setRivalXrayInput(e.target.value)}
+                      style={{
+                        flex: 1,
+                        padding: '5px 8px',
+                        fontSize: '11.5px',
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={rivalXrayLoading}
+                      className="vs-btn"
+                      style={{ padding: '5px 10px', fontSize: '11.5px' }}
+                    >
+                      {rivalXrayLoading ? '...' : 'X-Ray →'}
+                    </button>
+                  </form>
+
+                  {rivalXrayError ? (
+                    <div
+                      style={{
+                        marginTop: '6px',
+                        fontSize: '11px',
+                        color: 'var(--vs-critical-fg)',
+                      }}
+                    >
+                      {rivalXrayError}
+                    </div>
+                  ) : null}
+
+                  {rivalXrayResult ? (
+                    <div
+                      style={{
+                        marginTop: '8px',
+                        paddingTop: '8px',
+                        borderTop: '1px solid var(--vs-border)',
+                        display: 'grid',
+                        gap: '5px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '4px',
+                        }}
+                      >
+                        <strong className="vs-mono" style={{ fontSize: '11px' }}>
+                          {rivalXrayResult.ownHostname} ({rivalXrayResult.ownTechnicalScore}) vs.{' '}
+                          {rivalXrayResult.rivalHostname} ({rivalXrayResult.rivalTechnicalScore})
+                        </strong>
+                        <StatusBadge
+                          tone={rivalXrayResult.scoreDelta >= 0 ? 'pass' : 'warn'}
+                        >
+                          {rivalXrayResult.scoreDelta >= 0
+                            ? `+${rivalXrayResult.scoreDelta} PTS`
+                            : `${rivalXrayResult.scoreDelta} PTS`}
+                        </StatusBadge>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          color: 'var(--vs-ink-secondary)',
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        {rivalXrayResult.overtakeActionPlan[0]}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -2511,6 +2678,17 @@ export default function App(): React.ReactElement {
                       style={{ width: '100%', fontSize: '11.5px', padding: '6px 10px' }}
                     >
                       Preview White-Label Sandbox →
+                    </a>
+                    <a
+                      href={`${cleanOrigin}/vs?a=${encodeURIComponent(
+                        audit.hostname
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="vs-btn vs-btn-secondary"
+                      style={{ width: '100%', fontSize: '11.5px', padding: '6px 10px' }}
+                    >
+                      Compare vs. Competitor (/vs) →
                     </a>
                   </div>
                 </div>
