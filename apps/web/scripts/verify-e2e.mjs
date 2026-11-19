@@ -534,9 +534,9 @@ async function run() {
     const homeAfterRes = await fetch(`${BASE}/`);
     const homeAfterHtml = await homeAfterRes.text();
     assert.ok(
-      homeAfterHtml.includes('READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION') &&
+      homeAfterHtml.includes('CORE PLATFORM TOOLS') &&
         homeAfterHtml.includes('FREE AI SEARCH &amp; AGENT READINESS AUDIT'),
-      'Expected Read-Only vs. Read-Write Execution comparison and Free Audit box on /'
+      'Expected Core Platform Tools showcase and Free Audit box on /'
     );
     const homeAfterVisible = homeAfterHtml
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
@@ -4174,19 +4174,18 @@ async function run() {
 
     const svgTagCountOnHome = (m81HomeHtml.match(/<svg\b/gi) ?? []).length;
     assert.ok(
-      svgTagCountOnHome >= 8,
-      `Expected >= 8 inline motion SVGs on redesigned homepage (Hero + Sample Business Storyboard + 6 Standout Cards), got ${svgTagCountOnHome}`
+      svgTagCountOnHome >= 4,
+      `Expected >= 4 inline SVGs on focused homepage (4 Core Tool Visuals), got ${svgTagCountOnHome}`
     );
     assert.ok(
-      m81HomeHtml.includes('id="sample-workflow"') &&
-        m81HomeHtml.includes('Summit Dental Studio') &&
-        m81HomeHtml.includes('id="standout-features"') &&
+      m81HomeHtml.includes('id="core-tools"') &&
+        m81HomeHtml.includes('Explore All Tools') &&
         m81HomeHtml.includes('vs-bezel-obsidian') &&
         m81HomeHtml.includes('OR TEST A LIVE BENCHMARK DOMAIN:') &&
         m81HomeHtml.includes('href="/agencies#sandbox"') &&
         m81HomeHtml.includes('href="/connectors"') &&
         m81HomeHtml.includes('href="/tools/json-ld-ai-schema-checker"'),
-      'Expected redesigned / to render SampleBusinessMotionShowcase, StandoutFeaturesBento, obsidian grader bezel, 1-click benchmark pills, and direct links to standout tools'
+      'Expected focused / to render #scan obsidian grader bezel, #core-tools 4-card visual grid, and Explore All Tools handoff'
     );
 
     assert.ok(
@@ -4582,17 +4581,21 @@ async function run() {
     assert.ok(
       m90HomeHtml.includes('Verisource checks') &&
         m90HomeHtml.includes('id="scan"') &&
-        m90HomeHtml.includes('id="agents"') &&
-        m90HomeHtml.includes('id="any-site"') &&
-        m90HomeHtml.includes('id="demo"') &&
+        m90HomeHtml.includes('id="core-tools"') &&
         m90HomeHtml.includes('npx @verisource/cli'),
-      'Expected 8-band Dark Studio homepage with #scan, #agents, #any-site, #demo, and @verisource/cli pill'
+      'Expected focused Dark Studio homepage with #scan, #core-tools, and @verisource/cli reference'
     );
     assert.ok(
-      m90FeaturesHtml.includes('verisource log vercel | supabase | cloudflare') &&
+      m90FeaturesHtml.includes('id="free-tests"') &&
+        m90FeaturesHtml.includes('id="standout-features"') &&
+        m90FeaturesHtml.includes('id="sample-workflow"') &&
+        m90FeaturesHtml.includes('Summit Dental Studio') &&
+        m90FeaturesHtml.includes('id="agency-suite"') &&
+        m90FeaturesHtml.includes('id="developer-tools"') &&
+        m90FeaturesHtml.includes('verisource log vercel | supabase | cloudflare') &&
         m90FeaturesHtml.includes('verisource map') &&
         m90FeaturesHtml.includes('application/ld+json'),
-      'Expected 11-capability /features page with route mapper, log correlation, and FAQPage JSON-LD'
+      'Expected 5-zone /features All Tools & Tests catalog with #free-tests, StandoutFeaturesBento, SampleBusinessMotionShowcase, #agency-suite, #developer-tools, and FAQPage JSON-LD'
     );
     assert.ok(
       m90ScannerHtml.includes('VerisourceScan/1.0') &&
@@ -5381,7 +5384,27 @@ async function run() {
       m111UniqueLinks.size >= 140,
       `Expected /reports leaderboard to index >= 140 unique domains, got ${m111UniqueLinks.size}`
     );
-    console.log('✔ [102/102] M111 Static SSR /vs/[matchup] Pages, Sitemap Indexing & 140-Domain /reports Hub verified!');
+    console.log('✔ [102/103] M111 Static SSR /vs/[matchup] Pages, Sitemap Indexing & 140-Domain /reports Hub verified!');
+
+    // 101. M112–M113 De-Cluttered 4-Section Homepage + 5-Zone /features Catalog + 150-Domain /reports Milestone
+    const [m113MatchupRes, m113ReportsRes] = await Promise.all([
+      fetch(`${BASE}/vs/llamaindex-ai-vs-langchain-com`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m113MatchupRes.status, 200);
+    assert.equal(m113ReportsRes.status, 200);
+
+    const m113ReportsHtml = await m113ReportsRes.text();
+    const m113UniqueLinks = new Set(
+      Array.from(
+        m113ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m113UniqueLinks.size >= 150,
+      `Expected /reports leaderboard to index >= 150 unique domains, got ${m113UniqueLinks.size}`
+    );
+    console.log('✔ [103/103] M112–M113 De-Cluttered Homepage, 5-Zone All Tools Catalog (/features), 22 /vs/[matchup] Pages & 150-Domain /reports Milestone verified!');
   } finally {
     server.kill();
   }

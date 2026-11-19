@@ -1,162 +1,153 @@
 import Link from 'next/link';
 import React from 'react';
-import { CopyCommandPill, StatusBadge } from '@verisource/ui';
-import { AgentSplitPlayground } from '../components/AgentSplitPlayground';
-import { HeroCommandSwitcher } from '../components/HeroCommandSwitcher';
+import { StatusBadge } from '@verisource/ui';
 import { PricingLadderSection } from '../components/PricingLadderSection';
 import { PublicGraderClient } from '../components/PublicGraderClient';
-import { SampleBusinessMotionShowcase } from '../components/SampleBusinessMotionShowcase';
-import { StandoutFeaturesBento } from '../components/StandoutFeaturesBento';
-import { SuiteReplayPlayground } from '../components/SuiteReplayPlayground';
-import { TokenBenchmarkCard } from '../components/TokenBenchmarkCard';
 
 export default function HomePage(): React.ReactElement {
   return (
     <div>
-      {/* Band 1 — Centered Full-Viewport Obsidian & Warm Brass Studio Hero */}
+      {/* Section 1 — Calm Hero + Immediate Free Website Audit */}
       <section
+        id="scan"
         className="vs-arch-backdrop"
         style={{
-          minHeight: 'calc(92svh - 60px)',
-          display: 'flex',
-          alignItems: 'center',
           borderBottom: '1px solid var(--vs-border)',
-          padding: '64px 0 72px 0',
+          padding: '52px 0 68px 0',
         }}
       >
-        <div
-          className="vs-container"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            maxWidth: '940px',
-          }}
-        >
+        <div className="vs-container" style={{ maxWidth: '980px' }}>
           <div
             style={{
               display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
+              flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
-              marginBottom: '22px',
+              textAlign: 'center',
+              marginBottom: '32px',
             }}
           >
-            <StatusBadge tone="pass">
-              CHATGPT · PERPLEXITY · GEMINI · CLAUDE
-            </StatusBadge>
-            <StatusBadge>1-CLICK AI FIX PROMPT · CLI · /MCP</StatusBadge>
-            <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
-          </div>
-
-          <h1
-            style={{
-              fontSize: 'clamp(34px, 4.8vw, 58px)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.038em',
-              fontWeight: 700,
-              margin: '0 0 20px 0',
-              maxWidth: '18.5ch',
-            }}
-          >
-            Control how AI search recommends your brand.{' '}
-            <span
+            <div
               style={{
-                display: 'block',
-                color: 'var(--vs-accent)',
-                marginTop: '4px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '18px',
               }}
             >
-              Verisource checks—and ships the fix.
-            </span>
-          </h1>
+              <StatusBadge tone="pass">
+                CHATGPT · PERPLEXITY · GEMINI · CLAUDE
+              </StatusBadge>
+              <StatusBadge>SCHEMA &amp; FACT VERIFIED</StatusBadge>
+            </div>
 
-          <p
-            style={{
-              fontSize: '16.5px',
-              lineHeight: 1.64,
-              color: 'var(--vs-ink-secondary)',
-              margin: '0 0 28px 0',
-              maxWidth: '62ch',
-            }}
-          >
-            AI-referred buyers convert at{' '}
-            <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-              14.2%–15.9%
-            </strong>{' '}
-            vs. Google organic&rsquo;s{' '}
-            <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-              1.76%–2.8%
-            </strong>
-            . Verisource checks real buyer citations across 3 AI engines, flags
-            invented pricing claims and broken pages, and gives your team—or
-            your coding agent—validated{' '}
-            <code className="vs-mono">JSON-LD</code>,{' '}
-            <code className="vs-mono">/agents.md</code>, and real-browser{' '}
-            <code className="vs-mono">PASS/FAIL</code> proof.
-          </p>
+            <h1
+              style={{
+                fontSize: 'clamp(32px, 4.5vw, 52px)',
+                lineHeight: 1.07,
+                letterSpacing: '-0.036em',
+                fontWeight: 700,
+                margin: '0 0 16px 0',
+                maxWidth: '19ch',
+              }}
+            >
+              Control how AI search recommends your brand.{' '}
+              <span
+                style={{
+                  display: 'block',
+                  color: 'var(--vs-accent)',
+                  marginTop: '4px',
+                }}
+              >
+                Verisource checks—and ships the fix.
+              </span>
+            </h1>
 
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '12px',
-              marginBottom: '28px',
-            }}
-          >
-            <a
-              href="#scan"
-              className="vs-btn"
-              style={{ padding: '12px 22px', fontSize: '14px' }}
+            <p
+              style={{
+                fontSize: '16px',
+                lineHeight: 1.62,
+                color: 'var(--vs-ink-secondary)',
+                margin: '0 0 22px 0',
+                maxWidth: '58ch',
+              }}
             >
-              Scan Your Site Free ↓
-            </a>
-            <Link
-              href="/pricing"
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '12px 20px', fontSize: '14px' }}
+              Buyers arriving from AI search convert at{' '}
+              <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+                14.2%–15.9%
+              </strong>{' '}
+              vs. Google organic&rsquo;s{' '}
+              <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
+                1.76%–2.8%
+              </strong>
+              . Test your website below to see what AI engines tell customers,
+              catch wrong pricing claims, and copy one ready-made fix for your
+              platform.
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                gap: '10px',
+              }}
             >
-              Start 7-Day Free Trial ($0 Today) →
-            </Link>
-            <Link
-              href="/features"
-              className="vs-btn vs-btn-secondary"
-              style={{ padding: '12px 18px', fontSize: '14px' }}
-            >
-              Explore All 11 Capabilities →
-            </Link>
+              <Link
+                href="/features"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '10px 18px', fontSize: '13.5px' }}
+              >
+                Explore All Tools &amp; Live Tests →
+              </Link>
+              <Link
+                href="/pricing"
+                className="vs-btn vs-btn-secondary"
+                style={{ padding: '10px 18px', fontSize: '13.5px' }}
+              >
+                Start 7-Day Free Trial ($0 Today) →
+              </Link>
+            </div>
           </div>
 
-          <HeroCommandSwitcher />
+          {/* Live Free 60-Second Website Test */}
+          <div id="grader">
+            <div id="audit" className="vs-bezel-obsidian">
+              <PublicGraderClient />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Band 2 — Focused Live Site, AI Readiness & Broken-Link Scanner */}
-      <section id="scan" className="vs-sec-alt">
-        <div className="vs-container">
+      {/* Section 2 — 3 Clear Steps: How Verisource Works */}
+      <section
+        style={{
+          padding: '64px 0',
+          borderBottom: '1px solid var(--vs-border)',
+          background: 'var(--vs-bg)',
+        }}
+      >
+        <div className="vs-container" style={{ maxWidth: '1040px' }}>
           <div
             style={{
               textAlign: 'center',
-              maxWidth: '680px',
-              margin: '0 auto 26px auto',
+              maxWidth: '640px',
+              margin: '0 auto 34px auto',
             }}
           >
             <div className="vs-kicker" style={{ marginBottom: '8px' }}>
-              Free · No signup required
+              HOW VERISOURCE WORKS · NO CODING REQUIRED
             </div>
             <h2
               style={{
-                fontSize: 'clamp(25px, 3vw, 34px)',
+                fontSize: 'clamp(24px, 3vw, 33px)',
                 fontWeight: 700,
-                letterSpacing: '-0.03em',
+                letterSpacing: '-0.028em',
                 margin: '0 0 10px 0',
               }}
             >
-              Scan your site for AI visibility, wrong prices, and broken links.
+              From first website test to verified AI visibility in three steps.
             </h2>
             <p
               style={{
@@ -166,359 +157,875 @@ export default function HomePage(): React.ReactElement {
                 color: 'var(--vs-ink-secondary)',
               }}
             >
-              Checks ChatGPT, Gemini, and Perplexity buyer mentions,{' '}
-              <code className="vs-mono">GPTBot</code>/
-              <code className="vs-mono">PerplexityBot</code> access,{' '}
-              <code className="vs-mono">JSON-LD</code> facts, and internal link
-              health—then drafts one ready-to-paste prompt for your AI tool.
+              Built so store owners, marketers, and agencies can fix their site
+              in minutes—while giving developers full CLI and API control when
+              they want it.
             </p>
           </div>
 
-          <div id="audit" className="vs-bezel-obsidian">
-            <PublicGraderClient />
-          </div>
-
-          <div
-            className="vs-card"
-            style={{
-              marginTop: '18px',
-              padding: '13px 18px',
-              background: 'var(--vs-surface)',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px 18px',
-              fontSize: '12.5px',
-              color: 'var(--vs-ink-secondary)',
-            }}
-          >
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 18px' }}>
-              <span>
-                <strong className="vs-mono" style={{ color: 'var(--vs-accent)' }}>
-                  95%
-                </strong>{' '}
-                of 40 audited sites lack <code className="vs-mono">/agents.md</code>
-              </span>
-              <span>
-                <strong className="vs-mono" style={{ color: 'var(--vs-pass-fg)' }}>
-                  14.2%–15.9%
-                </strong>{' '}
-                AI referral buyer conversion
-              </span>
-              <span>
-                <strong className="vs-mono" style={{ color: 'var(--vs-ink)' }}>
-                  7 CMS
-                </strong>{' '}
-                platforms auto-detected in 1 click
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px' }}>
-              <Link
-                href="/benchmarks/ai-search-readiness-2026"
+          <div className="vs-grid-3" style={{ gap: '20px' }}>
+            <div className="vs-card" style={{ padding: '22px 24px' }}>
+              <div
+                className="vs-mono"
                 style={{
-                  color: 'var(--vs-ink)',
-                  fontWeight: 600,
-                  textDecoration: 'underline',
-                }}
-              >
-                2026 40-Domain Study →
-              </Link>
-              <Link
-                href="/agencies#sandbox"
-                style={{
-                  color: 'var(--vs-accent)',
-                  fontWeight: 600,
-                  textDecoration: 'underline',
-                }}
-              >
-                Agency White-Label Sandbox →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Band 3 — Split-Screen Coding Agent & AI Verification Playground */}
-      <section id="agents" className="vs-sec">
-        <div className="vs-container">
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'flex-end',
-              justifyContent: 'space-between',
-              gap: '16px',
-              marginBottom: '22px',
-            }}
-          >
-            <div style={{ maxWidth: '680px' }}>
-              <div className="vs-kicker" style={{ marginBottom: '8px' }}>
-                For Claude Code, Cursor, Codex, Antigravity &amp; ChatGPT
-              </div>
-              <h2
-                style={{
-                  fontSize: 'clamp(25px, 3vw, 35px)',
+                  fontSize: '11.5px',
                   fontWeight: 700,
-                  letterSpacing: '-0.03em',
-                  margin: '0 0 10px 0',
+                  color: 'var(--vs-accent)',
+                  marginBottom: '8px',
                 }}
               >
-                Your AI updates your site. Verisource proves it works in the real world.
-              </h2>
+                STEP 01 · TEST YOUR WEBSITE
+              </div>
+              <h3
+                style={{
+                  fontSize: '17px',
+                  fontWeight: 700,
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.015em',
+                }}
+              >
+                See what AI tells buyers—and what blocks bots.
+              </h3>
               <p
                 style={{
                   margin: 0,
-                  fontSize: '14.5px',
+                  fontSize: '13.5px',
                   lineHeight: 1.6,
                   color: 'var(--vs-ink-secondary)',
                 }}
               >
-                Whether you paste our 1-Click Fix Prompt into ChatGPT or wire{' '}
-                <code className="vs-mono">@verisource/cli</code> +{' '}
-                <code className="vs-mono">/mcp</code> into a coding agent,
-                Verisource verifies live schema, bot readability, browser flows,
-                and backend error logs before anything ships.
+                Verisource checks ChatGPT, Gemini, and Perplexity answers, tests{' '}
+                <code className="vs-mono">GPTBot</code> and{' '}
+                <code className="vs-mono">PerplexityBot</code> firewall rules,
+                and scans up to 20 pages for broken links.
               </p>
             </div>
-            <CopyCommandPill command="npx @verisource/cli agent --skill --install all" />
-          </div>
 
-          <AgentSplitPlayground />
-        </div>
-      </section>
-
-      {/* Band 4 — Codebase-Free Site Checks & Token Overhead Benchmark */}
-      <section id="any-site" className="vs-sec-alt">
-        <div className="vs-container">
-          <div
-            className="vs-grid-split"
-            style={{
-              alignItems: 'center',
-              gap: '28px',
-              marginBottom: '28px',
-            }}
-          >
-            <div>
-              <div className="vs-kicker" style={{ marginBottom: '8px' }}>
-                verisource scan &lt;any-url&gt; · mcp.verisource.dev/mcp
-              </div>
-              <h2
+            <div className="vs-card" style={{ padding: '22px 24px' }}>
+              <div
+                className="vs-mono"
                 style={{
-                  fontSize: 'clamp(24px, 2.9vw, 33px)',
+                  fontSize: '11.5px',
                   fontWeight: 700,
-                  letterSpacing: '-0.03em',
-                  margin: '0 0 12px 0',
+                  color: 'var(--vs-accent)',
+                  marginBottom: '8px',
                 }}
               >
-                No source code needed. Point it at any live store, SaaS app, or rival domain.
-              </h2>
+                STEP 02 · COPY 1 AI PROMPT
+              </div>
+              <h3
+                style={{
+                  fontSize: '17px',
+                  fontWeight: 700,
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.015em',
+                }}
+              >
+                Auto-tailored to how your website is built.
+              </h3>
               <p
                 style={{
-                  margin: '0 0 18px 0',
-                  fontSize: '14.5px',
-                  lineHeight: 1.62,
+                  margin: 0,
+                  fontSize: '13.5px',
+                  lineHeight: 1.6,
                   color: 'var(--vs-ink-secondary)',
                 }}
               >
-                Audit Shopify storefronts (including{' '}
-                <code className="vs-mono">/api/ucp/mcp</code>), WordPress,
-                Webflow, or custom Next.js apps over live HTTP. Compare your
-                domain head-to-head against a competitor, inspect exact{' '}
-                <code className="vs-mono">GPTBot</code> DOM streams, and drill
-                into short handle IDs without flooding your agent&rsquo;s context
-                window.
+                Auto-detects Shopify, WordPress, Webflow, Wix, Squarespace,
+                Framer, or Next.js—giving you one prompt to paste into ChatGPT,
+                Claude, Cursor, or Shopify Sidekick.
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
-                  30s MCP Setup Guide →
-                </Link>
-                <Link href="/features" className="vs-btn vs-btn-secondary">
-                  CLI &amp; Scanner Specs →
-                </Link>
-              </div>
             </div>
 
-            <div className="vs-terminal-frame">
-              <div className="vs-terminal-chrome">
-                <span>Terminal · Live Multi-Page + GEO Check</span>
-                <StatusBadge tone="pass">EXIT 0 · 1.6S</StatusBadge>
+            <div className="vs-card" style={{ padding: '22px 24px' }}>
+              <div
+                className="vs-mono"
+                style={{
+                  fontSize: '11.5px',
+                  fontWeight: 700,
+                  color: 'var(--vs-pass-fg)',
+                  marginBottom: '8px',
+                }}
+              >
+                STEP 03 · VERIFY &amp; TRACK ON YOUR SCHEDULE
               </div>
-              <div className="vs-terminal-body">
-                <div style={{ color: '#EEF1F6', fontWeight: 600, marginBottom: '6px' }}>
-                  <span style={{ color: 'var(--vs-accent)', marginRight: '8px' }}>$</span>
-                  verisource scan https://acmecloud.io --depth 2
-                </div>
-                <div style={{ color: 'var(--vs-ink-muted)', marginBottom: '4px' }}>
-                  robots.txt obeyed · probing 14 routes + 3 AI engines...
-                </div>
-                <div style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
-                  ✓ [bots]   GPTBot, OAI-SearchBot, PerplexityBot  HTTP 200
-                </div>
-                <div style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
-                  ✓ [schema] Organization + OfferCatalog + FAQPage  valid
-                </div>
-                <div style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
-                  ✓ [truth]  0 pricing or policy hallucinations     100%
-                </div>
-                <div style={{ color: 'var(--vs-pass-fg)', fontWeight: 600, marginTop: '8px' }}>
-                  PASS  acmecloud.io · 14/14 pages · 38/38 links · 1.6s
-                </div>
-              </div>
+              <h3
+                style={{
+                  fontSize: '17px',
+                  fontWeight: 700,
+                  margin: '0 0 8px 0',
+                  letterSpacing: '-0.015em',
+                }}
+              >
+                Confirm 4/4 fixes live and track weekly gains.
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '13.5px',
+                  lineHeight: 1.6,
+                  color: 'var(--vs-ink-secondary)',
+                }}
+              >
+                Click once to verify your schema and AI fact files return{' '}
+                <code className="vs-mono">HTTP 200</code>, then receive
+                automated Daily, Weekly, or Monthly score reports.
+              </p>
             </div>
           </div>
-
-          <div style={{ marginBottom: '12px' }}>
-            <div className="vs-eyebrow">
-              READ-ONLY DASHBOARDS VS. READ-WRITE EXECUTION &amp; COMPACT VERIFICATION
-            </div>
-          </div>
-          <TokenBenchmarkCard />
         </div>
       </section>
 
-      {/* Band 5 — Guided No-Code Recorder & Parallel 4-Target Suite Replay */}
-      <section id="demo" className="vs-sec">
-        <div className="vs-container">
-          <div style={{ maxWidth: '720px', marginBottom: '20px' }}>
-            <div className="vs-kicker" style={{ marginBottom: '6px' }}>
-              HOW VERISOURCE WORKS · FOR FOUNDERS, AGENCIES &amp; TEAMS
-            </div>
-            <h2
-              style={{
-                fontSize: 'clamp(25px, 3vw, 34px)',
-                fontWeight: 700,
-                letterSpacing: '-0.03em',
-                margin: '0 0 10px 0',
-              }}
-            >
-              Fix your site without writing code—or replay every key flow after a deploy.
-            </h2>
-            <p
-              style={{
-                margin: 0,
-                fontSize: '14.5px',
-                lineHeight: 1.6,
-                color: 'var(--vs-ink-secondary)',
-              }}
-            >
-              Switch Console Guided Mode on for step-by-step instructions tailored
-              to your website builder, record browser checks once in Chrome, or
-              batch-audit 15 agency client domains into white-label{' '}
-              <code className="vs-mono">/audit/[slug]</code> pitch links.
-            </p>
-          </div>
-
+      {/* Section 3 — The 4 Core Tools, Clearly Explained & Visualized */}
+      <section
+        id="core-tools"
+        className="vs-sec-alt"
+        style={{ padding: '72px 0' }}
+      >
+        <div className="vs-container" style={{ maxWidth: '1060px' }}>
           <div
-            className="vs-card vs-ledger-strip-3"
-            style={{ marginBottom: '20px', overflow: 'hidden' }}
-          >
-            <div style={{ padding: '14px 18px' }}>
-              <div className="vs-eyebrow" style={{ color: 'var(--vs-accent)', marginBottom: '4px' }}>
-                STEP 01 · DIAGNOSE &amp; CRAWL
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-                Scan AI citations, wrong prices, and broken links across your pages.
-              </div>
-            </div>
-            <div style={{ padding: '14px 18px', background: 'var(--vs-surface-warm)' }}>
-              <div className="vs-eyebrow" style={{ color: 'var(--vs-accent)', marginBottom: '4px' }}>
-                STEP 02 · COPY 1 AI PROMPT
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-                Paste 1 ready-made prompt into ChatGPT, Claude, Cursor, or Shopify.
-              </div>
-            </div>
-            <div style={{ padding: '14px 18px' }}>
-              <div className="vs-eyebrow" style={{ color: 'var(--vs-pass-fg)', marginBottom: '4px' }}>
-                STEP 03 · VERIFY LIVE
-              </div>
-              <div style={{ fontSize: '13px', color: 'var(--vs-ink-secondary)' }}>
-                Confirm 4/4 files live, replay flows, and track weekly Share-of-Voice.
-              </div>
-            </div>
-          </div>
-
-          <SuiteReplayPlayground />
-        </div>
-      </section>
-
-      {/* Band 6 — Real-Business Uplift Storyboard & 6-Capability Motion Showcase */}
-      <section className="vs-sec-alt">
-        <div className="vs-container">
-          <SampleBusinessMotionShowcase />
-          <StandoutFeaturesBento />
-        </div>
-      </section>
-
-      {/* Band 7 — Transparent Pricing Ladder ($19 Pass · $49 Starter · $99 Pro+MCP · $249 Agency) */}
-      <section className="vs-sec">
-        <div className="vs-container">
-          <PricingLadderSection />
-        </div>
-      </section>
-
-      {/* Band 8 — Closing High-Contrast Conversion Band */}
-      <section className="vs-sec-alt" style={{ borderBottom: 'none' }}>
-        <div className="vs-container">
-          <div
-            className="vs-band-obsidian"
             style={{
-              padding: '36px 32px',
               display: 'flex',
               flexWrap: 'wrap',
-              alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '22px',
+              alignItems: 'flex-end',
+              gap: '16px',
+              marginBottom: '32px',
             }}
           >
             <div style={{ maxWidth: '640px' }}>
               <div className="vs-kicker" style={{ marginBottom: '8px' }}>
-                Start in 60 seconds · $0.00 due today on 7-day free trial
+                CORE PLATFORM TOOLS
               </div>
               <h2
                 style={{
-                  margin: '0 0 10px 0',
-                  fontSize: 'clamp(22px, 2.8vw, 30px)',
+                  fontSize: 'clamp(25px, 3.1vw, 35px)',
                   fontWeight: 700,
-                  letterSpacing: '-0.025em',
-                  color: 'var(--vs-ink)',
+                  letterSpacing: '-0.03em',
+                  margin: '0 0 10px 0',
                 }}
               >
-                Stop letting AI search quote wrong prices or send your buyers to competitors.
+                Four essential tools that turn AI search into real customers.
               </h2>
               <p
                 style={{
                   margin: 0,
-                  fontSize: '14px',
+                  fontSize: '14.5px',
                   lineHeight: 1.6,
                   color: 'var(--vs-ink-secondary)',
                 }}
               >
-                Run a free audit on your domain right now, or start a 7-day free
-                trial ($0.00 charged today, cancel in 1 click) to activate your
-                1-Click AI Fix Prompt, 20-page site health crawls, and weekly
-                Share-of-Voice tracking.
+                Each tool solves one clear problem—without burying you in noisy
+                charts or unfamiliar developer settings.
               </p>
             </div>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-              <a
-                href="#scan"
-                className="vs-btn vs-btn-secondary"
-                style={{ padding: '11px 18px' }}
+            <Link href="/features" className="vs-btn">
+              Explore All Tools &amp; Live Tests →
+            </Link>
+          </div>
+
+          <div className="vs-grid-2" style={{ gap: '24px' }}>
+            {/* Core Tool 1: AI Visibility & Competitor X-Ray */}
+            <div className="vs-bezel">
+              <div
+                className="vs-card"
+                style={{
+                  padding: '24px',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '18px',
+                }}
               >
-                Scan My Site Free ↑
-              </a>
-              <Link
-                href="/pricing"
-                className="vs-btn"
-                style={{ padding: '11px 20px' }}
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <span className="vs-eyebrow">
+                      01 · AI VISIBILITY &amp; RIVAL X-RAY
+                    </span>
+                    <StatusBadge tone="pass">3 AI ENGINES</StatusBadge>
+                  </div>
+
+                  {/* Visual 1: Conversion & Citation Bar Schematic */}
+                  <div
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid var(--vs-border)',
+                      background: '#0E1116',
+                      padding: '14px 16px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 420 112"
+                      width="100%"
+                      role="img"
+                      aria-label="Comparison chart showing Cited AI Search Clicks converting at 14.9% versus Traditional Search at 2.1%."
+                    >
+                      <text
+                        x="6"
+                        y="18"
+                        fill="#6EE7B7"
+                        fontSize="10"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        Cited AI Search Clicks (14.2%–15.9% buyer conversion)
+                      </text>
+                      <rect
+                        x="6"
+                        y="26"
+                        width="380"
+                        height="20"
+                        rx="4"
+                        fill="#171C26"
+                      />
+                      <rect
+                        x="6"
+                        y="26"
+                        width="334"
+                        height="20"
+                        rx="4"
+                        fill="#059669"
+                      />
+                      <text
+                        x="350"
+                        y="40"
+                        fill="#6EE7B7"
+                        fontSize="10"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        6.8x
+                      </text>
+
+                      <text
+                        x="6"
+                        y="68"
+                        fill="#EEF1F6"
+                        fontSize="10"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="600"
+                      >
+                        Traditional Search (2.1%)
+                      </text>
+                      <rect
+                        x="6"
+                        y="76"
+                        width="380"
+                        height="18"
+                        rx="4"
+                        fill="#171C26"
+                      />
+                      <rect
+                        x="6"
+                        y="76"
+                        width="58"
+                        height="18"
+                        rx="4"
+                        fill="#64748B"
+                      />
+                    </svg>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: '18.5px',
+                      fontWeight: 700,
+                      margin: '0 0 8px 0',
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    See when AI recommends you—or sends buyers to a competitor.
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Track real buyer questions across ChatGPT, Gemini, and
+                    Perplexity, separate brand mentions from clickable website
+                    links, and compare any two domains head to head.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  <Link href="/vs" className="vs-btn vs-btn-secondary">
+                    Compare Two Domains Free →
+                  </Link>
+                  <Link href="/reports" className="vs-btn vs-btn-secondary">
+                    150+ Brand Scorecards →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Tool 2: Wrong-Price & Brand Fact Watchdog */}
+            <div className="vs-bezel">
+              <div
+                className="vs-card"
+                style={{
+                  padding: '24px',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '18px',
+                }}
               >
-                Start 7-Day Free Trial →
-              </Link>
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <span className="vs-eyebrow">
+                      02 · WRONG-PRICE &amp; FACT WATCHDOG
+                    </span>
+                    <StatusBadge tone="warn">TRUTH GUARDRAILS</StatusBadge>
+                  </div>
+
+                  {/* Visual 2: Wrong AI Price vs Verified Truth */}
+                  <div
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid var(--vs-border)',
+                      background: '#0E1116',
+                      padding: '14px 16px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 420 112"
+                      width="100%"
+                      role="img"
+                      aria-label="Diagram comparing a flagged inaccurate AI price quote against your verified website pricing."
+                    >
+                      <rect
+                        x="6"
+                        y="10"
+                        width="194"
+                        height="92"
+                        rx="6"
+                        fill="#261317"
+                        stroke="#7F1D1D"
+                      />
+                      <text
+                        x="18"
+                        y="32"
+                        fill="#FCA5A5"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        ✕ FLAGGED AI CLAIM
+                      </text>
+                      <text
+                        x="18"
+                        y="56"
+                        fill="#EEF1F6"
+                        fontSize="11.5"
+                        fontFamily="var(--vs-sans)"
+                        fontWeight="600"
+                      >
+                        &ldquo;$19/mo unlimited seats&rdquo;
+                      </text>
+                      <text
+                        x="18"
+                        y="78"
+                        fill="#94A3B8"
+                        fontSize="9.6"
+                        fontFamily="var(--vs-mono)"
+                      >
+                        Outdated quote caught
+                      </text>
+
+                      <rect
+                        x="218"
+                        y="10"
+                        width="196"
+                        height="92"
+                        rx="6"
+                        fill="#0D231D"
+                        stroke="#065F46"
+                      />
+                      <text
+                        x="230"
+                        y="32"
+                        fill="#6EE7B7"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        ✓ VERIFIED TRUTH SHEET
+                      </text>
+                      <text
+                        x="230"
+                        y="56"
+                        fill="#EEF1F6"
+                        fontSize="11.5"
+                        fontFamily="var(--vs-sans)"
+                        fontWeight="600"
+                      >
+                        &ldquo;$49/mo Starter (5 seats)&rdquo;
+                      </text>
+                      <text
+                        x="230"
+                        y="78"
+                        fill="#6EE7B7"
+                        fontSize="9.6"
+                        fontFamily="var(--vs-mono)"
+                      >
+                        Published to /agents.md
+                      </text>
+                    </svg>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: '18.5px',
+                      fontWeight: 700,
+                      margin: '0 0 8px 0',
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    Stop AI assistants from quoting wrong prices or old rules.
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Auto-drafts a Brand Truth Sheet from your website, flags
+                    inaccurate AI claims, and sends Daily, Weekly, or Monthly
+                    reports on whichever day you choose—never nagging twice for
+                    the same issue.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  <Link href="/sample-audit" className="vs-btn vs-btn-secondary">
+                    View Sample Audit →
+                  </Link>
+                  <Link href="/tutorial" className="vs-btn vs-btn-secondary">
+                    90-Second Product Tour →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Tool 3: 1-Click 7-Platform Fix Generator */}
+            <div className="vs-bezel">
+              <div
+                className="vs-card"
+                style={{
+                  padding: '24px',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '18px',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <span className="vs-eyebrow">
+                      03 · 1-CLICK WEBSITE FIX GENERATOR
+                    </span>
+                    <StatusBadge tone="pass">7 PLATFORMS</StatusBadge>
+                  </div>
+
+                  {/* Visual 3: 7-CMS Auto-Detect -> 4/4 Verified Live */}
+                  <div
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid var(--vs-border)',
+                      background: '#0E1116',
+                      padding: '14px 16px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 420 112"
+                      width="100%"
+                      role="img"
+                      aria-label="Flowchart showing auto-detected CMS platform generating JSON-LD, /llms.txt, and /agents.md verified live."
+                    >
+                      <rect
+                        x="6"
+                        y="18"
+                        width="168"
+                        height="76"
+                        rx="6"
+                        fill="#171C26"
+                        stroke="#2B3344"
+                      />
+                      <text
+                        x="18"
+                        y="40"
+                        fill="#E5A93C"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        AUTO-DETECTED STACK
+                      </text>
+                      <text
+                        x="18"
+                        y="60"
+                        fill="#EEF1F6"
+                        fontSize="10.5"
+                        fontFamily="var(--vs-sans)"
+                      >
+                        Shopify · WordPress
+                      </text>
+                      <text
+                        x="18"
+                        y="77"
+                        fill="#94A3B8"
+                        fontSize="10"
+                        fontFamily="var(--vs-sans)"
+                      >
+                        Webflow · Wix · Next.js
+                      </text>
+
+                      <path
+                        className="vs-signal-path"
+                        d="M 180 56 L 224 56"
+                        stroke="#E5A93C"
+                        strokeWidth="2"
+                        fill="none"
+                      />
+
+                      <rect
+                        x="230"
+                        y="18"
+                        width="184"
+                        height="76"
+                        rx="6"
+                        fill="#0D231D"
+                        stroke="#065F46"
+                      />
+                      <text
+                        x="242"
+                        y="40"
+                        fill="#6EE7B7"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        ✓ 4/4 VERIFIED LIVE
+                      </text>
+                      <text
+                        x="242"
+                        y="60"
+                        fill="#EEF1F6"
+                        fontSize="10.2"
+                        fontFamily="var(--vs-mono)"
+                      >
+                        JSON-LD · /llms.txt
+                      </text>
+                      <text
+                        x="242"
+                        y="77"
+                        fill="#EEF1F6"
+                        fontSize="10.2"
+                        fontFamily="var(--vs-mono)"
+                      >
+                        /agents.md · Bot WAF 200
+                      </text>
+                    </svg>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: '18.5px',
+                      fontWeight: 700,
+                      margin: '0 0 8px 0',
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    Generate verified schema, AI fact files, and rival pages in one click.
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Writes syntax-checked <code className="vs-mono">JSON-LD</code>{' '}
+                    pricing and FAQ schemas, <code className="vs-mono">/llms.txt</code>,{' '}
+                    <code className="vs-mono">/agents.md</code> (or{' '}
+                    <code className="vs-mono">/ai-facts</code> for hosted
+                    builders), and ready-to-publish{' '}
+                    <strong>You vs. Competitor</strong> comparison tables.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  <Link
+                    href="/tools/json-ld-ai-schema-checker"
+                    className="vs-btn vs-btn-secondary"
+                  >
+                    Free Schema Checker →
+                  </Link>
+                  <Link href="/connectors" className="vs-btn vs-btn-secondary">
+                    WP &amp; Shopify Bridges →
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Core Tool 4: Agency White-Label & Developer Automation */}
+            <div className="vs-bezel">
+              <div
+                className="vs-card"
+                style={{
+                  padding: '24px',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  gap: '18px',
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px',
+                      marginBottom: '12px',
+                    }}
+                  >
+                    <span className="vs-eyebrow">
+                      04 · AGENCIES &amp; DEVELOPER AUTOMATION
+                    </span>
+                    <StatusBadge>WHITE-LABEL · CLI · /MCP</StatusBadge>
+                  </div>
+
+                  {/* Visual 4: Agency Pitch Link + CLI / MCP */}
+                  <div
+                    style={{
+                      borderRadius: '8px',
+                      border: '1px solid var(--vs-border)',
+                      background: '#0E1116',
+                      padding: '14px 16px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    <svg
+                      viewBox="0 0 420 112"
+                      width="100%"
+                      role="img"
+                      aria-label="Preview of an agency white-label client scorecard alongside developer CLI and MCP verification."
+                    >
+                      <rect
+                        x="6"
+                        y="14"
+                        width="196"
+                        height="84"
+                        rx="6"
+                        fill="#FAF9F6"
+                        stroke="#D6D3CD"
+                      />
+                      <text
+                        x="18"
+                        y="35"
+                        fill="#0E1116"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        YOUR AGENCY BRAND
+                      </text>
+                      <text
+                        x="18"
+                        y="56"
+                        fill="#334155"
+                        fontSize="10.2"
+                        fontFamily="var(--vs-sans)"
+                      >
+                        /audit/client-scorecard
+                      </text>
+                      <text
+                        x="18"
+                        y="76"
+                        fill="#059669"
+                        fontSize="9.6"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        ● OPENED · CTA CLICKED
+                      </text>
+
+                      <rect
+                        x="216"
+                        y="14"
+                        width="198"
+                        height="84"
+                        rx="6"
+                        fill="#171C26"
+                        stroke="#2B3344"
+                      />
+                      <text
+                        x="228"
+                        y="35"
+                        fill="#E5A93C"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                        fontWeight="700"
+                      >
+                        AGENT &amp; CI READY
+                      </text>
+                      <text
+                        x="228"
+                        y="56"
+                        fill="#EEF1F6"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                      >
+                        npx @verisource/cli
+                      </text>
+                      <text
+                        x="228"
+                        y="76"
+                        fill="#6EE7B7"
+                        fontSize="9.8"
+                        fontFamily="var(--vs-mono)"
+                      >
+                        mcp.verisource.dev/mcp
+                      </text>
+                    </svg>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: '18.5px',
+                      fontWeight: 700,
+                      margin: '0 0 8px 0',
+                      letterSpacing: '-0.02em',
+                    }}
+                  >
+                    Close agency retainers in 60s—or automate checks in CI and Claude.
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: '14px',
+                      lineHeight: 1.6,
+                      color: 'var(--vs-ink-secondary)',
+                    }}
+                  >
+                    Agencies mint custom-branded{' '}
+                    <code className="vs-mono">/audit/[slug]</code> prospect
+                    reports with live open and booking alerts, while engineering
+                    teams run <code className="vs-mono">npx @verisource/cli</code>{' '}
+                    and our 5-tool <code className="vs-mono">/mcp</code> server.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                  <Link href="/agencies#sandbox" className="vs-btn vs-btn-secondary">
+                    Agency Sandbox →
+                  </Link>
+                  <Link href="/mcp-guide" className="vs-btn vs-btn-secondary">
+                    30s /mcp Setup →
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Clear Progressive-Disclosure Handoff to Full Tools & Tests Catalog */}
+          <div className="vs-bezel-obsidian" style={{ marginTop: '32px' }}>
+            <div
+              className="vs-card"
+              style={{
+                padding: '26px 28px',
+                background: 'var(--vs-surface-warm)',
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '20px',
+              }}
+            >
+              <div style={{ maxWidth: '620px' }}>
+                <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+                  FULL PLATFORM CATALOG · 6 FREE TESTS + 11 CAPABILITIES
+                </div>
+                <strong
+                  style={{
+                    display: 'block',
+                    fontSize: '18px',
+                    marginBottom: '6px',
+                  }}
+                >
+                  Want to see every diagnostic test, browser verifier, and
+                  industry walkthrough we offer?
+                </strong>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    lineHeight: 1.58,
+                    color: 'var(--vs-ink-secondary)',
+                  }}
+                >
+                  Browse all 6 free instant HTTP tests, interactive before/after
+                  industry examples, 20-page broken-link scanning, Playwright
+                  flow replay, and backend log correlation on one organized page.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                <Link href="/features" className="vs-btn">
+                  Explore All Tools &amp; Live Tests →
+                </Link>
+                <Link href="/tools" className="vs-btn vs-btn-secondary">
+                  Try Free Diagnostic Validators →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 4 — Transparent Pricing Ladder & Clean Closing CTA */}
+      <section className="vs-sec" style={{ borderBottom: 'none' }}>
+        <div className="vs-container">
+          <PricingLadderSection />
         </div>
       </section>
     </div>

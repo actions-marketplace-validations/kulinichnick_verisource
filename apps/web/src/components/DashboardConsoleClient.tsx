@@ -269,6 +269,21 @@ export function DashboardConsoleClient(props: {
   );
   const [savingReportSchedule, setSavingReportSchedule] = useState(false);
 
+  const [gatePreviewDomain, setGatePreviewDomain] = useState<string>(
+    extractSafeHandoffHostname(props.initialDomainQuery) ?? ''
+  );
+  const [gatePreviewLoading, setGatePreviewLoading] = useState(false);
+  const [gatePreviewError, setGatePreviewError] = useState<string | null>(null);
+  const [gatePreviewResult, setGatePreviewResult] = useState<{
+    hostname: string;
+    brandName: string;
+    visibilityScore: number;
+    detectedPlatformLabel?: string;
+    llmsTxtStatus: string;
+    agentsMdStatus: string;
+    jsonLdCount: number;
+  } | null>(null);
+
   // Tab 3 Buyer Prompt tracking state
   const [newPromptText, setNewPromptText] = useState('');
   const [addingPrompt, setAddingPrompt] = useState(false);
@@ -3069,7 +3084,9 @@ export function DashboardConsoleClient(props: {
     targetDomain: activeDomainHostname || 'yourcompany.com',
   });
 
-  const gateDomainParam = extractSafeHandoffHostname(props.initialDomainQuery);
+  const gateDomainParam =
+    extractSafeHandoffHostname(gatePreviewDomain) ??
+    extractSafeHandoffHostname(props.initialDomainQuery);
   const buildGateCheckoutHref = (
     plan: 'tripwire_19' | 'starter_49' | 'pro_99' | 'agency_249',
     cycle: 'one_time' | 'monthly'
@@ -3079,6 +3096,53 @@ export function DashboardConsoleClient(props: {
     if (accessToken) qs.set('access_token', accessToken);
     return `/api/checkout?${qs.toString()}`;
   };
+
+  async function handleRunGatePreviewScan(e: React.FormEvent) {
+    e.preventDefault();
+    const cleaned = gatePreviewDomain.trim();
+    if (!cleaned) {
+      setGatePreviewError('Enter your website domain (e.g. yourcompany.com).');
+      return;
+    }
+    setGatePreviewLoading(true);
+    setGatePreviewError(null);
+    try {
+      const res = await fetch('/api/grader', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: cleaned }),
+      });
+      const json = (await res.json()) as {
+        error?: string;
+        message?: string;
+        hostname?: string;
+        brandName?: string;
+        visibilityScore?: number;
+        detectedPlatformLabel?: string;
+        llmsTxtStatus?: string;
+        agentsMdStatus?: string;
+        jsonLdCount?: number;
+      };
+      if (!res.ok || json.error || !json.hostname) {
+        setGatePreviewError(json.message ?? 'Unable to scan that domain.');
+      } else {
+        setGatePreviewDomain(json.hostname);
+        setGatePreviewResult({
+          hostname: json.hostname,
+          brandName: json.brandName ?? json.hostname,
+          visibilityScore: json.visibilityScore ?? 0,
+          detectedPlatformLabel: json.detectedPlatformLabel,
+          llmsTxtStatus: json.llmsTxtStatus ?? 'missing',
+          agentsMdStatus: json.agentsMdStatus ?? 'missing',
+          jsonLdCount: json.jsonLdCount ?? 0,
+        });
+      }
+    } catch {
+      setGatePreviewError('Network error while checking your domain.');
+    } finally {
+      setGatePreviewLoading(false);
+    }
+  }
 
   if (
     data.mode === 'unauthenticated_locked' ||
@@ -3170,9 +3234,9 @@ export function DashboardConsoleClient(props: {
           <div className="vs-bezel">
             <div className="vs-card" style={{ padding: '26px' }}>
             {isPlanActivation ? (
-              <div>
+              <div id="vs-free-account-prescan">
                 <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
-                  AUTHENTICATED ACCOUNT
+                  AUTHENTICATED ACCOUNT · READY TO ACTIVATE
                 </div>
                 <h2 style={{ margin: '0 0 8px 0', fontSize: '19px' }}>
                   Signed in as{' '}
@@ -3182,20 +3246,125 @@ export function DashboardConsoleClient(props: {
                 </h2>
                 <p
                   style={{
-                    margin: '0 0 18px 0',
+                    margin: '0 0 16px 0',
                     fontSize: '13.5px',
                     color: 'var(--vs-ink-secondary)',
                     lineHeight: 1.55,
                   }}
                 >
-                  Your account is currently on the public{' '}
-                  <code className="vs-mono">FREE</code> tier. Choose the{' '}
-                  <strong>$19 One-Time Audit Pass</strong> or a monthly Console
-                  plan on the right to provision your workspace immediately.
+                  Enter your website below to preview your live AI Search
+                  Readiness score—then choose the{' '}
+                  <strong>$19 One-Time Audit Pass</strong> or a{' '}
+                  <strong>$0 Today 7-Day Free Trial</strong> on the right to
+                  provision your 1-Click Fix Prompt immediately.
                 </p>
+
+                <form
+                  onSubmit={(e) => void handleRunGatePreviewScan(e)}
+                  style={{
+                    display: 'flex',
+                    gap: '8px',
+                    flexWrap: 'wrap',
+                    marginBottom: '14px',
+                  }}
+                >
+                  <input
+                    type="text"
+                    value={gatePreviewDomain}
+                    onChange={(e) => setGatePreviewDomain(e.target.value)}
+                    placeholder="yourcompany.com"
+                    className="vs-input vs-mono"
+                    style={{ flex: 1, minWidth: '180px' }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={gatePreviewLoading}
+                    className="vs-btn"
+                  >
+                    {gatePreviewLoading ? 'Scanning...' : 'Preview My Site →'}
+                  </button>
+                </form>
+
+                {gatePreviewError ? (
+                  <div
+                    style={{
+                      padding: '8px 11px',
+                      marginBottom: '12px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--vs-crit-border)',
+                      background: 'var(--vs-crit-bg)',
+                      color: 'var(--vs-crit-fg)',
+                      fontSize: '12.5px',
+                    }}
+                  >
+                    {gatePreviewError}
+                  </div>
+                ) : null}
+
+                {gatePreviewResult ? (
+                  <div
+                    style={{
+                      padding: '12px 14px',
+                      marginBottom: '16px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--vs-border)',
+                      background: 'var(--vs-surface-subtle)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '6px',
+                      }}
+                    >
+                      <strong style={{ fontSize: '13.5px' }}>
+                        {gatePreviewResult.brandName} (
+                        <span className="vs-mono">
+                          {gatePreviewResult.hostname}
+                        </span>
+                        )
+                      </strong>
+                      <StatusBadge
+                        tone={
+                          gatePreviewResult.visibilityScore >= 65
+                            ? 'pass'
+                            : 'warn'
+                        }
+                      >
+                        {`${gatePreviewResult.visibilityScore} / 100`}
+                      </StatusBadge>
+                    </div>
+                    <div
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-secondary)',
+                      }}
+                    >
+                      Stack: {gatePreviewResult.detectedPlatformLabel ?? 'Web'}{' '}
+                      · JSON-LD: {gatePreviewResult.jsonLdCount} · /llms.txt:{' '}
+                      {gatePreviewResult.llmsTxtStatus} · /agents.md:{' '}
+                      {gatePreviewResult.agentsMdStatus}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: '6px',
+                        fontSize: '12px',
+                        color: 'var(--vs-accent)',
+                        fontWeight: 600,
+                      }}
+                    >
+                      ✓ Pre-linked to your activation buttons on the right →
+                    </div>
+                  </div>
+                ) : null}
+
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <Link href="/#audit" className="vs-btn vs-btn-secondary">
-                    Run Free Homepage Audit
+                    Run Full Homepage Audit
                   </Link>
                   <button
                     type="button"

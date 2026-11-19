@@ -22,7 +22,7 @@ const RESOURCE_MENU_ITEMS: ReadonlyArray<{
   {
     href: '/reports',
     label: 'Live Domain Scorecards',
-    sublabel: '140+ audited SaaS & Shopify sites',
+    sublabel: '150+ audited SaaS & Shopify sites',
   },
   {
     href: '/vs',
@@ -208,7 +208,7 @@ export function SiteHeaderClient(): React.ReactElement {
               aria-label="Primary navigation"
             >
               <Link href="/features" className="vs-nav-link">
-                Features
+                All Tools
               </Link>
               <Link href="/#scan" className="vs-nav-link">
                 Scan Your Site
@@ -303,7 +303,7 @@ export function SiteHeaderClient(): React.ReactElement {
               }}
             >
               {[
-                { href: '/features', label: 'All 11 Features' },
+                { href: '/features', label: 'Explore All Tools' },
                 { href: '/tutorial', label: 'Interactive Tour' },
                 { href: '/pricing', label: 'Pricing & Plans' },
                 { href: '/agencies', label: 'Agencies ($249/mo)' },

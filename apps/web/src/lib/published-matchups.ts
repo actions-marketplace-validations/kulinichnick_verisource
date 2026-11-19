@@ -166,6 +166,20 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Server-rendered Shopify catalog schema vs. custom Next.js storefront.',
   },
+  {
+    cohort: 'AI AGENT FRAMEWORKS',
+    domainA: 'llamaindex.ai',
+    domainB: 'langchain.com',
+    angle:
+      'Next.js documentation schema + /llms.txt vs. Webflow marketing site metadata.',
+  },
+  {
+    cohort: 'AGENT CODE SANDBOXES',
+    domainA: 'e2b.dev',
+    domainB: 'daytona.io',
+    angle:
+      'Multi-pillar JSON-LD + /llms.txt readiness vs. Framer landing page structure.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

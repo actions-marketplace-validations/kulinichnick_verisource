@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T05:14:27.514Z",
+  "updatedAt": "2026-11-19T05:37:08.304Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -846,52 +846,62 @@
     {
       "domain": "langchain.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "llamaindex.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "mastra.ai",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "crewai.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "e2b.dev",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "daytona.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "stainless.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "fernapi.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "speakeasy.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "readme.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T05:28:26.056Z"
     },
     {
       "domain": "webflow.com",
@@ -965,6 +975,56 @@
     },
     {
       "domain": "trueclassictees.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "supabase.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "betterstack.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "highlight.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sentry.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "launchdarkly.com",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "knock.app",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "resend.dev",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "marine-layer.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "buckmason.com",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "rhone.com",
       "vertical": "shopify_dtc",
       "status": "queued"
     }
