@@ -58,9 +58,14 @@ export const metadata: Metadata = {
     description:
       'Audit AI citations across ChatGPT, Gemini, and Perplexity and deploy syntax-validated JSON-LD, /llms.txt, and /agents.md fixes.',
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  verification: {
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+      : {}),
+    other: {
+      'saashub-verification': 'tua6vfy8oaby',
+    },
+  },
 };
 
 const ORGANIZATION_JSON_LD = {
