@@ -5692,8 +5692,8 @@ async function run() {
     assert.equal(benchSumJsonRes.status, 200);
     const benchSumJson = await benchSumJsonRes.json();
     assert.equal(benchSumJson.ok, true);
-    assert.ok(benchSumJson.totalAuditedDomains >= 410);
-    assert.ok(benchSumJson.publishedMatchupsCount >= 122);
+    assert.ok(benchSumJson.totalAuditedDomains >= 500);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 150);
 
     assert.equal(benchSumMdRes.status, 200);
     assert.ok(
@@ -5716,10 +5716,10 @@ async function run() {
       ).map((m) => m[1].toLowerCase())
     );
     assert.ok(
-      m119UniqueLinks.size >= 410,
-      `Expected /reports leaderboard to index >= 410 unique domains, got ${m119UniqueLinks.size}`
+      m119UniqueLinks.size >= 500,
+      `Expected /reports leaderboard to index >= 500 unique domains, got ${m119UniqueLinks.size}`
     );
-    console.log('✔ [109/113] M119–M140 Zero-Bounce Deliverability Guard, 122 /vs/[matchup] Pages & 410-Domain /reports Hub verified!');
+    console.log('✔ [109/113] M119–M141 Zero-Bounce Deliverability Guard, Landmark 150 /vs/[matchup] Pages & 500-Domain /reports Hub verified!');
 
     // 108. Search Console Canonical & Sitemap Hygiene Lock (Zero Root Canonical Bleed on /privacy, /terms, /login, /dashboard)
     const [gscHomeHtml, gscPrivacyHtml, gscTermsHtml, gscLoginHtml, gscDashHtml, gscSitemapXml] =
@@ -5952,12 +5952,12 @@ async function run() {
       'Expected landmark /vs/clickhouse-com-vs-motherduck-com matchup page to render HTTP 200'
     );
     assert.ok(
-      m135LlmsTxt.includes('410+ Audited Sites') &&
+      m135LlmsTxt.includes('500+ Audited Sites') &&
         m135LlmsTxt.includes('https://mcp.verisource.dev/oauth/mcp') &&
-        m135AgentsMd.includes('410+ Audited Sites') &&
+        m135AgentsMd.includes('500+ Audited Sites') &&
         m135AgentsMd.includes('https://mcp.verisource.dev/oauth/mcp') &&
         m135AgentsMd.includes('get_verified_pricing_and_offers'),
-      'Expected /llms.txt and /agents.md to publish 410+ count, /oauth/mcp, and Hosted Brand /mcp tools'
+      'Expected /llms.txt and /agents.md to publish 500+ count, /oauth/mcp, and Hosted Brand /mcp tools'
     );
 
     for (const [m135Label, m135Raw] of [

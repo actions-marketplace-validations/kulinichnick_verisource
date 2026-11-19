@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:06:20.600Z",
+  "updatedAt": "2026-11-19T19:16:21.071Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1424,7 +1424,20 @@
       "publicContactChannel": "info@locomotive.ca",
       "caseStudyClientDomain": "pangram.com",
       "caseStudyClientName": "Pangram",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:16:21.071Z",
+      "auditSlug": "pangram-com-o8v4",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:16:21.071Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:16:21.071Z",
+      "resendMessageId": "01a1f53d-356b-7a08-a55e-b891c2b73f3f",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Basic/Dept",
@@ -1436,7 +1449,20 @@
       "publicContactChannel": "biz@basicagency.com",
       "caseStudyClientDomain": "patagonia.com",
       "caseStudyClientName": "Patagonia",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T19:16:21.071Z",
+      "auditSlug": "patagonia-com-xb03",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T19:16:21.071Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T19:16:21.071Z",
+      "resendMessageId": "01a1f53d-2856-7b95-8d4e-11d3f3cd70fe",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Bakken & Baeck",

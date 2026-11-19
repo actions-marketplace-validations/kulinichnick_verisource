@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:07:06.760Z",
+  "updatedAt": "2026-11-19T19:19:23.488Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2690,59 +2690,689 @@
       "domain": "jotform.com",
       "brandName": "Jotform",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "calendly.com",
       "brandName": "Calendly",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "savvycal.com",
       "brandName": "SavvyCal",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "vidyard.com",
       "brandName": "Vidyard",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "wistia.com",
       "brandName": "Wistia",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "vimeo.com",
       "brandName": "Vimeo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "buffer.com",
       "brandName": "Buffer",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "hootsuite.com",
       "brandName": "Hootsuite",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "sproutsocial.com",
       "brandName": "Sprout Social",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
     },
     {
       "domain": "later.com",
       "brandName": "Later",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "1password.com",
+      "brandName": "1Password",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "bitwarden.com",
+      "brandName": "Bitwarden",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "dashlane.com",
+      "brandName": "Dashlane",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "keepersecurity.com",
+      "brandName": "Keeper Security",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "doppler.com",
+      "brandName": "Doppler",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "teleport.dev",
+      "brandName": "Teleport",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "orca.security",
+      "brandName": "Orca Security",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "tines.com",
+      "brandName": "Tines",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "torq.io",
+      "brandName": "Torq",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "digitalocean.com",
+      "brandName": "DigitalOcean",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "hetzner.com",
+      "brandName": "Hetzner",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "fastly.com",
+      "brandName": "Fastly",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "bunny.net",
+      "brandName": "bunny.net",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "heroku.com",
+      "brandName": "Heroku",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "porter.run",
+      "brandName": "Porter",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:16:21.071Z"
+    },
+    {
+      "domain": "northflank.com",
+      "brandName": "Northflank",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "koyeb.com",
+      "brandName": "Koyeb",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "coolify.io",
+      "brandName": "Coolify",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "dokku.com",
+      "brandName": "Dokku",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "mongodb.com",
+      "brandName": "MongoDB",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "cockroachlabs.com",
+      "brandName": "Cockroach Labs",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "timescale.com",
+      "brandName": "Timescale",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "influxdata.com",
+      "brandName": "InfluxData",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "redis.io",
+      "brandName": "Redis",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "dragonflydb.io",
+      "brandName": "Dragonfly",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "milvus.io",
+      "brandName": "Milvus",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "neo4j.com",
+      "brandName": "Neo4j",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "dgraph.io",
+      "brandName": "Dgraph",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "backblaze.com",
+      "brandName": "Backblaze",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "wasabi.com",
+      "brandName": "Wasabi",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "wandb.ai",
+      "brandName": "Weights & Biases",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "comet.com",
+      "brandName": "Comet",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "arize.com",
+      "brandName": "Arize AI",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "fireworks.ai",
+      "brandName": "Fireworks AI",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "craft.do",
+      "brandName": "Craft",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "obsidian.md",
+      "brandName": "Obsidian",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "roamresearch.com",
+      "brandName": "Roam Research",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "gitbook.com",
+      "brandName": "GitBook",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "docusaurus.io",
+      "brandName": "Docusaurus",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "slack.com",
+      "brandName": "Slack",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:17:37.943Z"
+    },
+    {
+      "domain": "discord.com",
+      "brandName": "Discord",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "mattermost.com",
+      "brandName": "Mattermost",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "zulip.com",
+      "brandName": "Zulip",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "greenhouse.com",
+      "brandName": "Greenhouse",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "lever.co",
+      "brandName": "Lever",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "gem.com",
+      "brandName": "Gem",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "lattice.com",
+      "brandName": "Lattice",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "cultureamp.com",
+      "brandName": "Culture Amp",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "remote.com",
+      "brandName": "Remote",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "oysterhr.com",
+      "brandName": "Oyster",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "chargebee.com",
+      "brandName": "Chargebee",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "recurly.com",
+      "brandName": "Recurly",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "zuora.com",
+      "brandName": "Zuora",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "orb.com",
+      "brandName": "Orb",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "metronome.com",
+      "brandName": "Metronome",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "lago.dev",
+      "brandName": "Lago",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "avalara.com",
+      "brandName": "Avalara",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "bill.com",
+      "brandName": "BILL",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "tipalti.com",
+      "brandName": "Tipalti",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "vessi.com",
+      "brandName": "Vessi",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "cariuma.com",
+      "brandName": "Cariuma",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "stanley1913.com",
+      "brandName": "Stanley",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "owala.com",
+      "brandName": "Owala",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "breville.com",
+      "brandName": "Breville",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "drinkpoppi.com",
+      "brandName": "Poppi",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:18:29.371Z"
+    },
+    {
+      "domain": "postman.com",
+      "brandName": "Postman",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "insomnia.rest",
+      "brandName": "Insomnia",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "usebruno.com",
+      "brandName": "Bruno",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "hoppscotch.io",
+      "brandName": "Hoppscotch",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "bugsnag.com",
+      "brandName": "Bugsnag",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "rollbar.com",
+      "brandName": "Rollbar",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "honeybadger.io",
+      "brandName": "Honeybadger",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "cronitor.io",
+      "brandName": "Cronitor",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "box.com",
+      "brandName": "Box",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "dropbox.com",
+      "brandName": "Dropbox",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "egnyte.com",
+      "brandName": "Egnyte",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "zoom.us",
+      "brandName": "Zoom",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "whereby.com",
+      "brandName": "Whereby",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "daily.co",
+      "brandName": "Daily",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "livekit.io",
+      "brandName": "LiveKit",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-19T19:19:23.488Z"
+    },
+    {
+      "domain": "agora.io",
+      "brandName": "Agora",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sendbird.com",
+      "brandName": "Sendbird",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "getstream.io",
+      "brandName": "Stream",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pusher.com",
+      "brandName": "Pusher",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "authzed.com",
+      "brandName": "AuthZed",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "permit.io",
+      "brandName": "Permit.io",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "cerbos.dev",
+      "brandName": "Cerbos",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "checkr.com",
+      "brandName": "Checkr",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "persona.com",
+      "brandName": "Persona",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sardine.ai",
+      "brandName": "Sardine",
       "vertical": "b2b_saas",
       "status": "queued"
     }

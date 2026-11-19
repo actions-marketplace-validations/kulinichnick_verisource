@@ -880,6 +880,202 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Enterprise project management AI crawler posture, non-JS HTML extraction, and entity JSON-LD.',
   },
+  {
+    cohort: 'SCHEDULING & CALENDAR BOOKING',
+    domainA: 'calendly.com',
+    domainB: 'savvycal.com',
+    angle:
+      'Scheduling SaaS AI bot access, SSR pricing readability, and schema.org entity parity.',
+  },
+  {
+    cohort: 'B2B VIDEO HOSTING & ANALYTICS',
+    domainA: 'vidyard.com',
+    domainB: 'wistia.com',
+    angle:
+      'WordPress vs. Next.js video platform /llms.txt feeds, crawler access, and JSON-LD depth.',
+  },
+  {
+    cohort: 'SOCIAL MEDIA SCHEDULING SUITES',
+    domainA: 'buffer.com',
+    domainB: 'hootsuite.com',
+    angle:
+      'Social management platform SSR word extraction, bot rules, and structured product schema.',
+  },
+  {
+    cohort: 'ENTERPRISE VS. CREATOR SOCIAL TOOLS',
+    domainA: 'sproutsocial.com',
+    domainB: 'later.com',
+    angle:
+      'Enterprise social analytics /llms.txt + entity JSON-LD vs. creator marketing stack.',
+  },
+  {
+    cohort: 'PASSWORD MANAGERS & ENTERPRISE VAULTS',
+    domainA: '1password.com',
+    domainB: 'bitwarden.com',
+    angle:
+      'Enterprise security vendor /llms.txt documentation, crawler access, and JSON-LD coverage.',
+  },
+  {
+    cohort: 'ZERO-KNOWLEDGE CREDENTIAL SECURITY',
+    domainA: 'dashlane.com',
+    domainB: 'keepersecurity.com',
+    angle:
+      'Password security WordPress vs. Next.js SSR extraction and homepage entity JSON-LD.',
+  },
+  {
+    cohort: 'SECURITY AUTOMATION & HYPERAUTOMATION',
+    domainA: 'tines.com',
+    domainB: 'torq.io',
+    angle:
+      'SOAR automation platform AI crawler access, /llms.txt index, and structured entity schema.',
+  },
+  {
+    cohort: 'DEVELOPER CLOUD & VPS HOSTING',
+    domainA: 'digitalocean.com',
+    domainB: 'hetzner.com',
+    angle:
+      'Cloud infrastructure AI bot readability, docs /llms.txt readiness, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'EDGE CDN & STREAMING NETWORKS',
+    domainA: 'fastly.com',
+    domainB: 'bunny.net',
+    angle:
+      'Edge delivery platform crawler posture, /llms.txt technical specs, and entity schema.',
+  },
+  {
+    cohort: 'PAAS VS. BYOC KUBERNETES DEPLOY',
+    domainA: 'heroku.com',
+    domainB: 'porter.run',
+    angle:
+      'Cloud deployment Webflow vs. WordPress SSR copy, /llms.txt feeds, and JSON-LD parity.',
+  },
+  {
+    cohort: 'SERVERLESS CONTAINER PLATFORMS',
+    domainA: 'northflank.com',
+    domainB: 'koyeb.com',
+    angle:
+      'Container cloud crawler rules, non-JS HTML extraction, and entity JSON-LD structure.',
+  },
+  {
+    cohort: 'SELF-HOSTED OPEN-SOURCE PAAS',
+    domainA: 'coolify.io',
+    domainB: 'dokku.com',
+    angle:
+      'Open-source deployment platform AI bot access, SSR docs density, and schema readiness.',
+  },
+  {
+    cohort: 'TIME-SERIES DATABASES & IOT ANALYTICS',
+    domainA: 'timescale.com',
+    domainB: 'influxdata.com',
+    angle:
+      'Time-series database /llms.txt indexing, crawler rules, and homepage entity JSON-LD.',
+  },
+  {
+    cohort: 'IN-MEMORY CACHING & KEY-VALUE STORES',
+    domainA: 'redis.io',
+    domainB: 'dragonflydb.io',
+    angle:
+      'In-memory data store AI crawler access, /llms.txt technical docs, and entity schema.',
+  },
+  {
+    cohort: 'GRAPH DATABASES & KNOWLEDGE GRAPHS',
+    domainA: 'neo4j.com',
+    domainB: 'dgraph.io',
+    angle:
+      'Graph database WordPress vs. Next.js SSR extraction, /llms.txt coverage, and JSON-LD.',
+  },
+  {
+    cohort: 'S3-COMPATIBLE CLOUD OBJECT STORAGE',
+    domainA: 'backblaze.com',
+    domainB: 'wasabi.com',
+    angle:
+      'Cloud storage pricing readability, /llms.txt specifications, and schema.org entity depth.',
+  },
+  {
+    cohort: 'ML EXPERIMENT TRACKING & EVALS',
+    domainA: 'wandb.ai',
+    domainB: 'comet.com',
+    angle:
+      'MLOps platform AI bot access, docs /llms.txt index, and WordPress entity JSON-LD.',
+  },
+  {
+    cohort: 'KNOWLEDGE GRAPHS & PERSONAL WIKIS',
+    domainA: 'obsidian.md',
+    domainB: 'roamresearch.com',
+    angle:
+      'Note-taking tool non-JS HTML readability, crawler access, and homepage schema structure.',
+  },
+  {
+    cohort: 'DEVELOPER DOCUMENTATION PLATFORMS',
+    domainA: 'gitbook.com',
+    domainB: 'docusaurus.io',
+    angle:
+      'Docs platform /llms.txt + entity JSON-LD depth vs. open-source static site baseline.',
+  },
+  {
+    cohort: 'TEAM & COMMUNITY MESSAGING PLATFORMS',
+    domainA: 'slack.com',
+    domainB: 'discord.com',
+    angle:
+      'Enterprise vs. community chat AI crawler posture, SSR extraction, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'OPEN-SOURCE SELF-HOSTED TEAM CHAT',
+    domainA: 'mattermost.com',
+    domainB: 'zulip.com',
+    angle:
+      'Self-hosted messaging AI bot rules, SSR product copy, and structured entity metadata.',
+  },
+  {
+    cohort: 'ENTERPRISE APPLICANT TRACKING SYSTEMS',
+    domainA: 'greenhouse.com',
+    domainB: 'lever.co',
+    angle:
+      'Recruiting SaaS Webflow vs. Next.js crawler access, SSR text density, and entity schema.',
+  },
+  {
+    cohort: 'EMPLOYEE PERFORMANCE & ENGAGEMENT',
+    domainA: 'lattice.com',
+    domainB: 'cultureamp.com',
+    angle:
+      'HR platform AI bot readability, /llms.txt indexing, and homepage JSON-LD parity.',
+  },
+  {
+    cohort: 'GLOBAL EOR & DISTRIBUTED PAYROLL',
+    domainA: 'remote.com',
+    domainB: 'oysterhr.com',
+    angle:
+      'Global payroll Webflow vs. Next.js crawler access, /llms.txt feeds, and entity JSON-LD.',
+  },
+  {
+    cohort: 'SUBSCRIPTION BILLING & REVOPS',
+    domainA: 'chargebee.com',
+    domainB: 'recurly.com',
+    angle:
+      'Recurring billing platform AI crawler access, /llms.txt specs, and structured product schema.',
+  },
+  {
+    cohort: 'USAGE-BASED & AI BILLING INFRA',
+    domainA: 'orb.com',
+    domainB: 'metronome.com',
+    angle:
+      'Metered billing Webflow SSR copy extraction, bot rules, and homepage JSON-LD coverage.',
+  },
+  {
+    cohort: 'AP AUTOMATION & GLOBAL PAYABLES',
+    domainA: 'bill.com',
+    domainB: 'tipalti.com',
+    angle:
+      'Fintech payables Webflow vs. WordPress AI bot access and schema.org entity coverage.',
+  },
+  {
+    cohort: 'API TESTING & WORKSPACE CLIENTS',
+    domainA: 'postman.com',
+    domainB: 'insomnia.rest',
+    angle:
+      'Developer API platform /llms.txt + entity JSON-LD depth vs. minimal root schema.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
