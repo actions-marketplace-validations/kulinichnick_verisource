@@ -22,7 +22,7 @@ const RESOURCE_MENU_ITEMS: ReadonlyArray<{
   {
     href: '/reports',
     label: 'Live Domain Scorecards',
-    sublabel: '310+ audited SaaS & Shopify sites',
+    sublabel: '320+ audited SaaS & Shopify sites',
   },
   {
     href: '/vs',

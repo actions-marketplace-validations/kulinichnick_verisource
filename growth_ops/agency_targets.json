@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:59:31.123Z",
+  "updatedAt": "2026-11-19T09:07:54.084Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -909,7 +909,20 @@
       "publicContactChannel": "hello@overdose.digital",
       "caseStudyClientDomain": "frankgreen.com.au",
       "caseStudyClientName": "frank green",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T09:07:54.084Z",
+      "auditSlug": "frankgreen-com-au-s88q",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T09:07:54.084Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T09:07:54.084Z",
+      "resendMessageId": "01a1f310-3e01-73bc-ad8c-b96c98976ac1",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Halo Lab",
@@ -921,7 +934,20 @@
       "publicContactChannel": "inquiry@halo-lab.com",
       "caseStudyClientDomain": "opera.com",
       "caseStudyClientName": "Opera",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T09:07:54.084Z",
+      "auditSlug": "opera-com-sxh8",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T09:07:54.084Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx2.googlemail.com"
+      },
+      "emailSentAt": "2026-11-19T09:07:54.084Z",
+      "resendMessageId": "01a1f310-38b5-7dd9-93f5-b11cb96a0926",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Radiant",
@@ -945,42 +971,6 @@
       "publicContactChannel": "contact@praxismetrics.com",
       "caseStudyClientDomain": "organifi.com",
       "caseStudyClientName": "Organifi",
-      "status": "queued"
-    },
-    {
-      "agencyName": "Kubix",
-      "agencyDomain": "kubixmedia.co.uk",
-      "specialty": "Shopify Plus Digital Commerce Agency",
-      "contactName": "Looay Gharib",
-      "contactRole": "Founder & Managing Director",
-      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Looay%20Gharib%20Kubix",
-      "publicContactChannel": "hello@kubixmedia.co.uk",
-      "caseStudyClientDomain": "chillys.com",
-      "caseStudyClientName": "Chilly's",
-      "status": "queued"
-    },
-    {
-      "agencyName": "Huemor",
-      "agencyDomain": "huemor.rocks",
-      "specialty": "B2B SaaS & Webflow Redesign Agency",
-      "contactName": "Jeff Gapinski",
-      "contactRole": "Co-Founder & Chief Creative Officer",
-      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Jeff%20Gapinski%20Huemor",
-      "publicContactChannel": "sales@huemor.rocks",
-      "caseStudyClientDomain": "livechat.com",
-      "caseStudyClientName": "LiveChat",
-      "status": "queued"
-    },
-    {
-      "agencyName": "Minuttia",
-      "agencyDomain": "minuttia.com",
-      "specialty": "B2B SaaS SEO & Organic Growth Agency",
-      "contactName": "Georgios Chasiotis",
-      "contactRole": "Managing Director & Founder",
-      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Georgios%20Chasiotis%20Minuttia",
-      "publicContactChannel": "hello@minuttia.com",
-      "caseStudyClientDomain": "respona.com",
-      "caseStudyClientName": "Respona",
       "status": "queued"
     }
   ]

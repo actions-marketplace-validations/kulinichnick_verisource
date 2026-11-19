@@ -600,6 +600,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Direct-to-consumer mattress crawler readability, Product Offer JSON-LD, and /agents.md commerce readiness.',
   },
+  {
+    cohort: 'OPEN-SOURCE FEATURE FLAGS & EXPERIMENTATION',
+    domainA: 'flagsmith.com',
+    domainB: 'growthbook.io',
+    angle:
+      'Open-source feature flag /llms.txt feeds, GPTBot access, and developer documentation JSON-LD parity.',
+  },
+  {
+    cohort: 'ENTERPRISE CRO & A/B TESTING',
+    domainA: 'optimizely.com',
+    domainB: 'vwo.com',
+    angle:
+      'Enterprise experimentation WAF posture, /llms.txt protocol feeds, and homepage entity JSON-LD.',
+  },
+  {
+    cohort: 'SESSION REPLAY & PRODUCT ANALYTICS',
+    domainA: 'fullstory.com',
+    domainB: 'logrocket.com',
+    angle:
+      'Digital experience analytics crawler rules, SSR token density, and schema.org entity coverage.',
+  },
+  {
+    cohort: 'PRODUCT ADOPTION & IN-APP ONBOARDING',
+    domainA: 'appcues.com',
+    domainB: 'userpilot.com',
+    angle:
+      'SaaS onboarding platform AI bot readability, /llms.txt index, and pricing entity schema.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

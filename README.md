@@ -13,7 +13,7 @@ Verisource audits how **ChatGPT Search**, **Google Gemini**, and **Perplexity** 
 | Resource | URL | What It Does |
 | :--- | :--- | :--- |
 | **Free 60-Second Domain Audit** | [verisource.dev/#scan](https://verisource.dev/#scan) | Probes 5 AI crawlers, 3 answer engines, 5-page link health (`VerisourceScan/1.0`), CMS stack, and 3-pillar `JSON-LD` readiness. |
-| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 310+ audited SaaS and commerce domains. |
+| **Public Audited Brand Directory** | [verisource.dev/reports](https://verisource.dev/reports) | Searchable protocol leaderboard and live SVG readiness badges across 320+ audited SaaS and commerce domains. |
 | **Head-to-Head Domain X-Ray** | [verisource.dev/vs](https://verisource.dev/vs) | Side-by-side 6-dimension HTTP protocol, WAF, and `JSON-LD` benchmark for any two public domains. |
 | **11-Capability Platform & CLI Tour** | [verisource.dev/features](https://verisource.dev/features) | Interactive split-screen walkthroughs for AI search verification, browser flow replay, route mapping, and log correlation. |
 | **Crawler Transparency Spec** | [verisource.dev/scanner](https://verisource.dev/scanner) | Public `VerisourceScan/1.0` User-Agent specification, rate limits, and `/robots.txt` opt-out controls. |

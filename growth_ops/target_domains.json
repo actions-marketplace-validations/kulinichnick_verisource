@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:59:31.123Z",
+  "updatedAt": "2026-11-19T09:10:46.073Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1990,59 +1990,123 @@
       "domain": "growthbook.io",
       "brandName": "GrowthBook",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:07:54.084Z"
     },
     {
       "domain": "optimizely.com",
       "brandName": "Optimizely",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "vwo.com",
       "brandName": "VWO",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "hotjar.com",
       "brandName": "Hotjar",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "fullstory.com",
       "brandName": "FullStory",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "logrocket.com",
       "brandName": "LogRocket",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "pendo.io",
       "brandName": "Pendo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "appcues.com",
       "brandName": "Appcues",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "userpilot.com",
       "brandName": "Userpilot",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
     },
     {
       "domain": "helixsleep.com",
       "brandName": "Helix Sleep",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T09:10:46.073Z"
+    },
+    {
+      "domain": "maze.co",
+      "brandName": "Maze",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "usertesting.com",
+      "brandName": "UserTesting",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "dovetail.com",
+      "brandName": "Dovetail",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "klue.com",
+      "brandName": "Klue",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "crayon.co",
+      "brandName": "Crayon",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "walkme.com",
+      "brandName": "WalkMe",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "chameleon.io",
+      "brandName": "Chameleon",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "tuftandneedle.com",
+      "brandName": "Tuft & Needle",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "nectarsleep.com",
+      "brandName": "Nectar Sleep",
       "vertical": "shopify_dtc",
       "status": "queued"
     },
