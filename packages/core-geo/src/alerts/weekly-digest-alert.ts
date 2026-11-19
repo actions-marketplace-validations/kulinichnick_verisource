@@ -23,6 +23,7 @@ export interface BuildWeeklyDigestInput {
   agencyPrimaryColor?: string | null;
   agencyCtaUrl?: string | null;
   consoleBaseUrl?: string;
+  cadenceLabel?: 'Daily' | 'Weekly' | 'Monthly';
 }
 
 export interface BuiltWeeklyDigest {
@@ -121,7 +122,8 @@ export function buildWeeklyExecutiveDigest(
           : '0 pts steady vs. prior scan';
 
   const senderTag = cleanAgencyName ?? 'Verisource';
-  const subject = `[${senderTag} · Weekly AI Brief] ${input.brandName} (${input.visibilityScore}/100${
+  const cadenceWord = input.cadenceLabel ?? 'Weekly';
+  const subject = `[${senderTag} · ${cadenceWord} AI Brief] ${input.brandName} (${input.visibilityScore}/100${
     scoreDelta !== null && scoreDelta !== 0
       ? `, ${scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta} pts`
       : ''

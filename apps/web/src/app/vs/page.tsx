@@ -4,6 +4,7 @@ import React from 'react';
 import { normalizePublicDomain } from '@verisource/core-geo';
 import { StatusBadge } from '@verisource/ui';
 import { DomainHeadToHeadClient } from '../../components/DomainHeadToHeadClient';
+import { buildMatchupSlug } from '../../lib/published-matchups';
 import { findPublishedScorecardByDomain } from '../../lib/published-reports';
 
 export async function generateMetadata({
@@ -407,6 +408,17 @@ export default async function HeadToHeadVsPage({
                       }}
                     >
                       Compare Live →
+                    </Link>
+                    <Link
+                      href={`/vs/${buildMatchupSlug(pair.domainA, pair.domainB)}`}
+                      className="vs-pill-btn vs-pill-btn-sm vs-mono"
+                      style={{
+                        padding: '5px 8px',
+                        fontSize: '11px',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Brief
                     </Link>
                     <Link
                       href={`/report/${encodeURIComponent(pair.domainA)}`}

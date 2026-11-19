@@ -678,7 +678,7 @@ async function resolveProbeAndShopify(
 
   const liveProbe = await probeDomainHttpReadiness(domainInput, env);
 
-  if (!liveProbe.reachable && fixture) {
+  if (!liveProbe.reachable && fixture && env.providerMode === 'mock') {
     const fallbackProbe: DomainHttpProbeResult = {
       domain: normalized,
       reachable: true,
@@ -740,7 +740,7 @@ async function resolveProbeAndShopify(
   }
 
   const brandName =
-    fixture?.brand_name ??
+    (env.providerMode === 'mock' ? fixture?.brand_name : undefined) ??
     extractBrandNameFromTitle(
       liveProbe.title,
       normalized.hostname,
@@ -909,6 +909,7 @@ export async function runFullGeoAudit(options: {
   customTruthSheet?: BrandTruthSheet;
   rawEnv?: RawEnvInput;
   skipDirectHttpProbe?: boolean;
+  priorLiveSnapshots?: EngineScanResult[];
 }): Promise<FullGeoAuditResult> {
   const { env, probe, shopify, brandName: detectedBrand } =
     await resolveProbeAndShopify(
@@ -938,6 +939,7 @@ export async function runFullGeoAudit(options: {
     brandName,
     truthSheet: brandTruthSheet,
     env,
+    priorLiveSnapshots: options.priorLiveSnapshots,
   });
 
   const allHallucinations = scanResults.flatMap((s) => s.hallucinationDetails);

@@ -5015,3 +5015,125 @@ test('M108 buildPublicAiPromptTeaser passes >= 9.5/10 Quality Gate even when Web
     );
   }
 });
+
+test('M110 Report schedule cadence gate, regression fingerprint dedup, rolling live snapshot selector & score stabilizer', async () => {
+  const {
+    computeWatchdogRegressionFingerprint,
+    normalizeDomainReportSchedule,
+    selectLatestLiveSnapshotsPerPromptEngine,
+    shouldSendRegressionWatchdogAlert,
+    shouldSendScheduledDigest,
+    stabilizeScheduledVisibilityScore,
+  } = await import('./alerts/report-schedule.js');
+
+  // 1. Default schedule is Weekly on Mondays (day_of_week = 1)
+  const def = normalizeDomainReportSchedule();
+  assert.equal(def.frequency, 'weekly');
+  assert.equal(def.day_of_week, 1);
+
+  // Monday 2026-11-16 13:00 UTC -> getUTCDay() === 1 -> sends!
+  const mondayUtc = new Date('2026-11-16T13:00:00.000Z');
+  const wednesdayUtc = new Date('2026-11-18T13:00:00.000Z');
+  assert.equal(shouldSendScheduledDigest(def, mondayUtc), true);
+  assert.equal(shouldSendScheduledDigest(def, wednesdayUtc), false);
+  assert.equal(
+    shouldSendScheduledDigest(
+      { ...def, last_digest_sent_at: '2026-11-16T08:00:00.000Z' },
+      mondayUtc
+    ),
+    false
+  );
+
+  // Monthly on Day 18
+  const monthly18 = normalizeDomainReportSchedule({
+    frequency: 'monthly',
+    day_of_month: 18,
+  });
+  assert.equal(shouldSendScheduledDigest(monthly18, wednesdayUtc), true);
+  assert.equal(shouldSendScheduledDigest(monthly18, mondayUtc), false);
+
+  // Paused
+  assert.equal(
+    shouldSendScheduledDigest({ frequency: 'off', day_of_week: 1, day_of_month: 1 }, mondayUtc),
+    false
+  );
+
+  // 2. Regression alert fires ONLY when fingerprint changes (state-transition)
+  const fp1 = computeWatchdogRegressionFingerprint({
+    blockedBots: ['PerplexityBot'],
+    hallucinations: [],
+  });
+  assert.ok(fp1);
+  assert.equal(
+    shouldSendRegressionWatchdogAlert({
+      schedule: def,
+      currentFingerprint: fp1,
+      now: wednesdayUtc,
+    }),
+    true
+  );
+  assert.equal(
+    shouldSendRegressionWatchdogAlert({
+      schedule: { ...def, last_alert_fingerprint: fp1 },
+      currentFingerprint: fp1,
+      now: wednesdayUtc,
+    }),
+    false
+  );
+
+  // 3. Rolling snapshot selector strips mock_fixture pollution when real live snapshots exist
+  const picked = selectLatestLiveSnapshotsPerPromptEngine([
+    {
+      id: '1',
+      domain_id: 'd1',
+      prompt_id: 'p1',
+      ai_engine: 'chatgpt',
+      brand_mentioned: true,
+      citation_rank: 3,
+      competitors_mentioned: [],
+      cited_source_urls: [],
+      fanout_telemetry_type: 'mock_fixture',
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'mock',
+      scanned_at: '2026-11-18T18:00:00.000Z',
+    },
+    {
+      id: '2',
+      domain_id: 'd1',
+      prompt_id: 'p1',
+      ai_engine: 'perplexity',
+      brand_mentioned: true,
+      citation_rank: 2,
+      competitors_mentioned: [],
+      cited_source_urls: ['https://mosaicroasters.com'],
+      fanout_telemetry_type: 'observed_query',
+      hallucination_detected: false,
+      hallucination_details: null,
+      raw_answer_excerpt: 'live',
+      scanned_at: '2026-11-18T18:00:00.000Z',
+    },
+  ]);
+  assert.equal(picked.length, 1);
+  assert.equal(picked[0]?.aiEngine, 'perplexity');
+
+  // 4. Stabilizer jumps immediately when protocol points change, smooths LLM jitter otherwise
+  assert.equal(
+    stabilizeScheduledVisibilityScore({
+      previousScore: 45,
+      rawNewScore: 72,
+      previousProtocolPoints: 28,
+      newProtocolPoints: 48,
+    }),
+    72
+  );
+  assert.equal(
+    stabilizeScheduledVisibilityScore({
+      previousScore: 70,
+      rawNewScore: 50,
+      previousProtocolPoints: 38,
+      newProtocolPoints: 38,
+    }),
+    58
+  );
+});

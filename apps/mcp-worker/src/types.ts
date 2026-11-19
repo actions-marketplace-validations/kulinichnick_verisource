@@ -13,7 +13,12 @@ export interface WorkerEnv {
   FIRECRAWL_API_KEY?: string;
   RESEND_API_KEY?: string;
   ALERT_FROM_EMAIL?: string;
+  VERISOURCE_CACHE?: KVNamespace;
   MCP_CACHE_KV?: KVNamespace;
+}
+
+export function resolveWorkerKv(env: WorkerEnv): KVNamespace | undefined {
+  return env.VERISOURCE_CACHE ?? env.MCP_CACHE_KV;
 }
 
 export function workerEnvToRawInput(env: WorkerEnv): RawEnvInput {

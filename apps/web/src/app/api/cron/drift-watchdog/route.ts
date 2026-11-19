@@ -2,12 +2,20 @@ import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import {
   buildCitationAnswerPageBundle,
+  computeDeterministicProtocolPoints,
   computeDomainDriftDiff,
+  computeWatchdogRegressionFingerprint,
+  DEMO_USER_ID,
   dispatchHallucinationDriftEmail,
   inspectJsonLdAiReadiness,
+  normalizeDomainReportSchedule,
   normalizePublicDomain,
   runFullGeoAudit,
+  selectLatestLiveSnapshotsPerPromptEngine,
+  shouldSendRegressionWatchdogAlert,
+  stabilizeScheduledVisibilityScore,
   summarizeBrandSentimentAndSov,
+  type BrandTruthSheet,
   type CitationSnapshotRow,
   type DomainDriftDiffSummary,
   type DomainRow,
@@ -136,6 +144,7 @@ async function executeDriftWatchdogRun(options: {
       .in('plan_tier', ['tripwire_19', 'starter_49', 'pro_99', 'agency_249']);
 
     for (const p of (paidProfiles ?? []) as ProfileRow[]) {
+      if (p.id === DEMO_USER_ID) continue;
       profileByUserId.set(p.id, p);
     }
 
@@ -237,6 +246,10 @@ async function executeDriftWatchdogRun(options: {
       (f) => f.fix_type === 'json_ld_schema' && f.is_applied
     );
 
+    const priorLiveSnapshots = options.isMockMode
+      ? undefined
+      : selectLatestLiveSnapshotsPerPromptEngine(priorSnaps);
+
     const audit = await runFullGeoAudit({
       domainInput: domain.domain_url,
       customBrandName: domain.brand_name,
@@ -252,7 +265,29 @@ async function executeDriftWatchdogRun(options: {
         FIRECRAWL_API_KEY: process.env.FIRECRAWL_API_KEY,
       },
       skipDirectHttpProbe: options.isMockMode,
+      priorLiveSnapshots,
     });
+
+    const effectiveVisibilityScore = options.isMockMode
+      ? audit.visibilityScore
+      : stabilizeScheduledVisibilityScore({
+          previousScore: domain.visibility_score,
+          rawNewScore: audit.visibilityScore,
+          previousProtocolPoints: computeDeterministicProtocolPoints({
+            robotsAiBotStatus: domain.robots_ai_bot_status,
+            llmsTxtStatus: domain.llms_txt_status,
+            agentsMdStatus: domain.agents_md_status,
+            isShopify: domain.is_shopify,
+            shopifyMcpStatus: domain.shopify_mcp_status,
+          }),
+          newProtocolPoints: computeDeterministicProtocolPoints({
+            robotsAiBotStatus: audit.probe.robotsAiBotStatus,
+            llmsTxtStatus: audit.probe.llmsTxtStatus,
+            agentsMdStatus: audit.shopify.agentsMdStatus,
+            isShopify: audit.shopify.isShopify,
+            shopifyMcpStatus: audit.shopify.shopifyMcpStatus,
+          }),
+        });
 
     const sovSummary = summarizeBrandSentimentAndSov({
       brandName: domain.brand_name,
@@ -277,7 +312,7 @@ async function executeDriftWatchdogRun(options: {
     const drift = computeDomainDriftDiff({
       brandName: domain.brand_name,
       previousVisibilityScore: domain.visibility_score,
-      currentVisibilityScore: audit.visibilityScore,
+      currentVisibilityScore: effectiveVisibilityScore,
       previousAccuracyScore: domain.accuracy_score,
       currentAccuracyScore: audit.accuracyScore,
       previousCompetitors: priorCompetitors,
@@ -308,52 +343,6 @@ async function executeDriftWatchdogRun(options: {
       driftDetectedCount += 1;
     }
 
-    if (supabase && !options.isMockMode && !options.dryRun) {
-      const promptList = promptsByDomain.get(domain.id) ?? [];
-      const snapshotsPayload = audit.scanResults.map((scan) => {
-        const matched = promptList.find(
-          (p) => p.prompt_text === scan.promptText
-        );
-        return {
-          domain_id: domain.id,
-          prompt_id: matched?.id ?? null,
-          ai_engine: scan.aiEngine,
-          brand_mentioned: scan.brandMentioned,
-          citation_rank: scan.citationRank,
-          competitors_mentioned: scan.competitorsMentioned,
-          cited_source_urls: scan.citedSourceUrls,
-          fanout_telemetry_type: scan.fanoutTelemetryType,
-          hallucination_detected: scan.hallucinationDetected,
-          hallucination_details:
-            scan.hallucinationDetails.length > 0
-              ? scan.hallucinationDetails
-              : null,
-          raw_answer_excerpt: scan.rawAnswerExcerpt,
-        };
-      });
-
-      if (snapshotsPayload.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (supabase.from('citation_snapshots') as any).insert(
-          snapshotsPayload
-        );
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase.from('domains') as any)
-        .update({
-          is_shopify: audit.shopify.isShopify,
-          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
-          agents_md_status: audit.shopify.agentsMdStatus,
-          llms_txt_status: audit.probe.llmsTxtStatus,
-          robots_ai_bot_status: audit.probe.robotsAiBotStatus,
-          visibility_score: audit.visibilityScore,
-          accuracy_score: audit.accuracyScore,
-          last_scanned_at: new Date().toISOString(),
-        })
-        .eq('id', domain.id);
-    }
-
     const anchorIso = owner.tripwire_paid_at ?? owner.created_at;
     const daysSincePurchase = Math.max(
       0,
@@ -367,14 +356,29 @@ async function executeDriftWatchdogRun(options: {
       owner.plan_tier === 'pro_99' ||
       owner.plan_tier === 'agency_249';
 
+    const schedule = normalizeDomainReportSchedule(
+      domain.brand_truth_sheet?.report_schedule
+    );
+    const blockedBots = extractBlockedBots(audit.probe.robotsAiBotStatus);
+    const currentAlertFingerprint = computeWatchdogRegressionFingerprint({
+      blockedBots,
+      hallucinations: audit.allHallucinations,
+    });
+    const allowLiveSend =
+      !options.dryRun &&
+      !options.isMockMode &&
+      shouldSendRegressionWatchdogAlert({
+        schedule,
+        currentFingerprint: currentAlertFingerprint,
+      });
+
     if (drift.driftDetected && isRecurringSubscriber && owner.email) {
       try {
-        const blockedBots = extractBlockedBots(audit.probe.robotsAiBotStatus);
         const dispatchRes = await dispatchHallucinationDriftEmail({
-          recipientEmail: owner.email,
+          recipientEmail: schedule.recipient_email ?? owner.email,
           brandName: domain.brand_name,
           domainUrl: domain.domain_url,
-          visibilityScore: audit.visibilityScore,
+          visibilityScore: effectiveVisibilityScore,
           accuracyScore: audit.accuracyScore,
           previousVisibilityScore: domain.visibility_score,
           previousAccuracyScore: domain.accuracy_score,
@@ -384,10 +388,7 @@ async function executeDriftWatchdogRun(options: {
           regressedChecks: drift.regressedChecks,
           liveChecksPassed: drift.liveChecksPassed,
           consoleBaseUrl: appBaseUrl,
-          resendApiKey:
-            options.dryRun || options.isMockMode
-              ? undefined
-              : process.env.RESEND_API_KEY,
+          resendApiKey: allowLiveSend ? process.env.RESEND_API_KEY : undefined,
           fromEmail: process.env.ALERT_FROM_EMAIL,
         });
         alertSubject = dispatchRes.subject;
@@ -434,6 +435,70 @@ async function executeDriftWatchdogRun(options: {
           hostname
         )}`,
       });
+    }
+
+    if (supabase && !options.isMockMode && !options.dryRun) {
+      const promptList = promptsByDomain.get(domain.id) ?? [];
+      const snapshotsPayload = audit.scanResults
+        .filter((scan) => scan.fanoutTelemetryType !== 'mock_fixture')
+        .map((scan) => {
+          const matched = promptList.find(
+            (p) => p.prompt_text === scan.promptText
+          );
+          return {
+            domain_id: domain.id,
+            prompt_id: matched?.id ?? null,
+            ai_engine: scan.aiEngine,
+            brand_mentioned: scan.brandMentioned,
+            citation_rank: scan.citationRank,
+            competitors_mentioned: scan.competitorsMentioned,
+            cited_source_urls: scan.citedSourceUrls,
+            fanout_telemetry_type: scan.fanoutTelemetryType,
+            hallucination_detected: scan.hallucinationDetected,
+            hallucination_details:
+              scan.hallucinationDetails.length > 0
+                ? scan.hallucinationDetails
+                : null,
+            raw_answer_excerpt: scan.rawAnswerExcerpt,
+          };
+        });
+
+      if (snapshotsPayload.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from('citation_snapshots') as any).insert(
+          snapshotsPayload
+        );
+      }
+
+      const nowIso = new Date().toISOString();
+      const updatedTruth: BrandTruthSheet = {
+        ...domain.brand_truth_sheet,
+        report_schedule: {
+          frequency: schedule.frequency,
+          day_of_week: schedule.day_of_week,
+          day_of_month: schedule.day_of_month,
+          recipient_email: schedule.recipient_email,
+          watchdog_alerts_enabled: schedule.watchdog_alerts_enabled,
+          last_digest_sent_at: schedule.last_digest_sent_at,
+          last_alert_sent_at: alertDelivered ? nowIso : schedule.last_alert_sent_at,
+          last_alert_fingerprint: currentAlertFingerprint,
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from('domains') as any)
+        .update({
+          is_shopify: audit.shopify.isShopify,
+          shopify_mcp_status: audit.shopify.shopifyMcpStatus,
+          agents_md_status: audit.shopify.agentsMdStatus,
+          llms_txt_status: audit.probe.llmsTxtStatus,
+          robots_ai_bot_status: audit.probe.robotsAiBotStatus,
+          brand_truth_sheet: updatedTruth,
+          visibility_score: effectiveVisibilityScore,
+          accuracy_score: audit.accuracyScore,
+          last_scanned_at: nowIso,
+        })
+        .eq('id', domain.id);
     }
 
     if (

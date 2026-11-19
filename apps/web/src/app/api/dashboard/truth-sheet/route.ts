@@ -3,7 +3,9 @@ import {
   computeScoreDeltaSummary,
   isFixTypeLiveOnDomain,
   runFullGeoAudit,
+  selectLatestLiveSnapshotsPerPromptEngine,
   type BrandTruthSheet,
+  type CitationSnapshotRow,
   type DomainRow,
   type GeneratedFixRow,
 } from '@verisource/core-geo';
@@ -52,6 +54,7 @@ export async function PATCH(request: Request): Promise<NextResponse> {
     const store = getLocalMockStore();
 
     let domain: DomainRow | undefined;
+    let existingSnapshots: CitationSnapshotRow[] = [];
     if (access.supabase) {
       const { data } = await access.supabase
         .from('domains')
@@ -60,8 +63,22 @@ export async function PATCH(request: Request): Promise<NextResponse> {
         .eq('user_id', access.profile.id)
         .maybeSingle();
       domain = data ?? undefined;
+      if (domain) {
+        const { data: snapRows } = await access.supabase
+          .from('citation_snapshots')
+          .select('*')
+          .eq('domain_id', domain.id)
+          .order('scanned_at', { ascending: false })
+          .limit(24);
+        existingSnapshots = (snapRows ?? []) as CitationSnapshotRow[];
+      }
     } else {
       domain = store.domains.find((d) => d.id === body.domain_id);
+      if (domain) {
+        existingSnapshots = store.snapshots.filter(
+          (s) => s.domain_id === domain!.id
+        );
+      }
     }
 
     if (!domain) {
@@ -73,6 +90,9 @@ export async function PATCH(request: Request): Promise<NextResponse> {
 
     const verifiedTruth: BrandTruthSheet = {
       ...body.brand_truth_sheet,
+      ...(domain.brand_truth_sheet?.report_schedule
+        ? { report_schedule: domain.brand_truth_sheet.report_schedule }
+        : {}),
       is_user_verified: true,
     };
 
@@ -80,6 +100,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       domainInput: domain.domain_url,
       customBrandName: domain.brand_name,
       customTruthSheet: verifiedTruth,
+      priorLiveSnapshots:
+        selectLatestLiveSnapshotsPerPromptEngine(existingSnapshots),
     });
 
     const previousVisibilityScore = domain.visibility_score;

@@ -4,6 +4,7 @@ import {
   computeScoreDeltaSummary,
   computeVisibilityScore,
   getWebsitePlatformMeta,
+  selectLatestLiveSnapshotsPerPromptEngine,
   verifyLiveFixDeployment,
   type AiRemediationTargetEnv,
   type CitationSnapshotRow,
@@ -130,19 +131,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const verification = await verifyLiveFixDeployment(domain.domain_url);
 
-    const mappedScans: EngineScanResult[] = existingSnapshots.map((s) => ({
-      promptText: '',
-      aiEngine: s.ai_engine,
-      brandMentioned: s.brand_mentioned,
-      citationRank: s.citation_rank,
-      competitorsMentioned: s.competitors_mentioned,
-      citedSourceUrls: s.cited_source_urls,
-      decompiledFanoutQueries: [],
-      fanoutTelemetryType: s.fanout_telemetry_type,
-      hallucinationDetected: s.hallucination_detected,
-      hallucinationDetails: s.hallucination_details ?? [],
-      rawAnswerExcerpt: s.raw_answer_excerpt ?? '',
-    }));
+    const mappedScans: EngineScanResult[] =
+      selectLatestLiveSnapshotsPerPromptEngine(existingSnapshots);
 
     const recalculatedVisibility = computeVisibilityScore({
       robotsAiBotStatus: verification.robotsAiBotStatus,

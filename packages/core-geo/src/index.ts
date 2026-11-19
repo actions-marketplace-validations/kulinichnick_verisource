@@ -28,6 +28,7 @@ export * from './alerts/trial-activation-alert.js';
 export * from './alerts/free-audit-summary-alert.js';
 export * from './alerts/magic-link-alert.js';
 export * from './alerts/weekly-digest-alert.js';
+export * from './alerts/report-schedule.js';
 export * from './mcp/discovery-manifest.js';
 export * from './orchestrator/audit-domain.js';
 export * from './orchestrator/plain-diagnosis.js';

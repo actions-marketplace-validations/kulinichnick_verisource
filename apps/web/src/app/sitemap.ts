@@ -5,10 +5,12 @@ import {
   PROTOCOL_GUIDES,
 } from '../lib/gtm-content';
 import { getPublishedDomainScorecards } from '../lib/published-reports';
+import { getPublishedMatchups } from '../lib/published-matchups';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
   const publishedReports = getPublishedDomainScorecards();
+  const publishedMatchups = getPublishedMatchups();
   return [
     {
       url: 'https://verisource.dev',
@@ -34,6 +36,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    ...publishedMatchups.map((item) => ({
+      url: `https://verisource.dev/vs/${item.slug}`,
+      lastModified: now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.86,
+    })),
     {
       url: 'https://verisource.dev/pricing',
       lastModified: now,

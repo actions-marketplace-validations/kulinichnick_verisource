@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import {
+  cadenceWordForFrequency,
   dispatchWeeklyExecutiveDigestEmail,
+  formatDomainReportScheduleLabel,
+  normalizeDomainReportSchedule,
+  selectLatestLiveSnapshotsPerPromptEngine,
   type AiAttributionEventRow,
+  type BrandTruthSheet,
   type CitationSnapshotRow,
+  type DigestFrequency,
   type DomainRow,
   type GeneratedFixRow,
 } from '@verisource/core-geo';
@@ -178,6 +184,11 @@ export async function POST(request: Request): Promise<NextResponse> {
       ? access.profile.email
       : rawRecipient;
 
+    const schedule = normalizeDomainReportSchedule(
+      domain.brand_truth_sheet?.report_schedule
+    );
+    const latestScans = selectLatestLiveSnapshotsPerPromptEngine(snapshots);
+
     const result = await dispatchWeeklyExecutiveDigestEmail({
       recipientEmail: recipientForDispatch,
       brandName: domain.brand_name,
@@ -188,8 +199,8 @@ export async function POST(request: Request): Promise<NextResponse> {
           ? body.previous_visibility_score
           : null,
       accuracyScore: domain.accuracy_score,
-      enginesCitingCount: snapshots.filter((s) => s.brand_mentioned).length,
-      totalSnapshotsScanned: snapshots.length,
+      enginesCitingCount: latestScans.filter((s) => s.brandMentioned).length,
+      totalSnapshotsScanned: latestScans.length || snapshots.length,
       aiReferralVisits7d,
       aiReferralRevenueUsd7d,
       appliedFixesCount: fixes.filter((f) => f.is_applied).length,
@@ -204,6 +215,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       agencyCtaUrl: useWhiteLabel ? activeProfile.agency_cta_url : null,
       consoleBaseUrl:
         process.env.NEXT_PUBLIC_APP_URL ?? 'https://verisource.dev',
+      cadenceLabel: cadenceWordForFrequency(schedule.frequency),
       resendApiKey: canSendLiveEmail ? process.env.RESEND_API_KEY : undefined,
       fromEmail: process.env.ALERT_FROM_EMAIL,
     });
@@ -217,6 +229,135 @@ export async function POST(request: Request): Promise<NextResponse> {
           err instanceof Error
             ? err.message
             : 'Unable to generate weekly executive digest.',
+      },
+      { status: 400 }
+    );
+  }
+}
+
+export async function PATCH(request: Request): Promise<NextResponse> {
+  try {
+    const access = await resolveConsoleRequestAccess(request);
+    if (access.status === 'unauthenticated') {
+      return NextResponse.json(
+        {
+          error: 'AUTHENTICATION_REQUIRED',
+          message: 'Sign in to configure automated report schedules.',
+        },
+        { status: 401 }
+      );
+    }
+    if (access.status === 'plan_activation_required') {
+      return NextResponse.json(
+        {
+          error: 'PLAN_ACTIVATION_REQUIRED',
+          message: 'Activate a Console plan to configure report schedules.',
+        },
+        { status: 402 }
+      );
+    }
+
+    const body = (await request.json().catch(() => ({}))) as {
+      domain_id?: string;
+      frequency?: DigestFrequency;
+      day_of_week?: number;
+      day_of_month?: number;
+      recipient_email?: string | null;
+      watchdog_alerts_enabled?: boolean;
+    };
+
+    if (!body.domain_id) {
+      return NextResponse.json(
+        { error: 'DOMAIN_REQUIRED', message: 'Provide a valid domain_id.' },
+        { status: 400 }
+      );
+    }
+
+    if (
+      typeof body.recipient_email === 'string' &&
+      body.recipient_email.trim().length > 0 &&
+      !EMAIL_REGEX.test(body.recipient_email.trim())
+    ) {
+      return NextResponse.json(
+        {
+          error: 'INVALID_EMAIL',
+          message: 'Provide a valid report recipient email address.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const store = getLocalMockStore();
+    let domain: DomainRow | null = null;
+
+    if (access.supabase) {
+      const { data } = await access.supabase
+        .from('domains')
+        .select('*')
+        .eq('id', body.domain_id)
+        .eq('user_id', access.profile.id)
+        .maybeSingle();
+      domain = (data as DomainRow | null) ?? null;
+    } else {
+      domain = store.domains.find((d) => d.id === body.domain_id) ?? null;
+    }
+
+    if (!domain) {
+      return NextResponse.json(
+        { error: 'DOMAIN_NOT_FOUND', message: 'Domain not found in workspace.' },
+        { status: 404 }
+      );
+    }
+
+    const existingSchedule = normalizeDomainReportSchedule(
+      domain.brand_truth_sheet?.report_schedule
+    );
+    const nextSchedule = normalizeDomainReportSchedule({
+      ...existingSchedule,
+      ...(body.frequency !== undefined ? { frequency: body.frequency } : {}),
+      ...(body.day_of_week !== undefined
+        ? { day_of_week: body.day_of_week }
+        : {}),
+      ...(body.day_of_month !== undefined
+        ? { day_of_month: body.day_of_month }
+        : {}),
+      ...(body.recipient_email !== undefined
+        ? { recipient_email: body.recipient_email }
+        : {}),
+      ...(body.watchdog_alerts_enabled !== undefined
+        ? { watchdog_alerts_enabled: body.watchdog_alerts_enabled }
+        : {}),
+    });
+
+    const updatedTruthSheet: BrandTruthSheet = {
+      ...domain.brand_truth_sheet,
+      report_schedule: nextSchedule,
+    };
+
+    if (access.supabase) {
+      await access.supabase
+        .from('domains')
+        .update({ brand_truth_sheet: updatedTruthSheet })
+        .eq('id', domain.id)
+        .eq('user_id', access.profile.id);
+    } else {
+      domain.brand_truth_sheet = updatedTruthSheet;
+    }
+
+    return NextResponse.json({
+      ok: true,
+      domainId: domain.id,
+      schedule: nextSchedule,
+      scheduleLabel: formatDomainReportScheduleLabel(nextSchedule),
+    });
+  } catch (err) {
+    return NextResponse.json(
+      {
+        error: 'SCHEDULE_UPDATE_FAILED',
+        message:
+          err instanceof Error
+            ? err.message
+            : 'Unable to save report schedule.',
       },
       { status: 400 }
     );

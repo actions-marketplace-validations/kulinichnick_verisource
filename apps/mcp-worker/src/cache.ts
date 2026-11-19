@@ -1,4 +1,4 @@
-import type { WorkerEnv } from './types.js';
+import { resolveWorkerKv, type WorkerEnv } from './types.js';
 
 interface MemoryCacheEntry {
   rawJson: string;
@@ -12,8 +12,9 @@ export async function getCachedJson<T>(
   key: string,
   env: WorkerEnv
 ): Promise<T | null> {
-  if (env.MCP_CACHE_KV) {
-    const val = await env.MCP_CACHE_KV.get(key, 'text');
+  const kv = resolveWorkerKv(env);
+  if (kv) {
+    const val = await kv.get(key, 'text');
     if (val) {
       try {
         return JSON.parse(val) as T;
@@ -49,8 +50,9 @@ export async function setCachedJson(
     expiresAtMs: Date.now() + ttlSeconds * 1000,
   });
 
-  if (env.MCP_CACHE_KV) {
-    await env.MCP_CACHE_KV.put(key, serialized, {
+  const kv = resolveWorkerKv(env);
+  if (kv) {
+    await kv.put(key, serialized, {
       expirationTtl: Math.max(60, ttlSeconds),
     });
   }
@@ -63,15 +65,16 @@ export async function checkFreeGraderIpRateLimit(
 ): Promise<{ allowed: boolean; remaining: number }> {
   const dayKey = new Date().toISOString().slice(0, 10);
   const kvKey = `ratelimit:free:${dayKey}:${clientIp}`;
+  const kv = resolveWorkerKv(env);
 
-  if (env.MCP_CACHE_KV) {
-    const rawCount = await env.MCP_CACHE_KV.get(kvKey, 'text');
+  if (kv) {
+    const rawCount = await kv.get(kvKey, 'text');
     const used = rawCount ? Number.parseInt(rawCount, 10) || 0 : 0;
     if (used >= maxPerDay) {
       return { allowed: false, remaining: 0 };
     }
     const nextUsed = used + 1;
-    await env.MCP_CACHE_KV.put(kvKey, String(nextUsed), {
+    await kv.put(kvKey, String(nextUsed), {
       expirationTtl: 86400,
     });
     return { allowed: true, remaining: maxPerDay - nextUsed };

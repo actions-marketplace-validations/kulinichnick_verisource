@@ -5297,7 +5297,91 @@ async function run() {
       m109UniqueLinks.size >= 130,
       `Expected /reports leaderboard to index >= 130 unique domains, got ${m109UniqueLinks.size}`
     );
-    console.log('✔ [100/100] M109 Curated 9-Rivalry /vs Matrix, @verisource/cli report Self-GEO & 130-Domain /reports Hub verified!');
+    console.log('✔ [100/102] M109 Curated 9-Rivalry /vs Matrix, @verisource/cli report Self-GEO & 130-Domain /reports Hub verified!');
+
+    // 99. M110 Customer Report Schedule Picker (#vs-report-schedule-bar) & PATCH /api/dashboard/digest (401 / 400 / 200)
+    const unauthScheduleRes = await fetch(`${BASE}/api/dashboard/digest`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        frequency: 'weekly',
+        day_of_week: 1,
+      }),
+    });
+    assert.equal(unauthScheduleRes.status, 401);
+
+    const validScheduleRes = await fetch(`${BASE}/api/dashboard/digest`, {
+      method: 'PATCH',
+      headers: OWNER_JSON_HEADERS,
+      body: JSON.stringify({
+        domain_id: '11111111-1111-4000-8000-000000000001',
+        frequency: 'monthly',
+        day_of_month: 15,
+        watchdog_alerts_enabled: true,
+      }),
+    });
+    assert.equal(validScheduleRes.status, 200);
+    const validScheduleJson = await validScheduleRes.json();
+    assert.equal(validScheduleJson.ok, true);
+    assert.equal(validScheduleJson.schedule.frequency, 'monthly');
+    assert.equal(validScheduleJson.schedule.day_of_month, 15);
+    assert.equal(validScheduleJson.scheduleLabel, 'Monthly on Day 15');
+
+    const m110DashHtml = await (
+      await fetch(`${BASE}/dashboard`, { headers: OWNER_HEADERS })
+    ).text();
+    assert.ok(
+      m110DashHtml.includes('id="vs-report-schedule-bar"') &&
+        m110DashHtml.includes('REPORT SCHEDULE:'),
+      'Expected #vs-report-schedule-bar inside Subscriber Console'
+    );
+    console.log('✔ [101/102] M110 Customer Report Schedule Picker (#vs-report-schedule-bar) & PATCH /api/dashboard/digest verified!');
+
+    // 100. M111 Static SSR /vs/[matchup] Comparison Pages, Sitemap Indexing & 140-Domain /reports Milestone
+    const [m111MatchupRes, m111SitemapRes, m111ReportsRes] = await Promise.all([
+      fetch(`${BASE}/vs/cursor-com-vs-zed-dev`),
+      fetch(`${BASE}/sitemap.xml`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m111MatchupRes.status, 200);
+    assert.equal(m111SitemapRes.status, 200);
+    assert.equal(m111ReportsRes.status, 200);
+
+    const m111MatchupHtml = await m111MatchupRes.text();
+    const m111MatchupVisible = m111MatchupHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m111MatchupHtml.includes('6-Dimension AI Search &amp; Crawler Protocol Diff') &&
+        m111MatchupHtml.includes('application/ld+json') &&
+        m111MatchupHtml.includes('cursor.com') &&
+        m111MatchupHtml.includes('zed.dev') &&
+        (m111MatchupVisible.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(m111MatchupVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(m111MatchupVisible),
+      'Expected /vs/cursor-com-vs-zed-dev to render 6-dimension SSR protocol diff + JSON-LD with zero banned lexicon or /10 jargon'
+    );
+
+    const m111SitemapXml = await m111SitemapRes.text();
+    assert.ok(
+      m111SitemapXml.includes('https://verisource.dev/vs/cursor-com-vs-zed-dev') &&
+        m111SitemapXml.includes('https://verisource.dev/vs/floydhome-com-vs-article-com'),
+      'Expected sitemap.xml to index static /vs/[matchup] routes'
+    );
+
+    const m111ReportsHtml = await m111ReportsRes.text();
+    const m111UniqueLinks = new Set(
+      Array.from(
+        m111ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m111UniqueLinks.size >= 140,
+      `Expected /reports leaderboard to index >= 140 unique domains, got ${m111UniqueLinks.size}`
+    );
+    console.log('✔ [102/102] M111 Static SSR /vs/[matchup] Pages, Sitemap Indexing & 140-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

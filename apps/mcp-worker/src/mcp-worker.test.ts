@@ -617,3 +617,30 @@ test('M105 compare_competitor_protocol_xray blocks SSRF/same-domain before billi
   assert.equal(cachedPayload.credits_remaining, 989);
   assert.equal(cachedPayload.served_from_cache, true);
 });
+
+test('M110 resolveWorkerKv binds production VERISOURCE_CACHE namespace and enforces KV rate limits', async () => {
+  const { resolveWorkerKv } = await import('./types.js');
+  const { checkFreeGraderIpRateLimit } = await import('./cache.js');
+
+  const store = new Map<string, string>();
+  const fakeKv = {
+    get: async (k: string) => store.get(k) ?? null,
+    put: async (k: string, v: string) => {
+      store.set(k, v);
+    },
+  } as unknown as KVNamespace;
+
+  const prodEnv = {
+    ...TEST_ENV,
+    VERISOURCE_CACHE: fakeKv,
+  };
+  assert.equal(resolveWorkerKv(prodEnv), fakeKv);
+
+  const r1 = await checkFreeGraderIpRateLimit('203.0.113.88', prodEnv, 2);
+  const r2 = await checkFreeGraderIpRateLimit('203.0.113.88', prodEnv, 2);
+  const r3 = await checkFreeGraderIpRateLimit('203.0.113.88', prodEnv, 2);
+  assert.equal(r1.allowed, true);
+  assert.equal(r2.allowed, true);
+  assert.equal(r3.allowed, false);
+  assert.ok(store.size >= 1, 'Expected rate limit counter persisted into VERISOURCE_CACHE');
+});

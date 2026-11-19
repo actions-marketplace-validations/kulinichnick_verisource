@@ -51,6 +51,19 @@ export type RobotsAiBotStatus = {
   waf_blocked: boolean;
 };
 
+export type DigestFrequency = 'daily' | 'weekly' | 'monthly' | 'off';
+
+export type DomainReportSchedule = {
+  frequency: DigestFrequency;
+  day_of_week: number;
+  day_of_month: number;
+  recipient_email?: string | null;
+  watchdog_alerts_enabled?: boolean;
+  last_digest_sent_at?: string | null;
+  last_alert_sent_at?: string | null;
+  last_alert_fingerprint?: string | null;
+};
+
 export type BrandTruthSheet = {
   is_user_verified: boolean;
   core_offering: string;
@@ -58,6 +71,7 @@ export type BrandTruthSheet = {
   shipping_or_service_area: string;
   key_differentiators: string[];
   discontinued_or_false_claims_to_flag: string[];
+  report_schedule?: DomainReportSchedule;
 };
 
 export type HallucinationDetail = {

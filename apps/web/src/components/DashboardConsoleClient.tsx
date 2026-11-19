@@ -31,10 +31,12 @@ import {
   evaluatePublishedCitationPage,
   extractProspectCsvDomains,
   filterAndRankPitchReports,
+  formatDomainReportScheduleLabel,
   generateSuggestedBuyerPrompts,
   getPromptIntentMeta,
   getWebsitePlatformMeta,
   MCP_CLIENT_APP_OPTIONS,
+  normalizeDomainReportSchedule,
   normalizePublicDomain,
   rankCitationGapSources,
   resolveInitialDomainScoreDeltas,
@@ -42,6 +44,7 @@ import {
   summarizeBrandSentimentAndSov,
   summarizeEngineCitationShare,
   summarizePitchEngagementCounts,
+  WEEKDAY_NAMES,
   type AgencyPitchReportRow,
   type AiAttributionEventRow,
   type AiRemediationTargetEnv,
@@ -49,6 +52,8 @@ import {
   type CitationSnapshotRow,
   type CompetitorTechnicalXrayReport,
   type CrawlerReadabilityReport,
+  type DigestFrequency,
+  type DomainReportSchedule,
   type DomainRow,
   type GeneratedFixRow,
   type LiveFixVerificationReport,
@@ -246,6 +251,23 @@ export function DashboardConsoleClient(props: {
     ).join('\n')
   );
   const [savingTruth, setSavingTruth] = useState(false);
+
+  const initialSchedule = normalizeDomainReportSchedule(
+    activeDomain?.brand_truth_sheet.report_schedule
+  );
+  const [reportFrequency, setReportFrequency] = useState<DigestFrequency>(
+    initialSchedule.frequency
+  );
+  const [reportDayOfWeek, setReportDayOfWeek] = useState<number>(
+    initialSchedule.day_of_week
+  );
+  const [reportDayOfMonth, setReportDayOfMonth] = useState<number>(
+    initialSchedule.day_of_month
+  );
+  const [watchdogAlertsEnabled, setWatchdogAlertsEnabled] = useState<boolean>(
+    initialSchedule.watchdog_alerts_enabled
+  );
+  const [savingReportSchedule, setSavingReportSchedule] = useState(false);
 
   // Tab 3 Buyer Prompt tracking state
   const [newPromptText, setNewPromptText] = useState('');
@@ -733,6 +755,13 @@ export function DashboardConsoleClient(props: {
         '\n'
       )
     );
+    const syncedSchedule = normalizeDomainReportSchedule(
+      activeDomain.brand_truth_sheet.report_schedule
+    );
+    setReportFrequency(syncedSchedule.frequency);
+    setReportDayOfWeek(syncedSchedule.day_of_week);
+    setReportDayOfMonth(syncedSchedule.day_of_month);
+    setWatchdogAlertsEnabled(syncedSchedule.watchdog_alerts_enabled);
     let cancelled = false;
     void computeShopifyCheckoutKey({
       domainId: activeDomain.id,
@@ -2259,6 +2288,61 @@ export function DashboardConsoleClient(props: {
       setBannerError('Network error while dispatching drift alert.');
     } finally {
       setSendingAlert(false);
+    }
+  }
+
+  async function handleSaveReportSchedule() {
+    if (!activeDomain) return;
+    setSavingReportSchedule(true);
+    setBannerError(null);
+    try {
+      const res = await fetch('/api/dashboard/digest', {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({
+          domain_id: activeDomain.id,
+          frequency: reportFrequency,
+          day_of_week: reportDayOfWeek,
+          day_of_month: reportDayOfMonth,
+          watchdog_alerts_enabled: watchdogAlertsEnabled,
+        }),
+      });
+      const json = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        message?: string;
+        schedule?: DomainReportSchedule;
+        scheduleLabel?: string;
+      };
+      if (!res.ok || json.error || !json.schedule) {
+        setBannerError(json.message ?? 'Unable to save report schedule.');
+      } else {
+        setData((prev) => ({
+          ...prev,
+          domains: prev.domains.map((d) =>
+            d.id === activeDomain.id
+              ? {
+                  ...d,
+                  brand_truth_sheet: {
+                    ...d.brand_truth_sheet,
+                    report_schedule: json.schedule,
+                  },
+                }
+              : d
+          ),
+        }));
+        setBannerSuccess(
+          `Saved automated email schedule for ${activeDomain.brand_name}: ${
+            json.scheduleLabel ?? formatDomainReportScheduleLabel(json.schedule)
+          } · Regression alerts ${
+            json.schedule.watchdog_alerts_enabled !== false ? 'on' : 'muted'
+          }.`
+        );
+      }
+    } catch {
+      setBannerError('Network error while saving report schedule.');
+    } finally {
+      setSavingReportSchedule(false);
     }
   }
 
@@ -4954,6 +5038,151 @@ export function DashboardConsoleClient(props: {
                         : isGuided
                           ? 'Weekly Summary Email'
                           : 'Weekly Client Digest'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Automated Report Cadence & Day Picker */}
+                <div
+                  id="vs-report-schedule-bar"
+                  style={{
+                    padding: '10px 14px',
+                    borderBottom: '1px solid var(--vs-border)',
+                    background: 'var(--vs-surface-subtle)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <span
+                      className="vs-mono"
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        color: 'var(--vs-ink-muted)',
+                      }}
+                    >
+                      REPORT SCHEDULE:
+                    </span>
+                    <select
+                      aria-label="Automated report frequency"
+                      value={reportFrequency}
+                      onChange={(e) =>
+                        setReportFrequency(e.target.value as DigestFrequency)
+                      }
+                      className="vs-input vs-mono"
+                      style={{
+                        width: 'auto',
+                        padding: '4px 8px',
+                        fontSize: '11.5px',
+                        height: '28px',
+                      }}
+                    >
+                      <option value="weekly">Weekly</option>
+                      <option value="daily">Daily</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="off">Paused</option>
+                    </select>
+
+                    {reportFrequency === 'weekly' ? (
+                      <select
+                        aria-label="Weekly report day"
+                        value={reportDayOfWeek}
+                        onChange={(e) =>
+                          setReportDayOfWeek(Number(e.target.value))
+                        }
+                        className="vs-input vs-mono"
+                        style={{
+                          width: 'auto',
+                          padding: '4px 8px',
+                          fontSize: '11.5px',
+                          height: '28px',
+                        }}
+                      >
+                        {WEEKDAY_NAMES.map((dayName, idx) => (
+                          <option key={dayName} value={idx}>
+                            Every {dayName}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+
+                    {reportFrequency === 'monthly' ? (
+                      <select
+                        aria-label="Monthly report day"
+                        value={reportDayOfMonth}
+                        onChange={(e) =>
+                          setReportDayOfMonth(Number(e.target.value))
+                        }
+                        className="vs-input vs-mono"
+                        style={{
+                          width: 'auto',
+                          padding: '4px 8px',
+                          fontSize: '11.5px',
+                          height: '28px',
+                        }}
+                      >
+                        {Array.from({ length: 28 }, (_, i) => i + 1).map(
+                          (dayNum) => (
+                            <option key={dayNum} value={dayNum}>
+                              Day {dayNum} of Month
+                            </option>
+                          )
+                        )}
+                      </select>
+                    ) : null}
+
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        fontSize: '11.5px',
+                        color: 'var(--vs-ink-secondary)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={watchdogAlertsEnabled}
+                        onChange={(e) =>
+                          setWatchdogAlertsEnabled(e.target.checked)
+                        }
+                      />
+                      Alert on new regressions only
+                    </label>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <StatusBadge tone="neutral">
+                      {formatDomainReportScheduleLabel(
+                        activeDomain.brand_truth_sheet.report_schedule
+                      ).toUpperCase()}
+                    </StatusBadge>
+                    <button
+                      type="button"
+                      disabled={savingReportSchedule}
+                      onClick={() => void handleSaveReportSchedule()}
+                      className="vs-btn vs-btn-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
+                    >
+                      {savingReportSchedule ? 'Saving...' : 'Save Schedule'}
                     </button>
                   </div>
                 </div>

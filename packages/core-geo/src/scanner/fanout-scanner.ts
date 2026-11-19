@@ -929,7 +929,7 @@ async function scanWithGeminiLive(
 ): Promise<EngineScanResult | null> {
   try {
     const response = await fetchJsonWith429Retry(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(
         apiKey
       )}`,
       {
@@ -1170,11 +1170,14 @@ function buildMockEngineScan(
   engine: AiEngine,
   domain: NormalizedDomain,
   brandName: string,
-  truthSheet: BrandTruthSheet
+  truthSheet: BrandTruthSheet,
+  allowPatientZeroFixtures = true
 ): EngineScanResult {
-  const fixtureDomain = PATIENT_ZERO_DOMAINS.find((d) =>
-    matchesPublicHostname(d.domain_url, domain.hostname)
-  );
+  const fixtureDomain = allowPatientZeroFixtures
+    ? PATIENT_ZERO_DOMAINS.find((d) =>
+        matchesPublicHostname(d.domain_url, domain.hostname)
+      )
+    : undefined;
 
   if (fixtureDomain) {
     const matchingSnap = PATIENT_ZERO_SNAPSHOTS.find(
@@ -1255,6 +1258,7 @@ export async function runMultiEnginePromptScan(options: {
   brandName: string;
   truthSheet: BrandTruthSheet;
   env: CoreGeoEnv;
+  priorLiveSnapshots?: EngineScanResult[];
 }): Promise<EngineScanResult[]> {
   const engines: AiEngine[] = options.engines ?? [
     'chatgpt',
@@ -1262,53 +1266,93 @@ export async function runMultiEnginePromptScan(options: {
     'perplexity',
   ];
   const results: EngineScanResult[] = [];
+  const cleanPriorLive = (options.priorLiveSnapshots ?? []).filter(
+    (s) => s.fanoutTelemetryType !== 'mock_fixture'
+  );
 
   for (const promptText of options.prompts) {
-    const enginePromises = engines.map(async (engine) => {
-      if (options.env.providerMode === 'live') {
-        if (engine === 'gemini' && options.env.geminiApiKey) {
-          const live = await scanWithGeminiLive(
-            promptText,
-            options.domain,
-            options.brandName,
-            options.truthSheet,
-            options.env.geminiApiKey
+    if (options.env.providerMode === 'live') {
+      const liveBatch = await Promise.all(
+        engines.map(async (engine) => {
+          if (engine === 'gemini' && options.env.geminiApiKey) {
+            const live = await scanWithGeminiLive(
+              promptText,
+              options.domain,
+              options.brandName,
+              options.truthSheet,
+              options.env.geminiApiKey
+            );
+            if (live) return live;
+          }
+          if (engine === 'chatgpt' && options.env.openaiApiKey) {
+            const live = await scanWithOpenAiLive(
+              promptText,
+              options.domain,
+              options.brandName,
+              options.truthSheet,
+              options.env.openaiApiKey
+            );
+            if (live) return live;
+          }
+          if (engine === 'perplexity' && options.env.perplexityApiKey) {
+            const live = await scanWithPerplexityLive(
+              promptText,
+              options.domain,
+              options.brandName,
+              options.truthSheet,
+              options.env.perplexityApiKey
+            );
+            if (live) return live;
+          }
+
+          // Carry forward most recent verified live snapshot for this engine on transient API failure
+          const exactPrior = cleanPriorLive.find(
+            (p) => p.aiEngine === engine && p.promptText === promptText
           );
-          if (live) return live;
-        }
-        if (engine === 'chatgpt' && options.env.openaiApiKey) {
-          const live = await scanWithOpenAiLive(
-            promptText,
-            options.domain,
-            options.brandName,
-            options.truthSheet,
-            options.env.openaiApiKey
-          );
-          if (live) return live;
-        }
-        if (engine === 'perplexity' && options.env.perplexityApiKey) {
-          const live = await scanWithPerplexityLive(
-            promptText,
-            options.domain,
-            options.brandName,
-            options.truthSheet,
-            options.env.perplexityApiKey
-          );
-          if (live) return live;
-        }
+          if (exactPrior) return exactPrior;
+          const enginePrior = cleanPriorLive.find((p) => p.aiEngine === engine);
+          if (enginePrior) {
+            return { ...enginePrior, promptText };
+          }
+          return null;
+        })
+      );
+
+      const nonNullLive = liveBatch.filter(
+        (item): item is EngineScanResult => item !== null
+      );
+      if (nonNullLive.length > 0) {
+        results.push(...nonNullLive);
+        continue;
       }
 
-      return buildMockEngineScan(
+      // Only if ALL configured live APIs failed simultaneously, emit non-Patient-Zero deterministic fallback so downstream callers never crash on empty array
+      for (const engine of engines) {
+        results.push(
+          buildMockEngineScan(
+            promptText,
+            engine,
+            options.domain,
+            options.brandName,
+            options.truthSheet,
+            false
+          )
+        );
+      }
+      continue;
+    }
+
+    const mockBatch = engines.map((engine) =>
+      buildMockEngineScan(
         promptText,
         engine,
         options.domain,
         options.brandName,
-        options.truthSheet
-      );
-    });
-
-    const batch = await Promise.all(enginePromises);
-    results.push(...batch);
+        options.truthSheet,
+        true
+      )
+    );
+    results.push(...mockBatch);
   }
 
   return results;
