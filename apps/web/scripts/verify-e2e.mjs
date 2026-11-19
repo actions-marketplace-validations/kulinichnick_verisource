@@ -5592,7 +5592,46 @@ async function run() {
       m116UniqueLinks.size >= 180,
       `Expected /reports leaderboard to index >= 180 unique domains, got ${m116UniqueLinks.size}`
     );
-    console.log('✔ [106/106] M116 @verisource/cli matchup, 31-Matchup /vs Directory & 180-Domain /reports Hub verified!');
+    console.log('✔ [106/107] M116 @verisource/cli matchup, 31-Matchup /vs Directory & 180-Domain /reports Hub verified!');
+
+    // 105. M117 Fintech/HRIS WAF Benchmark (FIG 15), 34 /vs/[matchup] Pages & 190-Domain /reports Milestone
+    const [
+      m117BenchRes,
+      m117VantaDrataRes,
+      m117ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/benchmarks/ai-search-readiness-2026`),
+      fetch(`${BASE}/vs/vanta-com-vs-drata-com`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m117BenchRes.status, 200);
+    assert.equal(m117VantaDrataRes.status, 200);
+    assert.equal(m117ReportsRes.status, 200);
+
+    const m117BenchHtml = await m117BenchRes.text();
+    const m117BenchVisible = m117BenchHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m117BenchHtml.includes('id="fintech-hris-waf-penalty"') &&
+        m117BenchHtml.includes('FIG 15 · FINTECH &amp; HRIS AI READINESS LEADERBOARD') &&
+        (m117BenchVisible.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(m117BenchVisible),
+      'Expected /benchmarks/ai-search-readiness-2026 to render FIG 15 Fintech/HRIS WAF chart with zero banned lexicon or /10 jargon'
+    );
+
+    const m117ReportsHtml = await m117ReportsRes.text();
+    const m117UniqueLinks = new Set(
+      Array.from(
+        m117ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m117UniqueLinks.size >= 190,
+      `Expected /reports leaderboard to index >= 190 unique domains, got ${m117UniqueLinks.size}`
+    );
+    console.log('✔ [107/107] M117 Fintech/HRIS WAF Study (FIG 15), 34 /vs/[matchup] Pages & 190-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

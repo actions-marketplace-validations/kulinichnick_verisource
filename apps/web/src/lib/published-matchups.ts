@@ -243,6 +243,27 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Shopify Product + Offer JSON-LD and SSR catalog copy vs. custom Next.js WAF/crawler gap.',
   },
+  {
+    cohort: 'SECURITY COMPLIANCE SAAS',
+    domainA: 'vanta.com',
+    domainB: 'drata.com',
+    angle:
+      'Webflow open crawler posture and SSR copy vs. custom Next.js edge firewall restrictions.',
+  },
+  {
+    cohort: 'ENTERPRISE OBSERVABILITY & INCIDENT',
+    domainA: 'pagerduty.com',
+    domainB: 'datadoghq.com',
+    angle:
+      'Multi-block WordPress JSON-LD + /llms.txt vs. custom Next.js developer telemetry landing graph.',
+  },
+  {
+    cohort: 'FUNCTIONAL BEVERAGE SHOPIFY',
+    domainA: 'athleticbrewing.com',
+    domainB: 'drinklmnt.com',
+    angle:
+      'Shopify Product + Offer JSON-LD parity vs. storefront /agents.md pricing guardrails.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

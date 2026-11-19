@@ -264,3 +264,25 @@ Even wilder:
 Inspect all 160 scorecards or benchmark any 2 domains head-to-head for free:
 https://verisource.dev/benchmarks/ai-search-readiness-2026
 ```
+
+---
+
+## 9. B2B Fintech & HRIS Edge WAF Study (N = 7 Enterprise Platforms)
+
+### A. LinkedIn / Hacker News Data Post
+```text
+We audited 7 enterprise fintech, corporate spend, and HRIS platforms over live HTTPS (Mercury, Deel, Brex, Ramp, Rippling, Gusto, and Carta) as our open AI Search Readiness Index crossed 190 domains.
+
+Enterprise security teams are unintentionally handing AI search citations to rivals:
+
+• Cohort Mean: 51.7 out of 100 (-16.7 points below our 68.4 SaaS & Commerce index mean).
+• 42.9% (3 of 7 — Rippling, Gusto, Carta) block GPTBot and PerplexityBot at the edge firewall or robots.txt layer. On Gusto (34 out of 100) and Carta (34 out of 100), non-JS HTML collapses to 3 visible words.
+• Rippling (54 out of 100) invested in publishing /llms.txt and 2 of 3 JSON-LD schema pillars (1,506 SSR words), yet edge bot blocks still hand an +8-point retrieval lead to Deel (62 out of 100, HTTP 200).
+• 0 of 7 (0.0%) publish a verified /agents.md fee and plan guardrail file (Brex 58 vs. Ramp 58 — tied at 1 of 3 JSON-LD pillars), forcing ChatGPT Search and Perplexity to pull pricing comparisons from outdated Reddit threads and affiliate tables.
+
+Side-by-side protocol diffs:
+• Deel (62) vs. Rippling (54): https://verisource.dev/vs/deel-com-vs-rippling-com
+• Brex (58) vs. Ramp (58): https://verisource.dev/vs/brex-com-vs-ramp-com
+• Full 2026 study & FIG 15 chart: https://verisource.dev/benchmarks/ai-search-readiness-2026#fintech-hris-waf-penalty
+```
+

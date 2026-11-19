@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:25:30.262Z",
+  "updatedAt": "2026-11-19T06:34:19.164Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1086,55 +1086,65 @@
     {
       "domain": "vanta.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "drata.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "ashbyhq.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
-      "domain": "lmnt.com",
+      "domain": "drinklmnt.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "athleticbrewing.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
-      "domain": "ghia.com",
+      "domain": "drinkghia.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
-      "domain": "kin-euphorics.com",
+      "domain": "kineuphorics.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "grafbase.com",
       "brandName": "Grafbase",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "datadoghq.com",
       "brandName": "Datadog",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "pagerduty.com",
       "brandName": "PagerDuty",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T06:34:19.164Z"
     },
     {
       "domain": "incident.io",
@@ -1229,6 +1239,60 @@
     {
       "domain": "nomadgoods.com",
       "brandName": "Nomad",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "linearb.io",
+      "brandName": "LinearB",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "swarmia.com",
+      "brandName": "Swarmia",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "cortex.io",
+      "brandName": "Cortex",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "port.io",
+      "brandName": "Port",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "gorjana.com",
+      "brandName": "Gorjana",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "mejuri.com",
+      "brandName": "Mejuri",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "aurate.com",
+      "brandName": "AUrate",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "quince.com",
+      "brandName": "Quince",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "everlane.com",
+      "brandName": "Everlane",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

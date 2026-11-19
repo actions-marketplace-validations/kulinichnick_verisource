@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:23:55.563Z",
+  "updatedAt": "2026-11-19T06:34:19.164Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -264,7 +264,7 @@
       "caseStudyClientDomain": "keragon.com",
       "caseStudyClientName": "Keragon",
       "status": "audited",
-      "auditedAt": "2026-11-19T06:25:13.838Z",
+      "auditedAt": "2026-11-19T06:25:13.829Z",
       "auditSlug": "keragon-com-u706",
       "emailSentAt": "2026-11-19T06:23:55.563Z",
       "resendMessageId": "01a1f27a-12bc-709e-8a2a-39f3d348ec11",
@@ -284,7 +284,7 @@
       "caseStudyClientDomain": "pastaevangelists.com",
       "caseStudyClientName": "Pasta Evangelists",
       "status": "audited",
-      "auditedAt": "2026-11-19T06:25:13.838Z",
+      "auditedAt": "2026-11-19T06:25:13.830Z",
       "auditSlug": "pastaevangelists-com-0my0",
       "emailSentAt": "2026-11-19T06:23:55.563Z",
       "resendMessageId": "01a1f27a-04c6-77fc-9be0-609a3b4b995c",
@@ -303,7 +303,15 @@
       "publicContactChannel": "hello@creativecorner.studio",
       "caseStudyClientDomain": "testlio.com",
       "caseStudyClientName": "Testlio",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T06:34:19.164Z",
+      "auditSlug": "testlio-com-zvl0",
+      "emailSentAt": "2026-11-19T06:34:19.164Z",
+      "resendMessageId": "01a1f283-842e-79f7-ac44-4db9ed5856d0",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "blubolt",
@@ -315,7 +323,15 @@
       "publicContactChannel": "hello@blubolt.com",
       "caseStudyClientDomain": "rixolondon.com",
       "caseStudyClientName": "RIXO",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T06:34:19.164Z",
+      "auditSlug": "rixolondon-com-7ew1",
+      "emailSentAt": "2026-11-19T06:34:19.164Z",
+      "resendMessageId": "01a1f283-9372-7437-a1c9-a2dbd613efef",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Embarque",

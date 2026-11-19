@@ -861,7 +861,206 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
               Inspect Webflow (72) vs. Figma (38) →
             </Link>
             <Link href="/reports" className="vs-btn vs-btn-secondary">
-              Browse All 160 Domain Scorecards →
+              Browse All 190+ Domain Scorecards →
+            </Link>
+          </div>
+        </section>
+
+        {/* Empirical Addendum IV: Enterprise Fintech & HRIS WAF Penalty */}
+        <section
+          id="fintech-hris-waf-penalty"
+          style={{ marginBottom: '44px' }}
+        >
+          <div className="vs-eyebrow" style={{ marginBottom: '6px' }}>
+            EMPIRICAL ADDENDUM IV · ENTERPRISE FINTECH &amp; HRIS WAF PENALTY
+          </div>
+          <h2
+            style={{
+              fontSize: 'clamp(22px, 2.8vw, 28px)',
+              fontWeight: 700,
+              letterSpacing: '-0.02em',
+              margin: '0 0 12px 0',
+            }}
+          >
+            Why enterprise fintech &amp; payroll platforms average 51.7 out of 100 (-16.7 pts)
+          </h2>
+          <p
+            style={{
+              fontSize: '15px',
+              lineHeight: 1.65,
+              color: 'var(--vs-ink-secondary)',
+              margin: '0 0 18px 0',
+              maxWidth: '820px',
+            }}
+          >
+            Security-conscious financial and HRIS teams routinely tighten Cloudflare
+            and CDN bot rules without allowlisting commercial answer-engine crawlers.
+            Across 7 audited enterprise spend, banking, equity, and payroll domains (
+            <code className="vs-mono">mercury.com</code>,{' '}
+            <code className="vs-mono">deel.com</code>,{' '}
+            <code className="vs-mono">brex.com</code>,{' '}
+            <code className="vs-mono">ramp.com</code>,{' '}
+            <code className="vs-mono">rippling.com</code>,{' '}
+            <code className="vs-mono">gusto.com</code>, and{' '}
+            <code className="vs-mono">carta.com</code>), mean readiness drops to{' '}
+            <strong>51.7 / 100</strong>—<strong>16.7 points</strong> below the
+            broader SaaS and commerce index:
+          </p>
+
+          <div className="vs-grid-3" style={{ marginBottom: '20px', gap: '14px' }}>
+            <div className="vs-card" style={{ padding: '16px 18px' }}>
+              <div
+                className="vs-mono"
+                style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}
+              >
+                EDGE WAF CRAWLER BLOCKS
+              </div>
+              <div
+                className="vs-mono"
+                style={{ fontSize: '24px', fontWeight: 700, color: '#FCA5A5', marginBottom: '6px' }}
+              >
+                42.9% (3 / 7)
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.55, color: 'var(--vs-ink-secondary)' }}>
+                <code className="vs-mono">rippling.com</code>,{' '}
+                <code className="vs-mono">gusto.com</code>, and{' '}
+                <code className="vs-mono">carta.com</code> restrict{' '}
+                <code className="vs-mono">GPTBot</code> and{' '}
+                <code className="vs-mono">PerplexityBot</code>; non-JS visible HTML
+                on Gusto and Carta collapses to 3 words.
+              </p>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px 18px' }}>
+              <div
+                className="vs-mono"
+                style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}
+              >
+                DEEL VS. RIPPLING PROTOCOL SPLIT
+              </div>
+              <div
+                className="vs-mono"
+                style={{ fontSize: '24px', fontWeight: 700, color: '#6EE7B7', marginBottom: '6px' }}
+              >
+                62 vs. 54
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.55, color: 'var(--vs-ink-secondary)' }}>
+                Even though <code className="vs-mono">rippling.com</code> ships{' '}
+                <code className="vs-mono">/llms.txt</code> and 2 of 3{' '}
+                <code className="vs-mono">JSON-LD</code> pillars, edge crawler
+                blocks hand an +8-point lead to{' '}
+                <code className="vs-mono">deel.com</code> (HTTP 200).
+              </p>
+            </div>
+
+            <div className="vs-card" style={{ padding: '16px 18px' }}>
+              <div
+                className="vs-mono"
+                style={{ fontSize: '11px', color: 'var(--vs-ink-muted)', marginBottom: '4px' }}
+              >
+                VERIFIED /AGENTS.MD FEE SPECS
+              </div>
+              <div
+                className="vs-mono"
+                style={{ fontSize: '24px', fontWeight: 700, color: '#E5A93C', marginBottom: '6px' }}
+              >
+                0.0% (0 / 7)
+              </div>
+              <p style={{ margin: 0, fontSize: '13px', lineHeight: 1.55, color: 'var(--vs-ink-secondary)' }}>
+                Zero audited fintech or payroll brands publish a verified{' '}
+                <code className="vs-mono">/agents.md</code> fee guardrail (
+                <code className="vs-mono">brex.com</code> 58 vs.{' '}
+                <code className="vs-mono">ramp.com</code> 58), leaving fee comparisons
+                to Reddit and affiliate blogs.
+              </p>
+            </div>
+          </div>
+
+          <div className="vs-bezel-obsidian" style={{ marginBottom: '18px' }}>
+            <div
+              style={{
+                background: '#0E1116',
+                borderRadius: '10px',
+                padding: '20px 22px',
+                border: '1px solid #262E3D',
+              }}
+            >
+              <div
+                className="vs-mono"
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  color: '#E5A93C',
+                  marginBottom: '14px',
+                }}
+              >
+                FIG 15 · FINTECH &amp; HRIS AI READINESS LEADERBOARD (N = 7 ENTERPRISE PLATFORMS)
+              </div>
+
+              <svg
+                viewBox="0 0 760 226"
+                role="img"
+                aria-label="Horizontal bar chart comparing AI readiness scores across 7 enterprise fintech and HRIS domains"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              >
+                {/* Row 1: Mercury & Deel */}
+                <text x="0" y="28" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  mercury.com &amp; deel.com (HTTP 200)
+                </text>
+                <rect x="280" y="13" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="13" width="235.6" height="20" rx="4" fill="#10B981" />
+                <text x="672" y="28" fill="#6EE7B7" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  62 / 100
+                </text>
+
+                {/* Row 2: Brex & Ramp */}
+                <text x="0" y="78" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  brex.com &amp; ramp.com (Tied · 1/3 JSON-LD)
+                </text>
+                <rect x="280" y="63" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="63" width="220.4" height="20" rx="4" fill="#E5A93C" />
+                <text x="672" y="78" fill="#E5A93C" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  58 / 100
+                </text>
+
+                {/* Row 3: Rippling */}
+                <text x="0" y="128" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  rippling.com (/llms.txt + WAF Block)
+                </text>
+                <rect x="280" y="113" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="113" width="205.2" height="20" rx="4" fill="#F59E0B" />
+                <text x="672" y="128" fill="#FCD34D" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  54 / 100
+                </text>
+
+                {/* Row 4: Gusto & Carta */}
+                <text x="0" y="178" fill="#EEF1F6" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  gusto.com &amp; carta.com (WAF · 3 SSR Words)
+                </text>
+                <rect x="280" y="163" width="380" height="20" rx="4" fill="#171C26" />
+                <rect x="280" y="163" width="129.2" height="20" rx="4" fill="#EF4444" />
+                <text x="672" y="178" fill="#FCA5A5" fontSize="12.5" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontWeight="700">
+                  34 / 100
+                </text>
+
+                {/* Baseline Reference Line */}
+                <text x="280" y="214" fill="#94A3B8" fontSize="11" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">
+                  Cohort Mean: 51.7 / 100 vs. 68.4 / 100 Overall Index Mean (-16.7 pts)
+                </text>
+              </svg>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <Link href="/vs/deel-com-vs-rippling-com" className="vs-btn">
+              Inspect Deel (62) vs. Rippling (54) →
+            </Link>
+            <Link
+              href="/vs/brex-com-vs-ramp-com"
+              className="vs-btn vs-btn-secondary"
+            >
+              Inspect Brex (58) vs. Ramp (58) →
             </Link>
           </div>
         </section>
