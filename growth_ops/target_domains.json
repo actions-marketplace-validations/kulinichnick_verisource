@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:24:44.121Z",
+  "updatedAt": "2026-11-19T18:34:27.608Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2410,65 +2410,141 @@
       "domain": "dynatrace.com",
       "brandName": "Dynatrace",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "newrelic.com",
       "brandName": "New Relic",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "adyen.com",
       "brandName": "Adyen",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "opslevel.com",
       "brandName": "OpsLevel",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "grafana.com",
       "brandName": "Grafana Labs",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "chronosphere.io",
       "brandName": "Chronosphere",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "mollie.com",
       "brandName": "Mollie",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "checkout.com",
       "brandName": "Checkout.com",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "plaid.com",
       "brandName": "Plaid",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "teller.io",
       "brandName": "Teller",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T18:31:50.751Z"
     },
     {
       "domain": "heap.io",
       "brandName": "Heap",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "iterable.com",
+      "brandName": "Iterable",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "onesignal.com",
+      "brandName": "OneSignal",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "sonarsource.com",
+      "brandName": "Sonar",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "pulumi.com",
+      "brandName": "Pulumi",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "circleci.com",
+      "brandName": "CircleCI",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "buildkite.com",
+      "brandName": "Buildkite",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "algolia.com",
+      "brandName": "Algolia",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "typesense.org",
+      "brandName": "Typesense",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "meilisearch.com",
+      "brandName": "Meilisearch",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "gitlab.com",
+      "brandName": "GitLab",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "bitbucket.org",
+      "brandName": "Bitbucket",
       "vertical": "b2b_saas",
       "status": "queued"
     }

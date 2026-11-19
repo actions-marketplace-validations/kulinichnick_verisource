@@ -768,6 +768,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Developer-first identity JSON-LD + /llms.txt docs structure vs. enterprise IAM SSR posture.',
   },
+  {
+    cohort: 'APM & FULL-STACK OBSERVABILITY',
+    domainA: 'dynatrace.com',
+    domainB: 'newrelic.com',
+    angle:
+      'Enterprise observability crawler readiness, SSR copy extraction, and schema.org entity parity.',
+  },
+  {
+    cohort: 'CLOUD-NATIVE METRICS & MONITORING',
+    domainA: 'grafana.com',
+    domainB: 'chronosphere.io',
+    angle:
+      'Monitoring platform /llms.txt documentation feeds, bot access, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'ENTERPRISE GLOBAL PAYMENT PROCESSORS',
+    domainA: 'adyen.com',
+    domainB: 'checkout.com',
+    angle:
+      'Global payments AI crawler access, Webflow vs. Next.js SSR extraction, and entity schema.',
+  },
+  {
+    cohort: 'OPEN BANKING & FINANCIAL DATA APIS',
+    domainA: 'plaid.com',
+    domainB: 'teller.io',
+    angle:
+      'Developer banking API /llms.txt + entity JSON-LD coverage vs. minimal crawler readability.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

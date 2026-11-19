@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T18:24:44.108Z",
+  "updatedAt": "2026-11-19T18:33:38.292Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1224,7 +1224,20 @@
       "publicContactChannel": "hello@focuslab.agency",
       "caseStudyClientDomain": "braze.com",
       "caseStudyClientName": "Braze",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:31:50.751Z",
+      "auditSlug": "braze-com-v0s0",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:31:50.751Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T18:31:50.751Z",
+      "resendMessageId": "01a1f514-8923-71a0-a275-42bbfa028920",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "KOTA",
@@ -1236,7 +1249,20 @@
       "publicContactChannel": "hello@kota.co.uk",
       "caseStudyClientDomain": "stoli.com",
       "caseStudyClientName": "Stoli",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T18:31:50.751Z",
+      "auditSlug": "stoli-com-baij",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T18:31:50.751Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T18:31:50.751Z",
+      "resendMessageId": "01a1f514-7e72-791b-90a9-0c65e16bd445",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "ToyFight",
@@ -1284,6 +1310,30 @@
       "publicContactChannel": "hello@studiofreight.com",
       "caseStudyClientDomain": "framer.com",
       "caseStudyClientName": "Framer",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Huge",
+      "agencyDomain": "hugeinc.com",
+      "specialty": "Digital Experience & Commerce Agency",
+      "contactName": "Lisa De Bonis",
+      "contactRole": "CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Lisa%20De%20Bonis%20Huge",
+      "publicContactChannel": "business@hugeinc.com",
+      "caseStudyClientDomain": "pantone.com",
+      "caseStudyClientName": "Pantone",
+      "status": "queued"
+    },
+    {
+      "agencyName": "B-Reel",
+      "agencyDomain": "b-reel.com",
+      "specialty": "Creative Product & Digital Brand Agency",
+      "contactName": "Anders Wahlquist",
+      "contactRole": "CEO & Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Anders%20Wahlquist%20B-Reel",
+      "publicContactChannel": "newbiz@b-reel.com",
+      "caseStudyClientDomain": "polestar.com",
+      "caseStudyClientName": "Polestar",
       "status": "queued"
     }
   ]
