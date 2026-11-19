@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:23:41.740Z",
+  "updatedAt": "2026-11-19T08:35:03.461Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -709,7 +709,20 @@
       "publicContactChannel": "info@ramotion.com",
       "caseStudyClientDomain": "sysdig.com",
       "caseStudyClientName": "Sysdig",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:35:03.461Z",
+      "auditSlug": "sysdig-com-v48e",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:35:03.461Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:35:03.461Z",
+      "resendMessageId": "01a1f2f2-2465-7148-90e4-e6e07901cc67",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Clay",
@@ -721,7 +734,20 @@
       "publicContactChannel": "hey@clay.global",
       "caseStudyClientDomain": "sendgrid.com",
       "caseStudyClientName": "SendGrid",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T08:35:03.461Z",
+      "auditSlug": "sendgrid-com-xy5n",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T08:35:03.461Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T08:35:03.461Z",
+      "resendMessageId": "01a1f2f2-1956-71cd-b836-3c64d82179f9",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Barrel",
@@ -733,6 +759,66 @@
       "publicContactChannel": "info@barrelny.com",
       "caseStudyClientDomain": "lairdsuperfood.com",
       "caseStudyClientName": "Laird Superfood",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Domaine",
+      "agencyDomain": "meetdomaine.com",
+      "specialty": "Shopify Plus Flagship Design & Commerce Partner",
+      "contactName": "Marko Bon",
+      "contactRole": "Co-Founder & President",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Marko%20Bon%20Domaine",
+      "publicContactChannel": "hello@meetdomaine.com",
+      "caseStudyClientDomain": "rhodeskin.com",
+      "caseStudyClientName": "Rhode",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Scoutside",
+      "agencyDomain": "scoutside.com",
+      "specialty": "Shopify Plus eCommerce & Retention Studio",
+      "contactName": "Thomas McCutchen",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Thomas%20McCutchen%20Scoutside",
+      "publicContactChannel": "hello@scoutside.com",
+      "caseStudyClientDomain": "peachandlily.com",
+      "caseStudyClientName": "Peach & Lily",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Ask Phill",
+      "agencyDomain": "askphill.com",
+      "specialty": "European Shopify Plus Flagship Studio",
+      "contactName": "Martijn Wijsmuller",
+      "contactRole": "Co-Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Martijn%20Wijsmuller%20Ask%20Phill",
+      "publicContactChannel": "phill@askphill.com",
+      "caseStudyClientDomain": "aceandtate.com",
+      "caseStudyClientName": "Ace & Tate",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Veza Digital",
+      "agencyDomain": "vezadigital.com",
+      "specialty": "Webflow Enterprise B2B SaaS Growth Agency",
+      "contactName": "Stefan Katanic",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Stefan%20Katanic%20Veza%20Digital",
+      "publicContactChannel": "hello@vezadigital.com",
+      "caseStudyClientDomain": "chilipiper.com",
+      "caseStudyClientName": "Chili Piper",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Lazarev.agency",
+      "agencyDomain": "lazarev.agency",
+      "specialty": "AI & Enterprise B2B SaaS Design Agency",
+      "contactName": "Kirill Lazarev",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Kirill%20Lazarev%20Lazarev%20agency",
+      "publicContactChannel": "hello@lazarev.agency",
+      "caseStudyClientDomain": "vtex.com",
+      "caseStudyClientName": "VTEX",
       "status": "queued"
     }
   ]

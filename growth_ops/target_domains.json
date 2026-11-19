@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T08:23:41.740Z",
+  "updatedAt": "2026-11-19T08:35:03.461Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1710,61 +1710,71 @@
       "domain": "beehiiv.com",
       "brandName": "beehiiv",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "kit.com",
       "brandName": "Kit",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "mailchimp.com",
       "brandName": "Mailchimp",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "klaviyo.com",
       "brandName": "Klaviyo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "on-running.com",
       "brandName": "On",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "hoka.com",
       "brandName": "HOKA",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "lemon.io",
       "brandName": "Lemon.io",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "toptal.com",
       "brandName": "Toptal",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "upwork.com",
       "brandName": "Upwork",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "fiverr.com",
       "brandName": "Fiverr",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T08:35:03.461Z"
     },
     {
       "domain": "gumroad.com",
@@ -1800,6 +1810,66 @@
       "domain": "outdoorvoices.com",
       "brandName": "Outdoor Voices",
       "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "kajabi.com",
+      "brandName": "Kajabi",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "teachable.com",
+      "brandName": "Teachable",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "podia.com",
+      "brandName": "Podia",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "thinkific.com",
+      "brandName": "Thinkific",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "stan.store",
+      "brandName": "Stan Store",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "ghost.org",
+      "brandName": "Ghost",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "memberful.com",
+      "brandName": "Memberful",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "patreon.com",
+      "brandName": "Patreon",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "skool.com",
+      "brandName": "Skool",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "circle.so",
+      "brandName": "Circle",
+      "vertical": "b2b_saas",
       "status": "queued"
     }
   ]

@@ -488,6 +488,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Custom commerce crawler access, Product JSON-LD, and /agents.md readiness.',
   },
+  {
+    cohort: 'CREATOR NEWSLETTER PLATFORMS',
+    domainA: 'beehiiv.com',
+    domainB: 'substack.com',
+    angle:
+      'Multi-pillar JSON-LD + /llms.txt index on beehiiv vs. Substack SSR discovery baseline.',
+  },
+  {
+    cohort: 'ECOMMERCE LIFECYCLE MARKETING',
+    domainA: 'klaviyo.com',
+    domainB: 'mailchimp.com',
+    angle:
+      'Head-to-head AI crawler rules, /llms.txt protocol feeds, and entity schema parity.',
+  },
+  {
+    cohort: 'FREELANCE TALENT MARKETPLACES',
+    domainA: 'upwork.com',
+    domainB: 'fiverr.com',
+    angle:
+      'Edge WAF bot posture, SSR token extraction, and marketplace JSON-LD readiness.',
+  },
+  {
+    cohort: 'PERFORMANCE RUNNING FOOTWEAR',
+    domainA: 'on-running.com',
+    domainB: 'hoka.com',
+    angle:
+      'Custom athletic commerce crawler access, Product Offer JSON-LD, and /agents.md posture.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {
