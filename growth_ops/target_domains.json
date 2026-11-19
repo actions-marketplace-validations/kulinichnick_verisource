@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T09:10:46.073Z",
+  "updatedAt": "2026-11-19T09:15:59.846Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -2060,59 +2060,129 @@
       "domain": "maze.co",
       "brandName": "Maze",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "usertesting.com",
       "brandName": "UserTesting",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "dovetail.com",
       "brandName": "Dovetail",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "klue.com",
       "brandName": "Klue",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "crayon.co",
       "brandName": "Crayon",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "walkme.com",
       "brandName": "WalkMe",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "chameleon.io",
       "brandName": "Chameleon",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "tuftandneedle.com",
       "brandName": "Tuft & Needle",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "nectarsleep.com",
       "brandName": "Nectar Sleep",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
     },
     {
       "domain": "july.com",
       "brandName": "July",
+      "vertical": "shopify_dtc",
+      "status": "published",
+      "publishedAt": "2026-11-19T09:15:59.846Z"
+    },
+    {
+      "domain": "gong.io",
+      "brandName": "Gong",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "outreach.io",
+      "brandName": "Outreach",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "salesloft.com",
+      "brandName": "Salesloft",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "6sense.com",
+      "brandName": "6sense",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "demandbase.com",
+      "brandName": "Demandbase",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "zoominfo.com",
+      "brandName": "ZoomInfo",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "lusha.com",
+      "brandName": "Lusha",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "rimowa.com",
+      "brandName": "RIMOWA",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "tumi.com",
+      "brandName": "TUMI",
+      "vertical": "shopify_dtc",
+      "status": "queued"
+    },
+    {
+      "domain": "briggs-riley.com",
+      "brandName": "Briggs & Riley",
       "vertical": "shopify_dtc",
       "status": "queued"
     }

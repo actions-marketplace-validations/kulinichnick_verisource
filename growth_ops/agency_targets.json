@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T09:07:54.084Z",
+  "updatedAt": "2026-11-19T09:15:59.846Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -959,7 +959,20 @@
       "publicContactChannel": "info@byradiant.com",
       "caseStudyClientDomain": "surreal.co.uk",
       "caseStudyClientName": "SURREAL",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T09:15:59.846Z",
+      "auditSlug": "surreal-co-uk-sj72",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T09:15:59.846Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T09:15:59.846Z",
+      "resendMessageId": "01a1f317-72a2-77d1-ad42-aae09ab3dd7f",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Praxis Metrics",
@@ -971,6 +984,67 @@
       "publicContactChannel": "contact@praxismetrics.com",
       "caseStudyClientDomain": "organifi.com",
       "caseStudyClientName": "Organifi",
+      "status": "sent",
+      "auditedAt": "2026-11-19T09:15:59.846Z",
+      "auditSlug": "organifi-com-qf8r",
+      "emailVerification": {
+        "verifiedAt": "2026-11-19T09:15:59.846Z",
+        "source": "on_site_exact",
+        "mxExchange": "aspmx.l.google.com"
+      },
+      "emailSentAt": "2026-11-19T09:15:59.846Z",
+      "resendMessageId": "01a1f317-a2d5-7e81-92aa-f396d7593e16",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
+    },
+    {
+      "agencyName": "Kubix",
+      "agencyDomain": "kubixmedia.co.uk",
+      "specialty": "Shopify Plus Digital Commerce Agency",
+      "contactName": "Looay Gharib",
+      "contactRole": "Founder & Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Looay%20Gharib%20Kubix",
+      "publicContactChannel": "hello@kubixmedia.co.uk",
+      "caseStudyClientDomain": "chillys.com",
+      "caseStudyClientName": "Chilly's",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Huemor",
+      "agencyDomain": "huemor.rocks",
+      "specialty": "B2B SaaS & Webflow Redesign Agency",
+      "contactName": "Jeff Gapinski",
+      "contactRole": "Co-Founder & Chief Creative Officer",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Jeff%20Gapinski%20Huemor",
+      "publicContactChannel": "sales@huemor.rocks",
+      "caseStudyClientDomain": "livechat.com",
+      "caseStudyClientName": "LiveChat",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Minuttia",
+      "agencyDomain": "minuttia.com",
+      "specialty": "B2B SaaS SEO & Organic Growth Agency",
+      "contactName": "Georgios Chasiotis",
+      "contactRole": "Managing Director & Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Georgios%20Chasiotis%20Minuttia",
+      "publicContactChannel": "hello@minuttia.com",
+      "caseStudyClientDomain": "respona.com",
+      "caseStudyClientName": "Respona",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Superco",
+      "agencyDomain": "superco.io",
+      "specialty": "Shopify Plus Retention & Subscription Commerce Agency",
+      "contactName": "Peter Thomsen",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Superco%20Shopify%20Plus%20Founder",
+      "publicContactChannel": "hello@superco.io",
+      "caseStudyClientDomain": "huel.com",
+      "caseStudyClientName": "Huel",
       "status": "queued"
     }
   ]
