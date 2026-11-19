@@ -292,6 +292,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Server-rendered B2B spend copy and JSON-LD baseline across travel and card platforms.',
   },
+  {
+    cohort: 'DEVELOPER NETWORKING & TUNNELS',
+    domainA: 'ngrok.com',
+    domainB: 'tailscale.com',
+    angle:
+      'Published /llms.txt + technical entity metadata across developer networking stacks.',
+  },
+  {
+    cohort: 'INTERNAL DEVELOPER PORTALS',
+    domainA: 'port.io',
+    domainB: 'cortex.io',
+    angle:
+      'Webflow structured schema + /llms.txt vs. custom Next.js portal landing baseline.',
+  },
+  {
+    cohort: 'ENGINEERING VELOCITY SAAS',
+    domainA: 'linearb.io',
+    domainB: 'swarmia.com',
+    angle:
+      'B2B engineering metrics /llms.txt posture, SSR copy density, and JSON-LD coverage.',
+  },
+  {
+    cohort: 'EVERYDAY CARRY SHOPIFY VS. HEADLESS',
+    domainA: 'peakdesign.com',
+    domainB: 'bellroy.com',
+    angle:
+      'Shopify Product + Offer JSON-LD catalog feed vs. custom headless Next.js storefront.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

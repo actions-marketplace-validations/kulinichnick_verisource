@@ -5670,7 +5670,56 @@ async function run() {
       m118UniqueLinks.size >= 200,
       `Expected /reports leaderboard to index >= 200 unique domains, got ${m118UniqueLinks.size}`
     );
-    console.log('✔ [108/108] M118 Landmark 200-Domain /reports Hub, 38 /vs/[matchup] Pages & N=200 Protocol Ledger verified!');
+    console.log('✔ [108/109] M118 Landmark 200-Domain /reports Hub, 38 /vs/[matchup] Pages & N=200 Protocol Ledger verified!');
+
+    // 107. M119 Public /api/benchmarks/summary JSON & Markdown Feed, 42 /vs/[matchup] Pages & 210-Domain /reports Hub
+    const [
+      benchSumOptRes,
+      benchSumJsonRes,
+      benchSumMdRes,
+      m119PeakBellroyRes,
+      m119ReportsRes,
+    ] = await Promise.all([
+      fetch(`${BASE}/api/benchmarks/summary`, { method: 'OPTIONS' }),
+      fetch(`${BASE}/api/benchmarks/summary`),
+      fetch(`${BASE}/api/benchmarks/summary?format=md`),
+      fetch(`${BASE}/vs/peakdesign-com-vs-bellroy-com`),
+      fetch(`${BASE}/reports`),
+    ]);
+
+    assert.equal(benchSumOptRes.status, 204);
+    assert.equal(benchSumOptRes.headers.get('access-control-allow-origin'), '*');
+    assert.equal(benchSumJsonRes.status, 200);
+    const benchSumJson = await benchSumJsonRes.json();
+    assert.equal(benchSumJson.ok, true);
+    assert.ok(benchSumJson.totalAuditedDomains >= 210);
+    assert.ok(benchSumJson.publishedMatchupsCount >= 42);
+
+    assert.equal(benchSumMdRes.status, 200);
+    assert.ok(
+      (benchSumMdRes.headers.get('content-type') ?? '').includes('text/markdown')
+    );
+    const benchSumMdText = await benchSumMdRes.text();
+    assert.ok(
+      benchSumMdText.includes('## Aggregate Protocol Coverage') &&
+        benchSumMdText.includes('## Architecture Cohort Split') &&
+        (benchSumMdText.match(BANNED_LEXICON) ?? []).length === 0 &&
+        !SELF_SCORE_JARGON.test(benchSumMdText),
+      'Expected /api/benchmarks/summary?format=md to render clean dataset Markdown with zero banned lexicon or /10 jargon'
+    );
+    assert.equal(m119PeakBellroyRes.status, 200);
+
+    const m119ReportsHtml = await m119ReportsRes.text();
+    const m119UniqueLinks = new Set(
+      Array.from(
+        m119ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      m119UniqueLinks.size >= 210,
+      `Expected /reports leaderboard to index >= 210 unique domains, got ${m119UniqueLinks.size}`
+    );
+    console.log('✔ [109/109] M119 Public /api/benchmarks/summary JSON & Markdown Feed, 42 /vs/[matchup] Pages & 210-Domain /reports Hub verified!');
   } finally {
     server.kill();
   }

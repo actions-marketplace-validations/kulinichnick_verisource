@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   description: BENCHMARK_STUDY_META.metaDescription,
   alternates: {
     canonical: BENCHMARK_STUDY_META.canonicalUrl,
+    types: {
+      'text/markdown': 'https://verisource.dev/api/benchmarks/summary?format=md',
+      'application/json': 'https://verisource.dev/api/benchmarks/summary',
+    },
   },
   openGraph: {
     title: BENCHMARK_STUDY_META.title,
@@ -135,6 +139,20 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
               N = {BENCHMARK_STUDY_META.totalDomains} PUBLIC DOMAINS ·{' '}
               {BENCHMARK_STUDY_META.verticalCount} VERTICALS
             </StatusBadge>
+            <a
+              href="/api/benchmarks/summary?format=md"
+              className="vs-pill-btn vs-pill-btn-sm vs-mono"
+              style={{ padding: '3px 9px', fontSize: '11px', textDecoration: 'none' }}
+            >
+              ↓ Markdown (.md)
+            </a>
+            <a
+              href="/api/benchmarks/summary"
+              className="vs-pill-btn vs-pill-btn-sm vs-mono"
+              style={{ padding: '3px 9px', fontSize: '11px', textDecoration: 'none' }}
+            >
+              JSON Dataset API
+            </a>
           </div>
 
           <h1

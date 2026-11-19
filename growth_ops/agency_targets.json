@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:41:38.088Z",
+  "updatedAt": "2026-11-19T06:50:36.169Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -383,10 +383,10 @@
       "publicContactChannel": "benji@growandconvert.com (verify via Apollo)",
       "caseStudyClientDomain": "patreon.com",
       "caseStudyClientName": "Patreon",
-      "status": "queued"
+      "status": "manual_verify"
     },
     {
-      "agencyName": "finsweet",
+      "agencyName": "Finsweet",
       "agencyDomain": "finsweet.com",
       "specialty": "Webflow Enterprise Studio",
       "contactName": "Joe Krug",
@@ -395,10 +395,18 @@
       "publicContactChannel": "hello@finsweet.com",
       "caseStudyClientDomain": "dropbox.com",
       "caseStudyClientName": "Dropbox",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T06:50:36.169Z",
+      "auditSlug": "dropbox-com-gb03",
+      "emailSentAt": "2026-11-19T06:50:36.169Z",
+      "resendMessageId": "01a1f292-56c3-7a04-a52d-094eb761dd17",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
-      "agencyName": "directiveconsulting",
+      "agencyName": "Directive",
       "agencyDomain": "directiveconsulting.com",
       "specialty": "B2B SaaS Customer Generation & SEO Agency",
       "contactName": "Garrett Mehrguth",
@@ -407,7 +415,15 @@
       "publicContactChannel": "hello@directiveconsulting.com",
       "caseStudyClientDomain": "sumologic.com",
       "caseStudyClientName": "Sumo Logic",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T06:50:36.169Z",
+      "auditSlug": "sumologic-com-3kib",
+      "emailSentAt": "2026-11-19T06:50:36.169Z",
+      "resendMessageId": "01a1f292-8794-7bde-86df-25992e077c7e",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Charle",
