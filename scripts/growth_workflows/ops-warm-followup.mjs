@@ -114,10 +114,23 @@ async function main() {
   );
   const allOpenedRows = allOpenedRes.ok ? await allOpenedRes.json() : [];
   const rowBySlug = new Map(allOpenedRows.map((r) => [r.share_slug, r]));
+  const rowByHost = new Map();
+  for (const r of allOpenedRows) {
+    const h = String(r.prospect_domain ?? '')
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/+$/, '')
+      .toLowerCase();
+    if (h && !rowByHost.has(h)) rowByHost.set(h, r);
+  }
 
   let dispatchedCount = 0;
   for (const agency of candidateAgencies) {
-    const report = rowBySlug.get(agency.auditSlug);
+    const clientHost = agency.caseStudyClientDomain
+      .replace(/^https?:\/\//i, '')
+      .replace(/\/+$/, '');
+    const report =
+      rowBySlug.get(agency.auditSlug) ??
+      rowByHost.get(clientHost.toLowerCase());
     if (!report || (report.views_count ?? 0) < 1) continue;
 
     // Require at least 12 hours since initial Touch 1 send when emailSentAt is recorded
@@ -128,12 +141,9 @@ async function main() {
     }
 
     const firstName = agency.contactName.split(/\s+/)[0] || 'there';
-    const clientHost = agency.caseStudyClientDomain
-      .replace(/^https?:\/\//i, '')
-      .replace(/\/+$/, '');
     const platformLabel =
       report.summary_payload?.detected_platform_label ?? 'website';
-    const briefUrl = `https://verisource.dev/audit/${agency.auditSlug}`;
+    const briefUrl = `https://verisource.dev/audit/${report.share_slug}`;
     const sandboxUrl = `https://verisource.dev/agencies?domain=${encodeURIComponent(
       clientHost
     )}#sandbox`;

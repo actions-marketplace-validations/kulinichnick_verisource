@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:50:36.169Z",
+  "updatedAt": "2026-11-19T07:05:20.847Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -131,7 +131,9 @@
       "channelsSent": [
         "email_resend"
       ],
-      "followUpDueDate": "2026-11-21"
+      "followUpDueDate": "2026-11-21",
+      "warmFollowUpSentAt": "2026-11-19T07:05:20.847Z",
+      "warmResendMessageId": "01a1f29f-cdf8-78a6-bf15-b6cecc4483f4"
     },
     {
       "agencyName": "8020",
@@ -435,7 +437,15 @@
       "publicContactChannel": "hello@charle.co.uk",
       "caseStudyClientDomain": "candykittens.co.uk",
       "caseStudyClientName": "Candy Kittens",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:01:36.450Z",
+      "auditSlug": "candykittens-co-uk-t8ew",
+      "emailSentAt": "2026-11-19T07:01:36.450Z",
+      "resendMessageId": "01a1f29c-8fb2-7b2b-b269-59ad4c0cc582",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Flowout",
@@ -447,7 +457,15 @@
       "publicContactChannel": "hello@flowout.com",
       "caseStudyClientDomain": "jasper.ai",
       "caseStudyClientName": "Jasper",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-19T07:01:36.450Z",
+      "auditSlug": "jasper-ai-cdzt",
+      "emailSentAt": "2026-11-19T07:01:36.450Z",
+      "resendMessageId": "01a1f29c-7b41-7e9e-bac7-bb0aa44b67ce",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-23"
     },
     {
       "agencyName": "Animalz",

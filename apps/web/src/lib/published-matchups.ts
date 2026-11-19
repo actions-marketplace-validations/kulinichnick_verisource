@@ -320,6 +320,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Shopify Product + Offer JSON-LD catalog feed vs. custom headless Next.js storefront.',
   },
+  {
+    cohort: 'AI CUSTOMER SUPPORT PLATFORMS',
+    domainA: 'intercom.com',
+    domainB: 'zendesk.com',
+    angle:
+      'Enterprise customer service /llms.txt posture, SSR copy density, and entity schema.',
+  },
+  {
+    cohort: 'MODERN GTM & CRM WORKFLOWS',
+    domainA: 'folk.app',
+    domainB: 'clay.com',
+    angle:
+      'Webflow structured entity metadata and /llms.txt readiness across modern GTM stacks.',
+  },
+  {
+    cohort: 'FINE JEWELRY SHOPIFY',
+    domainA: 'gorjana.com',
+    domainB: 'mejuri.com',
+    angle:
+      'Shopify Product + Offer JSON-LD parity vs. storefront /agents.md pricing guardrails.',
+  },
+  {
+    cohort: 'MODERN APPAREL COMMERCE',
+    domainA: 'everlane.com',
+    domainB: 'quince.com',
+    angle:
+      'Native Shopify OS 2.0 catalog schema vs. custom Next.js direct-to-consumer storefront.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

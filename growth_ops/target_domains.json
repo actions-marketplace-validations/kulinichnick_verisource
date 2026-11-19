@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T06:50:36.169Z",
+  "updatedAt": "2026-11-19T07:01:36.450Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -1290,61 +1290,71 @@
       "domain": "gorjana.com",
       "brandName": "Gorjana",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "mejuri.com",
       "brandName": "Mejuri",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "aurate.com",
       "brandName": "AUrate",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "quince.com",
       "brandName": "Quince",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "everlane.com",
       "brandName": "Everlane",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "intercom.com",
       "brandName": "Intercom",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "zendesk.com",
       "brandName": "Zendesk",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "front.com",
       "brandName": "Front",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "folk.app",
       "brandName": "folk",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "clay.com",
       "brandName": "Clay",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T07:01:36.450Z"
     },
     {
       "domain": "apollo.io",
