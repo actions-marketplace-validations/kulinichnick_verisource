@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-18T21:24:25.071Z",
+  "updatedAt": "2026-11-19T02:52:36.603Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -109,7 +109,9 @@
       "channelsSent": [
         "email_resend"
       ],
-      "followUpDueDate": "2026-11-21"
+      "followUpDueDate": "2026-11-21",
+      "warmFollowUpSentAt": "2026-11-19T02:52:36.603Z",
+      "warmResendMessageId": "01a1f1b8-6d81-7d39-a888-0c7639945780"
     },
     {
       "agencyName": "WeMakeWebsites",

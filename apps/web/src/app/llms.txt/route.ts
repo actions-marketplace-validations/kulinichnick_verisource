@@ -7,12 +7,12 @@ const LLMS_TXT_BODY = `# Verisource — B2B Generative Engine Optimization (GEO)
 Canonical Web Console: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (90+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (100+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI & Deterministic Flow Verifier: npx @verisource/cli
 Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial
 Platform Comparisons (vs. Profound, Otterly.ai, Peec AI, AthenaHQ, Scrunch AI): https://verisource.dev/compare
-Shopify UCP, JSON-LD & 7-CMS Protocol Guides: https://verisource.dev/guides (https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search)
+Shopify UCP, Headless Next.js, JSON-LD & 7-CMS Protocol Guides: https://verisource.dev/guides (https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search, https://verisource.dev/guides/headless-nextjs-shopify-ai-search-fix)
 7-Platform /agents.md, /llms.txt & JSON-LD Starter Templates: https://verisource.dev/templates
 2026 AI Search & Agent Readiness HTTP Benchmark (N = 40 Domains): https://verisource.dev/benchmarks/ai-search-readiness-2026
 Research & Benchmarks Hub: https://verisource.dev/benchmarks

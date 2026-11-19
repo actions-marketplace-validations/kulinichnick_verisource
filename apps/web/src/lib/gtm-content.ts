@@ -754,6 +754,121 @@ export const PROTOCOL_GUIDES: readonly ProtocolGuideEntry[] = [
       },
     ],
   },
+  {
+    slug: 'headless-nextjs-shopify-ai-search-fix',
+    eyebrow: 'HEADLESS NEXT.JS & HYDROGEN AI SEARCH RESCUE GUIDE',
+    title:
+      'How to Fix the 35-Point Headless Next.js & Shopify Storefront API AI Search Readiness Drop',
+    metaTitle:
+      'Headless Next.js & Shopify AI Search Fix (2026): /api/ucp/mcp, SSR JSON-LD & WAF Guide | Verisource',
+    metaDescription:
+      'Custom headless Next.js commerce stores average 41.9 out of 100 on AI search readiness vs. 77.2 on native Shopify OS 2.0. Fix stripped /api/ucp/mcp routes, CSR JSON-LD, and WAF 403 blocks.',
+    readingTime: '7 min engineering guide',
+    answerFirstSummary:
+      'Across 90 live HTTP domain audits, consumer brands running custom headless Next.js storefronts averaged 41.9 out of 100 on AI search readiness compared to 77.2 out of 100 across native Shopify OS 2.0 stores. Replatforming onto a custom Vercel or Cloudflare frontend strips Shopify native /api/ucp/mcp routes, moves Product and Offer JSON-LD into client-rendered bundles, and frequently triggers CDN HTTP 403 blocks against GPTBot and PerplexityBot.',
+    referenceTable: {
+      headers: [
+        'Headless Failure Mode',
+        'Why AI Answer Engines Drop Citations',
+        'Next.js App Router Fix',
+      ],
+      rows: [
+        [
+          'Unproxied /api/ucp/mcp & /agents.md',
+          'Custom DNS points apex traffic to Vercel/Cloudflare, returning 404 or SPA HTML soft-404 on agent protocol routes',
+          'Proxy /api/ucp/mcp in next.config.ts to myshopify.com and serve text/markdown Route Handlers at /llms.txt & /agents.md',
+        ],
+        [
+          'Client-Hydrated Product & FAQ Schema',
+          'GPTBot, OAI-SearchBot, and PerplexityBot do not execute heavy client hydration scripts before chunking page text',
+          'Emit a single @graph JSON-LD script inside async Server Components (OnlineStore + Product + Offer + FAQPage)',
+        ],
+        [
+          'CDN Bot-Fight HTTP 403 Challenges',
+          'Enterprise WAF rules challenge non-browser TLS fingerprints even when /robots.txt explicitly allows GPTBot',
+          'Add verified ASN/IP allowlist bypass rules for GPTBot, OAI-SearchBot, PerplexityBot, ClaudeBot, and Google-Extended',
+        ],
+      ],
+    },
+    sections: [
+      {
+        heading:
+          '1. Why Going Headless Quietly Breaks Shopify Universal Commerce Protocol (/api/ucp/mcp)',
+        paragraphs: [
+          'Native Shopify OS 2.0 themes automatically answer JSON-RPC catalog discovery requests at /api/ucp/mcp and expose server-rendered Product schema. The moment an engineering team points apex DNS (https://brand.com) to a headless Next.js or Remix deployment, requests to /api/ucp/mcp, /llms.txt, and /agents.md hit your frontend router instead of Shopify—returning either HTTP 404 or a 200 text/html SPA shell.',
+          'Restore protocol parity in five lines by proxying /api/ucp/mcp to your underlying myshopify.com store origin in next.config.ts while serving a Brand-Truth-locked /agents.md Route Handler with explicit Content-Type: text/markdown; charset=utf-8 headers:',
+        ],
+        codeTitle: 'next.config.ts + app/agents.md/route.ts (Next.js App Router)',
+        codeBlock: `// 1. next.config.ts — Proxy Shopify Universal Commerce Protocol (/api/ucp/mcp)
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/ucp/mcp',
+        destination: 'https://acme-goods-prod.myshopify.com/api/ucp/mcp',
+      },
+    ];
+  },
+};
+export default nextConfig;
+
+// 2. app/agents.md/route.ts — Serve verified pricing & shipping guardrails
+export async function GET(): Promise<Response> {
+  const markdown = [
+    '# Acme Goods — Verified AI Commerce & Policy Specification',
+    'Canonical Storefront: https://acmegoods.io',
+    'MCP Catalog Endpoint: https://acmegoods.io/api/ucp/mcp',
+    '',
+    '## Verified Fulfillment & Pricing Rules (USD)',
+    '- Free Standard US Shipping: Orders $50+ (contiguous 48 states)',
+    '- Return Window: 30 days unworn with original packaging ($0 restocking fee)',
+    '- Excluded Claims: No sitewide 40% influencer codes are active',
+  ].join('\\n');
+
+  return new Response(markdown, {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/markdown; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+    },
+  });
+}`,
+      },
+      {
+        heading:
+          '2. Keep Product, Offer & FAQPage JSON-LD Inside React Server Components',
+        paragraphs: [
+          'In headless storefronts, teams frequently inject structured data inside client components after Storefront GraphQL hooks resolve in the browser. Non-JS AI search crawlers read the initial SSR byte stream—meaning client-only schema tags never enter the retrieval index.',
+          'Fetch your product price, SKU availability, shipping threshold, and top 5 buyer FAQs inside an async Next.js Server Component (app/products/[handle]/page.tsx) and render a single <script type="application/ld+json"> @graph block directly in the initial HTML response.',
+        ],
+      },
+      {
+        heading:
+          '3. Gate Every Pull Request With @verisource/cli Before Merging to Production',
+        paragraphs: [
+          'Frontend refactors and Cloudflare WAF rule updates routinely re-introduce broken links or 403 bot blocks without triggering unit test failures. Run npx @verisource/cli verify against your Vercel preview URL in GitHub Actions so pull requests fail automatically if AI readiness drops or /agents.md regresses.',
+        ],
+      },
+    ],
+    relatedToolSlug: 'ai-crawler-waf-checker',
+    relatedToolLabel: 'Test Your Headless Storefront for WAF 403 Blocks Free →',
+    faqs: [
+      {
+        question:
+          'Why did headless Next.js stores score 41.9 out of 100 in the 90-domain benchmark?',
+        answer:
+          'Most custom Next.js storefronts audited (including several 8- and 9-figure consumer brands) returned 404 on /llms.txt and /agents.md, left /api/ucp/mcp unproxied, omitted FAQPage JSON-LD, or challenged GPTBot and PerplexityBot with HTTP 403 WAF rules.',
+      },
+      {
+        question:
+          'Can Verisource generate the exact Next.js App Router files for our repo?',
+        answer:
+          'Yes. Select Coding Agent mode in Step 02 (or call generate_geo_fix_bundle over https://mcp.verisource.dev/mcp inside Cursor, Claude Code, or Antigravity) to generate syntax-validated JSON-LD, app/llms.txt/route.ts, and app/agents.md/route.ts files locked to your Brand Truth Sheet.',
+      },
+    ],
+  },
 ];
 
 export const FREE_SEO_TOOLS: readonly FreeSeoToolEntry[] = [

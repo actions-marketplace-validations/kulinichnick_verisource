@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-18T22:41:19.489Z",
+  "updatedAt": "2026-11-19T02:56:45.680Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -546,52 +546,62 @@
     {
       "domain": "aloyoga.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "carawayhome.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "ourplace.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "greatjonesgoods.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "brightland.co",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "poppi.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "spindriftfresh.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "cadence.co",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "beis.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "therabody.com",
       "vertical": "shopify_dtc",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-19T02:56:45.680Z"
     },
     {
       "domain": "hyperice.com",

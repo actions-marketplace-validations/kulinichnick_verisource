@@ -5,11 +5,12 @@ const AGENTS_MD_BODY = `# Verisource — Autonomous Agent & MCP Integration Spec
 Canonical Origin: https://verisource.dev
 11-Capability Platform & Agent CLI Architecture: https://verisource.dev/features
 Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://verisource.dev/scanner
-Live Domain Scorecards Directory (50+ Audited Sites): https://verisource.dev/reports
+Live Domain Scorecards Directory (100+ Audited Sites): https://verisource.dev/reports
+Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI Binary: npx @verisource/cli
 Interactive Product Tour & 7-CMS Tutorials: https://verisource.dev/tutorial
 GEO Platform Comparisons: https://verisource.dev/compare (https://verisource.dev/compare/profound-alternative, https://verisource.dev/compare/otterly-ai-alternative, https://verisource.dev/compare/peec-ai-alternative, https://verisource.dev/compare/athenahq-alternative, https://verisource.dev/compare/scrunch-ai-alternative)
-Engineering & CMS Protocol Guides: https://verisource.dev/guides/shopify-agents-md-ucp-mcp, https://verisource.dev/guides/llms-txt-and-agents-md-setup, https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search
+Engineering & CMS Protocol Guides: https://verisource.dev/guides/shopify-agents-md-ucp-mcp, https://verisource.dev/guides/llms-txt-and-agents-md-setup, https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search, https://verisource.dev/guides/headless-nextjs-shopify-ai-search-fix
 7-Platform Starter Templates (/agents.md, /llms.txt, /ai-facts, JSON-LD): https://verisource.dev/templates
 Empirical HTTP Benchmarks: https://verisource.dev/benchmarks, https://verisource.dev/benchmarks/ai-search-readiness-2026
 WordPress & Shopify OS 2.0 Connector Bridges: https://verisource.dev/connectors

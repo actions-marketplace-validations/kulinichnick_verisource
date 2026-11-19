@@ -5079,7 +5079,41 @@ async function run() {
         m103ReportsHtml.includes('/report/svix.com'),
       'Expected /reports hub to index 90 live scorecards including seed.com, ritual.com & svix.com'
     );
-    console.log('✔ [94/94] M103 90-Domain /reports Index & Headless vs. Native Shopify Study (FIG 13) verified!');
+    console.log('✔ [94/95] M103 90-Domain /reports Index & Headless vs. Native Shopify Study (FIG 13) verified!');
+
+    // 93. M104 Headless Next.js & Shopify AI Rescue Guide (/guides/headless-nextjs-shopify-ai-search-fix) & 100-Domain /reports Milestone
+    const [m104GuideRes, m104GuidesHubRes, m104ReportsRes] = await Promise.all([
+      fetch(`${BASE}/guides/headless-nextjs-shopify-ai-search-fix`),
+      fetch(`${BASE}/guides`),
+      fetch(`${BASE}/reports`),
+    ]);
+    assert.equal(m104GuideRes.status, 200);
+    assert.equal(m104GuidesHubRes.status, 200);
+    const m104GuideHtml = await m104GuideRes.text();
+    const m104GuideVisible = m104GuideHtml
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ');
+    assert.ok(
+      m104GuideHtml.includes('/api/ucp/mcp') &&
+        m104GuideHtml.includes('TechArticle') &&
+        m104GuideHtml.includes('FAQPage') &&
+        !SELF_SCORE_JARGON.test(m104GuideVisible) &&
+        !PLAIN_ENGLISH_JARGON.test(m104GuideVisible),
+      'Expected /guides/headless-nextjs-shopify-ai-search-fix to render TechArticle + FAQPage JSON-LD cleanly'
+    );
+
+    const m104ReportsHtml = await m104ReportsRes.text();
+    const reportLinkMatches = new Set(
+      Array.from(
+        m104ReportsHtml.matchAll(/href="\/report\/([a-z0-9.-]+)"/gi)
+      ).map((m) => m[1].toLowerCase())
+    );
+    assert.ok(
+      reportLinkMatches.size >= 100,
+      `Expected /reports directory to index >= 100 unique domain scorecards, got ${reportLinkMatches.size}`
+    );
+    console.log('✔ [95/95] M104 Headless Next.js & Shopify AI Rescue Guide + 100-Domain /reports Milestone verified!');
   } finally {
     server.kill();
   }

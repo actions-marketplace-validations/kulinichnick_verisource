@@ -693,6 +693,12 @@ export default function AiSearchReadinessBenchmark2026Page(): React.ReactElement
             <Link href="/reports" className="vs-btn vs-btn-secondary">
               Browse All 90 Domain Scorecards →
             </Link>
+            <Link
+              href="/guides/headless-nextjs-shopify-ai-search-fix"
+              className="vs-btn vs-btn-secondary"
+            >
+              Read Headless Next.js Rescue Guide →
+            </Link>
           </div>
         </section>
 
