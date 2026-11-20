@@ -18,6 +18,9 @@
 | **6** | **Anthropic Claude Connectors Directory** | `READY (OAUTH 2.1 LIVE)` | RFC 8414 + RFC 7591 DCR + PKCE `S256` live at `https://mcp.verisource.dev/oauth/mcp` | Submit via Claude developer/partner portal for native placement inside Claude Web & Desktop. |
 | **7** | **Smithery / PulseMCP / MCP.so** | `ARCHIVED / SKIPPED (2026-11-19)` | Live browser verified `2026-11-19`: Smithery shut down Oct 31, 2026; PulseMCP submissions paused; MCP.so requires `$39` paid fee for remote servers. | Skip `$39` paid fee; monitor PulseMCP reopen only. |
 | **8** | **`punkpeye/awesome-remote-mcp-servers`** | `PR #5315 OPEN — CI PASS (2026-11-20)` | Opened https://github.com/punkpeye/awesome-remote-mcp-servers/pull/5315 (`Marketing` section, live Glama badge + `https://mcp.verisource.dev/mcp`). Automated labels: **`endpoint-ok`**, **`has-connector`**, `check-submission` **Passed in 5s**. | Waiting on maintainer merge (zero conflicts). |
+| **8b** | **`jaw9c/awesome-remote-mcp-servers` (`remote-mcp.com`)** | `PR #2575 OPEN (2026-11-20)` | Opened https://github.com/jaw9c/awesome-remote-mcp-servers/pull/2575 (`SEO & AI Search`, directly below `Vercel`, `Open / OAuth2.1 / API Key`). | Waiting on maintainer merge (`mergeable: true`). |
+| **8c** | **`thedaviddias/llms-txt-hub` (`llmstxthub.com`)** | `PR #2570 OPEN (2026-11-20)` | Opened https://github.com/thedaviddias/llms-txt-hub/pull/2570 (`packages/content/data/websites/verisource-llms-txt.mdx`, `developer-tools`). | Waiting on maintainer merge (`llms.txt` `HTTP 200` verified). |
+| **8d** | **`directory.llmstxt.cloud` & `DevHunt`** | `STAGED (1-CLICK TURNSTILE / GITHUB LOGIN)` | `directory.llmstxt.cloud/submit` form 100% pre-filled on Free Standard tier (paused at Turnstile); `devhunt.org/login?next=submit` ready for GitHub sign-in. | Click Turnstile + **Join waitlist** on `directory.llmstxt.cloud`; click **Continue with Github** on `DevHunt`. |
 
 ---
 
