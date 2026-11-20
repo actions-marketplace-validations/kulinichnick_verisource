@@ -281,8 +281,8 @@ export default function RootLayout({
                     maxWidth: '340px',
                   }}
                 >
-                  AI search visibility, brand-truth verification, multi-page site
-                  health scanning, and Streamable HTTP{' '}
+                  AI search visibility, brand-truth verification, multi-page
+                  crawl integrity scanning, and Streamable HTTP{' '}
                   <code className="vs-mono">/mcp</code> remediation.
                 </p>
                 <div className="vs-mono" style={{ fontSize: '11.5px', color: 'var(--vs-ink-muted)' }}>
