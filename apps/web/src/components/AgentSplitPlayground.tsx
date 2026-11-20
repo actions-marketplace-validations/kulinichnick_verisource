@@ -38,7 +38,8 @@ const SCENARIOS: Record<
 > = {
   geo_truth: {
     tabLabel: '1 · Fix AI Search & Wrong Prices',
-    installCmd: 'npx @verisource/cli scan your-site.com',
+    installCmd:
+      'npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan your-site.com',
     steps: [
       {
         narration:
@@ -240,7 +241,8 @@ const SCENARIOS: Record<
   },
   flow_logs: {
     tabLabel: '2 · Verify Browser Flow & Backend Logs',
-    installCmd: 'npx @verisource/cli agent --skill --install all',
+    installCmd:
+      'npx --yes https://verisource.dev/downloads/verisource-cli.tgz agent --skill --install all',
     steps: [
       {
         narration:

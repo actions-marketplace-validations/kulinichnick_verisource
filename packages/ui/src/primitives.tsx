@@ -475,6 +475,7 @@ export function ConsoleZoneHeader(props: {
 
 export function CopyCommandPill(props: {
   command: string;
+  displayCommand?: string;
   promptPrefix?: string;
   copyLabel?: string;
 }): React.ReactElement {
@@ -498,7 +499,9 @@ export function CopyCommandPill(props: {
       title={`Copy command: ${props.command}`}
     >
       <span className="vs-copy-cmd-prompt">{props.promptPrefix ?? '$'}</span>
-      <span className="vs-copy-cmd-text">{props.command}</span>
+      <span className="vs-copy-cmd-text">
+        {props.displayCommand ?? props.command}
+      </span>
       <span className="vs-copy-cmd-action">
         {copied ? 'copied ✓' : (props.copyLabel ?? 'copy')}
       </span>

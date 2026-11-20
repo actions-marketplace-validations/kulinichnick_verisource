@@ -305,6 +305,104 @@ const BLOCKED_ROLE_LOCALS = new Set([
   'unsubscribe',
 ]);
 
+const GENERIC_GATEKEEPER_LOCALS = new Set([
+  'hey',
+  'hello',
+  'hi',
+  'contact',
+  'info',
+  'newbiz',
+  'newbusiness',
+  'inquiries',
+  'inquiry',
+  'partnerships',
+  'sales',
+  'humans',
+  'clients',
+  'business',
+  'support',
+  'team',
+  'office',
+  'studio',
+  'london',
+  'ny',
+]);
+
+const UNPITCHABLE_TROPHY_CLIENT_DOMAINS = new Set([
+  'youtube.com',
+  'google.com',
+  'spotify.com',
+  'netflix.com',
+  'cisco.com',
+  'apple.com',
+  'microsoft.com',
+  'amazon.com',
+  'meta.com',
+  'facebook.com',
+  'instagram.com',
+  'whatsapp.com',
+  'linkedin.com',
+  'tiktok.com',
+  'x.com',
+  'twitter.com',
+  'dropbox.com',
+  'vercel.com',
+  'stripe.com',
+  'shopify.com',
+  'panasonic.com',
+  'rogers.com',
+  'virginholidays.co.uk',
+  'uber.com',
+  'airbnb.com',
+  'salesforce.com',
+  'oracle.com',
+  'ibm.com',
+  'adobe.com',
+  'intel.com',
+  'nvidia.com',
+  'paypal.com',
+  'visa.com',
+  'mastercard.com',
+  'disney.com',
+  'nike.com',
+  'adidas.com',
+  'patagonia.com',
+  'zappos.com',
+  'opera.com',
+  'harvard.edu',
+  'pantone.com',
+  'polestar.com',
+  'birkenstock.com',
+]);
+
+function isUnpitchableTrophyClientDomain(rawDomain) {
+  const clean = String(rawDomain ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//i, '')
+    .replace(/^www\./i, '')
+    .split(/[/?#]/)[0];
+  if (!clean) return true;
+  if (/\.(gov|edu|mil|ac\.uk|gov\.uk)$/i.test(clean)) return true;
+  return UNPITCHABLE_TROPHY_CLIENT_DOMAINS.has(clean);
+}
+
+function hasValidHumanContactFirstName(rawName) {
+  const first = String(rawName ?? '')
+    .trim()
+    .split(/\s+/)[0];
+  if (!first || first.length < 2) return false;
+  if (!/^[a-zA-Z][a-zA-Z'-]+$/.test(first)) return false;
+  if (
+    /^(team|leadership|admin|support|sales|partner|founder|info|hello|office|studio|agency)$/i.test(
+      first
+    )
+  ) {
+    return false;
+  }
+  return true;
+}
+
 const PREFERRED_INBOUND_LOCALS = [
   'hey',
   'hello',
@@ -548,10 +646,13 @@ async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
   const sendEmail = args.includes('--send-email') && !dryRun;
+  const allowRoleInbox = args.includes('--allow-role-inbox');
+  const MAX_DAILY_RESEND_AGENCY_EMAILS = 5;
+  let resendDispatchedThisRun = 0;
   const rawAgencies = Number(getArgValue(args, '--agencies', '2'));
   const agencyCount = Math.max(
     0,
-    Math.min(10, Number.isFinite(rawAgencies) ? rawAgencies : 2)
+    Math.min(8, Number.isFinite(rawAgencies) ? rawAgencies : 2)
   );
   const rawDomains = Number(getArgValue(args, '--domains', '10'));
   const seoCount = Math.max(
@@ -561,12 +662,33 @@ async function main() {
   const nowIso = new Date().toISOString();
   const todayDate = nowIso.slice(0, 10);
 
-  // 1. Run agency-trojan-outbound batch
+  // 1. Run agency-trojan-outbound batch (enforcing mid-market retainer client & human founder guards)
   const agencyJsonPath = path.join(ACTIVE_OPS_DIR, 'agency_targets.json');
   const agencyManifest = JSON.parse(fs.readFileSync(agencyJsonPath, 'utf8'));
-  const queuedAgencies = (agencyManifest.agencies ?? [])
-    .filter((a) => a.status === 'queued')
-    .slice(0, agencyCount);
+  let skippedTrophyCount = 0;
+  const queuedAgencies = [];
+  for (const a of agencyManifest.agencies ?? []) {
+    if (a.status !== 'queued') continue;
+    if (
+      isUnpitchableTrophyClientDomain(a.caseStudyClientDomain) ||
+      !hasValidHumanContactFirstName(a.contactName)
+    ) {
+      if (!dryRun) {
+        a.status = 'skipped_trophy_client';
+        a.skipReason = isUnpitchableTrophyClientDomain(a.caseStudyClientDomain)
+          ? `UNPITCHABLE_TROPHY_CLIENT:${a.caseStudyClientDomain}`
+          : `NON_HUMAN_CONTACT_NAME:${a.contactName}`;
+      }
+      skippedTrophyCount += 1;
+      console.log(
+        `  ⚠ Guard skipped ${a.agencyName} (${a.caseStudyClientDomain} / "${a.contactName}") -> trophy/non-human filter`
+      );
+      continue;
+    }
+    if (queuedAgencies.length < agencyCount) {
+      queuedAgencies.push(a);
+    }
+  }
 
   console.log(
     `[ops:daily] 1/2 Running agency-trojan-outbound on ${queuedAgencies.length} boutique agency client(s)...`
@@ -629,41 +751,63 @@ async function main() {
             reason: bounceGuard.reason,
           };
         } else {
-          agency.publicContactChannel = bounceGuard.email;
-          agency.emailVerification = {
-            verifiedAt: nowIso,
-            source: bounceGuard.source,
-            mxExchange: bounceGuard.mxExchange,
-          };
+          const verifiedLocal = bounceGuard.email.split('@')[0]?.toLowerCase() ?? '';
+          const isRoleGatekeeper = GENERIC_GATEKEEPER_LOCALS.has(verifiedLocal);
 
-          const subjectLine = `${summary.hostname} — AI search & /agents.md check for ${agency.agencyName}`;
-          const fullEmailBody = [
-            `Hi ${firstName},`,
-            ``,
-            enforcedNote.content,
-            ``,
-            `Best,`,
-            `Nick Kulinich`,
-            `Founder, Verisource`,
-            `https://verisource.dev`,
-          ].join('\n');
+          if (isRoleGatekeeper && !allowRoleInbox) {
+            agency.status = 'linkedin_dm_ready';
+            agency.emailSkipReason = `ROLE_INBOX_BLOCKED:${bounceGuard.email}`;
+            emailDispatch = {
+              sent: false,
+              id: null,
+              reason: `ROLE_INBOX_BLOCKED (${bounceGuard.email} -> use personal LinkedIn DM)`,
+            };
+          } else if (resendDispatchedThisRun >= MAX_DAILY_RESEND_AGENCY_EMAILS) {
+            agency.status = 'linkedin_dm_ready';
+            agency.emailSkipReason = 'DAILY_RESEND_CAP_REACHED';
+            emailDispatch = {
+              sent: false,
+              id: null,
+              reason: 'DAILY_RESEND_CAP_REACHED',
+            };
+          } else {
+            agency.publicContactChannel = bounceGuard.email;
+            agency.emailVerification = {
+              verifiedAt: nowIso,
+              source: bounceGuard.source,
+              mxExchange: bounceGuard.mxExchange,
+            };
 
-          emailDispatch = await dispatchFounderOutreachViaResend({
-            toEmail: bounceGuard.email,
-            subject: subjectLine,
-            bodyText: fullEmailBody,
-          });
+            const subjectLine = `${summary.hostname} — AI search & /agents.md check for ${agency.agencyName}`;
+            const fullEmailBody = [
+              `Hi ${firstName},`,
+              ``,
+              enforcedNote.content,
+              ``,
+              `Best,`,
+              `Nick Kulinich`,
+              `Founder, Verisource`,
+              `https://verisource.dev`,
+            ].join('\n');
 
-          if (emailDispatch.sent) {
-            agency.status = 'sent';
-            agency.emailSentAt = nowIso;
-            agency.resendMessageId = emailDispatch.id;
-            agency.channelsSent = ['email_resend'];
-            agency.followUpDueDate = new Date(
-              Date.now() + 4 * 86400 * 1000
-            )
-              .toISOString()
-              .slice(0, 10);
+            emailDispatch = await dispatchFounderOutreachViaResend({
+              toEmail: bounceGuard.email,
+              subject: subjectLine,
+              bodyText: fullEmailBody,
+            });
+
+            if (emailDispatch.sent) {
+              resendDispatchedThisRun += 1;
+              agency.status = 'sent';
+              agency.emailSentAt = nowIso;
+              agency.resendMessageId = emailDispatch.id;
+              agency.channelsSent = ['email_resend'];
+              agency.followUpDueDate = new Date(
+                Date.now() + 4 * 86400 * 1000
+              )
+                .toISOString()
+                .slice(0, 10);
+            }
           }
         }
       }
@@ -693,7 +837,7 @@ async function main() {
     }
   );
 
-  if (!dryRun && agencyResults.length > 0) {
+  if (!dryRun && (agencyResults.length > 0 || skippedTrophyCount > 0)) {
     agencyManifest.updatedAt = nowIso;
     mirrorFileIfNeeded(
       'agency_targets.json',

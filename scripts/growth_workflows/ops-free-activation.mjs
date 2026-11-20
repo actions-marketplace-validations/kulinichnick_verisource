@@ -231,7 +231,7 @@ async function main() {
             ``,
             `I ran a quick read-only HTTP check on ${orgDomain} (${scan.detectedPlatformLabel ?? 'Web'}) for you: it currently scores ${scan.visibilityScore}/100 on AI search readiness (/llms.txt is ${scan.llmsTxtStatus}, /agents.md is ${scan.agentsMdStatus.replace(/_/g, ' ')}, and ${scan.jsonLdCount} JSON-LD schema block(s) were detected on the homepage).`,
             ``,
-            `I pre-linked ${orgDomain} inside your Console at https://verisource.dev/dashboard?domain=${encodeURIComponent(orgDomain)} so you can preview the findings and activate either the $19 One-Time Audit Pass (zero recurring billing) or a $0 Today 7-day trial to generate your 1-Click Fix Prompt.`,
+            `Your live Step 01 protocol scorecard, buyer-prompt citation check, and tailored Step 02 Fix Prompt preview now load automatically at https://verisource.dev/dashboard?domain=${encodeURIComponent(orgDomain)} — from there you can activate the $19 One-Time Audit Pass (zero recurring billing) or a $0 Today 7-day trial whenever you want the full copy-paste fix bundle.`,
             ``,
             `Best,`,
             `Nick`,

@@ -10,6 +10,7 @@
     "typecheck": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r typecheck",
     "test": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/ui build && pnpm -r test",
     "build": "pnpm -r build",
+    "publish:cli": "pnpm --filter @verisource/core-geo build && pnpm --filter @verisource/cli build && pnpm --filter @verisource/cli pack:public && pnpm --filter @verisource/cli publish --access public",
     "stripe:live": "pnpm --filter @verisource/web stripe:live",
     "ops:daily": "node scripts/growth_workflows/ops-daily.mjs --send-email",
     "ops:followup": "node scripts/growth_workflows/ops-warm-followup.mjs --send-email",

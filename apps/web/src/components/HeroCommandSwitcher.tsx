@@ -5,10 +5,15 @@ import { CopyCommandPill } from '@verisource/ui';
 
 type CmdMode = 'cli' | 'mcp';
 
-const COMMANDS: Record<CmdMode, { pillLabel: string; cmd: string }> = {
+const COMMANDS: Record<
+  CmdMode,
+  { pillLabel: string; cmd: string; displayCmd?: string }
+> = {
   cli: {
     pillLabel: 'CLI · Scan & Verify',
-    cmd: 'npx @verisource/cli scan your-site.com',
+    cmd: 'npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan your-site.com',
+    displayCmd:
+      'npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan your-site.com',
   },
   mcp: {
     pillLabel: 'MCP · Claude / Cursor / Antigravity',
@@ -45,7 +50,10 @@ export function HeroCommandSwitcher(): React.ReactElement {
           </button>
         ))}
       </div>
-      <CopyCommandPill command={COMMANDS[mode].cmd} />
+      <CopyCommandPill
+        command={COMMANDS[mode].cmd}
+        displayCommand={COMMANDS[mode].displayCmd}
+      />
     </div>
   );
 }

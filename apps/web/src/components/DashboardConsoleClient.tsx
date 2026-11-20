@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import {
   buildAgencyColdOutreachNote,
@@ -22,6 +22,7 @@ import {
   buildLinkedinConnectionNote195,
   buildMcpClientSetupBundle,
   buildPlainEnglishSiteDiagnosis,
+  buildPublicAiPromptTeaser,
   buildShopifyCustomerEventsPixel,
   buildSubscriberReferralBundle,
   buildTargetedCitationOutreachDraft,
@@ -66,6 +67,8 @@ import {
   type PlainDiagnosisActionTarget,
   type ProfileRow,
   type QualityRubricBreakdown,
+  type ReadinessScanSummary,
+  type RecommendedRemediationEnv,
   type ScoreDeltaSummary,
   type SiteHealthScanReport,
   type SubPageBotInspectionReport,
@@ -126,6 +129,26 @@ function whereFixGoesPlainly(fixType: string, isShopify: boolean): string {
   }
 }
 
+const GENERIC_FREE_MAILBOX_HOSTS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'yahoo.com',
+  'icloud.com',
+  'me.com',
+  'proton.me',
+  'protonmail.com',
+  'aol.com',
+  'freenet.de',
+  'gmx.de',
+  'web.de',
+  'verisource.dev',
+  'mosaicroasters.com',
+  'aurearoasters.com',
+]);
+
 function extractSafeHandoffHostname(raw?: string): string | null {
   if (!raw) return null;
   try {
@@ -133,6 +156,15 @@ function extractSafeHandoffHostname(raw?: string): string | null {
   } catch {
     return null;
   }
+}
+
+function extractCorporateDomainFromEmail(rawEmail?: string | null): string | null {
+  if (!rawEmail || !rawEmail.includes('@')) return null;
+  const host = rawEmail.trim().toLowerCase().split('@')[1]?.trim();
+  if (!host || host.endsWith('.local') || GENERIC_FREE_MAILBOX_HOSTS.has(host)) {
+    return null;
+  }
+  return extractSafeHandoffHostname(host);
 }
 
 export interface WorkspacePayload {
@@ -273,19 +305,20 @@ export function DashboardConsoleClient(props: {
   const [savingReportSchedule, setSavingReportSchedule] = useState(false);
 
   const [gatePreviewDomain, setGatePreviewDomain] = useState<string>(
-    extractSafeHandoffHostname(props.initialDomainQuery) ?? ''
+    () =>
+      extractSafeHandoffHostname(props.initialDomainQuery) ??
+      (props.initialData.mode === 'plan_activation_required'
+        ? extractCorporateDomainFromEmail(props.initialData.profile.email)
+        : null) ??
+      ''
   );
   const [gatePreviewLoading, setGatePreviewLoading] = useState(false);
   const [gatePreviewError, setGatePreviewError] = useState<string | null>(null);
-  const [gatePreviewResult, setGatePreviewResult] = useState<{
-    hostname: string;
-    brandName: string;
-    visibilityScore: number;
-    detectedPlatformLabel?: string;
-    llmsTxtStatus: string;
-    agentsMdStatus: string;
-    jsonLdCount: number;
-  } | null>(null);
+  const [gatePreviewResult, setGatePreviewResult] =
+    useState<ReadinessScanSummary | null>(null);
+  const [gatePromptEnv, setGatePromptEnv] =
+    useState<RecommendedRemediationEnv>('coding_agent');
+  const gateAutoScannedRef = useRef(false);
 
   // Tab 3 Buyer Prompt tracking state
   const [newPromptText, setNewPromptText] = useState('');
@@ -3164,20 +3197,23 @@ export function DashboardConsoleClient(props: {
 
   const gateDomainParam =
     extractSafeHandoffHostname(gatePreviewDomain) ??
-    extractSafeHandoffHostname(props.initialDomainQuery);
+    extractSafeHandoffHostname(props.initialDomainQuery) ??
+    (data.mode === 'plan_activation_required'
+      ? extractCorporateDomainFromEmail(data.profile.email)
+      : null);
   const buildGateCheckoutHref = (
     plan: 'tripwire_19' | 'starter_49' | 'pro_99' | 'agency_249',
     cycle: 'one_time' | 'monthly'
   ): string => {
     const qs = new URLSearchParams({ plan, cycle });
     if (gateDomainParam) qs.set('domain', gateDomainParam);
+    if (gatePreviewResult) qs.set('env', gatePromptEnv);
     if (accessToken) qs.set('access_token', accessToken);
     return `/api/checkout?${qs.toString()}`;
   };
 
-  async function handleRunGatePreviewScan(e: React.FormEvent) {
-    e.preventDefault();
-    const cleaned = gatePreviewDomain.trim();
+  async function runGateDomainScan(rawTarget: string) {
+    const cleaned = rawTarget.trim();
     if (!cleaned) {
       setGatePreviewError('Enter your website domain (e.g. yourcompany.com).');
       return;
@@ -3190,30 +3226,19 @@ export function DashboardConsoleClient(props: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: cleaned }),
       });
-      const json = (await res.json()) as {
+      const json = (await res.json()) as ReadinessScanSummary & {
         error?: string;
         message?: string;
-        hostname?: string;
-        brandName?: string;
-        visibilityScore?: number;
-        detectedPlatformLabel?: string;
-        llmsTxtStatus?: string;
-        agentsMdStatus?: string;
-        jsonLdCount?: number;
       };
       if (!res.ok || json.error || !json.hostname) {
         setGatePreviewError(json.message ?? 'Unable to scan that domain.');
       } else {
+        const meta = getWebsitePlatformMeta(
+          json.detectedPlatform ?? (json.isShopify ? 'shopify' : 'nextjs_custom')
+        );
+        setGatePromptEnv(meta.recommendedAiEnv);
         setGatePreviewDomain(json.hostname);
-        setGatePreviewResult({
-          hostname: json.hostname,
-          brandName: json.brandName ?? json.hostname,
-          visibilityScore: json.visibilityScore ?? 0,
-          detectedPlatformLabel: json.detectedPlatformLabel,
-          llmsTxtStatus: json.llmsTxtStatus ?? 'missing',
-          agentsMdStatus: json.agentsMdStatus ?? 'missing',
-          jsonLdCount: json.jsonLdCount ?? 0,
-        });
+        setGatePreviewResult(json);
       }
     } catch {
       setGatePreviewError('Network error while checking your domain.');
@@ -3221,6 +3246,23 @@ export function DashboardConsoleClient(props: {
       setGatePreviewLoading(false);
     }
   }
+
+  async function handleRunGatePreviewScan(e: React.FormEvent) {
+    e.preventDefault();
+    await runGateDomainScan(gatePreviewDomain);
+  }
+
+  useEffect(() => {
+    if (data.mode !== 'plan_activation_required') return;
+    if (gateAutoScannedRef.current) return;
+    const autoTarget =
+      extractSafeHandoffHostname(props.initialDomainQuery) ??
+      extractCorporateDomainFromEmail(data.profile.email);
+    if (!autoTarget) return;
+    gateAutoScannedRef.current = true;
+    void runGateDomainScan(autoTarget);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.mode, data.profile.email, props.initialDomainQuery]);
 
   if (
     data.mode === 'unauthenticated_locked' ||
@@ -3379,66 +3421,279 @@ export function DashboardConsoleClient(props: {
                   </div>
                 ) : null}
 
-                {gatePreviewResult ? (
-                  <div
-                    style={{
-                      padding: '12px 14px',
-                      marginBottom: '16px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--vs-border)',
-                      background: 'var(--vs-surface-subtle)',
-                    }}
-                  >
+                {gatePreviewResult ? (() => {
+                  const gateDiag = buildPlainEnglishSiteDiagnosis({
+                    brandName: gatePreviewResult.brandName,
+                    hostname: gatePreviewResult.hostname,
+                    visibilityScore: gatePreviewResult.visibilityScore,
+                    accuracyScore: gatePreviewResult.accuracyScore,
+                    robotsAiBotStatus: gatePreviewResult.robotsAiBotStatus,
+                    llmsTxtStatus: gatePreviewResult.llmsTxtStatus,
+                    agentsMdStatus: gatePreviewResult.agentsMdStatus,
+                    jsonLdCount: gatePreviewResult.jsonLdCount,
+                    isShopify: gatePreviewResult.isShopify,
+                    shopifyMcpStatus: gatePreviewResult.shopifyMcpStatus,
+                    crawlerReadability: gatePreviewResult.crawlerReadability,
+                    hallucinationCount: gatePreviewResult.samplePromptResult
+                      .hallucinationDetected
+                      ? 1
+                      : 0,
+                    brandMentionedInSample:
+                      gatePreviewResult.samplePromptResult.brandMentioned,
+                    topRivals:
+                      gatePreviewResult.samplePromptResult.competitorsMentioned,
+                  });
+                  const gateTeaser = buildPublicAiPromptTeaser({
+                    brandName: gatePreviewResult.brandName,
+                    hostname: gatePreviewResult.hostname,
+                    targetEnv: gatePromptEnv,
+                    robotsAiBotStatus: gatePreviewResult.robotsAiBotStatus,
+                    llmsTxtStatus: gatePreviewResult.llmsTxtStatus,
+                    agentsMdStatus: gatePreviewResult.agentsMdStatus,
+                    jsonLdCount: gatePreviewResult.jsonLdCount,
+                    isShopify: gatePreviewResult.isShopify,
+                    hallucinationDetected:
+                      gatePreviewResult.samplePromptResult.hallucinationDetected,
+                  });
+                  const botsOpen =
+                    gatePreviewResult.robotsAiBotStatus.GPTBot &&
+                    gatePreviewResult.robotsAiBotStatus.PerplexityBot &&
+                    !gatePreviewResult.robotsAiBotStatus.waf_blocked;
+                  const pillarsPassed = Array.isArray(
+                    gatePreviewResult.jsonLdReadiness?.missingAiGraphPillars
+                  )
+                    ? Math.max(
+                        0,
+                        3 -
+                          gatePreviewResult.jsonLdReadiness.missingAiGraphPillars
+                            .length
+                      )
+                    : gatePreviewResult.jsonLdCount > 0
+                      ? 1
+                      : 0;
+
+                  return (
                     <div
                       style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: '8px',
-                        marginBottom: '6px',
+                        padding: '14px',
+                        marginBottom: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--vs-border-strong)',
+                        background: 'var(--vs-surface-subtle)',
                       }}
                     >
-                      <strong style={{ fontSize: '13.5px' }}>
-                        {gatePreviewResult.brandName} (
-                        <span className="vs-mono">
-                          {gatePreviewResult.hostname}
-                        </span>
-                        )
-                      </strong>
-                      <StatusBadge
-                        tone={
-                          gatePreviewResult.visibilityScore >= 65
-                            ? 'pass'
-                            : 'warn'
-                        }
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          marginBottom: '8px',
+                        }}
                       >
-                        {`${gatePreviewResult.visibilityScore} / 100`}
-                      </StatusBadge>
+                        <div>
+                          <div
+                            className="vs-eyebrow"
+                            style={{ marginBottom: '2px' }}
+                          >
+                            STEP 01 LIVE WORKSPACE PREVIEW
+                          </div>
+                          <strong style={{ fontSize: '14px' }}>
+                            {gatePreviewResult.brandName} (
+                            <span className="vs-mono">
+                              {gatePreviewResult.hostname}
+                            </span>
+                            )
+                          </strong>
+                        </div>
+                        <StatusBadge
+                          tone={
+                            gatePreviewResult.visibilityScore >= 65
+                              ? 'pass'
+                              : 'warn'
+                          }
+                        >
+                          {`${gatePreviewResult.visibilityScore} / 100`}
+                        </StatusBadge>
+                      </div>
+
+                      <p
+                        style={{
+                          margin: '0 0 10px 0',
+                          fontSize: '12.5px',
+                          lineHeight: 1.5,
+                          color: 'var(--vs-ink)',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {gateDiag.headline}
+                      </p>
+
+                      <div
+                        className="vs-mono"
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                          gap: '6px 10px',
+                          padding: '9px 10px',
+                          marginBottom: '10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--vs-border)',
+                          background: 'var(--vs-surface)',
+                          fontSize: '11px',
+                          color: 'var(--vs-ink-secondary)',
+                        }}
+                      >
+                        <div>
+                          Stack:{' '}
+                          <strong>
+                            {gatePreviewResult.detectedPlatformLabel ?? 'Web'}
+                          </strong>
+                        </div>
+                        <div>
+                          AI Bots:{' '}
+                          <strong
+                            style={{
+                              color: botsOpen
+                                ? 'var(--vs-pass-fg)'
+                                : 'var(--vs-crit-fg)',
+                            }}
+                          >
+                            {botsOpen ? '200 OK' : 'RESTRICTED'}
+                          </strong>
+                        </div>
+                        <div>
+                          3-Pillar JSON-LD: <strong>{pillarsPassed}/3</strong> (
+                          {gatePreviewResult.jsonLdCount} block
+                          {gatePreviewResult.jsonLdCount === 1 ? '' : 's'})
+                        </div>
+                        <div>
+                          /llms.txt:{' '}
+                          <strong>{gatePreviewResult.llmsTxtStatus}</strong> ·
+                          /agents.md:{' '}
+                          <strong>{gatePreviewResult.agentsMdStatus}</strong>
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: '9px 11px',
+                          marginBottom: '10px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--vs-border)',
+                          background: 'var(--vs-surface)',
+                          fontSize: '12px',
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <div
+                          className="vs-mono"
+                          style={{
+                            fontSize: '10.5px',
+                            color: 'var(--vs-ink-muted)',
+                            marginBottom: '3px',
+                          }}
+                        >
+                          SAMPLE BUYER PROMPT CHECK ·{' '}
+                          {gatePreviewResult.samplePromptResult.aiEngine.toUpperCase()}
+                        </div>
+                        <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+                          &ldquo;{gatePreviewResult.samplePromptResult.promptText}&rdquo;
+                        </div>
+                        <div style={{ color: 'var(--vs-ink-secondary)' }}>
+                          {gatePreviewResult.samplePromptResult.brandMentioned
+                            ? `${gatePreviewResult.brandName} mentioned`
+                            : `${gatePreviewResult.brandName} omitted from primary citation list`}
+                          {gatePreviewResult.samplePromptResult
+                            .competitorsMentioned.length > 0
+                            ? ` · Rivals cited: ${gatePreviewResult.samplePromptResult.competitorsMentioned
+                                .slice(0, 3)
+                                .join(', ')}`
+                            : ''}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          border: '1px solid var(--vs-border-strong)',
+                          background: 'var(--vs-terminal)',
+                          marginBottom: '10px',
+                        }}
+                      >
+                        <div
+                          className="vs-mono"
+                          style={{
+                            padding: '6px 10px',
+                            fontSize: '10.5px',
+                            color: '#D4A853',
+                            borderBottom: '1px solid rgba(255,255,255,0.08)',
+                          }}
+                        >
+                          STEP 02 · TAILORED 1-CLICK AI FIX PROMPT PREVIEW
+                        </div>
+                        <pre
+                          className="vs-code-block"
+                          style={{
+                            borderRadius: 0,
+                            padding: '9px 10px 6px 10px',
+                            fontSize: '11px',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                          }}
+                        >
+                          <code>{gateTeaser.visibleHeaderText}</code>
+                        </pre>
+                        <div
+                          className="vs-mono"
+                          style={{
+                            padding: '0 10px 9px 10px',
+                            fontSize: '10.5px',
+                            lineHeight: 1.5,
+                            color: '#A3A8B4',
+                          }}
+                        >
+                          {gateTeaser.redactedPayloadLines
+                            .slice(0, 2)
+                            .map((line, idx) => (
+                              <div key={idx} className="vs-blur-token">
+                                {line}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: 'var(--vs-accent)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          ✓ Pre-linked to your activation buttons on the right →
+                        </span>
+                        <a
+                          href={buildGateCheckoutHref('tripwire_19', 'one_time')}
+                          className="vs-btn vs-btn-secondary"
+                          style={{ padding: '6px 11px', fontSize: '12px' }}
+                        >
+                          Activate $19 Pass (Full Fix Prompt) →
+                        </a>
+                      </div>
                     </div>
-                    <div
-                      className="vs-mono"
-                      style={{
-                        fontSize: '11.5px',
-                        color: 'var(--vs-ink-secondary)',
-                      }}
-                    >
-                      Stack: {gatePreviewResult.detectedPlatformLabel ?? 'Web'}{' '}
-                      · JSON-LD: {gatePreviewResult.jsonLdCount} · /llms.txt:{' '}
-                      {gatePreviewResult.llmsTxtStatus} · /agents.md:{' '}
-                      {gatePreviewResult.agentsMdStatus}
-                    </div>
-                    <div
-                      style={{
-                        marginTop: '6px',
-                        fontSize: '12px',
-                        color: 'var(--vs-accent)',
-                        fontWeight: 600,
-                      }}
-                    >
-                      ✓ Pre-linked to your activation buttons on the right →
-                    </div>
-                  </div>
-                ) : null}
+                  );
+                })() : null}
 
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <Link href="/#audit" className="vs-btn vs-btn-secondary">
