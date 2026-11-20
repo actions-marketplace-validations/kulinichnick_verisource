@@ -10,7 +10,7 @@
 
 | # | Platform / Shelf | Current Status | Asset Already Built | 1-Click Publish Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **1** | **GitHub Actions Marketplace** | `READY (RELEASE KIT BUILT)` | Root `action.yml` (`shield` / `yellow`) + sticky PR badge (`verisource.dev/api/badge/{host}`) + `GITHUB_MARKETPLACE_RELEASE_v1.0.0.md` | Open https://github.com/kulinichnick/verisource/releases/new, paste `GITHUB_MARKETPLACE_RELEASE_v1.0.0.md`, check **"Publish this Action to the GitHub Marketplace"**, and click Publish. |
+| **1** | **GitHub Actions Marketplace** | `LIVE (v1.0.0 · 2026-11-19)` | Published live at https://github.com/marketplace/actions/verisource-ai-search-site-health-gate (`HTTP 200`, `Code quality` + `Deployment`, release `v1.0.0`) + `autonomous-growth-ops.yml` Run #1 (`44647037926`) `SUCCESS` (`community-signal-digest` artifact uploaded). | Add the `5` GitHub Actions Secrets below so scheduled 6h/daily/weekly runs deliver emails & IndexNow pings automatically. |
 | **2** | **Official MCP Registry** | `LIVE` | `dev.verisource/mcp@1.0.0` + Ed25519 proof | Verified live on `registry.modelcontextprotocol.io`. |
 | **3** | **Glama MCP Directory** | `SUBMITTED` | Hosted Streamable HTTP `/mcp` | Verify badge & description stay synced with `OAuth 2.1` (`/oauth/mcp`). |
 | **4** | **Cursor Directory** | `LIVE` | `verisource-geo-ai-citation-mcp` | Live plugin entry pointing to `https://mcp.verisource.dev/mcp`. |
@@ -27,7 +27,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **9** | **Chrome Web Store** | `IN REVIEW / LIVE` | `verisource-chrome-mv3-v1.0.1.zip` + 24-bit RGB screenshots | Monitor approval; add Chrome Store link to footer & `/features`. |
 | **10** | **Microsoft Edge Add-ons** | `READY (0 CODE)` | Exact same `verisource-chrome-mv3-v1.0.1.zip` | Upload at https://partner.microsoft.com/dashboard/microsoftedge. |
-| **11** | **WordPress.org Plugin Directory** | `PACKAGED (.ZIP READY)` | `wordpress-plugin/verisource-geo-connector-wp-v1.0.0.zip` (`5 KB`, `10.0/10` `readme.txt` + External Services disclosure + JSON-LD sanitizer) | Upload `g:\My Drive\GEO MCP Engine\wordpress-plugin\verisource-geo-connector-wp-v1.0.0.zip` at https://wordpress.org/plugins/developers/add/. |
+| **11** | **WordPress.org Plugin Directory** | `SUBMITTED — AUTO-SCAN PASS (2026-11-20)` | Uploaded `verisource-ai-facts-geo-connector-wp-v1.0.0.zip` (`Tested up to: 7.1`, `Text Domain: verisource-ai-facts-geo-connector`, `10.0/10` `readme.txt` with opt-in External Services disclosure). Automated Plugin Scanning: **Pass** (`0` errors, `0` warnings). | Assigned slug `verisource-ai-facts-geo-connector`; awaiting WordPress.org Plugin Review email at `kulinichnick@gmail.com`. |
 | **12** | **Shopify App Store** | `PHASE 2 (BRIDGE READY)` | `/connectors` Shopify OS 2.0 theme snippet + `/api/ucp/mcp` probe | Package lightweight free AI Readiness + `/agents.md` helper app. |
 
 ---

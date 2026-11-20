@@ -13,7 +13,7 @@ const MONOREPO_ROOT = path.resolve(__dirname, '..');
 const DRIVE_OUT_DIR = 'g:\\My Drive\\GEO MCP Engine\\wordpress-plugin';
 const LOCAL_OUT_DIR = path.join(MONOREPO_ROOT, 'build');
 
-const PLUGIN_SLUG = 'verisource-geo-connector';
+const PLUGIN_SLUG = 'verisource-ai-facts-geo-connector';
 const PLUGIN_VERSION = '1.0.0';
 
 function buildWpOrgCompliantPhp() {
@@ -26,7 +26,7 @@ function buildWpOrgCompliantPhp() {
   // and explicit JSON-LD sanitization callback so WordPress Plugin Check passes with zero warnings.
   let php = base.phpSource.replace(
     ' * License:           GPL-2.0-or-later\n */',
-    ' * License:           GPL-2.0-or-later\n * License URI:       https://www.gnu.org/licenses/gpl-2.0.html\n * Text Domain:       verisource-geo-connector\n */'
+    ' * License:           GPL-2.0-or-later\n * License URI:       https://www.gnu.org/licenses/gpl-2.0.html\n * Text Domain:       verisource-ai-facts-geo-connector\n */'
   );
 
   php = php.replace(
@@ -64,7 +64,7 @@ function buildWpOrgReadmeTxt() {
 Contributors: verisource
 Tags: llms-txt, agents-md, json-ld, ai-search, geo
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: ${PLUGIN_VERSION}
 License: GPLv2 or later
