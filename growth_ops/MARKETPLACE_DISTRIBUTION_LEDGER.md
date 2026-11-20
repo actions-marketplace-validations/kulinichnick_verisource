@@ -30,7 +30,7 @@
 
 | # | Store / Shelf | Current Status | Asset Already Built | Next Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **9** | **Chrome Web Store** | `IN REVIEW / LIVE` | `verisource-chrome-mv3-v1.0.1.zip` + 24-bit RGB screenshots | Monitor approval; add Chrome Store link to footer & `/features`. |
+| **9** | **Chrome Web Store** | `RESUBMIT READY (v1.0.1 ZIP)` | `v1.0.0` flagged `2026-11-17` (`Yellow Argon` keyword list `"Shopify, WordPress, Webflow..."`); `verisource-chrome-mv3-v1.0.1.zip` + cleaned copy/PNGs in `CHROME_STORE_LAUNCH_KIT.md` already stripped it. | Upload `verisource-chrome-mv3-v1.0.1.zip` + paste `CHROME_STORE_LAUNCH_KIT.md` description in CWS Dev Console (**do not click Appeal** — submit new package revision). |
 | **10** | **Microsoft Edge Add-ons** | `READY (0 CODE)` | Exact same `verisource-chrome-mv3-v1.0.1.zip` | Upload at https://partner.microsoft.com/dashboard/microsoftedge. |
 | **11** | **WordPress.org Plugin Directory** | `SUBMITTED — AUTO-SCAN PASS (2026-11-20)` | Uploaded `verisource-ai-facts-geo-connector-wp-v1.0.0.zip` (`Tested up to: 7.1`, `Text Domain: verisource-ai-facts-geo-connector`, `10.0/10` `readme.txt` with opt-in External Services disclosure). Automated Plugin Scanning: **Pass** (`0` errors, `0` warnings). | Assigned slug `verisource-ai-facts-geo-connector`; awaiting WordPress.org Plugin Review email at `kulinichnick@gmail.com`. |
 | **12** | **Shopify App Store** | `PHASE 2 (BRIDGE READY)` | `/connectors` Shopify OS 2.0 theme snippet + `/api/ucp/mcp` probe | Package lightweight free AI Readiness + `/agents.md` helper app. |

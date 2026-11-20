@@ -40,11 +40,24 @@ const DATASET_JSON_LD = {
   datePublished: BENCHMARK_STUDY_META.probedDateIso,
   dateModified: BENCHMARK_STUDY_META.probedDateIso,
   isAccessibleForFree: true,
+  license: 'https://creativecommons.org/licenses/by/4.0/',
   creator: {
     '@type': 'Organization',
     name: 'Verisource',
     url: 'https://verisource.dev',
   },
+  distribution: [
+    {
+      '@type': 'DataDownload',
+      encodingFormat: 'application/json',
+      contentUrl: 'https://verisource.dev/api/benchmarks/summary',
+    },
+    {
+      '@type': 'DataDownload',
+      encodingFormat: 'text/markdown',
+      contentUrl: 'https://verisource.dev/api/benchmarks/summary?format=md',
+    },
+  ],
   variableMeasured: [
     'Custom /llms.txt HTTP 200 Adoption Rate',
     'Custom /agents.md vs. Stock Shopify Boilerplate Rate',

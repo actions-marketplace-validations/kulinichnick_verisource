@@ -29,7 +29,15 @@ const BENCHMARKS_HUB_JSON_LD = {
     {
       '@type': 'Dataset',
       name: BENCHMARK_STUDY_META.title,
+      description: BENCHMARK_STUDY_META.metaDescription,
       url: BENCHMARK_STUDY_META.canonicalUrl,
+      license: 'https://creativecommons.org/licenses/by/4.0/',
+      isAccessibleForFree: true,
+      creator: {
+        '@type': 'Organization',
+        name: 'Verisource',
+        url: 'https://verisource.dev',
+      },
     },
   ],
 };
