@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-20T04:43:49.146Z",
+  "updatedAt": "2026-11-20T06:14:03.610Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1674,7 +1674,8 @@
       "publicContactChannel": "hello@basement.studio",
       "caseStudyClientDomain": "vercel.com",
       "caseStudyClientName": "Vercel",
-      "status": "queued"
+      "status": "skipped_trophy_client",
+      "skipReason": "UNPITCHABLE_ENTERPRISE_TROPHY_CLIENT:vercel.com"
     },
     {
       "agencyName": "Clearleft",
@@ -1686,7 +1687,8 @@
       "publicContactChannel": "info@clearleft.com",
       "caseStudyClientDomain": "virginholidays.co.uk",
       "caseStudyClientName": "Virgin Atlantic Holidays",
-      "status": "queued"
+      "status": "skipped_trophy_client",
+      "skipReason": "UNPITCHABLE_ENTERPRISE_TROPHY_CLIENT:virginholidays.co.uk"
     },
     {
       "agencyName": "Significa",
@@ -1698,7 +1700,8 @@
       "publicContactChannel": "newbusiness@significa.co",
       "caseStudyClientDomain": "panasonic.com",
       "caseStudyClientName": "Panasonic",
-      "status": "queued"
+      "status": "skipped_trophy_client",
+      "skipReason": "UNPITCHABLE_ENTERPRISE_TROPHY_CLIENT:panasonic.com"
     },
     {
       "agencyName": "247 Labs",
@@ -1710,6 +1713,55 @@
       "publicContactChannel": "hello@247labs.com",
       "caseStudyClientDomain": "rogers.com",
       "caseStudyClientName": "Rogers",
+      "status": "skipped_trophy_client",
+      "skipReason": "UNPITCHABLE_ENTERPRISE_TROPHY_CLIENT:rogers.com"
+    },
+    {
+      "agencyName": "Growfusely",
+      "agencyDomain": "growfusely.com",
+      "specialty": "B2B SaaS Content & Technical SEO Agency",
+      "contactName": "Pratik Dholakiya",
+      "contactRole": "Founder",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Pratik%20Dholakiya%20Growfusely",
+      "publicContactChannel": "pratik@growfusely.com",
+      "caseStudyClientDomain": "document360.com",
+      "caseStudyClientName": "Document360",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Ten Speed",
+      "agencyDomain": "tenspeed.io",
+      "specialty": "B2B SaaS Organic Growth & SEO Retainer Agency",
+      "contactName": "Nate Turner",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Nate%20Turner%20Ten%20Speed",
+      "publicContactChannel": "nate@tenspeed.io",
+      "caseStudyClientDomain": "workvivo.com",
+      "caseStudyClientName": "Workvivo",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Skale",
+      "agencyDomain": "skale.so",
+      "specialty": "B2B SaaS SEO & Revenue Growth Agency",
+      "contactName": "Jake Stainer",
+      "contactRole": "Co-Founder & Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Jake%20Stainer%20Skale",
+      "publicContactChannel": "jake@skale.so",
+      "caseStudyClientDomain": "slite.com",
+      "caseStudyClientName": "Slite",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Statement",
+      "agencyDomain": "statementagency.com",
+      "specialty": "Shopify Plus eCommerce & CRO Retainer Agency",
+      "contactName": "Dan Conboy",
+      "contactRole": "Founder & Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Dan%20Conboy%20Statement%20Shopify",
+      "publicContactChannel": "dan@statementagency.com",
+      "caseStudyClientDomain": "micro-scooters.co.uk",
+      "caseStudyClientName": "Micro Scooters UK",
       "status": "queued"
     }
   ]
