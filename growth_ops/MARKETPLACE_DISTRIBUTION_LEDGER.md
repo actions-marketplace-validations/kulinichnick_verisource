@@ -45,13 +45,13 @@
 
 ---
 
-## 4. Required GitHub Repository Secrets for 100% Unattended Cloud Crons
+## 4. Required GitHub Repository Secrets for 100% Unattended Cloud Crons (`CONFIGURED & LIVE-VERIFIED · 2026-11-20`)
 
-Add these in GitHub (`Settings -> Secrets and variables -> Actions`) so `.github/workflows/autonomous-growth-ops.yml` runs 24/7 with zero manual intervention:
+All `5` core secrets are verified under **Repository secrets** and proven green on live (`dry_run: false`) runs `44669411310` (`gsc_heal` + Bing IndexNow) and `44669444415` (`weekly_ops` Stripe + Supabase P&L):
 
-1. `NEXT_PUBLIC_SUPABASE_URL` — Live Supabase URL
-2. `SUPABASE_SERVICE_ROLE_KEY` — Authorizes `/api/dashboard/outbound-send`, `/api/indexnow`, and organic signup queries
-3. `OUTBOUND_REPLY_TO_EMAIL` — Founder email receiving the 6-hour Community Citation Digest (`kulinichnick@gmail.com`)
-4. `GEMINI_API_KEY` — Live multi-engine audit support for daily activation
-5. `STRIPE_SECRET_KEY` — Automated Monday M&A P&L & SDE ledger reconciliation
-6. `GSC_SERVICE_ACCOUNT_JSON` *(Optional, enables live Search Console striking-distance queries)* — Read-only Google Cloud Service Account JSON granted access on `sc-domain:verisource.dev`
+1. `[x]` `NEXT_PUBLIC_SUPABASE_URL` — Live Supabase URL
+2. `[x]` `SUPABASE_SERVICE_ROLE_KEY` — Authorizes `/api/dashboard/outbound-send`, `/api/indexnow`, and organic signup queries
+3. `[x]` `OUTBOUND_REPLY_TO_EMAIL` — Founder email receiving the 6-hour Community Citation Digest (`kulinichnick@gmail.com`)
+4. `[x]` `GEMINI_API_KEY` — Live multi-engine audit support for daily activation
+5. `[x]` `STRIPE_SECRET_KEY` — Automated Monday M&A P&L & SDE ledger reconciliation
+6. `[ ]` `GSC_SERVICE_ACCOUNT_JSON` *(Optional upgrade for live Search Console striking-distance queries)* — Read-only Google Cloud Service Account JSON granted access on `sc-domain:verisource.dev`
