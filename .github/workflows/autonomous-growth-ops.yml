@@ -103,9 +103,11 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             node scripts/growth_workflows/ops-free-activation.mjs --dry-run
             node scripts/growth_workflows/ops-warm-followup.mjs --dry-run
+            node scripts/growth_workflows/ops-comp-pro.mjs --revoke-expired
           else
             node scripts/growth_workflows/ops-free-activation.mjs --send-email
             node scripts/growth_workflows/ops-warm-followup.mjs --send-email
+            node scripts/growth_workflows/ops-comp-pro.mjs --revoke-expired --live
           fi
       - name: Upload Daily Activation & Warm Follow-Up Queue
         uses: actions/upload-artifact@v7

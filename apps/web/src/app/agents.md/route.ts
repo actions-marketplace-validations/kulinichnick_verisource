@@ -95,6 +95,8 @@ Verisource fingerprints \`shopify\`, \`wordpress\`, \`webflow\`, \`wix\`, \`squa
 
 ## 6. Local-First CLI, Browser Flow Verifier & Agent Skill Installer (\`@verisource/cli\`)
 
+Zero-auth fallback (works before npm registry publication): \`npx --yes https://verisource.dev/downloads/verisource-cli.tgz <command>\`
+
 Coding agents and CI pipelines can invoke \`npx @verisource/cli\` directly on Node.js 20+ with zero runtime sub-dependencies:
 - \`npx @verisource/cli auth --key vs_live_YOUR_API_KEY\` — Authenticates local or CI environments against \`https://verisource.dev/api/cli/sync\` so \`--push\` syncs readiness scores and link health directly to \`/dashboard\`.
 - \`npx @verisource/cli scan <url> [--push] [--json]\` — Audits AI crawler WAF access, \`JSON-LD\`, \`/llms.txt\`, \`/agents.md\`, \`/ai-facts\`, and 20-page link health (\`VerisourceScan/1.0\`), storing compact handles (\`[h1]\`, \`[b1]\`, \`[l1]\`, \`[a1]\`, \`[n1]\`, \`[g1]\`) in \`.verisource/last-run.json\`.

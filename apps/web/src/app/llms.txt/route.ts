@@ -10,6 +10,7 @@ Read-Only Crawler Transparency Specification (VerisourceScan/1.0): https://veris
 Live Domain Scorecards Directory (520+ Audited Sites): https://verisource.dev/reports
 Head-to-Head Domain AI Search X-Ray: https://verisource.dev/vs
 Standalone npm CLI & Deterministic Flow Verifier: npx @verisource/cli
+- Zero-auth CLI fallback: \`npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan <url>\`
 Interactive 90s Product Tour & 7-CMS Setup Guides: https://verisource.dev/tutorial
 Platform Comparisons (vs. Profound, Otterly.ai, Peec AI, AthenaHQ, Scrunch AI): https://verisource.dev/compare
 Shopify UCP, Headless Next.js, JSON-LD & 7-CMS Protocol Guides: https://verisource.dev/guides (https://verisource.dev/guides/json-ld-faqpage-schema-for-ai-search, https://verisource.dev/guides/headless-nextjs-shopify-ai-search-fix)

@@ -245,7 +245,7 @@ export default function PublicReportsDirectoryPage(): React.ReactElement {
             every Vercel or Netlify preview URL—complete with native{' '}
             <code className="vs-mono">$GITHUB_STEP_SUMMARY</code> PR tables.
           </p>
-          <CopyCommandPill command="npx @verisource/cli verify https://verisource.dev --github-summary" />
+          <CopyCommandPill command="npx --yes https://verisource.dev/downloads/verisource-cli.tgz verify https://verisource.dev --github-summary" />
         </div>
 
         <div className="vs-terminal-frame">
