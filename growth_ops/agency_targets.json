@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:57:22.756Z",
+  "updatedAt": "2026-11-20T04:43:49.146Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1624,7 +1624,20 @@
       "publicContactChannel": "info@gretelny.com",
       "caseStudyClientDomain": "netflix.com",
       "caseStudyClientName": "Netflix",
-      "status": "queued"
+      "status": "sent",
+      "auditedAt": "2026-11-20T04:43:49.146Z",
+      "auditSlug": "netflix-com-ll75",
+      "emailVerification": {
+        "verifiedAt": "2026-11-20T04:43:49.146Z",
+        "source": "on_site_exact",
+        "mxExchange": "ASPMX.L.GOOGLE.com"
+      },
+      "emailSentAt": "2026-11-20T04:43:49.146Z",
+      "resendMessageId": "01a1f744-a9f6-7567-97f1-558762e4773b",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-24"
     },
     {
       "agencyName": "Cuberto",
@@ -1636,6 +1649,67 @@
       "publicContactChannel": "info@cuberto.com",
       "caseStudyClientDomain": "cisco.com",
       "caseStudyClientName": "Cisco",
+      "status": "sent",
+      "auditedAt": "2026-11-20T04:43:49.146Z",
+      "auditSlug": "cisco-com-ys9b",
+      "emailVerification": {
+        "verifiedAt": "2026-11-20T04:43:49.146Z",
+        "source": "on_site_exact",
+        "mxExchange": "smtp.google.com"
+      },
+      "emailSentAt": "2026-11-20T04:43:49.146Z",
+      "resendMessageId": "01a1f744-cd93-72a1-80f4-b034581a1262",
+      "channelsSent": [
+        "email_resend"
+      ],
+      "followUpDueDate": "2026-11-24"
+    },
+    {
+      "agencyName": "Basement Studio",
+      "agencyDomain": "basement.studio",
+      "specialty": "Next.js & Enterprise Brand Engineering Studio",
+      "contactName": "Jose Rago",
+      "contactRole": "Co-Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Jose%20Rago%20basement%20studio",
+      "publicContactChannel": "hello@basement.studio",
+      "caseStudyClientDomain": "vercel.com",
+      "caseStudyClientName": "Vercel",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Clearleft",
+      "agencyDomain": "clearleft.com",
+      "specialty": "Digital Design, UX & Web Architecture Consultancy",
+      "contactName": "Rich Rutter",
+      "contactRole": "Co-Founder & Managing Director",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Rich%20Rutter%20Clearleft",
+      "publicContactChannel": "info@clearleft.com",
+      "caseStudyClientDomain": "virginholidays.co.uk",
+      "caseStudyClientName": "Virgin Atlantic Holidays",
+      "status": "queued"
+    },
+    {
+      "agencyName": "Significa",
+      "agencyDomain": "significa.co",
+      "specialty": "Digital Product & Headless eCommerce Studio",
+      "contactName": "Helder Araujo",
+      "contactRole": "Founder & CEO",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=Helder%20Araujo%20Significa",
+      "publicContactChannel": "newbusiness@significa.co",
+      "caseStudyClientDomain": "panasonic.com",
+      "caseStudyClientName": "Panasonic",
+      "status": "queued"
+    },
+    {
+      "agencyName": "247 Labs",
+      "agencyDomain": "247labs.com",
+      "specialty": "SaaS & Custom Web Engineering Agency",
+      "contactName": "247 Labs Leadership",
+      "contactRole": "Managing Partner",
+      "linkedinSearchUrl": "https://www.linkedin.com/search/results/people/?keywords=247%20Labs%20Founder",
+      "publicContactChannel": "hello@247labs.com",
+      "caseStudyClientDomain": "rogers.com",
+      "caseStudyClientName": "Rogers",
       "status": "queued"
     }
   ]

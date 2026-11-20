@@ -1104,6 +1104,34 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'KYC & fraud API open crawler + /llms.txt depth vs. Webflow bot restrictions.',
   },
+  {
+    cohort: 'ECOMMERCE FRAUD & TRUST INFRASTRUCTURE',
+    domainA: 'sift.com',
+    domainB: 'forter.com',
+    angle:
+      'Digital trust & payment fraud AI crawler access, /llms.txt documentation feeds, and entity JSON-LD parity.',
+  },
+  {
+    cohort: 'CHECKOUT FRAUD & CHARGEBACK PROTECTION',
+    domainA: 'forter.com',
+    domainB: 'signifyd.com',
+    angle:
+      'Guaranteed fraud protection /llms.txt index, GPTBot readability, and homepage schema.org coverage.',
+  },
+  {
+    cohort: '3PL FULFILLMENT & SHIPPING AUTOMATION',
+    domainA: 'shipbob.com',
+    domainB: 'shipstation.com',
+    angle:
+      'Ecommerce fulfillment vs. multi-carrier shipping software /llms.txt feeds and entity JSON-LD.',
+  },
+  {
+    cohort: 'MULTI-CARRIER SHIPPING & TRACKING APIS',
+    domainA: 'easypost.com',
+    domainB: 'goshippo.com',
+    angle:
+      'Developer shipping API /llms.txt index, SSR token density, and homepage schema.org parity.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

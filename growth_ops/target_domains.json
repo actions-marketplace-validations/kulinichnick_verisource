@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-19T19:58:47.180Z",
+  "updatedAt": "2026-11-20T04:43:49.146Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -3390,53 +3390,129 @@
       "domain": "alloy.com",
       "brandName": "Alloy",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "sift.com",
       "brandName": "Sift",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "forter.com",
       "brandName": "Forter",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "signifyd.com",
       "brandName": "Signifyd",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "shipbob.com",
       "brandName": "ShipBob",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "shipstation.com",
       "brandName": "ShipStation",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "easypost.com",
       "brandName": "EasyPost",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "goshippo.com",
       "brandName": "Shippo",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
     },
     {
       "domain": "flexport.com",
       "brandName": "Flexport",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
+    },
+    {
+      "domain": "project44.com",
+      "brandName": "project44",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-20T04:43:49.146Z"
+    },
+    {
+      "domain": "samsara.com",
+      "brandName": "Samsara",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "motive.com",
+      "brandName": "Motive",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "procore.com",
+      "brandName": "Procore",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "autodesk.com",
+      "brandName": "Autodesk",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "servicetitan.com",
+      "brandName": "ServiceTitan",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "jobber.com",
+      "brandName": "Jobber",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "housecallpro.com",
+      "brandName": "Housecall Pro",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "toasttab.com",
+      "brandName": "Toast",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "spoton.com",
+      "brandName": "SpotOn",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "lightspeedhq.com",
+      "brandName": "Lightspeed",
       "vertical": "b2b_saas",
       "status": "queued"
     }
