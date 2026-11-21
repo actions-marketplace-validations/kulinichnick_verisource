@@ -23,6 +23,7 @@
 | **8d** | **`TensorBlock/awesome-mcp-servers` (`tensorblock.co/mcp`)** | `PR #6464 OPEN (2026-11-20)` | Opened https://github.com/TensorBlock/awesome-mcp-servers/pull/6464 (`docs/marketing-sales--crm.md`, `dev.verisource/mcp`, Streamable HTTP + OAuth 2.1 + PKCE metadata for `mcp-index.tensorblock.co`). | Waiting on maintainer merge (`1,104★` + public API registry). |
 | **8e** | **`YuzeHao2023/Awesome-MCP-Servers`** | `PR #951 OPEN (2026-11-20)` | Opened https://github.com/YuzeHao2023/Awesome-MCP-Servers/pull/951 (`Category: Marketing`, `https://mcp.verisource.dev/mcp`). | Waiting on maintainer merge (`1,093★`). |
 | **8f** | **`directory.llmstxt.cloud` & `DevHunt`** | `STAGED (1-CLICK TURNSTILE / GITHUB LOGIN)` | `directory.llmstxt.cloud/submit` form 100% pre-filled on Free Standard tier (paused at Turnstile); `devhunt.org/login?next=submit` ready for GitHub sign-in. | Click Turnstile + **Join waitlist** on `directory.llmstxt.cloud`; click **Continue with Github** on `DevHunt`. |
+| **8g** | **npm Registry (`@verisource/cli`)** | `LIVE (v1.0.0 · 2026-11-20)` | Published `@verisource/cli@1.0.0` (`162.0 kB`, 20 files, standalone bundle) under npm account `verisource` (`https://www.npmjs.com/package/@verisource/cli`). | Verify `npx --yes @verisource/cli scan verisource.dev` clears npm's initial staging queue and use clean `npx @verisource/cli` command in Tue Nov 24 Show HN launch. |
 
 ---
 
