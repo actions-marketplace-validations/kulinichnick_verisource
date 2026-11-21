@@ -537,7 +537,7 @@ export function PlatformModulesShowcase(): React.ReactElement {
               <code className="vs-mono">/mcp</code>) in 1 click.
             </span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              <a href="#grader" className="vs-btn vs-btn-secondary">
+              <a href="/#grader" className="vs-btn vs-btn-secondary">
                 Test Your Website Free ↑
               </a>
               <Link href="/pricing" className="vs-btn">

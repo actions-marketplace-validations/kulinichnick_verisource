@@ -290,7 +290,7 @@ export default function ScannerTransparencyPage(): React.ReactElement {
             gap: '14px',
           }}
         >
-          <CopyCommandPill command="npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan your-site.com" />
+          <CopyCommandPill command="npx @verisource/cli scan your-site.com" />
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <Link href="/features" className="vs-btn vs-btn-secondary">
               Explore All Features →

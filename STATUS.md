@@ -1044,3 +1044,9 @@
 * **Completed:**
   1. **Secured `verisource` npm Account & Published `@verisource/cli@1.0.0`:** Created the `verisource` npm account (owning `@verisource/*` directly), saved 2FA recovery codes privately outside Git (`g:\My Drive\GEO MCP Engine\private\npm-2fa-recovery-codes.txt`), and published `+ @verisource/cli@1.0.0` (`162.0 kB`, `20` files) publicly to `https://www.npmjs.com/package/@verisource/cli`.
   2. **Synced High-DR Distribution Ledger (`MARKETPLACE_DISTRIBUTION_LEDGER.md` Row `8g`):** Logged npm Registry publication across both Drive and Monorepo ahead of Tuesday Nov 24's `Show HN` launch.
+
+### [x] M155.6 — Live `npx @verisource/cli@1.0.0` Smoke Test, Site-Wide Clean `npx` Copy Restore & `/features` `#grader` Anchor Fix *(DONE)*
+* **Completed:**
+  1. **Live npm Execution Verified (`npx --yes @verisource/cli@1.0.0 scan verisource.dev`):** Confirmed `@verisource/cli@1.0.0` cleared npm staging (`bin: dist/bin.js`) and executed cleanly from `%TEMP%` (`exit 0`, `20` pages crawled over public npm).
+  2. **Self-Dogfooding Bug Fix (`PlatformModulesShowcase.tsx`, `SampleBusinessMotionShowcase.tsx`):** Fixed the `#grader` -> `/#grader` anchor flagged on `/features` by our own live CLI (`health 94/100` -> `100/100`).
+  3. **Restored Crisp `npx @verisource/cli` Copy Commands (`HeroCommandSwitcher.tsx`, `AgentSplitPlayground.tsx`, `/features`, `/reports`, `/scanner`, `README.md`, `FOUNDER_PERSONAL_CLOSING_KIT.md`):** Upgraded all interactive copy pills and Tuesday's `Show HN` first comment back to short `npx @verisource/cli ...` commands while keeping `/downloads/verisource-cli.tgz` alive as an air-gapped mirror; verified `tsc --noEmit`, `next build` (`760/760` static pages), and **`114/114`** Next.js E2E assertions.

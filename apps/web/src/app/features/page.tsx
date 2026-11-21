@@ -746,7 +746,7 @@ export default function FeaturesPage(): React.ReactElement {
                 flows, and server logs pass cleanly.
               </p>
             </div>
-            <CopyCommandPill command="npx --yes https://verisource.dev/downloads/verisource-cli.tgz agent --skill --install all" />
+            <CopyCommandPill command="npx @verisource/cli agent --skill --install all" />
           </div>
 
           {/* Sub-Block A: Interactive Coding Agent Split Playground */}
@@ -812,7 +812,7 @@ export default function FeaturesPage(): React.ReactElement {
                 <code className="vs-mono">application/ld+json</code> emitters,
                 and diff route changes in CI.
               </p>
-              <CopyCommandPill command="npx --yes https://verisource.dev/downloads/verisource-cli.tgz map . --diff" />
+              <CopyCommandPill command="npx @verisource/cli map . --diff" />
             </div>
 
             <div id="log-correlation" className="vs-card" style={{ padding: '22px 24px' }}>
