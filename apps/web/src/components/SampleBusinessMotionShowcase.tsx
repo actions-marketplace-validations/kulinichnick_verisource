@@ -867,7 +867,7 @@ export function SampleBusinessMotionShowcase(): React.ReactElement {
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 <a
-                  href="#grader"
+                  href="/#grader"
                   className="vs-btn vs-btn-secondary"
                   style={{ padding: '8px 14px', fontSize: '12.5px' }}
                 >

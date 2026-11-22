@@ -66,11 +66,14 @@ Every Starter (`$49/mo`), Pro (`$99/mo`), and Agency (`$249/mo`) domain automati
 Run AI readiness checks, 20-page link health crawls, static Next.js/React route mapping, and deterministic `.verisource/workflows/*.json` replays from any terminal or CI runner on Node.js 20+ (zero runtime sub-dependencies):
 
 ```bash
-# Zero-auth instant execution via verified HTTPS tarball (works anywhere immediately)
+# Instant execution via npm (zero install)
+npx @verisource/cli scan https://verisource.dev
+npx @verisource/cli verify https://verisource.dev --init
+npx @verisource/cli map . --diff
+npx @verisource/cli agent --skill --install all
+
+# Or direct HTTPS tarball mirror (zero npm registry dependency)
 npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan https://verisource.dev
-npx --yes https://verisource.dev/downloads/verisource-cli.tgz verify https://verisource.dev --init
-npx --yes https://verisource.dev/downloads/verisource-cli.tgz map . --diff
-npx --yes https://verisource.dev/downloads/verisource-cli.tgz agent --skill --install all
 ```
 
 ---

@@ -142,13 +142,60 @@ async function sendViaRelay({ toEmail, subject, bodyText }) {
   };
 }
 
+async function fetchAuthUsersMap(sbUrl, sbKey) {
+  const map = new Map();
+  const res = await fetch(`${sbUrl}/auth/v1/admin/users?page=1&per_page=1000`, {
+    headers: {
+      apikey: sbKey,
+      Authorization: `Bearer ${sbKey}`,
+    },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) {
+    throw new Error(`Supabase Auth admin list failed (HTTP ${res.status})`);
+  }
+  const payload = await res.json();
+  for (const u of payload.users ?? []) {
+    if (u?.id) map.set(u.id, u);
+  }
+  return map;
+}
+
+async function markAuthUserActivated(sbUrl, sbKey, user, sentAtIso, messageId) {
+  const existingMeta =
+    user?.app_metadata && typeof user.app_metadata === 'object'
+      ? user.app_metadata
+      : {};
+  const res = await fetch(`${sbUrl}/auth/v1/admin/users/${encodeURIComponent(user.id)}`, {
+    method: 'PUT',
+    headers: {
+      apikey: sbKey,
+      Authorization: `Bearer ${sbKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      app_metadata: {
+        ...existingMeta,
+        activation_email_sent_at: sentAtIso,
+        activation_email_message_id: messageId ?? null,
+      },
+    }),
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Failed to persist activation_email_sent_at for ${user.id}: HTTP ${res.status} ${errText}`);
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes('--dry-run');
   const sendEmail = args.includes('--send-email') && !dryRun;
+  const syncLedgerToAuth = args.includes('--sync-ledger-to-auth');
   const nowIso = new Date().toISOString();
 
-  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
+  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim().replace(/\/+$/, '');
   const sbKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
   if (!sbUrl || !sbKey) {
     throw new Error('Supabase credentials missing.');
@@ -165,22 +212,44 @@ async function main() {
     Authorization: `Bearer ${sbKey}`,
   };
 
-  const [profRes, domRes] = await Promise.all([
+  const [profRes, domRes, authUsersMap] = await Promise.all([
     fetch(
       `${sbUrl}/rest/v1/profiles?plan_tier=eq.free&select=id,email,created_at&order=created_at.asc`,
       { headers }
     ),
     fetch(`${sbUrl}/rest/v1/domains?select=user_id`, { headers }),
+    fetchAuthUsersMap(sbUrl, sbKey),
   ]);
   const freeProfiles = await profRes.json();
   const domainUserIds = new Set((await domRes.json()).map((d) => d.user_id));
+
+  if (syncLedgerToAuth) {
+    let synced = 0;
+    for (const [uid, entry] of Object.entries(ledger.contacted ?? {})) {
+      const authUser = authUsersMap.get(uid);
+      if (!authUser) continue;
+      if (authUser.app_metadata?.activation_email_sent_at) continue;
+      await markAuthUserActivated(
+        sbUrl,
+        sbKey,
+        authUser,
+        entry.sentAt ?? nowIso,
+        entry.resendMessageId ?? 'ledger-backfill'
+      );
+      synced += 1;
+      console.log(`  ✔ Backfilled app_metadata.activation_email_sent_at for ${entry.email} (${uid})`);
+    }
+    console.log(`✔ [ops:activate-free] Auth metadata sync complete (${synced} backfilled).`);
+    return;
+  }
 
   let dispatchedCount = 0;
   let skippedBotsCount = 0;
 
   for (const prof of freeProfiles) {
     if (prof.id === DEMO_USER_ID || domainUserIds.has(prof.id)) continue;
-    if (ledger.contacted[prof.id]) continue;
+    const authUser = authUsersMap.get(prof.id);
+    if (ledger.contacted[prof.id] || authUser?.app_metadata?.activation_email_sent_at) continue;
 
     const check = isBotOrInternalEmail(prof.email);
     if (check.skip) {
@@ -267,6 +336,9 @@ async function main() {
           sentAt: nowIso,
           resendMessageId: res.id,
         };
+        if (authUser) {
+          await markAuthUserActivated(sbUrl, sbKey, authUser, nowIso, res.id);
+        }
         console.log(
           `  ✔ Activated nudge -> ${prof.email}${orgDomain ? ` (${orgDomain} ${scan.visibilityScore}/100)` : ''} | Quality ${enforced.score}/10 | Resend (${res.id})`
         );

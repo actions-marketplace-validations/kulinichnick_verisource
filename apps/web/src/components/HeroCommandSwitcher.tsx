@@ -11,9 +11,8 @@ const COMMANDS: Record<
 > = {
   cli: {
     pillLabel: 'CLI · Scan & Verify',
-    cmd: 'npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan your-site.com',
-    displayCmd:
-      'npx --yes https://verisource.dev/downloads/verisource-cli.tgz scan your-site.com',
+    cmd: 'npx @verisource/cli scan your-site.com',
+    displayCmd: 'npx @verisource/cli scan your-site.com',
   },
   mcp: {
     pillLabel: 'MCP · Claude / Cursor / Antigravity',
