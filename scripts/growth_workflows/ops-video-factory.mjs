@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { enforceQualityGate95 } from '../../packages/core-geo/dist/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -177,7 +177,7 @@ function renderHtmlToPng(chromeBin, htmlContent, outPngPath) {
       '--hide-scrollbars',
       '--window-size=1080,1920',
       `--screenshot=${outPngPath}`,
-      `file:///${tmpHtml.replace(/\\/g, '/')}`,
+      pathToFileURL(tmpHtml).href,
     ]);
     return fs.existsSync(outPngPath);
   } finally {

@@ -1,6 +1,11 @@
 name: Verisource Autonomous Organic Growth Ops
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/autonomous-growth-ops.yml'
+      - 'scripts/growth_workflows/**'
   schedule:
     # Every 6 hours: high-intent Community Signal Scout (HN, Reddit, StackExchange, DEV.to)
     - cron: '0 */6 * * *'
@@ -75,6 +80,7 @@ jobs:
     name: Daily Organic Activation & Warm Follow-Up
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '0 13 * * *') ||
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && (inputs.lane == 'daily_ops' || inputs.lane == 'all'))
     runs-on: ubuntu-24.04
     timeout-minutes: 12
@@ -100,13 +106,19 @@ jobs:
             echo "Supabase secrets not configured yet; skipping live daily activation."
             exit 0
           fi
-          if [ "${{ inputs.dry_run }}" = "true" ]; then
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo ">>> [1/3] ops-free-activation (--dry-run)"
             node scripts/growth_workflows/ops-free-activation.mjs --dry-run
+            echo ">>> [2/3] ops-warm-followup (--dry-run)"
             node scripts/growth_workflows/ops-warm-followup.mjs --dry-run
+            echo ">>> [3/3] ops-comp-pro (--revoke-expired)"
             node scripts/growth_workflows/ops-comp-pro.mjs --revoke-expired
           else
+            echo ">>> [1/3] ops-free-activation (--send-email)"
             node scripts/growth_workflows/ops-free-activation.mjs --send-email
+            echo ">>> [2/3] ops-warm-followup (--dry-run)"
             node scripts/growth_workflows/ops-warm-followup.mjs --dry-run
+            echo ">>> [3/3] ops-comp-pro (--revoke-expired --live)"
             node scripts/growth_workflows/ops-comp-pro.mjs --revoke-expired --live
           fi
       - name: Upload Daily Activation & Warm Follow-Up Queue
@@ -124,6 +136,7 @@ jobs:
     name: Weekly GSC Heal, Partner Scout, Video Shorts Factory & P&L
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '0 14 * * 1') ||
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && (inputs.lane == 'gsc_heal' || inputs.lane == 'partner_scout' || inputs.lane == 'video_factory' || inputs.lane == 'weekly_ops' || inputs.lane == 'all'))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -145,14 +158,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @verisource/core-geo build
 
-      - name: Install FFmpeg & Chromium for Video Shorts Factory
+      - name: Install FFmpeg & Verify Pre-Installed Chrome for Video Shorts Factory
         if: >-
           github.event_name == 'schedule' ||
+          github.event_name == 'push' ||
           inputs.lane == 'video_factory' ||
           inputs.lane == 'all'
         run: |
+          # Avoid ubuntu-24.04 apt chromium-browser snap transitional package (hangs ~15m in CI);
+          # ubuntu-24.04 GitHub runners already ship /usr/bin/google-chrome pre-installed.
           sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg chromium-browser || sudo apt-get install -y -qq ffmpeg chromium || true
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          ffmpeg -version | head -n 1
+          command -v google-chrome || command -v chromium || echo "Chrome binary not found; ops-video-factory will fall back gracefully."
 
       - name: Run Self-Healing GSC SEO & Bing IndexNow Sync
         if: >-
@@ -176,9 +194,15 @@ jobs:
       - name: Run Automated YouTube Shorts Teardown Factory
         if: >-
           github.event_name == 'schedule' ||
+          github.event_name == 'push' ||
           inputs.lane == 'video_factory' ||
           inputs.lane == 'all'
-        run: node scripts/growth_workflows/ops-video-factory.mjs --count 2
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/growth_workflows/ops-video-factory.mjs --dry-run --count 1
+          else
+            node scripts/growth_workflows/ops-video-factory.mjs --count 2
+          fi
 
       - name: Run Weekly P&L & Teardown Ops
         if: >-

@@ -387,9 +387,23 @@ async function runRetentionWatchdogAndLedger(nowIso) {
     `[ops:weekly] 2/3 Running retention-drift-watchdog & 3/3 ma-diligence-ledger...`
   );
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const cleanEnv = (raw) => {
+    let v = String(raw ?? '').trim();
+    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+      v = v.slice(1, -1).trim();
+    }
+    return v;
+  };
+  const rawSupabaseUrl = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/+$/, '');
+  const supabaseUrl =
+    rawSupabaseUrl &&
+    !/^https?:\/\//i.test(rawSupabaseUrl) &&
+    !rawSupabaseUrl.includes('://') &&
+    rawSupabaseUrl.includes('.')
+      ? `https://${rawSupabaseUrl}`
+      : rawSupabaseUrl;
+  const supabaseKey = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const stripeKey = cleanEnv(process.env.STRIPE_SECRET_KEY);
 
   let starterCount = 0;
   let proCount = 0;
@@ -403,11 +417,15 @@ async function runRetentionWatchdogAndLedger(nowIso) {
       const restHeaders = {
         apikey: supabaseKey,
         Authorization: `Bearer ${supabaseKey}`,
+        'User-Agent': 'VerisourceGrowthOps/1.0',
       };
       const profRes = await fetch(
-        `${supabaseUrl.replace(/\/+$/, '')}/rest/v1/profiles?plan_tier=neq.free&select=*`,
+        `${supabaseUrl}/rest/v1/profiles?plan_tier=neq.free&select=*`,
         { headers: restHeaders, signal: AbortSignal.timeout(8000) }
       );
+      if (!profRes.ok) {
+        console.warn(`[ops:weekly] Supabase profiles query returned HTTP ${profRes.status}`);
+      }
       const profiles = profRes.ok ? await profRes.json() : [];
 
       const ownerEmail = (process.env.FOUNDER_OWNER_EMAIL ?? 'kulinichnick@gmail.com')
@@ -529,8 +547,9 @@ async function runRetentionWatchdogAndLedger(nowIso) {
           }
         }
       }
-    } catch {
-      // Safe fallback if Supabase network unavailable
+    } catch (err) {
+      // Safe fallback if Supabase network unavailable — log reason without leaking secrets
+      console.warn(`[ops:weekly] Supabase ledger lookup skipped: ${err?.message ?? 'unknown error'}`);
     }
   }
 

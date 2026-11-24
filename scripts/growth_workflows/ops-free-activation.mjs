@@ -104,12 +104,48 @@ function mirrorFileIfNeeded(relPath, content) {
   }
 }
 
+function cleanEnvValue(raw) {
+  let v = String(raw ?? '').trim();
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1).trim();
+  }
+  return v;
+}
+
+function resolveSupabaseUrl(raw) {
+  const cleaned = cleanEnvValue(raw).replace(/\/+$/, '');
+  if (!cleaned) return '';
+  const candidate =
+    /^https?:\/\//i.test(cleaned) || cleaned.includes('://')
+      ? cleaned
+      : cleaned.includes('.')
+        ? `https://${cleaned}`
+        : cleaned;
+  let parsed;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL format (len=${cleaned.length}, hasProtocol=${cleaned.includes('://')}). Check GitHub Repository Secret NEXT_PUBLIC_SUPABASE_URL — expected https://<project-ref>.supabase.co without quotes or whitespace.`
+    );
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw new Error(
+      `Unsupported NEXT_PUBLIC_SUPABASE_URL protocol (${parsed.protocol}). Expected https://<project-ref>.supabase.co.`
+    );
+  }
+  return candidate.replace(/\/+$/, '');
+}
+
 async function sendViaRelay({ toEmail, subject, bodyText }) {
-  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const serviceKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   const replyTo = (
-    process.env.OUTBOUND_REPLY_TO_EMAIL ?? 'kulinichnick@gmail.com'
+    cleanEnvValue(process.env.OUTBOUND_REPLY_TO_EMAIL) || 'kulinichnick@gmail.com'
   ).trim();
-  const rawAppUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
+  const rawAppUrl = cleanEnvValue(process.env.NEXT_PUBLIC_APP_URL);
   const appOrigin = (
     rawAppUrl && !/localhost|127\.0\.0\.1/i.test(rawAppUrl)
       ? rawAppUrl
@@ -121,6 +157,7 @@ async function sendViaRelay({ toEmail, subject, bodyText }) {
     headers: {
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     body: JSON.stringify({
       to: toEmail,
@@ -148,11 +185,15 @@ async function fetchAuthUsersMap(sbUrl, sbKey) {
     headers: {
       apikey: sbKey,
       Authorization: `Bearer ${sbKey}`,
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) {
-    throw new Error(`Supabase Auth admin list failed (HTTP ${res.status})`);
+    const errText = await res.text().catch(() => '');
+    throw new Error(
+      `Supabase Auth admin list failed (HTTP ${res.status}): ${errText.slice(0, 180)}`
+    );
   }
   const payload = await res.json();
   for (const u of payload.users ?? []) {
@@ -172,6 +213,7 @@ async function markAuthUserActivated(sbUrl, sbKey, user, sentAtIso, messageId) {
       apikey: sbKey,
       Authorization: `Bearer ${sbKey}`,
       'Content-Type': 'application/json',
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     body: JSON.stringify({
       app_metadata: {
@@ -195,8 +237,8 @@ async function main() {
   const syncLedgerToAuth = args.includes('--sync-ledger-to-auth');
   const nowIso = new Date().toISOString();
 
-  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim().replace(/\/+$/, '');
-  const sbKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const sbUrl = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const sbKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!sbUrl || !sbKey) {
     throw new Error('Supabase credentials missing.');
   }
@@ -210,18 +252,37 @@ async function main() {
   const headers = {
     apikey: sbKey,
     Authorization: `Bearer ${sbKey}`,
+    'User-Agent': 'VerisourceGrowthOps/1.0',
   };
 
   const [profRes, domRes, authUsersMap] = await Promise.all([
     fetch(
       `${sbUrl}/rest/v1/profiles?plan_tier=eq.free&select=id,email,created_at&order=created_at.asc`,
-      { headers }
+      { headers, signal: AbortSignal.timeout(10000) }
     ),
-    fetch(`${sbUrl}/rest/v1/domains?select=user_id`, { headers }),
+    fetch(`${sbUrl}/rest/v1/domains?select=user_id`, {
+      headers,
+      signal: AbortSignal.timeout(10000),
+    }),
     fetchAuthUsersMap(sbUrl, sbKey),
   ]);
+  if (!profRes.ok) {
+    const errText = await profRes.text().catch(() => '');
+    throw new Error(
+      `Supabase profiles query failed (HTTP ${profRes.status}): ${errText.slice(0, 180)}`
+    );
+  }
+  if (!domRes.ok) {
+    const errText = await domRes.text().catch(() => '');
+    throw new Error(
+      `Supabase domains query failed (HTTP ${domRes.status}): ${errText.slice(0, 180)}`
+    );
+  }
   const freeProfiles = await profRes.json();
-  const domainUserIds = new Set((await domRes.json()).map((d) => d.user_id));
+  const domainRows = await domRes.json();
+  const domainUserIds = new Set(
+    (Array.isArray(domainRows) ? domainRows : []).map((d) => d.user_id)
+  );
 
   if (syncLedgerToAuth) {
     let synced = 0;

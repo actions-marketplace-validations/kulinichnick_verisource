@@ -47,13 +47,40 @@ function getArgValue(args, flag, fallback) {
   return i !== -1 && i + 1 < args.length ? args[i + 1] : fallback;
 }
 
+function cleanEnvValue(raw) {
+  let v = String(raw ?? '').trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    v = v.slice(1, -1).trim();
+  }
+  return v;
+}
+
 function sbConfig() {
-  const url = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim().replace(/\/+$/, '');
-  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const cleanedUrl = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/+$/, '');
+  const url =
+    cleanedUrl && !/^https?:\/\//i.test(cleanedUrl) && !cleanedUrl.includes('://') && cleanedUrl.includes('.')
+      ? `https://${cleanedUrl}`
+      : cleanedUrl;
+  const key = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!url || !key) throw new Error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing.');
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      throw new Error(`Unsupported protocol: ${parsed.protocol}`);
+    }
+  } catch {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL format (len=${cleanedUrl.length}, hasProtocol=${cleanedUrl.includes('://')}).`
+    );
+  }
   return {
     url,
-    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'VerisourceGrowthOps/1.0',
+    },
   };
 }
 

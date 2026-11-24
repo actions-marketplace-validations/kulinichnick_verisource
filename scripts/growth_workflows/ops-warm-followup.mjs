@@ -46,12 +46,45 @@ function mirrorFileIfNeeded(relPath, content) {
   }
 }
 
+function cleanEnvValue(raw) {
+  let v = String(raw ?? '').trim();
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1).trim();
+  }
+  return v;
+}
+
+function resolveSupabaseUrl(raw) {
+  const cleaned = cleanEnvValue(raw).replace(/\/+$/, '');
+  if (!cleaned) return '';
+  const candidate =
+    /^https?:\/\//i.test(cleaned) || cleaned.includes('://')
+      ? cleaned
+      : cleaned.includes('.')
+        ? `https://${cleaned}`
+        : cleaned;
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      throw new Error(`Unsupported protocol: ${parsed.protocol}`);
+    }
+  } catch {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL format (len=${cleaned.length}, hasProtocol=${cleaned.includes('://')}). Check GitHub Repository Secret NEXT_PUBLIC_SUPABASE_URL.`
+    );
+  }
+  return candidate.replace(/\/+$/, '');
+}
+
 async function sendViaRelay({ toEmail, subject, bodyText }) {
-  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const serviceKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   const replyTo = (
-    process.env.OUTBOUND_REPLY_TO_EMAIL ?? 'kulinichnick@gmail.com'
+    cleanEnvValue(process.env.OUTBOUND_REPLY_TO_EMAIL) || 'kulinichnick@gmail.com'
   ).trim();
-  const rawAppUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
+  const rawAppUrl = cleanEnvValue(process.env.NEXT_PUBLIC_APP_URL);
   const appOrigin = (
     rawAppUrl && !/localhost|127\.0\.0\.1/i.test(rawAppUrl)
       ? rawAppUrl
@@ -63,6 +96,7 @@ async function sendViaRelay({ toEmail, subject, bodyText }) {
     headers: {
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     body: JSON.stringify({
       to: toEmail,
@@ -90,8 +124,8 @@ async function main() {
   const sendEmail = args.includes('--send-email') && !dryRun;
   const nowIso = new Date().toISOString();
 
-  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
-  const sbKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const sbUrl = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const sbKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   if (!sbUrl || !sbKey) {
     throw new Error('Supabase credentials missing.');
   }
@@ -104,16 +138,23 @@ async function main() {
   );
 
   const allOpenedRes = await fetch(
-    `${sbUrl.replace(/\/+$/, '')}/rest/v1/agency_pitch_reports?views_count=gte.1&order=views_count.desc,created_at.desc&select=*`,
+    `${sbUrl}/rest/v1/agency_pitch_reports?views_count=gte.1&order=views_count.desc,created_at.desc&select=*`,
     {
       headers: {
         apikey: sbKey,
         Authorization: `Bearer ${sbKey}`,
+        'User-Agent': 'VerisourceGrowthOps/1.0',
       },
       signal: AbortSignal.timeout(10000),
     }
   );
-  const allOpenedRows = allOpenedRes.ok ? await allOpenedRes.json() : [];
+  if (!allOpenedRes.ok) {
+    const errText = await allOpenedRes.text().catch(() => '');
+    throw new Error(
+      `Supabase agency_pitch_reports query failed (HTTP ${allOpenedRes.status}): ${errText.slice(0, 180)}`
+    );
+  }
+  const allOpenedRows = await allOpenedRes.json();
   const rowBySlug = new Map(allOpenedRows.map((r) => [r.share_slug, r]));
   const rowByHost = new Map();
   for (const r of allOpenedRows) {
