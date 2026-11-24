@@ -362,10 +362,24 @@ async function main() {
     let scan = null;
     if (!GENERIC_MAILBOX_HOSTS.has(check.host)) {
       try {
-        orgDomain = normalizePublicDomain(check.host).hostname;
-        scan = await runDomainReadinessScan(orgDomain, {
-          PROVIDER_MODE: 'mock',
-        });
+        const candidateHost = normalizePublicDomain(check.host).hostname;
+        // Verify the custom email domain actually serves an HTTP(S) website (avoids mail-only IONOS/personal domains)
+        const probeRes = await fetch(`https://${candidateHost}`, {
+          method: 'GET',
+          headers: {
+            'User-Agent':
+              'VerisourceScan/1.0 (+https://verisource.dev/scanner)',
+            Accept: 'text/html,application/xhtml+xml',
+          },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(6000),
+        }).catch(() => null);
+        if (probeRes && probeRes.status < 500) {
+          orgDomain = candidateHost;
+          scan = await runDomainReadinessScan(orgDomain, {
+            PROVIDER_MODE: 'mock',
+          });
+        }
       } catch {
         orgDomain = null;
         scan = null;
