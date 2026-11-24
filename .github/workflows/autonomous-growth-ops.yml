@@ -165,14 +165,24 @@ jobs:
           inputs.lane == 'video_factory' ||
           inputs.lane == 'all'
         run: |
-          # ubuntu-24.04 GitHub runners pre-install both /usr/bin/ffmpeg and /usr/bin/google-chrome.
-          # Skip apt-get update completely when ffmpeg is already present to avoid stalled Ubuntu/PPA mirrors.
-          if ! command -v ffmpeg >/dev/null 2>&1; then
-            sudo apt-get update -o Acquire::Retries=2 -o Acquire::http::Timeout=15 -qq
-            sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          # Avoid apt-get (unattended-upgrades dpkg lock hangs ubuntu-24.04) and avoid /usr/bin/chromium snap stubs.
+          if command -v ffmpeg >/dev/null 2>&1; then
+            echo "Using pre-installed ffmpeg: $(command -v ffmpeg)"
+          else
+            echo "Installing standalone ffmpeg-static binary via npm..."
+            FFMPEG_TMP="$(mktemp -d)"
+            npm --prefix "$FFMPEG_TMP" install --no-save --no-audit --no-fund ffmpeg-static
+            FFMPEG_PATH="$(node -e "console.log(require('$FFMPEG_TMP/node_modules/ffmpeg-static'))")"
+            chmod +x "$FFMPEG_PATH"
+            echo "FFMPEG_BIN=$FFMPEG_PATH" >> "$GITHUB_ENV"
           fi
-          ffmpeg -version | head -n 1
-          google-chrome --version || chromium --version || echo "Chrome binary not found; ops-video-factory will fall back gracefully."
+          if [ -x /usr/bin/google-chrome ]; then
+            /usr/bin/google-chrome --version
+          elif [ -x /opt/google/chrome/chrome ]; then
+            /opt/google/chrome/chrome --version
+          else
+            echo "Pre-installed Google Chrome not found; ops-video-factory will fall back gracefully."
+          fi
 
       - name: Run Self-Healing GSC SEO & Bing IndexNow Sync
         if: >-

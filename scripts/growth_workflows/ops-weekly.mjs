@@ -387,23 +387,40 @@ async function runRetentionWatchdogAndLedger(nowIso) {
     `[ops:weekly] 2/3 Running retention-drift-watchdog & 3/3 ma-diligence-ledger...`
   );
 
-  const cleanEnv = (raw) => {
-    let v = String(raw ?? '').trim();
+  const cleanEnv = (raw, keyNames = []) => {
+    let v = String(raw ?? '').replace(/[\r\n]+/g, '').trim();
     if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
       v = v.slice(1, -1).trim();
     }
+    for (const k of keyNames) {
+      if (v.toUpperCase().startsWith(`${k.toUpperCase()}=`)) {
+        v = v.slice(k.length + 1).trim();
+        if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+          v = v.slice(1, -1).trim();
+        }
+        break;
+      }
+    }
     return v;
   };
-  const rawSupabaseUrl = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/+$/, '');
-  const supabaseUrl =
-    rawSupabaseUrl &&
-    !/^https?:\/\//i.test(rawSupabaseUrl) &&
-    !rawSupabaseUrl.includes('://') &&
-    rawSupabaseUrl.includes('.')
+  const rawSupabaseUrl = cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL, [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'SUPABASE_URL',
+  ]).replace(/\/+$/, '');
+  const supabaseUrl = /^[a-z0-9]{15,30}$/i.test(rawSupabaseUrl)
+    ? `https://${rawSupabaseUrl}.supabase.co`
+    : rawSupabaseUrl &&
+        !/^https?:\/\//i.test(rawSupabaseUrl) &&
+        !rawSupabaseUrl.includes('://') &&
+        rawSupabaseUrl.includes('.')
       ? `https://${rawSupabaseUrl}`
       : rawSupabaseUrl;
-  const supabaseKey = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY);
-  const stripeKey = cleanEnv(process.env.STRIPE_SECRET_KEY);
+  const supabaseKey = cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY, [
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
+  const stripeKey = cleanEnv(process.env.STRIPE_SECRET_KEY, [
+    'STRIPE_SECRET_KEY',
+  ]);
 
   let starterCount = 0;
   let proCount = 0;
