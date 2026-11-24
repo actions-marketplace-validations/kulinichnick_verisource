@@ -46,26 +46,41 @@ function mirrorFileIfNeeded(relPath, content) {
   }
 }
 
-function cleanEnvValue(raw) {
-  let v = String(raw ?? '').trim();
+function cleanEnvValue(raw, keyNames = []) {
+  let v = String(raw ?? '').replace(/[\r\n]+/g, '').trim();
   if (
     (v.startsWith('"') && v.endsWith('"')) ||
     (v.startsWith("'") && v.endsWith("'"))
   ) {
     v = v.slice(1, -1).trim();
   }
+  for (const k of keyNames) {
+    if (v.toUpperCase().startsWith(`${k.toUpperCase()}=`)) {
+      v = v.slice(k.length + 1).trim();
+      if (
+        (v.startsWith('"') && v.endsWith('"')) ||
+        (v.startsWith("'") && v.endsWith("'"))
+      ) {
+        v = v.slice(1, -1).trim();
+      }
+      break;
+    }
+  }
   return v;
 }
 
 function resolveSupabaseUrl(raw) {
-  const cleaned = cleanEnvValue(raw).replace(/\/+$/, '');
+  const cleaned = cleanEnvValue(raw, [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'SUPABASE_URL',
+  ]).replace(/\/+$/, '');
   if (!cleaned) return '';
-  const candidate =
-    /^https?:\/\//i.test(cleaned) || cleaned.includes('://')
-      ? cleaned
-      : cleaned.includes('.')
-        ? `https://${cleaned}`
-        : cleaned;
+  let candidate = cleaned;
+  if (/^[a-z0-9]{15,30}$/i.test(cleaned)) {
+    candidate = `https://${cleaned}.supabase.co`;
+  } else if (!/^https?:\/\//i.test(cleaned) && !cleaned.includes('://') && cleaned.includes('.')) {
+    candidate = `https://${cleaned}`;
+  }
   try {
     const parsed = new URL(candidate);
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
@@ -80,11 +95,17 @@ function resolveSupabaseUrl(raw) {
 }
 
 async function sendViaRelay({ toEmail, subject, bodyText }) {
-  const serviceKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const serviceKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY, [
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   const replyTo = (
-    cleanEnvValue(process.env.OUTBOUND_REPLY_TO_EMAIL) || 'kulinichnick@gmail.com'
+    cleanEnvValue(process.env.OUTBOUND_REPLY_TO_EMAIL, [
+      'OUTBOUND_REPLY_TO_EMAIL',
+    ]) || 'kulinichnick@gmail.com'
   ).trim();
-  const rawAppUrl = cleanEnvValue(process.env.NEXT_PUBLIC_APP_URL);
+  const rawAppUrl = cleanEnvValue(process.env.NEXT_PUBLIC_APP_URL, [
+    'NEXT_PUBLIC_APP_URL',
+  ]);
   const appOrigin = (
     rawAppUrl && !/localhost|127\.0\.0\.1/i.test(rawAppUrl)
       ? rawAppUrl
@@ -125,7 +146,9 @@ async function main() {
   const nowIso = new Date().toISOString();
 
   const sbUrl = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
-  const sbKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const sbKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY, [
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   if (!sbUrl || !sbKey) {
     throw new Error('Supabase credentials missing.');
   }

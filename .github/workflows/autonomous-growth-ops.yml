@@ -39,7 +39,7 @@ permissions:
 
 concurrency:
   group: autonomous-growth-${{ github.event.schedule || github.event.inputs.lane || 'manual' }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
   community-signal-scout:
@@ -158,19 +158,21 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @verisource/core-geo build
 
-      - name: Install FFmpeg & Verify Pre-Installed Chrome for Video Shorts Factory
+      - name: Verify Pre-Installed FFmpeg & Chrome for Video Shorts Factory
         if: >-
           github.event_name == 'schedule' ||
           github.event_name == 'push' ||
           inputs.lane == 'video_factory' ||
           inputs.lane == 'all'
         run: |
-          # Avoid ubuntu-24.04 apt chromium-browser snap transitional package (hangs ~15m in CI);
-          # ubuntu-24.04 GitHub runners already ship /usr/bin/google-chrome pre-installed.
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          # ubuntu-24.04 GitHub runners pre-install both /usr/bin/ffmpeg and /usr/bin/google-chrome.
+          # Skip apt-get update completely when ffmpeg is already present to avoid stalled Ubuntu/PPA mirrors.
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update -o Acquire::Retries=2 -o Acquire::http::Timeout=15 -qq
+            sudo apt-get install -y -qq --no-install-recommends ffmpeg
+          fi
           ffmpeg -version | head -n 1
-          command -v google-chrome || command -v chromium || echo "Chrome binary not found; ops-video-factory will fall back gracefully."
+          google-chrome --version || chromium --version || echo "Chrome binary not found; ops-video-factory will fall back gracefully."
 
       - name: Run Self-Healing GSC SEO & Bing IndexNow Sync
         if: >-

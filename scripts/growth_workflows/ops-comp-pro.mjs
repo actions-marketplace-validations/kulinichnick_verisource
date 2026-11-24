@@ -47,21 +47,37 @@ function getArgValue(args, flag, fallback) {
   return i !== -1 && i + 1 < args.length ? args[i + 1] : fallback;
 }
 
-function cleanEnvValue(raw) {
-  let v = String(raw ?? '').trim();
+function cleanEnvValue(raw, keyNames = []) {
+  let v = String(raw ?? '').replace(/[\r\n]+/g, '').trim();
   if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
     v = v.slice(1, -1).trim();
+  }
+  for (const k of keyNames) {
+    if (v.toUpperCase().startsWith(`${k.toUpperCase()}=`)) {
+      v = v.slice(k.length + 1).trim();
+      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+        v = v.slice(1, -1).trim();
+      }
+      break;
+    }
   }
   return v;
 }
 
 function sbConfig() {
-  const cleanedUrl = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/+$/, '');
-  const url =
-    cleanedUrl && !/^https?:\/\//i.test(cleanedUrl) && !cleanedUrl.includes('://') && cleanedUrl.includes('.')
-      ? `https://${cleanedUrl}`
-      : cleanedUrl;
-  const key = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const cleanedUrl = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL, [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'SUPABASE_URL',
+  ]).replace(/\/+$/, '');
+  let url = cleanedUrl;
+  if (/^[a-z0-9]{15,30}$/i.test(cleanedUrl)) {
+    url = `https://${cleanedUrl}.supabase.co`;
+  } else if (cleanedUrl && !/^https?:\/\//i.test(cleanedUrl) && !cleanedUrl.includes('://') && cleanedUrl.includes('.')) {
+    url = `https://${cleanedUrl}`;
+  }
+  const key = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY, [
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   if (!url || !key) throw new Error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing.');
   try {
     const parsed = new URL(url);
