@@ -13,10 +13,17 @@ import {
 } from '../../../lib/published-matchups';
 import type { PublishedDomainScorecard } from '../../../lib/published-reports';
 
+const BUILD_PRERENDER_MATCHUP_LIMIT = 50;
+
+export const dynamicParams = true;
+export const revalidate = 86400;
+
 export function generateStaticParams(): Array<{ matchup: string }> {
-  return getPublishedMatchups().map((item) => ({
-    matchup: item.slug,
-  }));
+  return getPublishedMatchups()
+    .slice(0, BUILD_PRERENDER_MATCHUP_LIMIT)
+    .map((item) => ({
+      matchup: item.slug,
+    }));
 }
 
 function botsAllowedOnCard(c: PublishedDomainScorecard): boolean {

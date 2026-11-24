@@ -14,10 +14,17 @@ import {
   getPublishedDomainScorecards,
 } from '../../../lib/published-reports';
 
+const BUILD_PRERENDER_REPORT_LIMIT = 150;
+
+export const dynamicParams = true;
+export const revalidate = 86400;
+
 export function generateStaticParams(): Array<{ domain: string }> {
-  return getPublishedDomainScorecards().map((item) => ({
-    domain: item.domain,
-  }));
+  return getPublishedDomainScorecards()
+    .slice(0, BUILD_PRERENDER_REPORT_LIMIT)
+    .map((item) => ({
+      domain: item.domain,
+    }));
 }
 
 export async function generateMetadata({
