@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-20T06:14:03.610Z",
+  "updatedAt": "2026-11-24T05:07:04.748Z",
   "batchSizeDefault": 2,
   "agencies": [
     {
@@ -1726,7 +1726,9 @@
       "publicContactChannel": "pratik@growfusely.com",
       "caseStudyClientDomain": "document360.com",
       "caseStudyClientName": "Document360",
-      "status": "queued"
+      "status": "audited",
+      "auditedAt": "2026-11-24T05:07:04.748Z",
+      "auditSlug": "document360-com-bbis"
     },
     {
       "agencyName": "Ten Speed",
@@ -1738,7 +1740,9 @@
       "publicContactChannel": "nate@tenspeed.io",
       "caseStudyClientDomain": "workvivo.com",
       "caseStudyClientName": "Workvivo",
-      "status": "queued"
+      "status": "audited",
+      "auditedAt": "2026-11-24T05:07:04.748Z",
+      "auditSlug": "workvivo-com-1q85"
     },
     {
       "agencyName": "Skale",

@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { enforceQualityGate95 } from '../../packages/core-geo/dist/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -64,27 +64,46 @@ function escapeHtml(raw) {
     .replace(/"/g, '&quot;');
 }
 
+function isUbuntuSnapStub(binPath) {
+  try {
+    const st = fs.statSync(binPath);
+    if (st.size > 65536) return false;
+    const head = fs.readFileSync(binPath, 'utf8');
+    return head.includes('snap') || head.includes('chromium-browser');
+  } catch {
+    return false;
+  }
+}
+
 function findChromeBinary() {
   const candidates = [
     process.env.CHROME_BIN,
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/opt/google/chrome/chrome',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
-    '/usr/bin/google-chrome',
   ].filter(Boolean);
 
-  return candidates.find((p) => fs.existsSync(p)) ?? null;
+  return (
+    candidates.find((p) => fs.existsSync(p) && !isUbuntuSnapStub(p)) ?? null
+  );
 }
 
 function findFfmpegBinary() {
-  try {
-    execFileSync('ffmpeg', ['-version'], { stdio: 'ignore' });
-    return 'ffmpeg';
-  } catch {
-    return null;
+  const candidates = [process.env.FFMPEG_BIN, 'ffmpeg'].filter(Boolean);
+  for (const bin of candidates) {
+    try {
+      execFileSync(bin, ['-version'], { stdio: 'ignore' });
+      return bin;
+    } catch {
+      // Try next candidate
+    }
   }
+  return null;
 }
 
 function loadVideoLedger() {
@@ -177,7 +196,7 @@ function renderHtmlToPng(chromeBin, htmlContent, outPngPath) {
       '--hide-scrollbars',
       '--window-size=1080,1920',
       `--screenshot=${outPngPath}`,
-      `file:///${tmpHtml.replace(/\\/g, '/')}`,
+      pathToFileURL(tmpHtml).href,
     ]);
     return fs.existsSync(outPngPath);
   } finally {

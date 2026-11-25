@@ -104,12 +104,69 @@ function mirrorFileIfNeeded(relPath, content) {
   }
 }
 
+function cleanEnvValue(raw, keyNames = []) {
+  let v = String(raw ?? '').replace(/[\r\n]+/g, '').trim();
+  if (
+    (v.startsWith('"') && v.endsWith('"')) ||
+    (v.startsWith("'") && v.endsWith("'"))
+  ) {
+    v = v.slice(1, -1).trim();
+  }
+  for (const k of keyNames) {
+    if (v.toUpperCase().startsWith(`${k.toUpperCase()}=`)) {
+      v = v.slice(k.length + 1).trim();
+      if (
+        (v.startsWith('"') && v.endsWith('"')) ||
+        (v.startsWith("'") && v.endsWith("'"))
+      ) {
+        v = v.slice(1, -1).trim();
+      }
+      break;
+    }
+  }
+  return v;
+}
+
+function resolveSupabaseUrl(raw) {
+  const cleaned = cleanEnvValue(raw, [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'SUPABASE_URL',
+  ]).replace(/\/+$/, '');
+  if (!cleaned) return '';
+  let candidate = cleaned;
+  if (/^[a-z0-9]{15,30}$/i.test(cleaned)) {
+    candidate = `https://${cleaned}.supabase.co`;
+  } else if (!/^https?:\/\//i.test(cleaned) && !cleaned.includes('://') && cleaned.includes('.')) {
+    candidate = `https://${cleaned}`;
+  }
+  let parsed;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error(
+      `Invalid NEXT_PUBLIC_SUPABASE_URL format (len=${cleaned.length}, hasProtocol=${cleaned.includes('://')}, hasEquals=${cleaned.includes('=')}). Expected https://<project-ref>.supabase.co.`
+    );
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    throw new Error(
+      `Unsupported NEXT_PUBLIC_SUPABASE_URL protocol (${parsed.protocol}). Expected https://<project-ref>.supabase.co.`
+    );
+  }
+  return candidate.replace(/\/+$/, '');
+}
+
 async function sendViaRelay({ toEmail, subject, bodyText }) {
-  const serviceKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const serviceKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY, [
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   const replyTo = (
-    process.env.OUTBOUND_REPLY_TO_EMAIL ?? 'kulinichnick@gmail.com'
+    cleanEnvValue(process.env.OUTBOUND_REPLY_TO_EMAIL, [
+      'OUTBOUND_REPLY_TO_EMAIL',
+    ]) || 'kulinichnick@gmail.com'
   ).trim();
-  const rawAppUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
+  const rawAppUrl = cleanEnvValue(process.env.NEXT_PUBLIC_APP_URL, [
+    'NEXT_PUBLIC_APP_URL',
+  ]);
   const appOrigin = (
     rawAppUrl && !/localhost|127\.0\.0\.1/i.test(rawAppUrl)
       ? rawAppUrl
@@ -121,6 +178,7 @@ async function sendViaRelay({ toEmail, subject, bodyText }) {
     headers: {
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     body: JSON.stringify({
       to: toEmail,
@@ -148,11 +206,15 @@ async function fetchAuthUsersMap(sbUrl, sbKey) {
     headers: {
       apikey: sbKey,
       Authorization: `Bearer ${sbKey}`,
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     signal: AbortSignal.timeout(10000),
   });
   if (!res.ok) {
-    throw new Error(`Supabase Auth admin list failed (HTTP ${res.status})`);
+    const errText = await res.text().catch(() => '');
+    throw new Error(
+      `Supabase Auth admin list failed (HTTP ${res.status}): ${errText.slice(0, 180)}`
+    );
   }
   const payload = await res.json();
   for (const u of payload.users ?? []) {
@@ -172,6 +234,7 @@ async function markAuthUserActivated(sbUrl, sbKey, user, sentAtIso, messageId) {
       apikey: sbKey,
       Authorization: `Bearer ${sbKey}`,
       'Content-Type': 'application/json',
+      'User-Agent': 'VerisourceGrowthOps/1.0',
     },
     body: JSON.stringify({
       app_metadata: {
@@ -195,8 +258,10 @@ async function main() {
   const syncLedgerToAuth = args.includes('--sync-ledger-to-auth');
   const nowIso = new Date().toISOString();
 
-  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim().replace(/\/+$/, '');
-  const sbKey = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? '').trim();
+  const sbUrl = resolveSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const sbKey = cleanEnvValue(process.env.SUPABASE_SERVICE_ROLE_KEY, [
+    'SUPABASE_SERVICE_ROLE_KEY',
+  ]);
   if (!sbUrl || !sbKey) {
     throw new Error('Supabase credentials missing.');
   }
@@ -210,18 +275,37 @@ async function main() {
   const headers = {
     apikey: sbKey,
     Authorization: `Bearer ${sbKey}`,
+    'User-Agent': 'VerisourceGrowthOps/1.0',
   };
 
   const [profRes, domRes, authUsersMap] = await Promise.all([
     fetch(
       `${sbUrl}/rest/v1/profiles?plan_tier=eq.free&select=id,email,created_at&order=created_at.asc`,
-      { headers }
+      { headers, signal: AbortSignal.timeout(10000) }
     ),
-    fetch(`${sbUrl}/rest/v1/domains?select=user_id`, { headers }),
+    fetch(`${sbUrl}/rest/v1/domains?select=user_id`, {
+      headers,
+      signal: AbortSignal.timeout(10000),
+    }),
     fetchAuthUsersMap(sbUrl, sbKey),
   ]);
+  if (!profRes.ok) {
+    const errText = await profRes.text().catch(() => '');
+    throw new Error(
+      `Supabase profiles query failed (HTTP ${profRes.status}): ${errText.slice(0, 180)}`
+    );
+  }
+  if (!domRes.ok) {
+    const errText = await domRes.text().catch(() => '');
+    throw new Error(
+      `Supabase domains query failed (HTTP ${domRes.status}): ${errText.slice(0, 180)}`
+    );
+  }
   const freeProfiles = await profRes.json();
-  const domainUserIds = new Set((await domRes.json()).map((d) => d.user_id));
+  const domainRows = await domRes.json();
+  const domainUserIds = new Set(
+    (Array.isArray(domainRows) ? domainRows : []).map((d) => d.user_id)
+  );
 
   if (syncLedgerToAuth) {
     let synced = 0;
@@ -278,10 +362,24 @@ async function main() {
     let scan = null;
     if (!GENERIC_MAILBOX_HOSTS.has(check.host)) {
       try {
-        orgDomain = normalizePublicDomain(check.host).hostname;
-        scan = await runDomainReadinessScan(orgDomain, {
-          PROVIDER_MODE: 'mock',
-        });
+        const candidateHost = normalizePublicDomain(check.host).hostname;
+        // Verify the custom email domain actually serves an HTTP(S) website (avoids mail-only IONOS/personal domains)
+        const probeRes = await fetch(`https://${candidateHost}`, {
+          method: 'GET',
+          headers: {
+            'User-Agent':
+              'VerisourceScan/1.0 (+https://verisource.dev/scanner)',
+            Accept: 'text/html,application/xhtml+xml',
+          },
+          redirect: 'follow',
+          signal: AbortSignal.timeout(6000),
+        }).catch(() => null);
+        if (probeRes && probeRes.status < 500) {
+          orgDomain = candidateHost;
+          scan = await runDomainReadinessScan(orgDomain, {
+            PROVIDER_MODE: 'mock',
+          });
+        }
       } catch {
         orgDomain = null;
         scan = null;
@@ -362,6 +460,14 @@ async function main() {
 }
 
 main().catch((err) => {
+  const rawMsg = String(err?.message ?? err);
+  const safeMsg = rawMsg
+    .replace(/sb_secret_[^\s"']+|sb_publishable_[^\s"']+|eyJ[A-Za-z0-9._-]+/g, '[REDACTED]')
+    .replace(/[\r\n]+/g, ' ')
+    .slice(0, 220);
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    console.log(`::error title=ops-free-activation::${safeMsg}`);
+  }
   console.error('[ops:activate-free] Failed:', err);
   process.exit(1);
 });

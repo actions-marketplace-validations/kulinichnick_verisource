@@ -1132,6 +1132,41 @@ const RAW_CURATED_MATCHUPS: ReadonlyArray<Omit<CuratedMatchupSpec, 'slug'>> = [
     angle:
       'Developer shipping API /llms.txt index, SSR token density, and homepage schema.org parity.',
   },
+  {
+    cohort: 'CONSTRUCTION MANAGEMENT & AEC CLOUD',
+    domainA: 'procore.com',
+    domainB: 'autodesk.com',
+    angle:
+      'Construction management open AI crawler access and 2-pillar JSON-LD vs. edge bot restrictions.',
+  },
+  {
+    cohort: 'RESTAURANT & HOSPITALITY POS PLATFORMS',
+    domainA: 'spoton.com',
+    domainB: 'toasttab.com',
+    angle:
+      'Restaurant POS 3-pillar JSON-LD + /llms.txt readiness vs. edge WAF AI crawler blocks.',
+  },
+  {
+    cohort: 'OMNICHANNEL RETAIL & RESTAURANT POS',
+    domainA: 'spoton.com',
+    domainB: 'lightspeedhq.com',
+    angle:
+      'Next.js 3-pillar schema + /llms.txt coverage vs. WordPress commerce POS readiness.',
+  },
+  {
+    cohort: 'FIELD SERVICE & HOME TRADE SOFTWARE',
+    domainA: 'servicetitan.com',
+    domainB: 'jobber.com',
+    angle:
+      'Enterprise vs. SMB field-service /llms.txt feeds, GPTBot crawlability, and homepage JSON-LD.',
+  },
+  {
+    cohort: 'FLEET TELEMATICS & PHYSICAL OPERATIONS AI',
+    domainA: 'samsara.com',
+    domainB: 'motive.com',
+    angle:
+      'Connected fleet operations /llms.txt documentation feed vs. entity JSON-LD coverage.',
+  },
 ];
 
 export interface ResolvedPublishedMatchup extends CuratedMatchupSpec {

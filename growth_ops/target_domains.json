@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updatedAt": "2026-11-20T04:43:49.146Z",
+  "updatedAt": "2026-11-24T05:10:32.902Z",
   "batchSizeDefault": 10,
   "domains": [
     {
@@ -3460,59 +3460,129 @@
       "domain": "samsara.com",
       "brandName": "Samsara",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "motive.com",
       "brandName": "Motive",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "procore.com",
       "brandName": "Procore",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "autodesk.com",
       "brandName": "Autodesk",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "servicetitan.com",
       "brandName": "ServiceTitan",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "jobber.com",
       "brandName": "Jobber",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "housecallpro.com",
       "brandName": "Housecall Pro",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "toasttab.com",
       "brandName": "Toast",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "spoton.com",
       "brandName": "SpotOn",
       "vertical": "b2b_saas",
-      "status": "queued"
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
     },
     {
       "domain": "lightspeedhq.com",
       "brandName": "Lightspeed",
+      "vertical": "b2b_saas",
+      "status": "published",
+      "publishedAt": "2026-11-24T05:07:04.748Z"
+    },
+    {
+      "domain": "appfolio.com",
+      "brandName": "AppFolio",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "buildium.com",
+      "brandName": "Buildium",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "entrata.com",
+      "brandName": "Entrata",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "clio.com",
+      "brandName": "Clio",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "mycase.com",
+      "brandName": "MyCase",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "practicepanther.com",
+      "brandName": "PracticePanther",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "mindbodyonline.com",
+      "brandName": "Mindbody",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "zenoti.com",
+      "brandName": "Zenoti",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "boulevard.io",
+      "brandName": "Boulevard",
+      "vertical": "b2b_saas",
+      "status": "queued"
+    },
+    {
+      "domain": "vagaro.com",
+      "brandName": "Vagaro",
       "vertical": "b2b_saas",
       "status": "queued"
     }

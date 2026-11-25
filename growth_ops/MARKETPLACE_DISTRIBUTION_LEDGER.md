@@ -10,7 +10,7 @@
 
 | # | Platform / Shelf | Current Status | Asset Already Built | 1-Click Publish Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **1** | **GitHub Actions Marketplace** | `LIVE (v1.0.0 · 2026-11-19)` | Published live at https://github.com/marketplace/actions/verisource-ai-search-site-health-gate (`HTTP 200`, `Code quality` + `Deployment`, release `v1.0.0`) + `autonomous-growth-ops.yml` Run #1 (`44647037926`) `SUCCESS` (`community-signal-digest` artifact uploaded). | Add the `5` GitHub Actions Secrets below so scheduled 6h/daily/weekly runs deliver emails & IndexNow pings automatically. |
+| **1** | **GitHub Actions Marketplace** | `LIVE (v1.0.0 · CRONS GREEN #45329309348)` | Published live at https://github.com/marketplace/actions/verisource-ai-search-site-health-gate (`HTTP 200`, `Code quality` + `Deployment`, release `v1.0.0`) + `autonomous-growth-ops.yml` Daily & Weekly lanes verified `completed/success` (`#45329309348`). | 24/7 cloud crons (`0 */6 * * *`, `0 13 * * *`, `0 14 * * 1`) active and green. |
 | **2** | **Official MCP Registry** | `LIVE` | `dev.verisource/mcp@1.0.0` + Ed25519 proof | Verified live on `registry.modelcontextprotocol.io`. |
 | **3** | **Glama MCP Directory** | `SUBMITTED` | Hosted Streamable HTTP `/mcp` | Verify badge & description stay synced with `OAuth 2.1` (`/oauth/mcp`). |
 | **4** | **Cursor Directory** | `LIVE` | `verisource-geo-ai-citation-mcp` | Live plugin entry pointing to `https://mcp.verisource.dev/mcp`. |
@@ -23,7 +23,7 @@
 | **8d** | **`TensorBlock/awesome-mcp-servers` (`tensorblock.co/mcp`)** | `PR #6464 OPEN (2026-11-20)` | Opened https://github.com/TensorBlock/awesome-mcp-servers/pull/6464 (`docs/marketing-sales--crm.md`, `dev.verisource/mcp`, Streamable HTTP + OAuth 2.1 + PKCE metadata for `mcp-index.tensorblock.co`). | Waiting on maintainer merge (`1,104★` + public API registry). |
 | **8e** | **`YuzeHao2023/Awesome-MCP-Servers`** | `PR #951 OPEN (2026-11-20)` | Opened https://github.com/YuzeHao2023/Awesome-MCP-Servers/pull/951 (`Category: Marketing`, `https://mcp.verisource.dev/mcp`). | Waiting on maintainer merge (`1,093★`). |
 | **8f** | **`directory.llmstxt.cloud` & `DevHunt`** | `STAGED (1-CLICK TURNSTILE / GITHUB LOGIN)` | `directory.llmstxt.cloud/submit` form 100% pre-filled on Free Standard tier (paused at Turnstile); `devhunt.org/login?next=submit` ready for GitHub sign-in. | Click Turnstile + **Join waitlist** on `directory.llmstxt.cloud`; click **Continue with Github** on `DevHunt`. |
-| **8g** | **npm Registry (`@verisource/cli`)** | `LIVE (v1.0.0 · 2026-11-20)` | Published `@verisource/cli@1.0.0` (`162.0 kB`, 20 files, standalone bundle) under npm account `verisource` (`https://www.npmjs.com/package/@verisource/cli`). | Verify `npx --yes @verisource/cli scan verisource.dev` clears npm's initial staging queue and use clean `npx @verisource/cli` command in Tue Nov 24 Show HN launch. |
+| **8g** | **npm Registry (`@verisource/cli`)** | `LIVE & SMOKE-VERIFIED (v1.0.0 · 2026-11-20)` | Published `@verisource/cli@1.0.0` (`162.0 kB`, 20 files, standalone bundle) under npm account `verisource` (`https://www.npmjs.com/package/@verisource/cli`); `npx --yes @verisource/cli scan verisource.dev` verified `HTTP 200` / `exit 0`. | Ready for Tue Nov 24 Show HN launch (`8:00–9:00 AM ET`). |
 
 ---
 
@@ -31,7 +31,7 @@
 
 | # | Store / Shelf | Current Status | Asset Already Built | Next Action |
 | :--- | :--- | :--- | :--- | :--- |
-| **9** | **Chrome Web Store** | `LIVE (v0.1.0) · v1.0.1 PENDING REVIEW (2026-11-20)` | `v0.1.0` published public (`https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb`); Yellow-Argon-hardened `verisource-chrome-mv3-v1.0.1.zip` + cleaned copy + 24-bit RGB screenshots/small promo tile (old marquee removed) submitted for review `2026-11-20`. | Wait for Chrome Web Store `v1.0.1` approval email (`auto-publish` / staged publish check). |
+| **9** | **Chrome Web Store** | `LIVE (v1.0.1 APPROVED & PUBLIC · 2026-11-23)` | `v1.0.1` approved by Google Chrome Web Store review and live publicly at https://chromewebstore.google.com/detail/hkkihmaeffcpapckhiciaaadbanbjddb (`HTTP 200`, `"1.0.1"`, Step 02/03 paywall + active-tab sync + clean Yellow-Argon listing). | Live! Share store link in Show HN replies & subscriber onboarding. |
 | **10** | **Microsoft Edge Add-ons** | `READY (0 CODE)` | Exact same `verisource-chrome-mv3-v1.0.1.zip` | Upload at https://partner.microsoft.com/dashboard/microsoftedge. |
 | **11** | **WordPress.org Plugin Directory** | `IN HUMAN REVIEW QUEUE (CONFIRMED · 2026-11-19)` | Confirmation email received (`plugins@wordpress.org`, Thu Nov 19 6:36 PM). Slug locked to `https://wordpress.org/plugins/verisource-ai-facts-geo-connector/` (exact match with `Text Domain: verisource-ai-facts-geo-connector` in `verisource-ai-facts-geo-connector-wp-v1.0.0.zip`, auto-scan **Pass**). | No reply needed—slug is correct. Wait for volunteer reviewer decision email (if they request `wp_enqueue_script` / `wp_print_inline_script_tag`, patch & re-upload `.zip`). |
 | **12** | **Shopify App Store** | `PHASE 2 (BRIDGE READY)` | `/connectors` Shopify OS 2.0 theme snippet + `/api/ucp/mcp` probe | Package lightweight free AI Readiness + `/agents.md` helper app. |
